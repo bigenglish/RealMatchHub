@@ -10,11 +10,20 @@ import { useToast } from '@/hooks/use-toast';
 interface IdxWidgetProps {
   widgetId?: string;
   className?: string;
+  onSearch?: (filters: SearchFilters) => void;
 }
 
-// Demo component that shows what an IDX Widget would look like
-// In a real implementation, this would load from the IDX Broker API
-export default function IdxWidget({ className = "" }: IdxWidgetProps) {
+interface SearchFilters {
+  location?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  beds?: string;
+  baths?: string;
+  propertyType?: string;
+}
+
+// Search widget component for property search functionality
+export default function IdxWidget({ className = "", onSearch }: IdxWidgetProps) {
   const { toast } = useToast();
   const [location, setLocation] = useState("");
   const [minPrice, setMinPrice] = useState("0");
@@ -55,6 +64,36 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
         : "Searching for all properties",
       duration: 4000,
     });
+    
+    // Create filters object
+    const filters: SearchFilters = {
+      location: location || undefined,
+      minPrice: minPrice !== "0" ? minPrice : undefined,
+      maxPrice: maxPrice !== "10000000" ? maxPrice : undefined,
+      beds: beds !== "any" ? beds : undefined,
+      baths: baths !== "any" ? baths : undefined,
+      propertyType: propertyType !== "any" ? propertyType : undefined
+    };
+    
+    // Pass filters to parent component if onSearch callback is provided
+    if (onSearch) {
+      onSearch(filters);
+    }
+    
+    // Apply search filters
+    const searchParams = new URLSearchParams();
+    if (location) searchParams.set("location", location);
+    if (minPrice !== "0") searchParams.set("minPrice", minPrice);
+    if (maxPrice !== "10000000") searchParams.set("maxPrice", maxPrice);
+    if (beds !== "any") searchParams.set("beds", beds);
+    if (baths !== "any") searchParams.set("baths", baths);
+    if (propertyType !== "any") searchParams.set("type", propertyType);
+    
+    // Simulate triggering a search with filters by automatically switching to the IDX tab
+    const idxTabTrigger = document.querySelector("[value='idx']") as HTMLElement;
+    if (idxTabTrigger) {
+      idxTabTrigger.click();
+    }
   };
   
   // Render the property search form
@@ -154,7 +193,7 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="any">Any</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
+                  <SelectItem value="house">Single Family Home</SelectItem>
                   <SelectItem value="condo">Condo</SelectItem>
                   <SelectItem value="townhouse">Townhouse</SelectItem>
                   <SelectItem value="multi">Multi-Family</SelectItem>

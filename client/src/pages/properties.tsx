@@ -183,7 +183,37 @@ export default function PropertiesPage() {
           <CardTitle>Find More Properties</CardTitle>
         </CardHeader>
         <CardContent>
-          <IdxWidget className="w-full min-h-[200px]" />
+          <IdxWidget 
+            className="w-full" 
+            onSearch={(filters) => {
+              // Convert IDX Widget filters to the format expected by handleFilter
+              const convertedFilters: any = {};
+              
+              if (filters.minPrice) {
+                convertedFilters.minPrice = parseInt(filters.minPrice);
+              }
+              
+              if (filters.maxPrice) {
+                convertedFilters.maxPrice = parseInt(filters.maxPrice);
+              }
+              
+              if (filters.beds) {
+                convertedFilters.bedrooms = parseInt(filters.beds);
+              }
+              
+              if (filters.propertyType) {
+                convertedFilters.propertyType = filters.propertyType === 'house' 
+                  ? 'Single Family Home' 
+                  : filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+              }
+              
+              // Apply filters
+              handleFilter(convertedFilters);
+              
+              // Switch to IDX tab
+              setActiveTab('idx');
+            }}
+          />
         </CardContent>
       </Card>
       
@@ -271,8 +301,35 @@ export default function PropertiesPage() {
               
               {/* Add IDX Widget specifically in the IDX tab for more visibility */}
               <div className="mt-8">
-                <h3 className="text-xl font-semibold mb-4">Search Los Angeles Properties</h3>
-                <IdxWidget className="w-full" />
+                <h3 className="text-xl font-semibold mb-4">Try Searching for Properties</h3>
+                <IdxWidget 
+                  className="w-full" 
+                  onSearch={(filters) => {
+                    // Convert IDX Widget filters to the format expected by handleFilter
+                    const convertedFilters: any = {};
+                    
+                    if (filters.minPrice) {
+                      convertedFilters.minPrice = parseInt(filters.minPrice);
+                    }
+                    
+                    if (filters.maxPrice) {
+                      convertedFilters.maxPrice = parseInt(filters.maxPrice);
+                    }
+                    
+                    if (filters.beds) {
+                      convertedFilters.bedrooms = parseInt(filters.beds);
+                    }
+                    
+                    if (filters.propertyType) {
+                      convertedFilters.propertyType = filters.propertyType === 'house' 
+                        ? 'Single Family Home' 
+                        : filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+                    }
+                    
+                    // Apply filters
+                    handleFilter(convertedFilters);
+                  }}
+                />
               </div>
             </div>
           )}

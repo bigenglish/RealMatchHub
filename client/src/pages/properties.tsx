@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
+import IdxWidget from "@/components/idx-widget";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // Interface for IDX Broker listings
 interface IdxListing {
@@ -171,6 +173,16 @@ export default function PropertiesPage() {
       
       <SearchFilters onFilter={handleFilter} />
       
+      {/* IDX Broker Widget */}
+      <Card className="mt-8 mb-8">
+        <CardHeader>
+          <CardTitle>Find More Properties</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <IdxWidget className="w-full min-h-[200px]" />
+        </CardContent>
+      </Card>
+      
       <Tabs 
         defaultValue="all" 
         className="mt-8"
@@ -252,6 +264,12 @@ export default function PropertiesPage() {
               <p className="text-muted-foreground mt-2">
                 Try adjusting your search filters or check our direct listings
               </p>
+              
+              {/* Add IDX Widget specifically in the IDX tab for more visibility */}
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold mb-4">Search Los Angeles Properties</h3>
+                <IdxWidget className="w-full min-h-[300px]" />
+              </div>
             </div>
           )}
         </TabsContent>

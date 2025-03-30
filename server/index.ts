@@ -2,6 +2,13 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Check for IDX Broker API key at startup
+if (process.env.IDX_BROKER_API_KEY) {
+  log("IDX_BROKER_API_KEY found, real IDX integration enabled", "express");
+} else {
+  log("IDX_BROKER_API_KEY not found, using mock IDX data", "express");
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

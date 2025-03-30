@@ -1,5 +1,71 @@
 import axios from 'axios';
 
+/**
+ * Tests the IDX Broker API connection
+ * @returns Test results with connection status
+ */
+export async function testIdxConnection(): Promise<{ success: boolean; message: string }> {
+  try {
+    // Check if API key is available
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    
+    if (!apiKey) {
+      return { 
+        success: false, 
+        message: "IDX Broker API key is not configured" 
+      };
+    }
+    
+    // Make a simple request to test the connection
+    try {
+      // We'll make a simple call to get account information
+      // This is typically a lightweight API call that should work if the key is valid
+      const response = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'accesskey': apiKey
+        }
+      });
+      
+      return { 
+        success: true, 
+        message: "Successfully connected to IDX Broker API",
+      };
+    } catch (apiError) {
+      // Check the specific error and provide a better message
+      if (axios.isAxiosError(apiError) && apiError.response) {
+        const status = apiError.response.status;
+        if (status === 401) {
+          return {
+            success: false,
+            message: "Invalid IDX Broker API key. Please check your credentials."
+          };
+        } else if (status === 403) {
+          return {
+            success: false,
+            message: "Access forbidden. Your IDX Broker API key may have insufficient permissions."
+          };
+        } else {
+          return {
+            success: false,
+            message: `IDX Broker API error (${status}): ${apiError.message}`
+          };
+        }
+      } else {
+        return {
+          success: false,
+          message: "Could not connect to IDX Broker API. Please check your internet connection."
+        };
+      }
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : "Unknown error" 
+    };
+  }
+}
+
 // Define the IDX Broker API response types
 export interface IdxListing {
   listingId: string;
@@ -34,13 +100,17 @@ export async function fetchIdxListings({
   offset = 0, 
   city = '', 
   minPrice = 0, 
-  maxPrice = 0 
+  maxPrice = 0,
+  bedrooms,
+  bathrooms
 }: { 
   limit?: number; 
   offset?: number; 
   city?: string; 
   minPrice?: number; 
   maxPrice?: number;
+  bedrooms?: number;
+  bathrooms?: number;
 }): Promise<IdxListingsResponse> {
   try {
     // Check if API key is available
@@ -48,34 +118,38 @@ export async function fetchIdxListings({
     
     if (!apiKey) {
       console.warn('IDX_BROKER_API_KEY not found in environment variables');
-      return { listings: [], totalCount: 0, hasMoreListings: false };
+      return getMockListings(limit, offset);
     }
 
-    // In a real implementation, we would make an actual API call to IDX Broker
-    // For demonstration purposes, we're returning sample data
-    
-    // This would be the actual API call:
-    /*
-    const response = await axios.get('https://api.idxbroker.com/clients/listings', {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'accesskey': apiKey
-      },
-      params: {
-        limit,
-        offset,
-        ...(city && { city }),
-        ...(minPrice > 0 && { minPrice }),
-        ...(maxPrice > 0 && { maxPrice })
-      }
-    });
-    
-    return transformIdxResponse(response.data);
-    */
-    
-    // For demonstration, return sample listings
-    // In a production environment, this would use the actual API response
-    return getMockListings(limit, offset);
+    try {
+      console.log('Attempting to fetch real IDX listings with provided API key');
+      
+      // Make the actual API call to IDX Broker
+      const response = await axios.get('https://api.idxbroker.com/clients/listings', {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'accesskey': apiKey
+        },
+        params: {
+          limit,
+          offset,
+          ...(city && { city }),
+          ...(minPrice > 0 && { minPrice }),
+          ...(maxPrice > 0 && { maxPrice }),
+          ...(bedrooms !== undefined && { bedrooms }),
+          ...(bathrooms !== undefined && { bathrooms })
+        }
+      });
+      
+      console.log('Successfully received response from IDX Broker API');
+      return transformIdxResponse(response.data);
+    } catch (apiError) {
+      console.error('Error calling IDX Broker API:', apiError);
+      console.log('Falling back to mock data due to API error');
+      
+      // If the API call fails, fallback to mock data
+      return getMockListings(limit, offset);
+    }
   } catch (error) {
     console.error('Error fetching IDX listings:', error);
     throw new Error('Failed to fetch IDX listings');

@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPropertySchema, insertServiceProviderSchema } from "@shared/schema";
-import { fetchIdxListings } from "./idx-broker"; // Import from idx-broker.ts
+import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -111,6 +111,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(provider);
     } catch (error) {
       res.status(400).json({ message: "Invalid service provider data" });
+    }
+  });
+  
+  // Add endpoint to check if IDX API key is configured
+  app.get("/api/idx-status", async (_req, res) => {
+    try {
+      const hasApiKey = !!process.env.IDX_BROKER_API_KEY;
+      res.json({ 
+        enabled: hasApiKey,
+        message: hasApiKey ? 
+          "IDX Broker API is configured and ready to use" : 
+          "IDX Broker API key is not configured"
+      });
+    } catch (error) {
+      console.error("Error checking IDX status:", error);
+      res.status(500).json({ message: "Error checking IDX status" });
+    }
+  });
+  
+  // Add endpoint to test the IDX API connection
+  app.get("/api/idx-test", async (_req, res) => {
+    try {
+      const connectionResult = await testIdxConnection();
+      res.json(connectionResult);
+    } catch (error) {
+      console.error("Error testing IDX connection:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error testing IDX connection" 
+      });
+    }
+  });
+  
+  // Add endpoint to fetch IDX listings
+  app.get("/api/idx-listings", async (req, res) => {
+    try {
+      const limit = Number(req.query.limit) || 10;
+      const offset = Number(req.query.offset) || 0;
+      const city = req.query.city ? String(req.query.city) : undefined;
+      const minPrice = req.query.minPrice ? Number(req.query.minPrice) : undefined;
+      const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : undefined;
+      const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
+      const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
+      
+      const listings = await fetchIdxListings({
+        limit,
+        offset,
+        city,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms
+      });
+      
+      res.json(listings);
+    } catch (error) {
+      console.error("Error fetching IDX listings:", error);
+      res.status(500).json({ 
+        message: "Error fetching IDX listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

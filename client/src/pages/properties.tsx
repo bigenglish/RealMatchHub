@@ -4,6 +4,7 @@ import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
 import IdxWidget from "@/components/idx-widget";
+import IdxStatus from "@/components/idx-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -172,6 +173,9 @@ export default function PropertiesPage() {
       </div>
       
       <SearchFilters onFilter={handleFilter} />
+      
+      {/* IDX Status Banner */}
+      <IdxStatus className="mt-4" />
       
       {/* IDX Broker Widget */}
       <Card className="mt-8 mb-8">

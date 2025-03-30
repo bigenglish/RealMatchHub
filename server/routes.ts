@@ -118,12 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-status", async (_req, res) => {
     try {
       const hasApiKey = !!process.env.IDX_BROKER_API_KEY;
-      res.json({ 
+      console.log("[express] /api/idx-status called, hasApiKey =", hasApiKey);
+      
+      const response = { 
         enabled: hasApiKey,
         message: hasApiKey ? 
           "IDX Broker API is configured and ready to use" : 
           "IDX Broker API key is not configured"
-      });
+      };
+      
+      console.log("[express] /api/idx-status response:", response);
+      res.json(response);
     } catch (error) {
       console.error("Error checking IDX status:", error);
       res.status(500).json({ message: "Error checking IDX status" });
@@ -133,7 +138,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add endpoint to test the IDX API connection
   app.get("/api/idx-test", async (_req, res) => {
     try {
+      console.log("[express] /api/idx-test called");
       const connectionResult = await testIdxConnection();
+      console.log("[express] /api/idx-test result:", connectionResult);
       res.json(connectionResult);
     } catch (error) {
       console.error("Error testing IDX connection:", error);

@@ -272,7 +272,7 @@ export default function PropertiesPage() {
               {/* Add IDX Widget specifically in the IDX tab for more visibility */}
               <div className="mt-8">
                 <h3 className="text-xl font-semibold mb-4">Search Los Angeles Properties</h3>
-                <IdxWidget className="w-full min-h-[300px]" />
+                <IdxWidget className="w-full" />
               </div>
             </div>
           )}

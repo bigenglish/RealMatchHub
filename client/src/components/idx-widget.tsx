@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 interface IdxWidgetProps {
   widgetId?: string;
@@ -13,6 +15,14 @@ interface IdxWidgetProps {
 // Demo component that shows what an IDX Widget would look like
 // In a real implementation, this would load from the IDX Broker API
 export default function IdxWidget({ className = "" }: IdxWidgetProps) {
+  const { toast } = useToast();
+  const [location, setLocation] = useState("");
+  const [minPrice, setMinPrice] = useState("0");
+  const [maxPrice, setMaxPrice] = useState("10000000");
+  const [beds, setBeds] = useState("any");
+  const [baths, setBaths] = useState("any");
+  const [propertyType, setPropertyType] = useState("any");
+  
   // Define the type for IDX status response
   interface IdxStatusResponse {
     enabled: boolean;
@@ -25,6 +35,28 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
     staleTime: Infinity, // This won't change during the session
   });
   
+  // Handle the form submission
+  const handleSearch = () => {
+    // Build search criteria for display in toast
+    const criteria = [];
+    
+    if (location) criteria.push(`Location: ${location}`);
+    if (minPrice !== "0") criteria.push(`Min Price: $${parseInt(minPrice).toLocaleString()}`);
+    if (maxPrice !== "10000000") criteria.push(`Max Price: $${parseInt(maxPrice).toLocaleString()}`);
+    if (beds !== "any") criteria.push(`Beds: ${beds}+`);
+    if (baths !== "any") criteria.push(`Baths: ${baths}+`);
+    if (propertyType !== "any") criteria.push(`Type: ${propertyType}`);
+    
+    // Show search criteria in a toast notification
+    toast({
+      title: "Property Search",
+      description: criteria.length > 0 
+        ? `Searching for properties with: ${criteria.join(", ")}`
+        : "Searching for all properties",
+      duration: 4000,
+    });
+  };
+  
   // Render the property search form
   return (
     <Card className={className}>
@@ -33,13 +65,18 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
         <div className="space-y-4">
           <div>
             <Label htmlFor="location">Location</Label>
-            <Input id="location" placeholder="City, ZIP, Address, or MLS#" />
+            <Input 
+              id="location" 
+              placeholder="City, ZIP, Address, or MLS#" 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price-min">Min Price</Label>
-              <Select defaultValue="0">
+              <Select value={minPrice} onValueChange={setMinPrice}>
                 <SelectTrigger id="price-min">
                   <SelectValue placeholder="No Min" />
                 </SelectTrigger>
@@ -57,7 +94,7 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
             
             <div>
               <Label htmlFor="price-max">Max Price</Label>
-              <Select defaultValue="10000000">
+              <Select value={maxPrice} onValueChange={setMaxPrice}>
                 <SelectTrigger id="price-max">
                   <SelectValue placeholder="No Max" />
                 </SelectTrigger>
@@ -77,7 +114,7 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="beds">Beds</Label>
-              <Select defaultValue="any">
+              <Select value={beds} onValueChange={setBeds}>
                 <SelectTrigger id="beds">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -94,7 +131,7 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
             
             <div>
               <Label htmlFor="baths">Baths</Label>
-              <Select defaultValue="any">
+              <Select value={baths} onValueChange={setBaths}>
                 <SelectTrigger id="baths">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -111,7 +148,7 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
             
             <div>
               <Label htmlFor="type">Home Type</Label>
-              <Select defaultValue="any">
+              <Select value={propertyType} onValueChange={setPropertyType}>
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
@@ -127,7 +164,13 @@ export default function IdxWidget({ className = "" }: IdxWidgetProps) {
             </div>
           </div>
           
-          <Button type="submit" className="w-full">Search Properties</Button>
+          <Button 
+            type="button" 
+            className="w-full" 
+            onClick={handleSearch}
+          >
+            Search Properties
+          </Button>
           
           <div className="text-center text-xs text-muted-foreground">
             Powered by IDX Broker

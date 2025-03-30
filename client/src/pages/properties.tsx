@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
@@ -57,9 +57,23 @@ export default function PropertiesPage() {
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
 
+  // Debug logging - remove after fixing
+  useEffect(() => {
+    if (data) {
+      console.log("Properties data:", data);
+      console.log("Your properties:", data.yourProperties);
+      console.log("IDX listings:", data.idxListings);
+    }
+  }, [data]);
+
   // Prepare the property data
   const yourProperties = data?.yourProperties || [];
   const idxListings = data?.idxListings?.map(convertIdxToProperty) || [];
+  
+  // Debug logging for converted properties
+  useEffect(() => {
+    console.log("Converted IDX listings:", idxListings);
+  }, [idxListings]);
   
   // Get all properties for "All" tab
   const allProperties = [...yourProperties, ...idxListings];

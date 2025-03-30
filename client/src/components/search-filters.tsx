@@ -6,19 +6,31 @@ import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { propertyTypes } from "@shared/schema";
+import { RefreshCw, Search } from "lucide-react";
 
 const searchSchema = z.object({
-  minPrice: z.string(),
-  maxPrice: z.string(),
-  beds: z.string(),
-  baths: z.string(),
-  propertyType: z.string(),
+  minPrice: z.string().optional(),
+  maxPrice: z.string().optional(),
+  bedrooms: z.string().optional(),
+  bathrooms: z.string().optional(),
+  propertyType: z.string().optional(),
 });
 
 type SearchFilters = z.infer<typeof searchSchema>;
 
 interface SearchFiltersProps {
-  onFilter: (filters: SearchFilters) => void;
+  onFilter: (filters: any) => void;
+}
+
+// Convert form data to the correct types for filtering
+function prepareFilters(data: SearchFilters) {
+  return {
+    minPrice: data.minPrice ? parseFloat(data.minPrice) : undefined,
+    maxPrice: data.maxPrice ? parseFloat(data.maxPrice) : undefined,
+    bedrooms: data.bedrooms ? parseInt(data.bedrooms) : undefined,
+    bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
+    propertyType: data.propertyType && data.propertyType !== "All" ? data.propertyType : undefined,
+  };
 }
 
 export default function SearchFilters({ onFilter }: SearchFiltersProps) {
@@ -27,15 +39,33 @@ export default function SearchFilters({ onFilter }: SearchFiltersProps) {
     defaultValues: {
       minPrice: "",
       maxPrice: "",
-      beds: "",
-      baths: "",
-      propertyType: "",
+      bedrooms: "",
+      bathrooms: "",
+      propertyType: "All",
     },
   });
 
+  const handleSubmit = (data: SearchFilters) => {
+    const processedFilters = prepareFilters(data);
+    onFilter(processedFilters);
+  };
+
+  const handleReset = () => {
+    form.reset({
+      minPrice: "",
+      maxPrice: "",
+      bedrooms: "",
+      bathrooms: "",
+      propertyType: "All",
+    });
+    
+    // Submit with empty filters
+    onFilter({});
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onFilter)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border rounded-lg p-4 bg-background">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <FormField
             control={form.control}
@@ -65,12 +95,12 @@ export default function SearchFilters({ onFilter }: SearchFiltersProps) {
 
           <FormField
             control={form.control}
-            name="beds"
+            name="bedrooms"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Beds</FormLabel>
+                <FormLabel>Bedrooms</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Beds" {...field} />
+                  <Input type="number" placeholder="Bedrooms" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -78,12 +108,12 @@ export default function SearchFilters({ onFilter }: SearchFiltersProps) {
 
           <FormField
             control={form.control}
-            name="baths"
+            name="bathrooms"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Baths</FormLabel>
+                <FormLabel>Bathrooms</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Baths" {...field} />
+                  <Input type="number" placeholder="Bathrooms" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -95,13 +125,16 @@ export default function SearchFilters({ onFilter }: SearchFiltersProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Property Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={field.value || "All"}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem key="all" value="All">
+                      All Types
+                    </SelectItem>
                     {propertyTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
@@ -114,7 +147,16 @@ export default function SearchFilters({ onFilter }: SearchFiltersProps) {
           />
         </div>
 
-        <Button type="submit" className="w-full">Apply Filters</Button>
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1">
+            <Search className="h-4 w-4 mr-2" />
+            Search Properties
+          </Button>
+          <Button type="button" variant="outline" onClick={handleReset}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
+        </div>
       </form>
     </Form>
   );

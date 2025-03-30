@@ -9,6 +9,13 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  // Log the property being rendered for debugging
+  console.log("PropertyCard rendering property:", {
+    id: property.id,
+    title: property.title,
+    type: property.propertyType
+  });
+  
   // Set default fallback image
   const defaultImage = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
   

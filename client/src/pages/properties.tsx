@@ -73,12 +73,16 @@ export default function PropertiesPage() {
   const yourProperties = data?.yourProperties || [];
   const idxListings = data?.idxListings?.map(convertIdxToProperty) || [];
   
-  // Debug logging for more info
+  // Debug logging for more detailed info
   useEffect(() => {
-    console.log("Converted IDX listings:", idxListings);
-    console.log("Active tab:", activeTab);
-    console.log("Is filtered:", isFiltered);
-  }, [idxListings, activeTab, isFiltered]);
+    if (data) {
+      console.log("===== DATA RECEIVED FROM API =====");
+      console.log("Raw IDX listings data:", data.idxListings);
+      console.log("Processed IDX listings:", idxListings);
+      console.log("Active tab:", activeTab);
+      console.log("Is filtered:", isFiltered);
+    }
+  }, [data, idxListings, activeTab, isFiltered]);
   
   // Get all properties for "All" tab
   const allProperties = [...yourProperties, ...idxListings];
@@ -311,11 +315,19 @@ export default function PropertiesPage() {
         </TabsContent>
         
         <TabsContent value="idx" className="pt-6">
+          {/* Debugging - we log the properties here */}
+          <div className="sr-only" aria-hidden="true">
+            {(() => {
+              console.log("IDX Tab Content - Rendering properties:", isFiltered ? filteredIdxListings : idxListings);
+              return null;
+            })()}
+          </div>
           {(isFiltered ? filteredIdxListings : idxListings).length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {(isFiltered ? filteredIdxListings : idxListings).map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
+              {(isFiltered ? filteredIdxListings : idxListings).map((property) => {
+                console.log("Rendering IDX property:", property);
+                return <PropertyCard key={property.id} property={property} />;
+              })}
             </div>
           ) : (
             <div className="text-center py-12">

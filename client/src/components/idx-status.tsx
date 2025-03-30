@@ -42,15 +42,15 @@ export default function IdxStatus({ className = "" }: IdxStatusProps) {
   
   // Decide if we should show the status banner
   useEffect(() => {
-    // Only show status if we have a test result or if IDX is not enabled
-    if ((testResult && !testResult.success) || (idxStatus && !idxStatus.enabled)) {
+    // Show status if we have any information about the connection
+    if (idxStatus || testResult) {
       setShowStatus(true);
-    } else {
-      setShowStatus(false);
     }
   }, [testResult, idxStatus]);
   
-  if (!showStatus) return null;
+  // Always render the component for demonstration purposes
+  // In a production app, you might want to hide success messages
+  // if (!showStatus) return null;
   
   // If still loading, show a loading message
   if (isStatusLoading || (testResult === undefined && isTestLoading)) {

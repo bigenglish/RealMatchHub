@@ -27,11 +27,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/properties/:id", async (req, res) => {
-    const property = await storage.getProperty(Number(req.params.id));
-    if (!property) {
-      return res.status(404).json({ message: "Property not found" });
+    const id = Number(req.params.id);
+    
+    // Check if this is a regular property from our database
+    const property = await storage.getProperty(id);
+    if (property) {
+      return res.json(property);
     }
-    res.json(property);
+    
+    // If not found in our database, check if it's an IDX listing
+    // IDX listings use IDs starting from 1000 (as we convert them in the frontend)
+    if (id >= 1000) {
+      try {
+        // Get all IDX listings
+        const idxResponse = await fetchIdxListings({ limit: 10 });
+        
+        // Convert IDX ID format back to the original format
+        const idxId = `IDX${id - 1000}`;
+        
+        // Find matching IDX listing
+        const idxListing = idxResponse.listings.find(listing => listing.listingId === idxId);
+        
+        if (idxListing) {
+          // Convert the IDX listing to the format expected by the frontend
+          const convertedListing = {
+            id,
+            title: `${idxListing.address}, ${idxListing.city}`,
+            description: idxListing.description,
+            price: idxListing.price,
+            address: `${idxListing.address}, ${idxListing.city}, ${idxListing.state} ${idxListing.zipCode}`,
+            bedrooms: idxListing.bedrooms,
+            bathrooms: idxListing.bathrooms,
+            sqft: idxListing.sqft,
+            propertyType: idxListing.propertyType,
+            images: idxListing.images || [],
+            listedDate: idxListing.listedDate
+          };
+          
+          return res.json(convertedListing);
+        }
+      } catch (error) {
+        console.error("Error fetching IDX listing:", error);
+      }
+    }
+    
+    // If we reach here, the property wasn't found
+    return res.status(404).json({ message: "Property not found" });
   });
 
   app.post("/api/properties", async (req, res) => {

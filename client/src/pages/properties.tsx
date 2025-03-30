@@ -42,7 +42,7 @@ function convertIdxToProperty(idx: IdxListing): Property {
     bathrooms: idx.bathrooms,
     sqft: idx.sqft,
     propertyType: idx.propertyType,
-    images: idx.images,
+    images: idx.images || [], // Ensure images is always an array
     listedDate: idx.listedDate
   };
 }

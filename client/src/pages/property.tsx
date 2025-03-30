@@ -16,6 +16,9 @@ export default function PropertyPage() {
     queryKey: ["/api/properties", id],
   });
   const [showContactForm, setShowContactForm] = useState(false);
+  
+  // Set default fallback image
+  const defaultImage = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
 
   if (isLoading) {
     return (
@@ -34,16 +37,44 @@ export default function PropertyPage() {
   }
 
   if (!property) {
-    return <div>Property not found</div>;
+    return (
+      <div className="p-12 text-center">
+        <h1 className="text-3xl font-bold mb-4">Property Not Found</h1>
+        <p className="text-muted-foreground mb-6">
+          The property you're looking for could not be found. It may have been removed or the ID may be incorrect.
+        </p>
+        <Button onClick={() => window.history.back()}>Go Back</Button>
+      </div>
+    );
   }
+  
+  // Make sure we have an image to display
+  const imageUrl = property.images && property.images.length > 0 
+    ? property.images[0] 
+    : defaultImage;
+    
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      // Return today's date if the date is invalid
+      return new Date().toLocaleDateString();
+    }
+  };
+  
+  // Calculate monthly payment only if price is available
+  const monthlyPayment = property.price ? Math.round(property.price * 0.005).toLocaleString() : "N/A";
 
   return (
     <div className="space-y-8">
       <div className="aspect-video overflow-hidden rounded-lg">
         <img
-          src={property.images[0]}
-          alt={property.title}
+          src={imageUrl}
+          alt={property.title || "Property"}
           className="w-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = defaultImage;
+          }}
         />
       </div>
 
@@ -52,25 +83,25 @@ export default function PropertyPage() {
           <div>
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold">{property.title}</h1>
-              <Badge variant="outline">{property.propertyType}</Badge>
+              <Badge variant="outline">{property.propertyType || "Property"}</Badge>
             </div>
             <p className="text-2xl font-bold text-primary mt-2">
-              ${property.price.toLocaleString()}
+              ${(property.price || 0).toLocaleString()}
             </p>
           </div>
 
           <div className="flex items-center space-x-6">
             <div className="flex items-center">
               <Bed className="h-5 w-5 mr-2" />
-              <span>{property.bedrooms} beds</span>
+              <span>{property.bedrooms || 0} beds</span>
             </div>
             <div className="flex items-center">
               <Bath className="h-5 w-5 mr-2" />
-              <span>{property.bathrooms} baths</span>
+              <span>{property.bathrooms || 0} baths</span>
             </div>
             <div className="flex items-center">
               <Move className="h-5 w-5 mr-2" />
-              <span>{property.sqft} sqft</span>
+              <span>{property.sqft || 0} sqft</span>
             </div>
           </div>
           
@@ -82,14 +113,14 @@ export default function PropertyPage() {
             </TabsList>
             
             <TabsContent value="description" className="pt-4">
-              <p className="text-muted-foreground">{property.description}</p>
+              <p className="text-muted-foreground">{property.description || "No description available for this property."}</p>
             </TabsContent>
             
             <TabsContent value="details" className="pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="font-medium">Property Type</div>
-                  <div className="text-muted-foreground">{property.propertyType}</div>
+                  <div className="text-muted-foreground">{property.propertyType || "Not specified"}</div>
                 </div>
                 <div className="space-y-2">
                   <div className="font-medium">Year Built</div>
@@ -116,12 +147,19 @@ export default function PropertyPage() {
             
             <TabsContent value="photos" className="pt-4">
               <div className="grid grid-cols-2 gap-4">
-                {property.images.map((image, index) => (
+                {(property.images || []).map((image, index) => (
                   <div key={index} className="aspect-video rounded-md overflow-hidden">
-                    <img src={image} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                    <img 
+                      src={image} 
+                      alt={`Photo ${index + 1}`} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = defaultImage;
+                      }}
+                    />
                   </div>
                 ))}
-                {property.images.length === 1 && (
+                {(!property.images || property.images.length === 0 || property.images.length === 1) && (
                   <div className="aspect-video rounded-md overflow-hidden bg-muted flex items-center justify-center">
                     <Image className="h-12 w-12 text-muted-foreground opacity-50" />
                   </div>
@@ -136,11 +174,11 @@ export default function PropertyPage() {
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center">
                 <MapPin className="h-5 w-5 mr-2 text-primary" />
-                <span>{property.address}</span>
+                <span>{property.address || "Address not provided"}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2 text-primary" />
-                <span>Listed {new Date(property.listedDate).toLocaleDateString()}</span>
+                <span>Listed {formatDate(property.listedDate)}</span>
               </div>
               {!showContactForm && (
                 <Button 
@@ -162,7 +200,7 @@ export default function PropertyPage() {
               </CardHeader>
               <CardContent>
                 <ContactForm 
-                  subject={`Inquiry about: ${property.title}`} 
+                  subject={`Inquiry about: ${property.title || `Property ID ${property.id}`}`} 
                   onSuccess={() => setShowContactForm(false)} 
                 />
               </CardContent>
@@ -177,7 +215,7 @@ export default function PropertyPage() {
               <div className="space-y-2">
                 <div className="font-medium">Estimated Monthly Payment</div>
                 <div className="text-2xl font-bold text-primary">
-                  ${Math.round(property.price * 0.005).toLocaleString()}/month
+                  ${monthlyPayment}/month
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Based on 30-year fixed rate mortgage at 5.5% APR with 20% down payment.

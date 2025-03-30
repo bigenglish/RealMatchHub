@@ -73,10 +73,12 @@ export default function PropertiesPage() {
   const yourProperties = data?.yourProperties || [];
   const idxListings = data?.idxListings?.map(convertIdxToProperty) || [];
   
-  // Debug logging for converted properties
+  // Debug logging for more info
   useEffect(() => {
     console.log("Converted IDX listings:", idxListings);
-  }, [idxListings]);
+    console.log("Active tab:", activeTab);
+    console.log("Is filtered:", isFiltered);
+  }, [idxListings, activeTab, isFiltered]);
   
   // Get all properties for "All" tab
   const allProperties = [...yourProperties, ...idxListings];
@@ -123,25 +125,36 @@ export default function PropertiesPage() {
 
   // Get the properties to display based on active tab and filters
   const getDisplayProperties = () => {
+    // Check which tab is active and if filtering is applied
+    console.log("Getting display properties for tab:", activeTab, "filtered:", isFiltered);
+    
+    // Return the appropriate properties based on the active tab and filter state
     if (!isFiltered) {
       switch (activeTab) {
         case "your":
+          console.log("Returning unfiltered YOUR properties:", yourProperties.length);
           return yourProperties;
         case "idx":
+          console.log("Returning unfiltered IDX properties:", idxListings.length);
           return idxListings;
         case "all":
         default:
+          console.log("Returning ALL unfiltered properties:", allProperties.length);
           return allProperties;
       }
     } else {
       switch (activeTab) {
         case "your":
+          console.log("Returning filtered YOUR properties:", filteredProperties.length);
           return filteredProperties;
         case "idx":
+          console.log("Returning filtered IDX properties:", filteredIdxListings.length);
           return filteredIdxListings;
         case "all":
         default:
-          return [...filteredProperties, ...filteredIdxListings];
+          const combined = [...filteredProperties, ...filteredIdxListings];
+          console.log("Returning filtered ALL properties:", combined.length);
+          return combined;
       }
     }
   };
@@ -201,10 +214,21 @@ export default function PropertiesPage() {
                 convertedFilters.bedrooms = parseInt(filters.beds);
               }
               
-              if (filters.propertyType) {
-                convertedFilters.propertyType = filters.propertyType === 'house' 
-                  ? 'Single Family Home' 
-                  : filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+              if (filters.propertyType && filters.propertyType !== 'any') {
+                // Map the property types to match our schema
+                const propertyTypeMap: Record<string, string> = {
+                  'house': 'Single Family Home',
+                  'condo': 'Condo',
+                  'townhouse': 'Townhouse',
+                  'multi': 'Multi-Family',
+                  'land': 'Land',
+                  'apartment': 'Apartment'
+                };
+                
+                convertedFilters.propertyType = propertyTypeMap[filters.propertyType] || 
+                  filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+                
+                console.log('Property type filter:', filters.propertyType, '→', convertedFilters.propertyType);
               }
               
               // Apply filters
@@ -218,6 +242,7 @@ export default function PropertiesPage() {
       </Card>
       
       <Tabs 
+        value={activeTab}
         defaultValue="all" 
         className="mt-8"
         onValueChange={(value) => setActiveTab(value as "all" | "your" | "idx")}
@@ -320,10 +345,21 @@ export default function PropertiesPage() {
                       convertedFilters.bedrooms = parseInt(filters.beds);
                     }
                     
-                    if (filters.propertyType) {
-                      convertedFilters.propertyType = filters.propertyType === 'house' 
-                        ? 'Single Family Home' 
-                        : filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+                    if (filters.propertyType && filters.propertyType !== 'any') {
+                      // Map the property types to match our schema
+                      const propertyTypeMap: Record<string, string> = {
+                        'house': 'Single Family Home',
+                        'condo': 'Condo',
+                        'townhouse': 'Townhouse',
+                        'multi': 'Multi-Family',
+                        'land': 'Land',
+                        'apartment': 'Apartment'
+                      };
+                      
+                      convertedFilters.propertyType = propertyTypeMap[filters.propertyType] || 
+                        filters.propertyType.charAt(0).toUpperCase() + filters.propertyType.slice(1);
+                      
+                      console.log('Property type filter (secondary):', filters.propertyType, '→', convertedFilters.propertyType);
                     }
                     
                     // Apply filters

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface IdxWidgetProps {
   widgetId?: string;
@@ -23,12 +24,13 @@ interface SearchFilters {
 }
 
 // Search widget component for property search functionality
-export default function IdxWidget({ widgetId = "40937", className = "", onSearch }: IdxWidgetProps) {
+export default function IdxWidget({ widgetId = "40942", className = "", onSearch }: IdxWidgetProps) {
   const { toast } = useToast();
   const containerRef = useRef<HTMLDivElement>(null);
   const [widgetLoaded, setWidgetLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [useFallback, setUseFallback] = useState(false);
+  const [activeTab, setActiveTab] = useState<"fallback" | "native">("fallback");
   const [location, setLocation] = useState("");
   const [minPrice, setMinPrice] = useState("0");
   const [maxPrice, setMaxPrice] = useState("10000000");
@@ -50,15 +52,52 @@ export default function IdxWidget({ widgetId = "40937", className = "", onSearch
   
   const isIdxEnabled = idxStatus?.enabled;
   
-  // We're going to use our fallback UI instead of trying to load the external script
-  // This avoids cross-origin and security issues in the iframe/Replit environment
+  // Attempt to load the official IDX widget
   useEffect(() => {
-    // For safety, always use the fallback in our environment
-    setUseFallback(true);
-    
-    // Log that we're using the fallback UI
-    console.log("Using fallback IDX search interface due to cross-origin restrictions");
-  }, []);
+    if (activeTab === "native" && !widgetLoaded && !error) {
+      try {
+        // Create a new script element for the IDX widget
+        const script = document.createElement("script");
+        script.charset = "UTF-8";
+        script.type = "text/javascript";
+        script.id = `idxwidgetsrc-${widgetId}`;
+        script.src = `//losangelesforsale.idxbroker.com/idx/mapwidgetjs.php?widgetid=${widgetId}`;
+        script.async = true;
+        
+        // Add event listeners for script loading success/failure
+        script.onload = () => {
+          console.log("IDX Broker widget script loaded successfully");
+          setWidgetLoaded(true);
+        };
+        
+        script.onerror = () => {
+          console.error("Error loading IDX Broker widget script");
+          setError(true);
+          setUseFallback(true);
+          setActiveTab("fallback");
+        };
+        
+        // If we have a container ref, append the script
+        if (containerRef.current) {
+          containerRef.current.appendChild(script);
+        }
+        
+        // Cleanup function to remove the script when component unmounts
+        return () => {
+          script.remove();
+          
+          // Also remove any other elements the IDX script might have added
+          const idxElements = document.querySelectorAll('[id^="IDX-"]');
+          idxElements.forEach(el => el.remove());
+        };
+      } catch (err) {
+        console.error("Error setting up IDX widget:", err);
+        setError(true);
+        setUseFallback(true);
+        setActiveTab("fallback");
+      }
+    }
+  }, [widgetId, activeTab, widgetLoaded, error]);
   
   // Handle the form submission (for fallback UI)
   const handleSearch = () => {
@@ -103,124 +142,158 @@ export default function IdxWidget({ widgetId = "40937", className = "", onSearch
     }
   };
   
-  // Always use our custom search form (instead of the IDX widget)
   return (
     <Card className={className}>
       <CardContent className="pt-6">
-        <h3 className="text-lg font-semibold mb-4">Find Your Dream Home</h3>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="location">Location</Label>
-            <Input 
-              id="location" 
-              placeholder="City, ZIP, Address, or MLS#" 
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            />
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "fallback" | "native")} className="w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Find Your Dream Home</h3>
+            <TabsList>
+              <TabsTrigger value="fallback">Custom Search</TabsTrigger>
+              <TabsTrigger value="native">IDX Widget</TabsTrigger>
+            </TabsList>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="fallback" className="space-y-4">
             <div>
-              <Label htmlFor="price-min">Min Price</Label>
-              <Select value={minPrice} onValueChange={setMinPrice}>
-                <SelectTrigger id="price-min">
-                  <SelectValue placeholder="No Min" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">No Min</SelectItem>
-                  <SelectItem value="100000">$100,000</SelectItem>
-                  <SelectItem value="200000">$200,000</SelectItem>
-                  <SelectItem value="300000">$300,000</SelectItem>
-                  <SelectItem value="500000">$500,000</SelectItem>
-                  <SelectItem value="750000">$750,000</SelectItem>
-                  <SelectItem value="1000000">$1,000,000+</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="location">Location</Label>
+              <Input 
+                id="location" 
+                placeholder="City, ZIP, Address, or MLS#" 
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
             </div>
             
-            <div>
-              <Label htmlFor="price-max">Max Price</Label>
-              <Select value={maxPrice} onValueChange={setMaxPrice}>
-                <SelectTrigger id="price-max">
-                  <SelectValue placeholder="No Max" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10000000">No Max</SelectItem>
-                  <SelectItem value="200000">$200,000</SelectItem>
-                  <SelectItem value="300000">$300,000</SelectItem>
-                  <SelectItem value="500000">$500,000</SelectItem>
-                  <SelectItem value="750000">$750,000</SelectItem>
-                  <SelectItem value="1000000">$1,000,000</SelectItem>
-                  <SelectItem value="1500000">$1,500,000</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="beds">Beds</Label>
-              <Select value={beds} onValueChange={setBeds}>
-                <SelectTrigger id="beds">
-                  <SelectValue placeholder="Any" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  <SelectItem value="1">1+</SelectItem>
-                  <SelectItem value="2">2+</SelectItem>
-                  <SelectItem value="3">3+</SelectItem>
-                  <SelectItem value="4">4+</SelectItem>
-                  <SelectItem value="5">5+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="baths">Baths</Label>
-              <Select value={baths} onValueChange={setBaths}>
-                <SelectTrigger id="baths">
-                  <SelectValue placeholder="Any" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  <SelectItem value="1">1+</SelectItem>
-                  <SelectItem value="2">2+</SelectItem>
-                  <SelectItem value="3">3+</SelectItem>
-                  <SelectItem value="4">4+</SelectItem>
-                  <SelectItem value="5">5+</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="price-min">Min Price</Label>
+                <Select value={minPrice} onValueChange={setMinPrice}>
+                  <SelectTrigger id="price-min">
+                    <SelectValue placeholder="No Min" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">No Min</SelectItem>
+                    <SelectItem value="100000">$100,000</SelectItem>
+                    <SelectItem value="200000">$200,000</SelectItem>
+                    <SelectItem value="300000">$300,000</SelectItem>
+                    <SelectItem value="500000">$500,000</SelectItem>
+                    <SelectItem value="750000">$750,000</SelectItem>
+                    <SelectItem value="1000000">$1,000,000+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="price-max">Max Price</Label>
+                <Select value={maxPrice} onValueChange={setMaxPrice}>
+                  <SelectTrigger id="price-max">
+                    <SelectValue placeholder="No Max" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10000000">No Max</SelectItem>
+                    <SelectItem value="200000">$200,000</SelectItem>
+                    <SelectItem value="300000">$300,000</SelectItem>
+                    <SelectItem value="500000">$500,000</SelectItem>
+                    <SelectItem value="750000">$750,000</SelectItem>
+                    <SelectItem value="1000000">$1,000,000</SelectItem>
+                    <SelectItem value="1500000">$1,500,000</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            <div>
-              <Label htmlFor="type">Home Type</Label>
-              <Select value={propertyType} onValueChange={setPropertyType}>
-                <SelectTrigger id="type">
-                  <SelectValue placeholder="Any" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  <SelectItem value="house">Single Family Home</SelectItem>
-                  <SelectItem value="condo">Condo</SelectItem>
-                  <SelectItem value="townhouse">Townhouse</SelectItem>
-                  <SelectItem value="multi">Multi-Family</SelectItem>
-                  <SelectItem value="land">Land</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="beds">Beds</Label>
+                <Select value={beds} onValueChange={setBeds}>
+                  <SelectTrigger id="beds">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="1">1+</SelectItem>
+                    <SelectItem value="2">2+</SelectItem>
+                    <SelectItem value="3">3+</SelectItem>
+                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="5">5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="baths">Baths</Label>
+                <Select value={baths} onValueChange={setBaths}>
+                  <SelectTrigger id="baths">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="1">1+</SelectItem>
+                    <SelectItem value="2">2+</SelectItem>
+                    <SelectItem value="3">3+</SelectItem>
+                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="5">5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="type">Home Type</Label>
+                <Select value={propertyType} onValueChange={setPropertyType}>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="house">Single Family Home</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="multi">Multi-Family</SelectItem>
+                    <SelectItem value="land">Land</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+            
+            <Button 
+              type="button" 
+              className="w-full" 
+              onClick={handleSearch}
+            >
+              Search Properties
+            </Button>
+          </TabsContent>
           
-          <Button 
-            type="button" 
-            className="w-full" 
-            onClick={handleSearch}
-          >
-            Search Properties
-          </Button>
-          
-          <div className="text-center text-xs text-muted-foreground">
-            Powered by IDX Broker
-          </div>
+          <TabsContent value="native">
+            <div 
+              ref={containerRef} 
+              className="min-h-[400px] w-full"
+              data-idx-widget-id={widgetId}
+            >
+              {!widgetLoaded && !error && (
+                <div className="flex items-center justify-center h-[400px]">
+                  <div className="text-center">
+                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p>Loading IDX Broker widget...</p>
+                  </div>
+                </div>
+              )}
+              
+              {error && (
+                <div className="flex items-center justify-center h-[400px]">
+                  <div className="text-center text-destructive">
+                    <p className="font-semibold mb-2">Error loading IDX widget</p>
+                    <p className="text-sm">Please switch to Custom Search tab</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="text-center text-xs text-muted-foreground mt-4">
+          Powered by IDX Broker
         </div>
       </CardContent>
     </Card>

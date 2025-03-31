@@ -10,8 +10,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Property routes
   app.get("/api/properties", async (_req, res) => {
     try {
+      console.log("[express] Fetching properties from storage and IDX Broker");
       const properties = await storage.getProperties();
+      console.log(`[express] Fetched ${properties.length} properties from local storage`);
+      
       const idxListings = await fetchIdxListings({ limit: 10 }); // Fetch 10 listings from IDX
+      console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
+      
+      // Log the first property and first IDX listing for debugging
+      if (properties.length > 0) {
+        console.log("[express] First property sample:", {
+          id: properties[0].id,
+          title: properties[0].title,
+          type: properties[0].propertyType
+        });
+      }
+      
+      if (idxListings.listings.length > 0) {
+        console.log("[express] First IDX listing sample:", {
+          id: idxListings.listings[0].listingId,
+          address: idxListings.listings[0].address,
+          type: idxListings.listings[0].propertyType
+        });
+      }
 
       // Combine your properties with IDX listings
       const combinedProperties = {
@@ -19,6 +40,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         idxListings: idxListings.listings, // IDX returns "listings" array
       };
 
+      console.log("[express] Sending combined response with:", {
+        yourPropertiesCount: properties.length,
+        idxListingsCount: idxListings.listings.length
+      });
+      
       res.json(combinedProperties);
     } catch (error) {
       console.error("Error fetching properties:", error);

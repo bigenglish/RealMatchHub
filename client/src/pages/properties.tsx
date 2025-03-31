@@ -51,7 +51,7 @@ function convertIdxToProperty(idx: IdxListing): Property {
 }
 
 export default function PropertiesPage() {
-  const { data, isLoading } = useQuery<CombinedPropertiesResponse>({
+  const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],
   });
   
@@ -64,8 +64,8 @@ export default function PropertiesPage() {
   useEffect(() => {
     if (data) {
       console.log("Properties data:", data);
-      console.log("Your properties:", data.yourProperties);
-      console.log("IDX listings:", data.idxListings);
+      console.log("Your properties count:", (data as CombinedPropertiesResponse).yourProperties.length);
+      console.log("IDX listings count:", (data as CombinedPropertiesResponse).idxListings.length);
     }
   }, [data]);
 

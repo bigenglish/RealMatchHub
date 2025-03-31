@@ -245,11 +245,24 @@ export default function PropertiesPage() {
         </CardContent>
       </Card>
       
+      {/* Debug info to show property counts */}
+      <div className="flex flex-col md:flex-row gap-4 text-sm text-muted-foreground mb-4">
+        <div>Your properties: {yourProperties.length}</div>
+        <div>IDX properties: {idxListings.length}</div>
+        <div>Filtered your properties: {filteredProperties.length}</div>
+        <div>Filtered IDX properties: {filteredIdxListings.length}</div>
+        <div>Active tab: {activeTab}</div>
+        <div>Is filtered: {isFiltered ? 'Yes' : 'No'}</div>
+      </div>
+      
       <Tabs 
         value={activeTab}
         defaultValue="all" 
         className="mt-8"
-        onValueChange={(value) => setActiveTab(value as "all" | "your" | "idx")}
+        onValueChange={(value) => {
+          console.log("Tab changed from", activeTab, "to", value);
+          setActiveTab(value as "all" | "your" | "idx");
+        }}
       >
         <TabsList>
           <TabsTrigger value="all">
@@ -315,13 +328,27 @@ export default function PropertiesPage() {
         </TabsContent>
         
         <TabsContent value="idx" className="pt-6">
-          {/* Debugging - we log the properties here */}
-          <div className="sr-only" aria-hidden="true">
-            {(() => {
-              console.log("IDX Tab Content - Rendering properties:", isFiltered ? filteredIdxListings : idxListings);
-              return null;
-            })()}
+          {/* Debug info about what we're rendering */}
+          <div className="border-2 p-2 mb-4 text-xs overflow-auto max-h-32 bg-muted/20">
+            <p>IDX Property Count: {idxListings.length}</p>
+            <p>Filtered IDX Property Count: {filteredIdxListings.length}</p>
+            <p>First IDX Property: {idxListings.length > 0 ? JSON.stringify(idxListings[0]) : "None"}</p>
+            <p>Are we showing IDX properties? {(isFiltered ? filteredIdxListings : idxListings).length > 0 ? "Yes" : "No"}</p>
+            <p>Is filtered? {isFiltered ? "Yes" : "No"}</p>
           </div>
+          
+          {/* Force render the properties directly */}
+          <div className="mb-4">
+            <h3 className="text-lg font-bold mb-2">Direct IDX Properties (Debug)</h3>
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 border-2 border-dashed p-2">
+              {idxListings.slice(0, 3).map((property) => (
+                <div key={property.id} className="text-xs p-2 border bg-muted/10">
+                  ID: {property.id}, Title: {property.title}
+                </div>
+              ))}
+            </div>
+          </div>
+          
           {(isFiltered ? filteredIdxListings : idxListings).length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {(isFiltered ? filteredIdxListings : idxListings).map((property) => {

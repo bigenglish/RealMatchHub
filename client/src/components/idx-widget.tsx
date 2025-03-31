@@ -27,9 +27,7 @@ interface SearchFilters {
 export default function IdxWidget({ widgetId = "40942", className = "", onSearch }: IdxWidgetProps) {
   const { toast } = useToast();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [widgetLoaded, setWidgetLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const [useFallback, setUseFallback] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [activeTab, setActiveTab] = useState<"fallback" | "native">("fallback");
   const [location, setLocation] = useState("");
   const [minPrice, setMinPrice] = useState("0");
@@ -52,52 +50,86 @@ export default function IdxWidget({ widgetId = "40942", className = "", onSearch
   
   const isIdxEnabled = idxStatus?.enabled;
   
-  // Attempt to load the official IDX widget
+  // For the IDX Widget tab, we'll use direct HTML injection with the script
   useEffect(() => {
-    if (activeTab === "native" && !widgetLoaded && !error) {
-      try {
-        // Create a new script element for the IDX widget
-        const script = document.createElement("script");
-        script.charset = "UTF-8";
-        script.type = "text/javascript";
-        script.id = `idxwidgetsrc-${widgetId}`;
-        script.src = `//losangelesforsale.idxbroker.com/idx/mapwidgetjs.php?widgetid=${widgetId}`;
-        script.async = true;
-        
-        // Add event listeners for script loading success/failure
-        script.onload = () => {
-          console.log("IDX Broker widget script loaded successfully");
-          setWidgetLoaded(true);
-        };
-        
-        script.onerror = () => {
-          console.error("Error loading IDX Broker widget script");
-          setError(true);
-          setUseFallback(true);
-          setActiveTab("fallback");
-        };
-        
-        // If we have a container ref, append the script
-        if (containerRef.current) {
-          containerRef.current.appendChild(script);
-        }
-        
-        // Cleanup function to remove the script when component unmounts
-        return () => {
-          script.remove();
-          
-          // Also remove any other elements the IDX script might have added
-          const idxElements = document.querySelectorAll('[id^="IDX-"]');
-          idxElements.forEach(el => el.remove());
-        };
-      } catch (err) {
-        console.error("Error setting up IDX widget:", err);
-        setError(true);
-        setUseFallback(true);
-        setActiveTab("fallback");
+    if (activeTab === "native" && containerRef.current) {
+      // Clear any existing content in the container
+      containerRef.current.innerHTML = "";
+      
+      // Create the iframe to isolate the IDX widget (helps avoid cross-origin issues)
+      const iframe = document.createElement('iframe');
+      iframe.style.width = '100%';
+      iframe.style.height = '600px';
+      iframe.style.border = 'none';
+      iframe.title = 'IDX Broker Widget';
+      iframe.id = 'idx-widget-iframe';
+      
+      // Add iframe to the DOM
+      containerRef.current.appendChild(iframe);
+      
+      // Access the iframe document and write the IDX widget script
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      
+      if (iframeDoc) {
+        // Write a basic HTML document with the IDX script
+        iframeDoc.open();
+        iframeDoc.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>IDX Broker Widget</title>
+            <style>
+              body { margin: 0; padding: 0; font-family: sans-serif; }
+              .loading { 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                height: 400px; 
+                text-align: center; 
+              }
+              .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #3498db;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 1rem;
+              }
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            </style>
+          </head>
+          <body>
+            <div id="idx-widget-container">
+              <div class="loading">
+                <div>
+                  <div class="spinner"></div>
+                  <p>Loading IDX Broker Widget...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Exact IDX Broker Widget Script -->
+            <script charset="UTF-8" type="text/javascript" id="idxwidgetsrc-40942" src="//losangelesforsale.idxbroker.com/idx/mapwidgetjs.php?widgetid=40942"></script>
+          </body>
+          </html>
+        `);
+        iframeDoc.close();
       }
+      
+      // Clean up function
+      return () => {
+        if (containerRef.current) {
+          containerRef.current.innerHTML = "";
+        }
+      };
     }
-  }, [widgetId, activeTab, widgetLoaded, error]);
+  }, [activeTab]);
   
   // Handle the form submission (for fallback UI)
   const handleSearch = () => {
@@ -268,26 +300,17 @@ export default function IdxWidget({ widgetId = "40942", className = "", onSearch
           <TabsContent value="native">
             <div 
               ref={containerRef} 
-              className="min-h-[400px] w-full"
-              data-idx-widget-id={widgetId}
+              className="min-h-[600px] w-full"
             >
-              {!widgetLoaded && !error && (
-                <div className="flex items-center justify-center h-[400px]">
-                  <div className="text-center">
-                    <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                    <p>Loading IDX Broker widget...</p>
-                  </div>
-                </div>
-              )}
-              
-              {error && (
-                <div className="flex items-center justify-center h-[400px]">
-                  <div className="text-center text-destructive">
-                    <p className="font-semibold mb-2">Error loading IDX widget</p>
-                    <p className="text-sm">Please switch to Custom Search tab</p>
-                  </div>
-                </div>
-              )}
+              {/* The IDX widget iframe will be injected here by the useEffect */}
+              <div className="text-sm text-muted-foreground">
+                <p>If the IDX widget does not load, please note:</p>
+                <ul className="list-disc pl-5 mt-1">
+                  <li>Some browsers block 3rd-party content in iframes</li>
+                  <li>The IDX widget requires direct website integration</li>
+                  <li>You may need to view this on your live website</li>
+                </ul>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -10,22 +10,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Property routes
   app.get("/api/properties", async (_req, res) => {
     try {
-      console.log("[express] Fetching properties from storage and IDX Broker");
-      const properties = await storage.getProperties();
-      console.log(`[express] Fetched ${properties.length} properties from local storage`);
+      console.log("[express] Fetching properties from IDX Broker only");
       
-      const idxListings = await fetchIdxListings({ limit: 10 }); // Fetch 10 listings from IDX
+      const idxListings = await fetchIdxListings({ limit: 20 }); // Fetch 20 listings from IDX
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
       
-      // Log the first property and first IDX listing for debugging
-      if (properties.length > 0) {
-        console.log("[express] First property sample:", {
-          id: properties[0].id,
-          title: properties[0].title,
-          type: properties[0].propertyType
-        });
-      }
-      
+      // Log some IDX listings for debugging
       if (idxListings.listings.length > 0) {
         console.log("[express] First IDX listing sample:", {
           id: idxListings.listings[0].listingId,
@@ -34,71 +24,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Combine your properties with IDX listings
-      const combinedProperties = {
-        yourProperties: properties,
-        idxListings: idxListings.listings, // IDX returns "listings" array
+      // Convert IDX listings to our standard property format for frontend
+      const convertedListings = idxListings.listings.map((idx, index) => {
+        // Create a unique numeric ID for each IDX listing
+        const listingId = idx.listingId || `idx-${index}`;
+        const numericId = parseInt(listingId.replace(/\D/g, ''));
+        const id = isNaN(numericId) ? 1000 + index : numericId + 1000;
+        
+        return {
+          id,
+          title: `${idx.address}, ${idx.city}, ${idx.state}`,
+          description: idx.description,
+          price: idx.price,
+          bedrooms: idx.bedrooms,
+          bathrooms: idx.bathrooms,
+          squareFeet: idx.sqft,
+          address: idx.address,
+          city: idx.city,
+          state: idx.state,
+          zipCode: idx.zipCode,
+          propertyType: idx.propertyType,
+          images: idx.images || [],
+          source: 'idx',
+          createdAt: new Date().toISOString(),
+          status: 'active'
+        };
+      });
+
+      // Return only IDX listings, no more combining with local properties
+      const response = {
+        yourProperties: [], // Empty array since we're only using IDX
+        idxListings: convertedListings,
       };
 
-      console.log("[express] Sending combined response with:", {
-        yourPropertiesCount: properties.length,
-        idxListingsCount: idxListings.listings.length
+      console.log("[express] Sending response with:", {
+        idxListingsCount: convertedListings.length
       });
       
-      res.json(combinedProperties);
+      res.json(response);
     } catch (error) {
       console.error("Error fetching properties:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Error fetching IDX listings", error: String(error) });
     }
   });
 
   app.get("/api/properties/:id", async (req, res) => {
     const id = Number(req.params.id);
     
-    // Check if this is a regular property from our database
-    const property = await storage.getProperty(id);
-    if (property) {
-      return res.json(property);
-    }
-    
-    // If not found in our database, check if it's an IDX listing
-    // IDX listings use IDs starting from 1000 (as we convert them in the frontend)
-    if (id >= 1000) {
-      try {
-        // Get all IDX listings
-        const idxResponse = await fetchIdxListings({ limit: 10 });
+    try {
+      console.log(`[express] Fetching property details for ID: ${id}`);
+      
+      // All our properties are now from IDX with IDs >= 1000
+      if (id >= 1000) {
+        // Get IDX listings
+        const idxResponse = await fetchIdxListings({ limit: 30 }); // Getting more listings to increase chance of finding the right one
+        console.log(`[express] Fetched ${idxResponse.listings.length} IDX listings to search for ID ${id}`);
         
-        // Convert IDX ID format back to the original format
-        const idxId = `IDX${id - 1000}`;
+        // We'll need to check various ID formats since we converted them in the API response
+        // First, try to derive the original IDX ID
+        const originalId = id - 1000;
+        const possibleIdFormats = [
+          `IDX${originalId}`,
+          `idx-${originalId}`,
+          `${originalId}`
+        ];
         
-        // Find matching IDX listing
-        const idxListing = idxResponse.listings.find(listing => listing.listingId === idxId);
+        console.log(`[express] Looking for listing with possible IDs:`, possibleIdFormats);
         
-        if (idxListing) {
+        // Find the first matching listing
+        const idxListing = idxResponse.listings.find(listing => {
+          const listingId = listing.listingId || '';
+          return possibleIdFormats.some(format => listingId.includes(format));
+        });
+        
+        // As fallback, use the IDX listing at index (id - 1000) if within bounds
+        const fallbackListing = originalId < idxResponse.listings.length ? 
+          idxResponse.listings[originalId] : null;
+        
+        const listing = idxListing || fallbackListing;
+        
+        if (listing) {
+          console.log(`[express] Found matching IDX listing: ${listing.address}`);
+          
           // Convert the IDX listing to the format expected by the frontend
           const convertedListing = {
             id,
-            title: `${idxListing.address}, ${idxListing.city}`,
-            description: idxListing.description,
-            price: idxListing.price,
-            address: `${idxListing.address}, ${idxListing.city}, ${idxListing.state} ${idxListing.zipCode}`,
-            bedrooms: idxListing.bedrooms,
-            bathrooms: idxListing.bathrooms,
-            sqft: idxListing.sqft,
-            propertyType: idxListing.propertyType,
-            images: idxListing.images || [],
-            listedDate: idxListing.listedDate
+            title: `${listing.address}, ${listing.city}`,
+            description: listing.description,
+            price: listing.price,
+            address: `${listing.address}, ${listing.city}, ${listing.state} ${listing.zipCode}`,
+            bedrooms: listing.bedrooms,
+            bathrooms: listing.bathrooms,
+            squareFeet: listing.sqft,
+            city: listing.city,
+            state: listing.state,
+            zipCode: listing.zipCode,
+            propertyType: listing.propertyType,
+            images: listing.images || [],
+            source: 'idx',
+            createdAt: new Date().toISOString(),
+            status: 'active'
           };
           
           return res.json(convertedListing);
+        } else {
+          console.log(`[express] No matching IDX listing found for ID ${id}`);
         }
-      } catch (error) {
-        console.error("Error fetching IDX listing:", error);
       }
+      
+      // If we reach here, the property wasn't found
+      return res.status(404).json({ message: "Property not found" });
+    } catch (error) {
+      console.error(`[express] Error fetching property ${id}:`, error);
+      return res.status(500).json({ message: "Error fetching property details" });
     }
-    
-    // If we reach here, the property wasn't found
-    return res.status(404).json({ message: "Property not found" });
   });
 
   app.post("/api/properties", async (req, res) => {

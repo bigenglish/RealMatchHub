@@ -55,7 +55,7 @@ export default function PropertiesPage() {
     queryKey: ["/api/properties"],
   });
   
-  const [activeTab, setActiveTab] = useState<"all" | "your" | "idx">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "your" | "idx">("idx");
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);

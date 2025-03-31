@@ -118,14 +118,14 @@ export async function fetchIdxListings({
     
     if (!apiKey) {
       console.warn('IDX_BROKER_API_KEY not found in environment variables');
-      return getMockListings(limit, offset);
+      throw new Error('IDX Broker API key is required to fetch listings');
     }
 
     try {
-      console.log('Attempting to fetch real IDX listings with provided API key');
+      console.log('Fetching listings from IDX Broker API');
       
       // Make the actual API call to IDX Broker
-      const response = await axios.get('https://api.idxbroker.com/clients/listings', {
+      const response = await axios.get('https://api.idxbroker.com/clients/featured', {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'accesskey': apiKey
@@ -141,14 +141,20 @@ export async function fetchIdxListings({
         }
       });
       
-      console.log('Successfully received response from IDX Broker API');
+      console.log('Successfully received response from IDX Broker API:', response.status);
+      console.log('Response data type:', typeof response.data);
+      
+      if (Array.isArray(response.data)) {
+        console.log('Number of listings received:', response.data.length);
+      } else {
+        console.log('Response data is not an array. Structure:', Object.keys(response.data || {}));
+      }
+      
+      // Transform the real API response
       return transformIdxResponse(response.data);
     } catch (apiError) {
       console.error('Error calling IDX Broker API:', apiError);
-      console.log('Falling back to mock data due to API error');
-      
-      // If the API call fails, fallback to mock data
-      return getMockListings(limit, offset);
+      throw apiError; // Re-throw the error to handle it upstream
     }
   } catch (error) {
     console.error('Error fetching IDX listings:', error);
@@ -156,95 +162,80 @@ export async function fetchIdxListings({
   }
 }
 
-/**
- * Get mock listings for demonstration purposes
- * In a real application, this would be replaced with actual API calls
- */
-function getMockListings(limit: number, offset: number): IdxListingsResponse {
-  // These would be fetched from the IDX API in a real implementation
-  const allListings: IdxListing[] = [
-    {
-      listingId: 'IDX100',
-      address: '789 Lakefront Drive',
-      city: 'Seattle',
-      state: 'WA',
-      zipCode: '98101',
-      price: 1450000,
-      bedrooms: 4,
-      bathrooms: 3.5,
-      sqft: 3600,
-      propertyType: 'Single Family Home',
-      images: ['https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80'],
-      description: 'Stunning waterfront property with amazing views, chef\'s kitchen, and luxurious finishes throughout.',
-      listedDate: '2024-03-01',
-    },
-    {
-      listingId: 'IDX101',
-      address: '456 Highland Ave',
-      city: 'Boston',
-      state: 'MA',
-      zipCode: '02215',
-      price: 875000,
-      bedrooms: 3,
-      bathrooms: 2,
-      sqft: 1800,
-      propertyType: 'Condo',
-      images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80'],
-      description: 'Modern condo in desirable neighborhood, recently renovated with high-end appliances and finishes.',
-      listedDate: '2024-02-25',
-    },
-    {
-      listingId: 'IDX102',
-      address: '123 Mountain View Rd',
-      city: 'Denver',
-      state: 'CO',
-      zipCode: '80202',
-      price: 950000,
-      bedrooms: 4,
-      bathrooms: 3,
-      sqft: 2800,
-      propertyType: 'Single Family Home',
-      images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'],
-      description: 'Beautiful mountain home with breathtaking views, open floor plan, and large outdoor living space.',
-      listedDate: '2024-03-10',
-    },
-  ];
-  
-  // Apply pagination
-  const paginatedListings = allListings.slice(offset, offset + limit);
-  
-  return {
-    listings: paginatedListings,
-    totalCount: allListings.length,
-    hasMoreListings: offset + limit < allListings.length
-  };
-}
+// We've removed mock listings and now only use real data from IDX Broker API
 
 /**
  * Transform IDX API response to our application format
- * This would be used with the actual API integration
  */
 function transformIdxResponse(apiResponse: any): IdxListingsResponse {
-  // This would transform the actual IDX API response format to our application format
-  // For now, it's just a placeholder since we're using mock data
+  console.log('Transforming IDX API response');
+  
+  // Handle different response formats from IDX Broker API
+  let data = [];
+  let totalCount = 0;
+  let hasNext = false;
+  
+  // Log the structure for debugging
+  console.log('API Response structure:', JSON.stringify(apiResponse).substring(0, 200) + '...');
+  
+  // Handle array response
+  if (Array.isArray(apiResponse)) {
+    console.log('Response is an array with', apiResponse.length, 'items');
+    data = apiResponse;
+    totalCount = apiResponse.length;
+    hasNext = false;
+  } 
+  // Handle paginated response with data property
+  else if (apiResponse && apiResponse.data && Array.isArray(apiResponse.data)) {
+    console.log('Response has data array with', apiResponse.data.length, 'items');
+    data = apiResponse.data;
+    totalCount = apiResponse.totalCount || data.length;
+    hasNext = apiResponse.hasNextPage || false;
+  } 
+  // Handle direct object response
+  else if (apiResponse && typeof apiResponse === 'object') {
+    console.log('Response is an object, properties:', Object.keys(apiResponse));
+    // Convert object to array if necessary
+    if (Object.keys(apiResponse).length > 0) {
+      data = Object.values(apiResponse);
+      totalCount = data.length;
+      hasNext = false;
+    }
+  }
+  
+  console.log('Processing', data.length, 'listings');
+
+  // Map the IDX data to our format
+  const listings = data.map((item: any, index: number) => {
+    // Log the first item to see its structure
+    if (index === 0) {
+      console.log('Sample listing:', JSON.stringify(item).substring(0, 200) + '...');
+      console.log('Available fields:', Object.keys(item));
+    }
+    
+    // Create a consistent property object from various possible IDX structures
+    return {
+      listingId: item.idxID || item.listingId || `idx-${index}`,
+      address: item.address || item.streetAddress || item.fullAddress || 'Address not available',
+      city: item.cityName || item.city || '',
+      state: item.state || '',
+      zipCode: item.zipcode || item.postalCode || '',
+      price: parseFloat(item.listPrice || item.price || '0'),
+      bedrooms: parseInt(item.bedrooms || item.totalBedrooms || '0'),
+      bathrooms: parseFloat(item.totalBaths || item.bathrooms || '0'),
+      sqft: parseInt(item.sqFt || item.squareFootage || '0'),
+      propertyType: item.propType || item.propertyType || 'Residential',
+      images: Array.isArray(item.images) 
+        ? item.images.map((img: any) => typeof img === 'string' ? img : img.url || '')
+        : item.image ? [item.image] : [],
+      description: item.remarksConcat || item.description || item.remarks || 'No description available',
+      listedDate: item.listDate || item.listedDate || new Date().toISOString().split('T')[0]
+    };
+  });
   
   return {
-    listings: apiResponse.data.map((item: any) => ({
-      listingId: item.idxID,
-      address: item.address,
-      city: item.cityName,
-      state: item.state,
-      zipCode: item.zipcode,
-      price: parseFloat(item.listPrice),
-      bedrooms: parseInt(item.bedrooms),
-      bathrooms: parseFloat(item.totalBaths),
-      sqft: parseInt(item.sqFt),
-      propertyType: item.propType,
-      images: item.images.map((img: any) => img.url),
-      description: item.remarksConcat,
-      listedDate: item.listDate,
-    })),
-    totalCount: apiResponse.totalCount,
-    hasMoreListings: apiResponse.hasNextPage
+    listings,
+    totalCount,
+    hasMoreListings: hasNext
   };
 }

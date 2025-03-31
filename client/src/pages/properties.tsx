@@ -35,18 +35,35 @@ interface CombinedPropertiesResponse {
 
 // Function to convert IDX listing to Property format for display
 function convertIdxToProperty(idx: IdxListing): Property {
+  // Create a safe ID from listingId - handle potential undefined or non-string values
+  let id = 9000;
+  try {
+    if (idx.listingId) {
+      // Remove any non-numeric characters and add 1000 to avoid ID conflicts
+      const numericPart = idx.listingId.replace(/\D/g, '');
+      id = numericPart ? parseInt(numericPart) + 1000 : 9000 + Math.floor(Math.random() * 1000);
+    } else {
+      id = 9000 + Math.floor(Math.random() * 1000); // Fallback with random ID
+    }
+  } catch (e) {
+    console.error("Error generating ID from listingId:", e);
+    id = 9000 + Math.floor(Math.random() * 1000); // Another fallback
+  }
+
   return {
-    id: parseInt(idx.listingId.replace('IDX', '')) + 1000, // Create unique ID
-    title: `${idx.address}, ${idx.city}`,
-    description: idx.description,
-    price: idx.price,
-    address: `${idx.address}, ${idx.city}, ${idx.state} ${idx.zipCode}`,
-    bedrooms: idx.bedrooms,
-    bathrooms: idx.bathrooms,
-    sqft: idx.sqft,
-    propertyType: idx.propertyType,
-    images: idx.images || [], // Ensure images is always an array
-    listedDate: idx.listedDate
+    id,
+    title: idx.address ? `${idx.address}, ${idx.city || ''}` : 'Property Listing',
+    description: idx.description || 'No description available',
+    price: typeof idx.price === 'number' ? idx.price : 0,
+    address: idx.address 
+      ? `${idx.address}, ${idx.city || ''}, ${idx.state || ''} ${idx.zipCode || ''}`
+      : 'Address not available',
+    bedrooms: typeof idx.bedrooms === 'number' ? idx.bedrooms : 0,
+    bathrooms: typeof idx.bathrooms === 'number' ? idx.bathrooms : 0,
+    sqft: typeof idx.sqft === 'number' ? idx.sqft : 0,
+    propertyType: idx.propertyType || 'Residential',
+    images: Array.isArray(idx.images) ? idx.images : [], // Ensure images is always an array
+    listedDate: idx.listedDate || new Date().toISOString().split('T')[0]
   };
 }
 

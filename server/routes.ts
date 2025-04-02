@@ -3,6 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPropertySchema, insertServiceProviderSchema } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
+import {
+  predictPropertyPrice,
+  generatePropertyDescription,
+  getPersonalizedRecommendations,
+  generateChatbotResponse
+} from "./vertex-ai"; // Import Vertex AI functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -242,6 +248,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching IDX listings:", error);
       res.status(500).json({ 
         message: "Error fetching IDX listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ----- Vertex AI Integration Routes -----
+  
+  // Predict property price
+  app.post("/api/ai/predict-price", async (req, res) => {
+    try {
+      const property = req.body;
+      console.log("[express] Predicting price for property:", property.id || 'new');
+      
+      const prediction = await predictPropertyPrice(property);
+      res.json(prediction);
+    } catch (error) {
+      console.error("[express] Error predicting property price:", error);
+      res.status(500).json({ 
+        message: "Failed to predict property price",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Generate property description
+  app.post("/api/ai/generate-description", async (req, res) => {
+    try {
+      const property = req.body;
+      console.log("[express] Generating description for property:", property.id || 'new');
+      
+      const description = await generatePropertyDescription(property);
+      res.json({ description });
+    } catch (error) {
+      console.error("[express] Error generating property description:", error);
+      res.status(500).json({ 
+        message: "Failed to generate property description",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get personalized property recommendations
+  app.post("/api/ai/recommendations", async (req, res) => {
+    try {
+      const { preferences } = req.body;
+      console.log("[express] Getting recommendations based on preferences:", preferences);
+      
+      // Get all properties to generate recommendations from
+      const properties = await storage.getProperties();
+      
+      // Get IDX listings if available
+      let idxListings: any[] = [];
+      if (process.env.IDX_BROKER_API_KEY) {
+        try {
+          const idxResponse = await fetchIdxListings({});
+          idxListings = idxResponse.listings || [];
+        } catch (idxError) {
+          console.error("[express] Error fetching IDX listings for recommendations:", idxError);
+        }
+      }
+      
+      // Combine properties
+      const allProperties = [...properties, ...idxListings];
+      
+      // Get recommendations
+      const recommendations = await getPersonalizedRecommendations(preferences, allProperties);
+      res.json({ recommendations });
+    } catch (error) {
+      console.error("[express] Error getting personalized recommendations:", error);
+      res.status(500).json({ 
+        message: "Failed to get personalized recommendations",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Generate chatbot response
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { query, context } = req.body;
+      console.log("[express] Generating chatbot response for query:", query);
+      
+      const response = await generateChatbotResponse(query, context);
+      res.json({ response });
+    } catch (error) {
+      console.error("[express] Error generating chatbot response:", error);
+      res.status(500).json({ 
+        message: "Failed to generate chatbot response",
         error: error instanceof Error ? error.message : String(error)
       });
     }

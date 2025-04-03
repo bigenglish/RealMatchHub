@@ -8,6 +8,7 @@ import Properties from "@/pages/properties";
 import Property from "@/pages/property";
 import Services from "@/pages/services";
 import ServiceProviderDetail from "@/pages/service-provider";
+import Documents from "@/pages/documents";
 import Navbar from "@/components/navbar";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
           <Route path="/property/:id" component={Property} />
           <Route path="/services" component={Services} />
           <Route path="/service-provider/:id" component={ServiceProviderDetail} />
+          <Route path="/documents" component={Documents} />
           <Route component={NotFound} />
         </Switch>
       </main>

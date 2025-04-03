@@ -21,14 +21,14 @@ export default function Navbar() {
             <Link href="/services" className="text-sm mr-4">
               Services
             </Link>
+            <Link href="/documents" className="text-sm mr-4">
+              Documents
+            </Link>
             <Link href="/how-it-works" className="text-sm mr-4">
               How It Works
             </Link>
             <Link href="/pricing" className="text-sm mr-4">
               Pricing
-            </Link>
-            <Link href="/resources" className="text-sm mr-4">
-              Resources
             </Link>
             <Button>GET STARTED</Button>
           </div>

@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { insertPropertySchema, insertServiceProviderSchema } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
@@ -9,6 +10,7 @@ import {
   getPersonalizedRecommendations,
   generateChatbotResponse
 } from "./vertex-ai"; // Import Vertex AI functions
+import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -336,6 +338,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[express] Error generating chatbot response:", error);
       res.status(500).json({ 
         message: "Failed to generate chatbot response",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ----- Document AI OCR Integration Routes -----
+  
+  // Configure multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10 MB max file size
+    },
+  });
+  
+  // Process document with OCR
+  app.post("/api/ocr/process", upload.single('document'), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No document file uploaded" });
+      }
+      
+      console.log("[express] Processing document:", file.originalname, file.mimetype);
+      
+      // Default processor ID - you would get this from Google Cloud Console
+      // This is a placeholder - user needs to provide their actual processor ID
+      const processorId = req.body.processorId || process.env.DOCUMENT_AI_PROCESSOR_ID;
+      
+      if (!processorId) {
+        return res.status(400).json({ 
+          message: "Document AI processor ID is required. Please provide it in the request or set DOCUMENT_AI_PROCESSOR_ID environment variable." 
+        });
+      }
+      
+      // Process the document with Document AI
+      const result = await processDocument(
+        file.buffer,
+        file.mimetype,
+        processorId
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("[express] Error processing document with OCR:", error);
+      res.status(500).json({ 
+        message: "Failed to process document",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Parse property document (listings, contracts, etc.)
+  app.post("/api/ocr/property-document", upload.single('document'), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No document file uploaded" });
+      }
+      
+      console.log("[express] Processing property document:", file.originalname);
+      
+      // Default processor ID - you would get this from Google Cloud Console
+      const processorId = req.body.processorId || process.env.DOCUMENT_AI_PROCESSOR_ID;
+      
+      if (!processorId) {
+        return res.status(400).json({ 
+          message: "Document AI processor ID is required" 
+        });
+      }
+      
+      // Parse the property document
+      const propertyInfo = await parsePropertyDocument(
+        file.buffer,
+        file.mimetype,
+        processorId
+      );
+      
+      res.json(propertyInfo);
+    } catch (error) {
+      console.error("[express] Error parsing property document:", error);
+      res.status(500).json({ 
+        message: "Failed to parse property document",
         error: error instanceof Error ? error.message : String(error)
       });
     }

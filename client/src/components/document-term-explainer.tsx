@@ -1,17 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Upload, FileText, Info, Lightbulb, BookOpen, AlertCircle } from "lucide-react";
+import { FileText, Info, Lightbulb, BookOpen, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-
-interface DocumentTermExplainerProps {
-  processorId?: string;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TermExplanation {
   term: string;
@@ -21,10 +19,9 @@ interface TermExplanation {
   relatedTerms?: string[];
 }
 
-export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f" }: DocumentTermExplainerProps) {
+export default function DocumentTermExplainer() {
   const { toast } = useToast();
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeMethod, setActiveMethod] = useState<"upload" | "paste">("paste");
   const [documentText, setDocumentText] = useState("");
   const [selectedTerm, setSelectedTerm] = useState("");
   const [isExplaining, setIsExplaining] = useState(false);
@@ -35,61 +32,42 @@ export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f"
   const commonLegalTerms = [
     "force majeure", "indemnification", "easement", "covenant", "encumbrance",
     "contingency", "escrow", "lien", "deed", "title insurance", "appraisal",
-    "amortization", "conveyance", "consideration", "warranty"
+    "amortization", "conveyance", "consideration", "warranty", "assignment",
+    "subrogation", "waiver", "setoff", "subordination", "indemnity"
   ];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
-    
-    // Reset states when new file is selected
-    setDocumentText("");
-    setSelectedTerm("");
-    setExplanation(null);
-  };
-
-  const processDocument = async () => {
-    if (!file) {
-      toast({
-        title: "No file selected",
-        description: "Please select a document file to process",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsProcessing(true);
+  // Handle file selection
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
-      const formData = new FormData();
-      formData.append('document', file);
-      formData.append('processorId', processorId);
-
-      const response = await fetch("/api/ocr/process", {
-        method: 'POST',
-        body: formData,
-      });
-      
-      const data = await response.json();
-
-      if (response.ok && data.text) {
-        setDocumentText(data.text);
+      // For text files - read directly
+      if (file.type === 'text/plain') {
+        const text = await file.text();
+        setDocumentText(text);
         toast({
-          title: "Document processed successfully",
-          description: "You can now click on terms to get explanations",
+          title: "Document loaded",
+          description: "You can now click on highlighted legal terms for explanations",
         });
       } else {
-        throw new Error(data.message || "Failed to process document");
+        // For other files, we can't process them without Document AI
+        // So inform the user to use the paste method instead
+        toast({
+          title: "Unsupported file format",
+          description: "Please paste contract text directly in the text area instead",
+          variant: "destructive"
+        });
+        setActiveMethod("paste");
       }
     } catch (error) {
-      console.error("Error processing document:", error);
+      console.error("Error reading file:", error);
       toast({
-        title: "Processing failed",
-        description: error instanceof Error ? error.message : "Failed to process document",
+        title: "Error reading file",
+        description: "Please try pasting the text directly",
         variant: "destructive"
       });
-    } finally {
-      setIsProcessing(false);
+      setActiveMethod("paste");
     }
   };
 
@@ -179,60 +157,76 @@ export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f"
     <div className="grid md:grid-cols-2 gap-6">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Upload Contract Document</CardTitle>
+          <CardTitle>Contract Document</CardTitle>
           <CardDescription>
-            Upload a real estate contract to analyze and explain legal terms
+            Add your contract text to explore and explain legal terms
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-6">
-          <div className="grid w-full items-center gap-1.5">
-            <label htmlFor="document" className="text-sm font-medium">
-              Choose Document
-            </label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="document"
-                type="file"
-                onChange={handleFileChange}
-                accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.docx,.doc"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium"
+          <Tabs value={activeMethod} onValueChange={(value) => setActiveMethod(value as "upload" | "paste")}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="paste">Paste Text</TabsTrigger>
+              <TabsTrigger value="upload">Upload File</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="paste" className="space-y-4">
+              <Textarea 
+                placeholder="Paste your contract text here..." 
+                className="min-h-[300px]"
+                value={documentText}
+                onChange={(e) => setDocumentText(e.target.value)}
               />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Supported formats: PDF, JPG, PNG, TIFF, DOC, DOCX
-            </p>
-          </div>
-          
-          <Button 
-            onClick={processDocument} 
-            disabled={!file || isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? (
-              <>Processing Document...</>
-            ) : (
-              <>
-                <Upload className="mr-2 h-4 w-4" />
-                Process Document
-              </>
-            )}
-          </Button>
-          
-          {file && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText size={16} />
-              <span>{file.name}</span>
-            </div>
-          )}
+              <Button 
+                disabled={!documentText.trim()} 
+                className="w-full"
+                onClick={() => setDocumentText(documentText)}
+              >
+                Process Text
+              </Button>
+            </TabsContent>
+            
+            <TabsContent value="upload" className="space-y-4">
+              <div className="grid w-full items-center gap-1.5">
+                <label htmlFor="document" className="text-sm font-medium">
+                  Choose Text File
+                </label>
+                <Input
+                  id="document"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept=".txt"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Only .txt files are supported without Document AI
+                </p>
+              </div>
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  PDF processing requires Document AI permissions. Please use the "Paste Text" option for non-text files.
+                </AlertDescription>
+              </Alert>
+            </TabsContent>
+          </Tabs>
 
           {documentText && (
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Document Content</h3>
+            <div className="space-y-2 mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold">Document Content</h3>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {commonLegalTerms.filter(term => 
+                      documentText.toLowerCase().includes(term.toLowerCase())
+                    ).length} Terms Found
+                  </Badge>
+                </div>
+              </div>
               <p className="text-sm text-muted-foreground">
                 Click on any highlighted term to get an explanation.
               </p>
-              <ScrollArea className="h-[600px] w-full border rounded-md p-4">
+              <ScrollArea className="h-[400px] w-full border rounded-md p-4">
                 <div 
                   ref={textContainerRef}
                   className="text-sm whitespace-pre-wrap" 
@@ -257,9 +251,9 @@ export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f"
             <div className="min-h-[200px] flex flex-col items-center justify-center text-center p-6 space-y-4">
               <Info className="h-12 w-12 text-muted-foreground/60" />
               <div className="space-y-2">
-                <h3 className="font-semibold text-xl">Upload a Document</h3>
+                <h3 className="font-semibold text-xl">Add Contract Text</h3>
                 <p className="text-muted-foreground">
-                  Upload and process a contract document to start exploring legal terms.
+                  Paste or upload contract text to start exploring legal terms.
                 </p>
               </div>
             </div>
@@ -269,10 +263,10 @@ export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f"
               <div className="space-y-2">
                 <h3 className="font-semibold text-xl">Select a Term</h3>
                 <p className="text-muted-foreground">
-                  Click on any highlighted term in the document to see its explanation.
+                  Click on any highlighted term in the document to see its explanation, or select from common terms below:
                 </p>
                 <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                  {commonLegalTerms.slice(0, 8).map((term, idx) => (
+                  {commonLegalTerms.slice(0, 10).map((term, idx) => (
                     <Badge key={idx} variant="outline" className="cursor-pointer hover:bg-primary/10" 
                           onClick={() => explainTerm(term)}>
                       {term}
@@ -289,7 +283,7 @@ export default function DocumentTermExplainer({ processorId = "3c07700f0a77de4f"
                   <div className="h-4 w-64 bg-muted rounded mx-auto mt-4"></div>
                   <div className="h-4 w-52 bg-muted rounded mx-auto mt-2"></div>
                 </div>
-                <p className="text-muted-foreground">Generating explanation...</p>
+                <p className="text-muted-foreground">Generating explanation for "{selectedTerm}"...</p>
               </div>
             </div>
           ) : explanation ? (

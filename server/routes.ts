@@ -8,7 +8,8 @@ import {
   predictPropertyPrice,
   generatePropertyDescription,
   getPersonalizedRecommendations,
-  generateChatbotResponse
+  generateChatbotResponse,
+  explainLegalTerm
 } from "./vertex-ai"; // Import Vertex AI functions
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
 
@@ -338,6 +339,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[express] Error generating chatbot response:", error);
       res.status(500).json({ 
         message: "Failed to generate chatbot response",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Explain legal term in contract
+  app.post("/api/ai/explain-term", async (req, res) => {
+    try {
+      const { contractText, term } = req.body;
+      
+      if (!contractText || !term) {
+        return res.status(400).json({ 
+          message: "Both contractText and term are required" 
+        });
+      }
+      
+      console.log(`[express] Explaining legal term: "${term}"`);
+      
+      const explanation = await explainLegalTerm(contractText, term);
+      res.json(explanation);
+    } catch (error) {
+      console.error("[express] Error explaining legal term:", error);
+      res.status(500).json({ 
+        message: "Failed to explain legal term",
         error: error instanceof Error ? error.message : String(error)
       });
     }

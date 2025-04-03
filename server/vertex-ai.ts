@@ -341,6 +341,88 @@ export async function generateChatbotResponse(
   }
 }
 
+/**
+ * Explains legal terms in real estate contracts
+ * @param contractText The text of the contract containing the term
+ * @param term The specific term to explain
+ * @returns Detailed explanation of the term in JSON format
+ */
+export async function explainLegalTerm(
+  contractText: string,
+  term: string
+): Promise<{
+  term: string;
+  definition: string;
+  implications: string;
+  example?: string;
+  relatedTerms?: string[];
+}> {
+  try {
+    if (!vertexAi) {
+      throw new Error('Vertex AI not initialized');
+    }
+
+    // Generate a prompt for the Gemini model to explain the legal term
+    const prompt = `
+      You are a real estate legal expert. Please explain the term "${term}" in the context of the following contract excerpt:
+      
+      CONTRACT TEXT:
+      ${contractText.substring(0, 2000)}... [text truncated for brevity]
+      
+      Please respond with a JSON object that includes:
+      1. A clear definition of "${term}"
+      2. Legal implications for the parties involved
+      3. A simple example to illustrate the concept (if applicable)
+      4. Related terms that might be relevant (if applicable)
+      
+      Format your response as a valid JSON object with these fields:
+      {
+        "term": "the exact term",
+        "definition": "clear definition",
+        "implications": "what this means for the parties involved",
+        "example": "simple example if applicable",
+        "relatedTerms": ["term1", "term2"]
+      }
+    `;
+
+    // Access generative AI model (Gemini)
+    const generativeModel = vertexAi.preview.getGenerativeModel({
+      model: 'gemini-pro',
+    });
+
+    // Generate explanation
+    const result = await generativeModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+    
+    const response = result.response;
+    const responseText = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // Extract JSON from response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to parse explanation response');
+    }
+    
+    const explanation = JSON.parse(jsonMatch[0]);
+    return {
+      term: explanation.term || term,
+      definition: explanation.definition || 'Definition not available',
+      implications: explanation.implications || 'Implications not specified',
+      example: explanation.example,
+      relatedTerms: explanation.relatedTerms || []
+    };
+  } catch (error) {
+    console.error('[express] Error explaining legal term:', error);
+    return {
+      term: term,
+      definition: 'Unable to generate explanation at this time.',
+      implications: 'Please consult with a legal professional for advice on this term.',
+      relatedTerms: []
+    };
+  }
+}
+
 // Delete the temporary credentials file when the server exits
 process.on('exit', () => {
   try {

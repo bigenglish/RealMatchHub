@@ -24,11 +24,11 @@ export default function Navbar() {
             <Link href="/documents" className="text-sm mr-4">
               Documents
             </Link>
+            <Link href="/contract-terms" className="text-sm mr-4">
+              Contract Terms
+            </Link>
             <Link href="/how-it-works" className="text-sm mr-4">
               How It Works
-            </Link>
-            <Link href="/pricing" className="text-sm mr-4">
-              Pricing
             </Link>
             <Button>GET STARTED</Button>
           </div>

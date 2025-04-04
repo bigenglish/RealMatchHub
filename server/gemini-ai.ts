@@ -40,7 +40,8 @@ export async function explainLegalTerm(
     
     // Create and configure the Gemini model
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Using gemini-1.5-pro-latest which is available in the API
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
     // Configure safety settings
     const generationConfig = {

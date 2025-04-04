@@ -9,8 +9,8 @@ import {
   generatePropertyDescription,
   getPersonalizedRecommendations,
   generateChatbotResponse,
-  explainLegalTerm
 } from "./vertex-ai"; // Import Vertex AI functions
+import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API function
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
 
 export async function registerRoutes(app: Express): Promise<Server> {

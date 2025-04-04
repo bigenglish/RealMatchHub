@@ -7,7 +7,7 @@ import axios from 'axios';
 
 // Gemini API configuration
 const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent';
 
 // Interface for term explanation responses
 export interface TermExplanation {
@@ -87,7 +87,18 @@ export async function explainLegalTerm(
     );
 
     // Extract the generated text response
-    const generatedContent = response.data.candidates[0].content.parts[0].text;
+    console.log("[gemini-ai] API response structure:", JSON.stringify(response.data).slice(0, 200));
+    
+    // Handle different response formats between API versions
+    let generatedContent;
+    if (response.data.candidates && response.data.candidates[0]?.content?.parts) {
+      generatedContent = response.data.candidates[0].content.parts[0].text;
+    } else if (response.data.candidates && response.data.candidates[0]?.text) {
+      generatedContent = response.data.candidates[0].text;
+    } else {
+      console.error("[gemini-ai] Unexpected API response format:", JSON.stringify(response.data).slice(0, 300));
+      generatedContent = "{}"; // Default to empty object if we can't find the content
+    }
     
     // Try to parse the JSON response
     try {

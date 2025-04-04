@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { FileText, Info, Lightbulb, BookOpen, AlertCircle } from "lucide-react";
+import { FileText, Info, Lightbulb, BookOpen, AlertCircle, Upload, FileIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,8 +25,13 @@ export default function DocumentTermExplainer() {
   const [documentText, setDocumentText] = useState("");
   const [selectedTerm, setSelectedTerm] = useState("");
   const [isExplaining, setIsExplaining] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [explanation, setExplanation] = useState<TermExplanation | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
+
+  // Default processor ID for Document AI
+  const processorId = "3c07700f0a77de4f";
 
   // Highlighted terms that might be common in real estate contracts
   const commonLegalTerms = [
@@ -38,36 +43,83 @@ export default function DocumentTermExplainer() {
 
   // Handle file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    setFile(selectedFile);
 
-    try {
-      // For text files - read directly
-      if (file.type === 'text/plain') {
-        const text = await file.text();
+    // For text files, read directly without using Document AI
+    if (selectedFile.type === 'text/plain') {
+      try {
+        const text = await selectedFile.text();
         setDocumentText(text);
         toast({
           title: "Document loaded",
           description: "You can now click on highlighted legal terms for explanations",
         });
-      } else {
-        // For other files, we can't process them without Document AI
-        // So inform the user to use the paste method instead
+      } catch (error) {
+        console.error("Error reading text file:", error);
         toast({
-          title: "Unsupported file format",
-          description: "Please paste contract text directly in the text area instead",
+          title: "Error reading file",
+          description: "Please try pasting the text directly",
           variant: "destructive"
         });
         setActiveMethod("paste");
       }
-    } catch (error) {
-      console.error("Error reading file:", error);
+    }
+    // For PDFs and other document types, we'll process them in the processDocument function
+  };
+  
+  // Process document with Document AI (for PDFs and other non-text files)
+  const processDocument = async () => {
+    if (!file) {
       toast({
-        title: "Error reading file",
-        description: "Please try pasting the text directly",
+        title: "No file selected",
+        description: "Please select a document file to process",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Skip DocumentAI for text files (we already loaded them directly)
+    if (file.type === 'text/plain' && documentText) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('processorId', processorId);
+
+      const response = await fetch("/api/ocr/process", {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await response.json();
+
+      if (response.ok && data.text) {
+        setDocumentText(data.text);
+        toast({
+          title: "Document processed successfully",
+          description: "You can now click on highlighted legal terms for explanations",
+        });
+      } else {
+        throw new Error(data.message || "Failed to process document");
+      }
+    } catch (error) {
+      console.error("Error processing document:", error);
+      toast({
+        title: "Processing failed",
+        description: error instanceof Error ? error.message : "Failed to process document",
+        variant: "destructive"
+      });
+      // If Document AI fails, suggest the paste method
       setActiveMethod("paste");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -189,25 +241,49 @@ export default function DocumentTermExplainer() {
             <TabsContent value="upload" className="space-y-4">
               <div className="grid w-full items-center gap-1.5">
                 <label htmlFor="document" className="text-sm font-medium">
-                  Choose Text File
+                  Choose Document File
                 </label>
                 <Input
                   id="document"
                   type="file"
                   onChange={handleFileChange}
-                  accept=".txt"
+                  accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.txt"
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Only .txt files are supported without Document AI
+                  Supported formats: PDF, JPG, PNG, TIFF, TXT
                 </p>
               </div>
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
-                  PDF processing requires Document AI permissions. Please use the "Paste Text" option for non-text files.
-                </AlertDescription>
-              </Alert>
+              
+              {file && file.type !== 'text/plain' && (
+                <Button 
+                  onClick={processDocument} 
+                  disabled={!file || isProcessing}
+                  className="w-full"
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Process with Document AI
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {file && (
+                <div className="flex items-center gap-2 text-sm">
+                  <FileText size={16} className="text-primary" />
+                  <span className="font-medium">{file.name}</span>
+                  <Badge variant="outline" className="ml-auto">
+                    {(file.size / 1024).toFixed(1)} KB
+                  </Badge>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 

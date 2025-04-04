@@ -137,24 +137,46 @@ export default function DocumentTermExplainer() {
     setSelectedTerm(term);
 
     try {
+      console.log(`Requesting explanation for term: "${term}"`);
+      
       const response = await fetch("/api/ai/explain-term", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contractText: documentText, term }),
       });
 
+      console.log(`Response status: ${response.status}`);
+      const data = await response.json();
+      console.log("Explanation response:", data);
+
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+        throw new Error(`Server returned ${response.status}: ${data.message || 'Unknown error'}`);
       }
 
-      const data = await response.json();
-      setExplanation(data);
+      // If we have a definition like "Unable to generate" it's actually an error
+      if (data.definition && data.definition.includes("Unable to generate")) {
+        toast({
+          title: "AI Service Issue",
+          description: "The AI service is having trouble generating an explanation. Please try again later.",
+          variant: "destructive"
+        });
+      } else {
+        setExplanation(data);
+      }
     } catch (error) {
       console.error("Error explaining term:", error);
       toast({
         title: "Explanation failed",
         description: error instanceof Error ? error.message : "Failed to explain term",
         variant: "destructive"
+      });
+      
+      // Set a fallback explanation so user sees something
+      setExplanation({
+        term: term,
+        definition: "We couldn't generate an explanation for this term at this time.",
+        implications: "This might be due to a temporary AI service issue. Please try again later or try a different term.",
+        relatedTerms: []
       });
     } finally {
       setIsExplaining(false);

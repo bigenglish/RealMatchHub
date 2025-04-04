@@ -414,10 +414,34 @@ export async function explainLegalTerm(
     };
   } catch (error) {
     console.error('[express] Error explaining legal term:', error);
+    
+    // If the Vertex AI is not initialized or available, check for authentication
+    if (error.message?.includes('credential') || 
+        error.message?.includes('authentication') || 
+        error.message?.includes('Vertex AI not initialized')) {
+      return {
+        term: term,
+        definition: 'AI service authentication error. Please check your Google Cloud credentials.',
+        implications: 'The system requires valid Google Cloud authentication to process requests.',
+        relatedTerms: []
+      };
+    }
+    
+    // If there's an error parsing the response
+    if (error.message?.includes('parse')) {
+      return {
+        term: term,
+        definition: 'Unable to process the AI response for this term.',
+        implications: 'The term might be complex or require specialized knowledge.',
+        relatedTerms: []
+      };
+    }
+    
+    // Default error message
     return {
       term: term,
       definition: 'Unable to generate explanation at this time.',
-      implications: 'Please consult with a legal professional for advice on this term.',
+      implications: 'Please try again with a different term or contact support if the issue persists.',
       relatedTerms: []
     };
   }

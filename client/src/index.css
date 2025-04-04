@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom floating explain button */
+.floating-explain-btn {
+  animation: fadeIn 0.2s ease-in-out;
+  transition: all 0.2s ease;
+}
+
+.floating-explain-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer base {
   * {
     @apply border-border;

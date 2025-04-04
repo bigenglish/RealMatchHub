@@ -181,6 +181,57 @@ export default function DocumentTermExplainer() {
     return highlightedText;
   };
 
+  // Handle mouse up event for text selection
+  const handleMouseUp = () => {
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim()) {
+      const selectedText = selection.toString().trim();
+      if (selectedText.length > 1 && selectedText.length < 50) {
+        // Add a button near the selection to explain the term
+        showExplainButton(selectedText);
+      }
+    }
+  };
+
+  // Show a floating button to explain selected text
+  const showExplainButton = (selectedText: string) => {
+    // Remove any existing floating buttons
+    const existingButtons = document.querySelectorAll('.floating-explain-btn');
+    existingButtons.forEach(btn => btn.remove());
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    // Create floating button
+    const button = document.createElement('button');
+    button.textContent = 'Explain';
+    button.className = 'floating-explain-btn bg-primary text-primary-foreground text-xs px-2 py-1 rounded-md shadow-md absolute z-50';
+    button.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 30}px`;
+    button.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    
+    // Add event to explain the term
+    button.addEventListener('click', () => {
+      explainTerm(selectedText);
+      button.remove();
+    });
+    
+    // Add button to DOM
+    document.body.appendChild(button);
+    
+    // Remove button when clicking elsewhere
+    const removeButton = (e: MouseEvent) => {
+      if (e.target !== button) {
+        button.remove();
+        document.removeEventListener('mousedown', removeButton);
+      }
+    };
+    
+    document.addEventListener('mousedown', removeButton);
+  };
+
   // Handle click on highlighted terms
   useEffect(() => {
     const handleTermClick = (e: MouseEvent) => {
@@ -196,11 +247,13 @@ export default function DocumentTermExplainer() {
     const container = textContainerRef.current;
     if (container) {
       container.addEventListener('click', handleTermClick);
+      container.addEventListener('mouseup', handleMouseUp);
     }
 
     return () => {
       if (container) {
         container.removeEventListener('click', handleTermClick);
+        container.removeEventListener('mouseup', handleMouseUp);
       }
     };
   }, [documentText]);
@@ -300,7 +353,7 @@ export default function DocumentTermExplainer() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Click on any highlighted term to get an explanation.
+                Click on highlighted terms or select any text to get an AI-powered explanation.
               </p>
               <ScrollArea className="h-[400px] w-full border rounded-md p-4">
                 <div 
@@ -339,7 +392,7 @@ export default function DocumentTermExplainer() {
               <div className="space-y-2">
                 <h3 className="font-semibold text-xl">Select a Term</h3>
                 <p className="text-muted-foreground">
-                  Click on any highlighted term in the document to see its explanation, or select from common terms below:
+                  Click on highlighted terms, select any text in the document, or choose from common terms below:
                 </p>
                 <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {commonLegalTerms.slice(0, 10).map((term, idx) => (

@@ -1,13 +1,8 @@
 /**
- * Google Gemini API integration
- * Direct implementation using the Google Gemini API key
+ * Google Gemini API integration using the official SDK
  */
 
-import axios from 'axios';
-
-// Gemini API configuration
-const GEMINI_API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 // Interface for term explanation responses
 export interface TermExplanation {
@@ -19,7 +14,7 @@ export interface TermExplanation {
 }
 
 /**
- * Explains a legal term from real estate contracts using Google's Gemini Pro model
+ * Explains a legal term from real estate contracts using Google's Gemini model
  * @param contractText The text of the contract containing the term
  * @param term The specific term to explain
  * @returns Detailed explanation of the term
@@ -28,8 +23,10 @@ export async function explainLegalTerm(
   contractText: string,
   term: string
 ): Promise<TermExplanation> {
-  if (!GEMINI_API_KEY) {
-    console.error("Gemini API key not found!");
+  const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("[gemini-ai] API key not found!");
     return {
       term,
       definition: "Unable to generate explanation at this time.",
@@ -41,6 +38,36 @@ export async function explainLegalTerm(
   try {
     console.log(`[gemini-ai] Explaining legal term: "${term}"`);
     
+    // Create and configure the Gemini model
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    // Configure safety settings
+    const generationConfig = {
+      temperature: 0.2,
+      topP: 0.8,
+      topK: 40,
+    };
+
+    const safetySettings = [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+      },
+    ];
+
     // Create context-aware prompt for the legal term explanation
     const prompt = `
       You are a legal expert specializing in real estate contracts. I'd like you to explain the term "${term}" 
@@ -62,72 +89,52 @@ export async function explainLegalTerm(
       Return ONLY the JSON with no preamble or explanation. Ensure your response can be directly parsed as JSON.
     `;
 
-    // Call the Gemini API
-    const response = await axios.post(
-      `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [
-              { text: prompt }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.8,
-          topK: 40
-        }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    // Generate content
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig,
+      safetySettings,
+    });
 
-    // Extract the generated text response
-    console.log("[gemini-ai] API response structure:", JSON.stringify(response.data).slice(0, 200));
-    
-    // Handle different response formats between API versions
-    let generatedContent;
-    if (response.data.candidates && response.data.candidates[0]?.content?.parts) {
-      generatedContent = response.data.candidates[0].content.parts[0].text;
-    } else if (response.data.candidates && response.data.candidates[0]?.text) {
-      generatedContent = response.data.candidates[0].text;
-    } else {
-      console.error("[gemini-ai] Unexpected API response format:", JSON.stringify(response.data).slice(0, 300));
-      generatedContent = "{}"; // Default to empty object if we can't find the content
-    }
-    
+    const response = result.response;
+    console.log("[gemini-ai] Response:", response);
+
+    // Extract the text from the response
+    const generatedText = response.text();
+    console.log("[gemini-ai] Generated text:", generatedText.slice(0, 300));
+
     // Try to parse the JSON response
     try {
       // Remove any non-JSON text that might be in the response
-      const jsonStartIndex = generatedContent.indexOf('{');
-      const jsonEndIndex = generatedContent.lastIndexOf('}') + 1;
-      const jsonStr = generatedContent.slice(jsonStartIndex, jsonEndIndex);
-      const parsed = JSON.parse(jsonStr);
+      const jsonStartIndex = generatedText.indexOf('{');
+      const jsonEndIndex = generatedText.lastIndexOf('}') + 1;
       
-      // Ensure all required fields are present
-      return {
-        term: parsed.term || term,
-        definition: parsed.definition || "No definition provided",
-        implications: parsed.implications || "No implications provided",
-        example: parsed.example || undefined,
-        relatedTerms: Array.isArray(parsed.relatedTerms) ? parsed.relatedTerms : []
-      };
+      if (jsonStartIndex >= 0 && jsonEndIndex > jsonStartIndex) {
+        const jsonStr = generatedText.slice(jsonStartIndex, jsonEndIndex);
+        console.log("[gemini-ai] Extracted JSON:", jsonStr.slice(0, 200));
+        
+        const parsed = JSON.parse(jsonStr);
+        
+        // Ensure all required fields are present
+        return {
+          term: parsed.term || term,
+          definition: parsed.definition || "No definition provided",
+          implications: parsed.implications || "No implications provided",
+          example: parsed.example || undefined,
+          relatedTerms: Array.isArray(parsed.relatedTerms) ? parsed.relatedTerms : []
+        };
+      } else {
+        throw new Error("No valid JSON found in response");
+      }
     } catch (parseError) {
       console.error("[gemini-ai] Error parsing JSON response:", parseError);
-      console.log("[gemini-ai] Raw response:", generatedContent);
+      console.log("[gemini-ai] Raw response for parsing:", generatedText);
       
       // Attempt to extract information using regex as fallback
-      return extractExplanationFromText(generatedContent, term);
+      return extractExplanationFromText(generatedText, term);
     }
   } catch (error) {
     console.error("[gemini-ai] Error explaining legal term:", error);
-    if (axios.isAxiosError(error)) {
-      console.error("[gemini-ai] API Error details:", error.response?.data);
-    }
     
     return {
       term,

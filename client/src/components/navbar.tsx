@@ -30,6 +30,9 @@ export default function Navbar() {
             <Link href="/service-experts" className="text-sm mr-4">
               Service Experts
             </Link>
+            <Link href="/marketplace" className="text-sm mr-4">
+              Marketplace
+            </Link>
             <Link href="/how-it-works" className="text-sm mr-4">
               How It Works
             </Link>

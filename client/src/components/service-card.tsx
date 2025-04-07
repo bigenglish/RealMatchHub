@@ -1,58 +1,56 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, Phone, User } from "lucide-react";
-import type { ServiceProvider } from "@shared/schema";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ServiceOffering } from "@shared/schema";
 import { Link } from "wouter";
 
 interface ServiceCardProps {
-  provider: ServiceProvider;
+  service: ServiceOffering;
+  compact?: boolean;
 }
 
-export default function ServiceCard({ provider }: ServiceCardProps) {
+export default function ServiceCard({ service, compact = false }: ServiceCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <Link href={`/service-provider/${provider.id}`}>
-        <CardContent className="p-6 cursor-pointer">
-          <div className="flex items-center space-x-4">
-            <img
-              src={provider.image}
-              alt={provider.name}
-              className="h-16 w-16 rounded-full object-cover"
-            />
-            <div>
-              <h3 className="text-lg font-semibold">{provider.name}</h3>
-              <Badge variant="secondary" className="mt-1">
-                {provider.type}
-              </Badge>
+    <Card className="overflow-hidden flex flex-col h-full">
+      <CardHeader className={compact ? "p-4" : undefined}>
+        <CardTitle className={compact ? "text-base" : "text-lg"}>
+          {service.name}
+        </CardTitle>
+        {!compact && <CardDescription>{service.description}</CardDescription>}
+      </CardHeader>
+      <CardContent className={`flex-grow ${compact ? "p-4 pt-0" : ""}`}>
+        <div className="flex justify-between mb-2">
+          <span className="font-semibold">{service.price}</span>
+          {!compact && (
+            <span className="text-muted-foreground text-sm">
+              {service.estimatedDuration}
+            </span>
+          )}
+        </div>
+        {!compact && (
+          <>
+            <div className="text-sm text-muted-foreground mb-2">
+              <span>Typical timing: </span>
+              <span>{service.typicalTimingInTransaction}</span>
             </div>
-          </div>
-          
-          <div className="mt-4">
-            <p className="text-muted-foreground line-clamp-2">{provider.description}</p>
-            
-            <div className="mt-4 flex items-center space-x-4">
-              <div className="flex items-center">
-                <Star className="h-4 w-4 text-yellow-400 mr-1 fill-current" />
-                <span>{provider.rating}/5</span>
+            {service.requiredDocuments && service.requiredDocuments.length > 0 && (
+              <div className="mt-3">
+                <span className="text-sm font-medium">Required documents:</span>
+                <ul className="text-sm mt-1 space-y-1 list-disc pl-4">
+                  {service.requiredDocuments.map((doc, index) => (
+                    <li key={index}>{doc}</li>
+                  ))}
+                </ul>
               </div>
-              <span>{provider.experience} years experience</span>
-            </div>
-          </div>
-        </CardContent>
-      </Link>
-      
-      <CardFooter className="p-6 pt-0 flex gap-2">
-        <Button className="w-1/2" variant="outline" asChild>
-          <Link href={`/service-provider/${provider.id}`}>
-            <User className="h-4 w-4 mr-2" />
-            View Profile
-          </Link>
-        </Button>
-        <Button className="w-1/2" onClick={() => window.location.href = `tel:${provider.contact}`}>
-          <Phone className="h-4 w-4 mr-2" />
-          Contact
-        </Button>
+            )}
+          </>
+        )}
+      </CardContent>
+      <CardFooter className={compact ? "p-4 pt-0" : undefined}>
+        <Link href={`/marketplace/service/${service.id}`}>
+          <Button variant={compact ? "secondary" : "outline"} size={compact ? "sm" : "default"} className="w-full">
+            {compact ? "Details" : "Request Service"}
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

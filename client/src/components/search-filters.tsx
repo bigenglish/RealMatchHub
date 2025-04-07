@@ -1,163 +1,205 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { propertyTypes } from "@shared/schema";
-import { RefreshCw, Search } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Filter, X } from "lucide-react";
 
-const searchSchema = z.object({
-  minPrice: z.string().optional(),
-  maxPrice: z.string().optional(),
-  bedrooms: z.string().optional(),
-  bathrooms: z.string().optional(),
-  propertyType: z.string().optional(),
-});
-
-type SearchFilters = z.infer<typeof searchSchema>;
-
-interface SearchFiltersProps {
-  onFilter: (filters: any) => void;
+export interface SearchFiltersProps {
+  onFilterChange: (filters: SearchFilterValues) => void;
+  className?: string;
 }
 
-// Convert form data to the correct types for filtering
-function prepareFilters(data: SearchFilters) {
-  return {
-    minPrice: data.minPrice ? parseFloat(data.minPrice) : undefined,
-    maxPrice: data.maxPrice ? parseFloat(data.maxPrice) : undefined,
-    bedrooms: data.bedrooms ? parseInt(data.bedrooms) : undefined,
-    bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined,
-    propertyType: data.propertyType && data.propertyType !== "All" ? data.propertyType : undefined,
-  };
+export interface SearchFilterValues {
+  location?: string;
+  propertyType?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minBeds?: number;
+  minBaths?: number;
 }
 
-export default function SearchFilters({ onFilter }: SearchFiltersProps) {
-  const form = useForm<SearchFilters>({
-    resolver: zodResolver(searchSchema),
-    defaultValues: {
-      minPrice: "",
-      maxPrice: "",
-      bedrooms: "",
-      bathrooms: "",
-      propertyType: "All",
-    },
+export default function SearchFilters({ onFilterChange, className = "" }: SearchFiltersProps) {
+  const [filters, setFilters] = useState<SearchFilterValues>({
+    location: "",
+    propertyType: "",
+    minPrice: undefined,
+    maxPrice: undefined,
+    minBeds: undefined,
+    minBaths: undefined,
   });
 
-  const handleSubmit = (data: SearchFilters) => {
-    const processedFilters = prepareFilters(data);
-    onFilter(processedFilters);
+  const [price, setPrice] = useState<[number, number]>([0, 1000000]);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleReset = () => {
-    form.reset({
-      minPrice: "",
-      maxPrice: "",
-      bedrooms: "",
-      bathrooms: "",
-      propertyType: "All",
-    });
-    
-    // Submit with empty filters
-    onFilter({});
+  const handleSelectChange = (name: string, value: any) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handlePriceChange = (value: number[]) => {
+    setPrice([value[0], value[1]]);
+    setFilters((prev) => ({
+      ...prev,
+      minPrice: value[0],
+      maxPrice: value[1],
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    onFilterChange(filters);
+    setShowMobileFilters(false);
+  };
+
+  const handleClearFilters = () => {
+    const emptyFilters = {
+      location: "",
+      propertyType: "",
+      minPrice: undefined,
+      maxPrice: undefined,
+      minBeds: undefined,
+      minBaths: undefined,
+    };
+    setFilters(emptyFilters);
+    setPrice([0, 1000000]);
+    onFilterChange(emptyFilters);
+  };
+
+  // Desktop filters layout
+  const FiltersContent = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="location">Location</Label>
+          <Input
+            id="location"
+            name="location"
+            placeholder="City, neighborhood, or ZIP"
+            value={filters.location}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="propertyType">Property Type</Label>
+          <Select
+            value={filters.propertyType}
+            onValueChange={(value) => handleSelectChange("propertyType", value)}
+          >
+            <SelectTrigger id="propertyType">
+              <SelectValue placeholder="Any type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any type</SelectItem>
+              <SelectItem value="Single Family">Single Family</SelectItem>
+              <SelectItem value="Condo">Condo</SelectItem>
+              <SelectItem value="Townhouse">Townhouse</SelectItem>
+              <SelectItem value="Multi-family">Multi-family</SelectItem>
+              <SelectItem value="Land">Land</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex justify-between">
+          <Label>Price Range</Label>
+          <span className="text-sm text-muted-foreground">
+            ${price[0].toLocaleString()} - ${price[1].toLocaleString()}
+          </span>
+        </div>
+        <Slider
+          defaultValue={[0, 1000000]}
+          value={price}
+          max={2000000}
+          step={50000}
+          onValueChange={handlePriceChange}
+          className="my-4"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="beds">Beds</Label>
+          <Select
+            value={filters.minBeds?.toString() || ""}
+            onValueChange={(value) =>
+              handleSelectChange("minBeds", value ? parseInt(value) : undefined)
+            }
+          >
+            <SelectTrigger id="beds">
+              <SelectValue placeholder="Any" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="1">1+</SelectItem>
+              <SelectItem value="2">2+</SelectItem>
+              <SelectItem value="3">3+</SelectItem>
+              <SelectItem value="4">4+</SelectItem>
+              <SelectItem value="5">5+</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="baths">Baths</Label>
+          <Select
+            value={filters.minBaths?.toString() || ""}
+            onValueChange={(value) =>
+              handleSelectChange("minBaths", value ? parseInt(value) : undefined)
+            }
+          >
+            <SelectTrigger id="baths">
+              <SelectValue placeholder="Any" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="1">1+</SelectItem>
+              <SelectItem value="2">2+</SelectItem>
+              <SelectItem value="3">3+</SelectItem>
+              <SelectItem value="4">4+</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex justify-between pt-2">
+        <Button variant="outline" size="sm" onClick={handleClearFilters}>
+          <X className="h-4 w-4 mr-1" />
+          Clear
+        </Button>
+        <Button onClick={handleApplyFilters}>Apply Filters</Button>
+      </div>
+    </div>
+  );
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 border rounded-lg p-4 bg-background">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <FormField
-            control={form.control}
-            name="minPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Min Price</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Min Price" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+    <div className={className}>
+      {/* Desktop filters */}
+      <div className="hidden md:block p-6 bg-card rounded-lg border shadow-sm">
+        <FiltersContent />
+      </div>
 
-          <FormField
-            control={form.control}
-            name="maxPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Max Price</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Max Price" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="bedrooms"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bedrooms</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Bedrooms" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="bathrooms"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bathrooms</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="Bathrooms" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="propertyType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Property Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value || "All"}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem key="all" value="All">
-                      All Types
-                    </SelectItem>
-                    {propertyTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <Button type="submit" className="flex-1">
-            <Search className="h-4 w-4 mr-2" />
-            Search Properties
-          </Button>
-          <Button type="button" variant="outline" onClick={handleReset}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Reset
-          </Button>
-        </div>
-      </form>
-    </Form>
+      {/* Mobile filters */}
+      <div className="md:hidden">
+        <Popover open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[calc(100vw-2rem)] p-4 max-w-md" align="center">
+            <FiltersContent />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
   );
 }

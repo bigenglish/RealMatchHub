@@ -810,5 +810,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(500).json({ message: "Internal server error" });
   });
 
+  // Service Bundles Routes
+  app.get("/api/service-bundles", async (_req, res) => {
+    try {
+      const bundles = await storage.getServiceBundles();
+      res.json(bundles);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving service bundles", error: String(error) });
+    }
+  });
+
+  app.get("/api/service-bundles/:id", async (req, res) => {
+    try {
+      const bundle = await storage.getServiceBundle(parseInt(req.params.id));
+      if (!bundle) {
+        return res.status(404).json({ message: "Service bundle not found" });
+      }
+      res.json(bundle);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving service bundle", error: String(error) });
+    }
+  });
+
+  app.post("/api/service-bundles", async (req, res) => {
+    try {
+      const bundle = await storage.createServiceBundle(req.body);
+      res.status(201).json(bundle);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating service bundle", error: String(error) });
+    }
+  });
+
+  // Service Offerings Routes
+  app.get("/api/service-offerings", async (_req, res) => {
+    try {
+      const offerings = await storage.getServiceOfferings();
+      res.json(offerings);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving service offerings", error: String(error) });
+    }
+  });
+
+  app.get("/api/service-offerings/:id", async (req, res) => {
+    try {
+      const offering = await storage.getServiceOffering(parseInt(req.params.id));
+      if (!offering) {
+        return res.status(404).json({ message: "Service offering not found" });
+      }
+      res.json(offering);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving service offering", error: String(error) });
+    }
+  });
+
+  app.get("/api/service-offerings/type/:type", async (req, res) => {
+    try {
+      const offerings = await storage.getServiceOfferingsByType(req.params.type);
+      res.json(offerings);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving service offerings by type", error: String(error) });
+    }
+  });
+
+  app.post("/api/service-offerings", async (req, res) => {
+    try {
+      const offering = await storage.createServiceOffering(req.body);
+      res.status(201).json(offering);
+    } catch (error) {
+      res.status(500).json({ message: "Error creating service offering", error: String(error) });
+    }
+  });
+
+  // Bundle Services Routes
+  app.get("/api/service-bundles/:bundleId/services", async (req, res) => {
+    try {
+      const services = await storage.getServicesInBundle(parseInt(req.params.bundleId));
+      res.json(services);
+    } catch (error) {
+      res.status(500).json({ message: "Error retrieving services in bundle", error: String(error) });
+    }
+  });
+
+  app.post("/api/service-bundles/:bundleId/services/:serviceId", async (req, res) => {
+    try {
+      const bundleService = await storage.addServiceToBundle(
+        parseInt(req.params.bundleId),
+        parseInt(req.params.serviceId)
+      );
+      res.status(201).json(bundleService);
+    } catch (error) {
+      res.status(500).json({ message: "Error adding service to bundle", error: String(error) });
+    }
+  });
+
+  app.delete("/api/service-bundles/:bundleId/services/:serviceId", async (req, res) => {
+    try {
+      const result = await storage.removeServiceFromBundle(
+        parseInt(req.params.bundleId),
+        parseInt(req.params.serviceId)
+      );
+      if (!result) {
+        return res.status(404).json({ message: "Service not found in bundle" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Error removing service from bundle", error: String(error) });
+    }
+  });
+
+  // ----- Marketplace Routes -----
+  
+  // Get all service bundles
+  app.get("/api/marketplace/bundles", async (_req, res) => {
+    try {
+      const bundles = await storage.getServiceBundles();
+      res.json(bundles);
+    } catch (error) {
+      console.error("[express] Error fetching service bundles:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch service bundles",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Get specific service bundle
+  app.get("/api/marketplace/bundles/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const bundle = await storage.getServiceBundle(id);
+      
+      if (!bundle) {
+        return res.status(404).json({ message: "Service bundle not found" });
+      }
+      
+      // Get services in the bundle
+      const services = await storage.getServicesInBundle(id);
+      
+      res.json({
+        ...bundle,
+        services
+      });
+    } catch (error) {
+      console.error(`[express] Error fetching service bundle ${req.params.id}:`, error);
+      res.status(500).json({ 
+        message: "Failed to fetch service bundle",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Get all service offerings
+  app.get("/api/marketplace/services", async (req, res) => {
+    try {
+      const type = req.query.type ? String(req.query.type) : undefined;
+      
+      // If type is provided, filter by type
+      const services = type
+        ? await storage.getServiceOfferingsByType(type)
+        : await storage.getServiceOfferings();
+      
+      res.json(services);
+    } catch (error) {
+      console.error("[express] Error fetching service offerings:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch service offerings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Get specific service offering
+  app.get("/api/marketplace/services/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const service = await storage.getServiceOffering(id);
+      
+      if (!service) {
+        return res.status(404).json({ message: "Service offering not found" });
+      }
+      
+      res.json(service);
+    } catch (error) {
+      console.error(`[express] Error fetching service offering ${req.params.id}:`, error);
+      res.status(500).json({ 
+        message: "Failed to fetch service offering",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Create service request
+  app.post("/api/marketplace/request", async (req, res) => {
+    try {
+      const request = req.body;
+      const serviceRequest = await storage.createServiceRequest(request);
+      res.status(201).json(serviceRequest);
+    } catch (error) {
+      console.error("[express] Error creating service request:", error);
+      res.status(500).json({ 
+        message: "Failed to create service request",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Get service types
+  app.get("/api/marketplace/service-types", async (_req, res) => {
+    try {
+      const offerings = await storage.getServiceOfferings();
+      // Extract unique service types
+      const serviceTypes = Array.from(new Set(offerings.map(offering => offering.serviceType)));
+      res.json(serviceTypes);
+    } catch (error) {
+      console.error("[express] Error fetching service types:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch service types",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   return httpServer;
 }

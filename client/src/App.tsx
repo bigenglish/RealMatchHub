@@ -11,6 +11,7 @@ import ServiceProviderDetail from "@/pages/service-provider";
 import Documents from "@/pages/documents";
 import ContractTerms from "@/pages/contract-terms";
 import ServiceExperts from "@/pages/service-experts";
+import Marketplace from "@/pages/marketplace";
 import Navbar from "@/components/navbar";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
           <Route path="/documents" component={Documents} />
           <Route path="/contract-terms" component={ContractTerms} />
           <Route path="/service-experts" component={ServiceExperts} />
+          <Route path="/marketplace" component={Marketplace} />
           <Route component={NotFound} />
         </Switch>
       </main>

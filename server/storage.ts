@@ -31,7 +31,7 @@ export interface IStorage {
   // Service Bundles (packages)
   getServiceBundles(): Promise<ServiceBundle[]>;
   getServiceBundle(id: number): Promise<ServiceBundle | undefined>;
-  createServiceBundle(bundle: InsertServiceBundle): Promise<ServiceBundle>;
+  createServiceBundle(bundle: InsertServiceBundle): ServiceBundle; // Modified to non-Promise for sample data
   updateServiceBundle(id: number, bundle: Partial<InsertServiceBundle>): Promise<ServiceBundle | undefined>;
   deleteServiceBundle(id: number): Promise<boolean>;
   
@@ -39,13 +39,13 @@ export interface IStorage {
   getServiceOfferings(): Promise<ServiceOffering[]>;
   getServiceOffering(id: number): Promise<ServiceOffering | undefined>;
   getServiceOfferingsByType(type: string): Promise<ServiceOffering[]>;
-  createServiceOffering(offering: InsertServiceOffering): Promise<ServiceOffering>;
+  createServiceOffering(offering: InsertServiceOffering): ServiceOffering; // Modified to non-Promise for sample data
   updateServiceOffering(id: number, offering: Partial<InsertServiceOffering>): Promise<ServiceOffering | undefined>;
   deleteServiceOffering(id: number): Promise<boolean>;
   
   // Bundle Services (many-to-many relationship)
   getServicesInBundle(bundleId: number): Promise<ServiceOffering[]>;
-  addServiceToBundle(bundleId: number, serviceId: number): Promise<BundleService>;
+  addServiceToBundle(bundleId: number, serviceId: number): BundleService; // Modified to non-Promise for sample data
   removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean>;
   
   // Service Requests (marketplace)
@@ -341,6 +341,119 @@ export class MemStorage implements IStorage {
     sampleServiceExperts.forEach(expert => {
       this.createServiceExpert(expert);
     });
+    
+    // Add sample service bundles
+    const bundle1 = this.createServiceBundle({
+      name: "Home Buyer Essentials",
+      description: "Everything you need for a smooth home buying experience",
+      price: "$1,899",
+      savings: "$450",
+      popularityRank: 1,
+      featuredImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3",
+      isActive: true
+    });
+
+    const bundle2 = this.createServiceBundle({
+      name: "Premium Seller Package",
+      description: "Comprehensive services for sellers looking to maximize value",
+      price: "$2,499",
+      savings: "$750",
+      popularityRank: 2,
+      featuredImage: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3",
+      isActive: true
+    });
+
+    const bundle3 = this.createServiceBundle({
+      name: "Investor's Toolkit",
+      description: "Specialized services for property investors and developers",
+      price: "$3,299",
+      savings: "$980",
+      popularityRank: 3,
+      featuredImage: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?ixlib=rb-4.0.3",
+      isActive: true
+    });
+
+    // Add sample service offerings
+    const offering1 = this.createServiceOffering({
+      name: "Home Inspection",
+      description: "Comprehensive inspection of all property systems and structure",
+      price: "$499",
+      serviceType: "Inspection Services",
+      estimatedDuration: "3-4 hours",
+      typicalTimingInTransaction: "After offer acceptance, before closing",
+      isActive: true,
+      requiredDocuments: ["Property disclosure statement", "Access authorization"]
+    });
+
+    const offering2 = this.createServiceOffering({
+      name: "Mortgage Pre-Approval",
+      description: "Complete financial assessment and pre-approval letter",
+      price: "$299",
+      serviceType: "Financing",
+      estimatedDuration: "1-2 business days",
+      typicalTimingInTransaction: "Before making offers",
+      isActive: true,
+      requiredDocuments: ["Income verification", "Credit history", "Asset documentation"]
+    });
+
+    const offering3 = this.createServiceOffering({
+      name: "Title Search & Insurance",
+      description: "Property title research and insurance policy",
+      price: "$799",
+      serviceType: "Legal & Closing",
+      estimatedDuration: "3-5 business days",
+      typicalTimingInTransaction: "During closing process",
+      isActive: true,
+      requiredDocuments: ["Property details", "Purchase agreement"]
+    });
+
+    const offering4 = this.createServiceOffering({
+      name: "Real Estate Photography",
+      description: "Professional photography package with virtual tour",
+      price: "$399",
+      serviceType: "Marketing",
+      estimatedDuration: "1-2 hours on-site",
+      typicalTimingInTransaction: "Before listing",
+      isActive: true,
+      requiredDocuments: ["Property access authorization"]
+    });
+
+    const offering5 = this.createServiceOffering({
+      name: "Moving Services",
+      description: "Full-service packing and moving with insurance",
+      price: "$1,299",
+      serviceType: "Relocation",
+      estimatedDuration: "1 day",
+      typicalTimingInTransaction: "After closing",
+      isActive: true,
+      requiredDocuments: ["Inventory list", "Moving date confirmation"]
+    });
+
+    const offering6 = this.createServiceOffering({
+      name: "Legal Document Review",
+      description: "Attorney review of all transaction documents",
+      price: "$599",
+      serviceType: "Legal & Closing",
+      estimatedDuration: "1-2 business days",
+      typicalTimingInTransaction: "Before signing final documents",
+      isActive: true,
+      requiredDocuments: ["Purchase agreement", "Disclosure forms", "Loan documents"]
+    });
+
+    // Connect services to bundles
+    this.addServiceToBundle(bundle1.id, offering1.id);
+    this.addServiceToBundle(bundle1.id, offering2.id);
+    this.addServiceToBundle(bundle1.id, offering3.id);
+
+    this.addServiceToBundle(bundle2.id, offering1.id);
+    this.addServiceToBundle(bundle2.id, offering3.id);
+    this.addServiceToBundle(bundle2.id, offering4.id);
+    this.addServiceToBundle(bundle2.id, offering6.id);
+
+    this.addServiceToBundle(bundle3.id, offering1.id);
+    this.addServiceToBundle(bundle3.id, offering2.id);
+    this.addServiceToBundle(bundle3.id, offering3.id);
+    this.addServiceToBundle(bundle3.id, offering6.id);
   }
 
   async getProperties(): Promise<Property[]> {
@@ -476,7 +589,8 @@ export class MemStorage implements IStorage {
     return this.serviceBundles.get(id);
   }
 
-  async createServiceBundle(bundle: InsertServiceBundle): Promise<ServiceBundle> {
+  // This method is special for sample data - it returns non-Promise for use in initializeSampleData
+  createServiceBundle(bundle: InsertServiceBundle): ServiceBundle {
     const id = this.serviceBundleId++;
     const createdAt = new Date();
     
@@ -528,7 +642,8 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createServiceOffering(offering: InsertServiceOffering): Promise<ServiceOffering> {
+  // This method is special for sample data - it returns non-Promise for use in initializeSampleData
+  createServiceOffering(offering: InsertServiceOffering): ServiceOffering {
     const id = this.serviceOfferingId++;
     const createdAt = new Date();
     
@@ -578,7 +693,8 @@ export class MemStorage implements IStorage {
     return services;
   }
 
-  async addServiceToBundle(bundleId: number, serviceId: number): Promise<BundleService> {
+  // This method is special for sample data - it returns non-Promise for use in initializeSampleData
+  addServiceToBundle(bundleId: number, serviceId: number): BundleService {
     const id = this.bundleServiceId++;
     
     const bundleService: BundleService = {

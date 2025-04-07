@@ -50,6 +50,7 @@ export const serviceExperts = pgTable("service_experts", {
   businessHours: text("business_hours"),
   address: text("address"),
   placeId: text("place_id"), // Google Places ID if applicable
+  serviceType: text("service_type").notNull(), // Type of service expert (Mortgage Lender, Home Inspector, etc.)
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({ id: true });
@@ -104,4 +105,19 @@ export const expertServiceTypes = [
   "Landscaping",
   "Interior Design",
   "Home Cleaning"
+] as const;
+
+// Expert service categories (types of experts)
+export const expertTypes = [
+  "Mortgage Lender",
+  "Home Inspector",
+  "Real Estate Attorney",
+  "Title Company",
+  "Insurance Agent",
+  "Real Estate Agent",
+  "Home Renovation Contractor",
+  "Moving Company",
+  "Appraiser",
+  "Property Manager",
+  "Interior Designer"
 ] as const;

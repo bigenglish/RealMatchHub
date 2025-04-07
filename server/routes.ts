@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPropertySchema, insertServiceProviderSchema, insertFinancingProviderSchema } from "@shared/schema";
+import { insertPropertySchema, insertServiceProviderSchema, insertServiceExpertSchema } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
 import {
   predictPropertyPrice,
@@ -451,117 +451,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ----- Financing Provider Routes -----
+  // ----- Service Experts Routes -----
   
-  // Get all financing providers
-  app.get("/api/financing-providers", async (_req, res) => {
+  // Get all service experts
+  app.get("/api/service-experts", async (_req, res) => {
     try {
-      const providers = await storage.getFinancingProviders();
-      console.log(`[express] Fetched ${providers.length} financing providers`);
+      const providers = await storage.getServiceExperts();
+      console.log(`[express] Fetched ${providers.length} service experts`);
       res.json(providers);
     } catch (error) {
-      console.error("[express] Error fetching financing providers:", error);
+      console.error("[express] Error fetching service experts:", error);
       res.status(500).json({ 
-        message: "Failed to fetch financing providers",
+        message: "Failed to fetch service experts",
         error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
-  // Get a specific financing provider by ID
-  app.get("/api/financing-providers/:id", async (req, res) => {
+  // Get a specific service expert by ID
+  app.get("/api/service-experts/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);
-      const provider = await storage.getFinancingProvider(id);
+      const expert = await storage.getServiceExpert(id);
       
-      if (!provider) {
-        return res.status(404).json({ message: "Financing provider not found" });
+      if (!expert) {
+        return res.status(404).json({ message: "Service expert not found" });
       }
       
-      console.log(`[express] Fetched financing provider: ${provider.name}`);
-      res.json(provider);
+      console.log(`[express] Fetched service expert: ${expert.name}`);
+      res.json(expert);
     } catch (error) {
-      console.error("[express] Error fetching financing provider:", error);
+      console.error("[express] Error fetching service expert:", error);
       res.status(500).json({ 
-        message: "Failed to fetch financing provider",
+        message: "Failed to fetch service expert",
         error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
-  // Get financing providers by service offered
-  app.get("/api/financing-providers/service/:service", async (req, res) => {
+  // Get service experts by service offered
+  app.get("/api/service-experts/service/:service", async (req, res) => {
     try {
       const service = req.params.service;
-      const providers = await storage.getFinancingProvidersByService(service);
+      const experts = await storage.getServiceExpertsByService(service);
       
-      console.log(`[express] Fetched ${providers.length} financing providers offering ${service}`);
-      res.json(providers);
+      console.log(`[express] Fetched ${experts.length} service experts offering ${service}`);
+      res.json(experts);
     } catch (error) {
-      console.error(`[express] Error fetching financing providers by service ${req.params.service}:`, error);
+      console.error(`[express] Error fetching service experts by service ${req.params.service}:`, error);
       res.status(500).json({ 
-        message: "Failed to fetch financing providers by service",
+        message: "Failed to fetch service experts by service",
         error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
-  // Create a new financing provider
-  app.post("/api/financing-providers", async (req, res) => {
+  // Create a new service expert
+  app.post("/api/service-experts", async (req, res) => {
     try {
-      const data = insertFinancingProviderSchema.parse(req.body);
-      const provider = await storage.createFinancingProvider(data);
+      const data = insertServiceExpertSchema.parse(req.body);
+      const expert = await storage.createServiceExpert(data);
       
-      console.log(`[express] Created new financing provider: ${provider.name}`);
-      res.status(201).json(provider);
+      console.log(`[express] Created new service expert: ${expert.name}`);
+      res.status(201).json(expert);
     } catch (error) {
-      console.error("[express] Error creating financing provider:", error);
+      console.error("[express] Error creating service expert:", error);
       res.status(400).json({ 
-        message: "Invalid financing provider data",
+        message: "Invalid service expert data",
         error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
-  // Update a financing provider
-  app.patch("/api/financing-providers/:id", async (req, res) => {
+  // Update a service expert
+  app.patch("/api/service-experts/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);
       const updates = req.body;
       
-      const updatedProvider = await storage.updateFinancingProvider(id, updates);
+      const updatedExpert = await storage.updateServiceExpert(id, updates);
       
-      if (!updatedProvider) {
-        return res.status(404).json({ message: "Financing provider not found" });
+      if (!updatedExpert) {
+        return res.status(404).json({ message: "Service expert not found" });
       }
       
-      console.log(`[express] Updated financing provider: ${updatedProvider.name}`);
-      res.json(updatedProvider);
+      console.log(`[express] Updated service expert: ${updatedExpert.name}`);
+      res.json(updatedExpert);
     } catch (error) {
-      console.error("[express] Error updating financing provider:", error);
+      console.error("[express] Error updating service expert:", error);
       res.status(400).json({ 
-        message: "Invalid financing provider data",
+        message: "Invalid service expert data",
         error: error instanceof Error ? error.message : String(error)
       });
     }
   });
   
-  // Delete a financing provider
-  app.delete("/api/financing-providers/:id", async (req, res) => {
+  // Delete a service expert
+  app.delete("/api/service-experts/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);
-      const success = await storage.deleteFinancingProvider(id);
+      const success = await storage.deleteServiceExpert(id);
       
       if (!success) {
-        return res.status(404).json({ message: "Financing provider not found" });
+        return res.status(404).json({ message: "Service expert not found" });
       }
       
-      console.log(`[express] Deleted financing provider with ID: ${id}`);
+      console.log(`[express] Deleted service expert with ID: ${id}`);
       res.status(204).end();
     } catch (error) {
-      console.error("[express] Error deleting financing provider:", error);
+      console.error("[express] Error deleting service expert:", error);
       res.status(500).json({ 
-        message: "Failed to delete financing provider",
+        message: "Failed to delete service expert",
         error: error instanceof Error ? error.message : String(error)
       });
     }

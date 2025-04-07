@@ -12,41 +12,41 @@ export interface IStorage {
   getServiceProvidersByType(type: string): Promise<ServiceProvider[]>;
   createServiceProvider(provider: InsertServiceProvider): Promise<ServiceProvider>;
 
-  // Financing Providers
-  getFinancingProviders(): Promise<FinancingProvider[]>;
-  getFinancingProvider(id: number): Promise<FinancingProvider | undefined>;
-  getFinancingProviderByProviderId(providerId: string): Promise<FinancingProvider | undefined>;
-  getFinancingProvidersByService(service: string): Promise<FinancingProvider[]>;
-  createFinancingProvider(provider: InsertFinancingProvider): Promise<FinancingProvider>;
-  updateFinancingProvider(id: number, provider: Partial<InsertFinancingProvider>): Promise<FinancingProvider | undefined>;
-  deleteFinancingProvider(id: number): Promise<boolean>;
+  // Service Experts
+  getServiceExperts(): Promise<ServiceExpert[]>;
+  getServiceExpert(id: number): Promise<ServiceExpert | undefined>;
+  getServiceExpertByProviderId(providerId: string): Promise<ServiceExpert | undefined>;
+  getServiceExpertsByService(service: string): Promise<ServiceExpert[]>;
+  createServiceExpert(provider: InsertServiceExpert): Promise<ServiceExpert>;
+  updateServiceExpert(id: number, provider: Partial<InsertServiceExpert>): Promise<ServiceExpert | undefined>;
+  deleteServiceExpert(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private properties: Map<number, Property>;
   private serviceProviders: Map<number, ServiceProvider>;
-  private financingProviders: Map<number, FinancingProvider>;
+  private serviceExperts: Map<number, ServiceExpert>;
   private propertyId: number;
   private providerId: number;
-  private financingProviderId: number;
+  private serviceExpertId: number;
 
   constructor() {
     this.properties = new Map();
     this.serviceProviders = new Map();
-    this.financingProviders = new Map();
+    this.serviceExperts = new Map();
     this.propertyId = 1;
     this.providerId = 1;
-    this.financingProviderId = 1;
+    this.serviceExpertId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
   }
   
   private initializeSampleData() {
-    // Sample financing providers
-    const sampleFinancingProviders: InsertFinancingProvider[] = [
+    // Sample service experts
+    const sampleServiceExperts: InsertServiceExpert[] = [
       {
-        providerId: "fp-001",
+        providerId: "se-001",
         name: "Prime Mortgage Solutions",
         contactName: "Alex Johnson",
         contactEmail: "alex.johnson@primemortgage.example.com",
@@ -58,10 +58,11 @@ export class MemStorage implements IStorage {
         logoUrl: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=300&q=80",
         rating: 5,
         verified: true,
+        serviceType: "Mortgage Lender",
         specialOffers: ["First-time homebuyer discount", "No closing costs option"]
       },
       {
-        providerId: "fp-002",
+        providerId: "se-002",
         name: "Heritage Financial",
         contactName: "Maria Rodriguez",
         contactEmail: "maria@heritagefinancial.example.com",
@@ -72,10 +73,11 @@ export class MemStorage implements IStorage {
         areasServed: ["Texas", "Oklahoma", "Louisiana"],
         logoUrl: "https://images.unsplash.com/photo-1565514158740-064f34bd6cfd?auto=format&fit=crop&w=300&q=80",
         rating: 4,
-        verified: true
+        verified: true,
+        serviceType: "Mortgage Lender"
       },
       {
-        providerId: "fp-003",
+        providerId: "se-003",
         name: "NextGen Lending",
         contactName: "Jason Kim",
         contactEmail: "jkim@nextgenlending.example.com",
@@ -87,7 +89,38 @@ export class MemStorage implements IStorage {
         logoUrl: "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=300&q=80",
         rating: 5,
         verified: true,
+        serviceType: "Mortgage Lender",
         specialOffers: ["Digital-only discount", "Rate match guarantee"]
+      },
+      {
+        providerId: "se-004",
+        name: "Wilson Home Inspections",
+        contactName: "Robert Wilson",
+        contactEmail: "rwilson@wilsoninspections.example.com",
+        contactPhone: "555-400-7890",
+        website: "https://wilsoninspections.example.com",
+        description: "Thorough home inspection services with detailed reports and same-day availability in most markets.",
+        servicesOffered: ["Home Inspections", "Radon Testing", "Termite Inspections", "Mold Assessments"],
+        areasServed: ["Colorado", "Wyoming", "Utah"],
+        logoUrl: "https://images.unsplash.com/photo-1581141849291-1125c7b692b5?auto=format&fit=crop&w=300&q=80",
+        rating: 5,
+        verified: true,
+        serviceType: "Home Inspector"
+      },
+      {
+        providerId: "se-005",
+        name: "Thompson & Associates Legal",
+        contactName: "Sarah Thompson",
+        contactEmail: "sthompson@thompsonlegal.example.com",
+        contactPhone: "555-500-2345",
+        website: "https://thompsonlegal.example.com",
+        description: "Experienced real estate attorneys specializing in closing services, title review, and contract preparation.",
+        servicesOffered: ["Closing Services", "Title Review", "Contract Review", "Real Estate Litigation"],
+        areasServed: ["New York", "Connecticut", "New Jersey"],
+        logoUrl: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=300&q=80",
+        rating: 4,
+        verified: true,
+        serviceType: "Real Estate Attorney"
       }
     ];
     
@@ -253,9 +286,9 @@ export class MemStorage implements IStorage {
       this.createServiceProvider(provider);
     });
     
-    // Add financing providers to storage
-    sampleFinancingProviders.forEach(provider => {
-      this.createFinancingProvider(provider);
+    // Add service experts to storage
+    sampleServiceExperts.forEach(expert => {
+      this.createServiceExpert(expert);
     });
   }
 
@@ -304,64 +337,67 @@ export class MemStorage implements IStorage {
     return provider;
   }
 
-  // Financing Providers methods
-  async getFinancingProviders(): Promise<FinancingProvider[]> {
-    return Array.from(this.financingProviders.values());
+  // Service Experts methods
+  async getServiceExperts(): Promise<ServiceExpert[]> {
+    return Array.from(this.serviceExperts.values());
   }
 
-  async getFinancingProvider(id: number): Promise<FinancingProvider | undefined> {
-    return this.financingProviders.get(id);
+  async getServiceExpert(id: number): Promise<ServiceExpert | undefined> {
+    return this.serviceExperts.get(id);
   }
 
-  async getFinancingProviderByProviderId(providerId: string): Promise<FinancingProvider | undefined> {
-    return Array.from(this.financingProviders.values()).find(
-      (provider) => provider.providerId === providerId
+  async getServiceExpertByProviderId(providerId: string): Promise<ServiceExpert | undefined> {
+    return Array.from(this.serviceExperts.values()).find(
+      (expert) => expert.providerId === providerId
     );
   }
 
-  async getFinancingProvidersByService(service: string): Promise<FinancingProvider[]> {
-    return Array.from(this.financingProviders.values()).filter(
-      (provider) => provider.servicesOffered.includes(service)
+  async getServiceExpertsByService(service: string): Promise<ServiceExpert[]> {
+    return Array.from(this.serviceExperts.values()).filter(
+      (expert) => expert.servicesOffered.includes(service)
     );
   }
 
-  async createFinancingProvider(insertProvider: InsertFinancingProvider): Promise<FinancingProvider> {
-    const id = this.financingProviderId++;
+  async createServiceExpert(insertExpert: InsertServiceExpert): Promise<ServiceExpert> {
+    const id = this.serviceExpertId++;
     // Ensure optional fields are handled properly
-    const provider: FinancingProvider = { 
-      ...insertProvider, 
+    const expert: ServiceExpert = { 
+      ...insertExpert, 
       id,
-      rating: insertProvider.rating || null,
-      website: insertProvider.website || null,
-      logoUrl: insertProvider.logoUrl || null,
-      specialOffers: insertProvider.specialOffers || [],
-      userType: insertProvider.userType || "vendor",
-      verified: insertProvider.verified ?? false
+      rating: insertExpert.rating || null,
+      website: insertExpert.website || null,
+      logoUrl: insertExpert.logoUrl || null,
+      specialOffers: insertExpert.specialOffers || [],
+      userType: insertExpert.userType || "vendor",
+      verified: insertExpert.verified ?? false,
+      address: insertExpert.address || null,
+      placeId: insertExpert.placeId || null,
+      businessHours: insertExpert.businessHours || null
     };
-    this.financingProviders.set(id, provider);
-    return provider;
+    this.serviceExperts.set(id, expert);
+    return expert;
   }
 
-  async updateFinancingProvider(id: number, updates: Partial<InsertFinancingProvider>): Promise<FinancingProvider | undefined> {
-    const existingProvider = this.financingProviders.get(id);
-    if (!existingProvider) {
+  async updateServiceExpert(id: number, updates: Partial<InsertServiceExpert>): Promise<ServiceExpert | undefined> {
+    const existingExpert = this.serviceExperts.get(id);
+    if (!existingExpert) {
       return undefined;
     }
 
-    // Create a new provider object with the updates
-    const updatedProvider: FinancingProvider = {
-      ...existingProvider,
+    // Create a new expert object with the updates
+    const updatedExpert: ServiceExpert = {
+      ...existingExpert,
       ...updates,
       // Make sure id doesn't get overwritten
       id
     };
 
-    this.financingProviders.set(id, updatedProvider);
-    return updatedProvider;
+    this.serviceExperts.set(id, updatedExpert);
+    return updatedExpert;
   }
 
-  async deleteFinancingProvider(id: number): Promise<boolean> {
-    return this.financingProviders.delete(id);
+  async deleteServiceExpert(id: number): Promise<boolean> {
+    return this.serviceExperts.delete(id);
   }
 }
 

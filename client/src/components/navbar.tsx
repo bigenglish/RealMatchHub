@@ -27,8 +27,8 @@ export default function Navbar() {
             <Link href="/contract-terms" className="text-sm mr-4">
               Contract Terms
             </Link>
-            <Link href="/financing" className="text-sm mr-4">
-              Financing
+            <Link href="/service-experts" className="text-sm mr-4">
+              Service Experts
             </Link>
             <Link href="/how-it-works" className="text-sm mr-4">
               How It Works

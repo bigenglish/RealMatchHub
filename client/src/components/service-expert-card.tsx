@@ -188,15 +188,24 @@ const ServiceExpertCard: FC<ServiceExpertCardProps> = ({
         <div className="mt-2">
           <h4 className="text-sm font-medium mb-1">Contact Information</h4>
           <div className="text-sm text-gray-600">
-            <p>{expert.contactName}</p>
-            <div className="flex items-center gap-1">
-              <Mail className="h-3.5 w-3.5" />
-              <span>{expert.contactEmail}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Phone className="h-3.5 w-3.5" />
-              <span>{contactPhone}</span>
-            </div>
+            {!isGooglePlace && expert.contactName && <p>{expert.contactName}</p>}
+            {!isGooglePlace && expert.contactEmail && (
+              <div className="flex items-center gap-1">
+                <Mail className="h-3.5 w-3.5" />
+                <span>{expert.contactEmail}</span>
+              </div>
+            )}
+            {contactPhone && (
+              <div className="flex items-center gap-1">
+                <Phone className="h-3.5 w-3.5" />
+                <span>{contactPhone}</span>
+              </div>
+            )}
+            {isGooglePlace && !contactPhone && (
+              <p className="text-xs italic">
+                Click "Show Details" below or "Visit Listing" to see contact information on Google
+              </p>
+            )}
           </div>
         </div>
         
@@ -220,9 +229,17 @@ const ServiceExpertCard: FC<ServiceExpertCardProps> = ({
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => window.location.href = `mailto:${expert.contactEmail}?subject=Inquiry about your services`}
+            onClick={() => {
+              if (isGooglePlace) {
+                // For Google Places results, open the listing on Google Maps
+                window.open(`https://www.google.com/maps/place/?q=place_id:${expert.placeId}`, "_blank");
+              } else if (expert.contactEmail) {
+                // For local results with email, create a mailto link
+                window.location.href = `mailto:${expert.contactEmail}?subject=Inquiry about your services`;
+              }
+            }}
           >
-            Contact
+            {isGooglePlace ? "View Contact Info" : "Contact"}
           </Button>
           {(website || isGooglePlace) && (
             <Button

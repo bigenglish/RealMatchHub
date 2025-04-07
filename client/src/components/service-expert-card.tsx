@@ -171,6 +171,44 @@ const ServiceExpertCard: FC<ServiceExpertCardProps> = ({
                 <p className="text-sm text-gray-600 whitespace-pre-line">{formattedBusinessHours}</p>
               </div>
             )}
+            
+            {/* Show reviews when details are expanded */}
+            {showDetails && placeDetails?.reviews && placeDetails.reviews.length > 0 && (
+              <div className="mb-3">
+                <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
+                  <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                  Customer Reviews
+                </h4>
+                <div className="space-y-2 mt-2">
+                  {placeDetails.reviews.slice(0, 2).map((review, index) => (
+                    <div key={index} className="border-l-2 border-gray-200 pl-3 py-1">
+                      <div className="flex items-center mb-1">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star 
+                              key={i} 
+                              className={`h-3 w-3 ${i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500 ml-2">{review.author_name}</span>
+                      </div>
+                      <p className="text-xs text-gray-600 line-clamp-2">{review.text}</p>
+                    </div>
+                  ))}
+                  <p className="text-xs text-right italic mt-1">
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="h-auto p-0 text-xs"
+                      onClick={() => window.open(`https://www.google.com/maps/place/?q=place_id:${expert.placeId}`, '_blank')}
+                    >
+                      View all reviews on Google
+                    </Button>
+                  </p>
+                </div>
+              </div>
+            )}
 
             {expert.specialOffers && expert.specialOffers.length > 0 && (
               <div className="mb-3">

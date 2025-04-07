@@ -340,9 +340,15 @@ const ServiceExpertsPage = () => {
           {googlePlacesStatus && googlePlacesStatus.enabled && convertedPlacesExperts.length === 0 && !isLoadingGooglePlaces && (
             <Alert className="mb-6" variant="default">
               <Info className="h-4 w-4" />
-              <AlertTitle>No Google Places Results Found</AlertTitle>
+              <AlertTitle>How to Find Local Service Experts</AlertTitle>
               <AlertDescription>
-                The Google Places API is enabled, but no results were found for the current search criteria. The application is showing sample data instead. Try selecting a different service type or adjusting the search terms.
+                <p className="mb-2 font-medium">Follow these steps to find service experts in your area:</p>
+                <ol className="list-decimal ml-5 mb-2">
+                  <li>Enter your city or zip code in the "Location" field (e.g., "90210" or "Los Angeles, CA")</li>
+                  <li>Click "Search Location" to find experts near you</li>
+                  <li>Select a specific service type (like "Title Company" or "Home Inspector") from the dropdown</li>
+                </ol>
+                <p className="text-sm italic">Google Places will search for real businesses in your selected location</p>
               </AlertDescription>
             </Alert>
           )}
@@ -355,7 +361,7 @@ const ServiceExpertsPage = () => {
                 <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Enter a city or address (e.g., San Francisco, CA)"
+                  placeholder="Enter city, ZIP code or address (e.g., 90210, Los Angeles, CA)"
                   className="pl-8"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}

@@ -30,8 +30,8 @@ export const serviceProviders = pgTable("service_providers", {
   contact: text("contact").notNull(),
 });
 
-// New financing providers table
-export const financingProviders = pgTable("financing_providers", {
+// Service experts table (renamed from financingProviders)
+export const serviceExperts = pgTable("service_experts", {
   id: serial("id").primaryKey(),
   providerId: text("provider_id").notNull().unique(), // Unique ID for the provider
   name: text("name").notNull(),
@@ -47,18 +47,21 @@ export const financingProviders = pgTable("financing_providers", {
   verified: boolean("verified").default(false),
   specialOffers: text("special_offers").array(),
   userType: text("user_type").default("vendor"), // vendor, admin, etc.
+  businessHours: text("business_hours"),
+  address: text("address"),
+  placeId: text("place_id"), // Google Places ID if applicable
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({ id: true });
 export const insertServiceProviderSchema = createInsertSchema(serviceProviders).omit({ id: true });
-export const insertFinancingProviderSchema = createInsertSchema(financingProviders).omit({ id: true });
+export const insertServiceExpertSchema = createInsertSchema(serviceExperts).omit({ id: true });
 
 export type Property = typeof properties.$inferSelect;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
 export type ServiceProvider = typeof serviceProviders.$inferSelect;
 export type InsertServiceProvider = z.infer<typeof insertServiceProviderSchema>;
-export type FinancingProvider = typeof financingProviders.$inferSelect;
-export type InsertFinancingProvider = z.infer<typeof insertFinancingProviderSchema>;
+export type ServiceExpert = typeof serviceExperts.$inferSelect;
+export type InsertServiceExpert = z.infer<typeof insertServiceExpertSchema>;
 
 export const propertyTypes = [
   "Single Family Home",
@@ -77,7 +80,8 @@ export const serviceTypes = [
   "Interior Designer",
 ] as const;
 
-export const financingServiceTypes = [
+export const expertServiceTypes = [
+  // Financing Services
   "Mortgages",
   "Refinancing",
   "Home Equity Loans",
@@ -88,6 +92,16 @@ export const financingServiceTypes = [
   "USDA Loans",
   "Jumbo Loans",
   "Conventional Loans",
-  "Fixed-Rate Loans",
-  "Adjustable-Rate Loans"
+  // Real Estate Services
+  "Real Estate Agent",
+  "Property Inspector",
+  "Real Estate Attorney",
+  "Title Company",
+  "Home Insurance",
+  // Home Services
+  "Home Renovation",
+  "Moving Services",
+  "Landscaping",
+  "Interior Design",
+  "Home Cleaning"
 ] as const;

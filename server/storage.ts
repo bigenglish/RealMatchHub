@@ -1,4 +1,4 @@
-import { Property, ServiceProvider, InsertProperty, InsertServiceProvider, FinancingProvider, InsertFinancingProvider } from "@shared/schema";
+import { Property, ServiceProvider, InsertProperty, InsertServiceProvider, ServiceExpert, InsertServiceExpert } from "@shared/schema";
 
 export interface IStorage {
   // Properties

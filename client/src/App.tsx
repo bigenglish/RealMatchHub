@@ -10,6 +10,7 @@ import Services from "@/pages/services";
 import ServiceProviderDetail from "@/pages/service-provider";
 import Documents from "@/pages/documents";
 import ContractTerms from "@/pages/contract-terms";
+import Financing from "@/pages/financing";
 import Navbar from "@/components/navbar";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
           <Route path="/service-provider/:id" component={ServiceProviderDetail} />
           <Route path="/documents" component={Documents} />
           <Route path="/contract-terms" component={ContractTerms} />
+          <Route path="/financing" component={Financing} />
           <Route component={NotFound} />
         </Switch>
       </main>

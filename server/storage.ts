@@ -1,4 +1,4 @@
-import { Property, ServiceProvider, InsertProperty, InsertServiceProvider } from "@shared/schema";
+import { Property, ServiceProvider, InsertProperty, InsertServiceProvider, FinancingProvider, InsertFinancingProvider } from "@shared/schema";
 
 export interface IStorage {
   // Properties
@@ -11,25 +11,86 @@ export interface IStorage {
   getServiceProvider(id: number): Promise<ServiceProvider | undefined>;
   getServiceProvidersByType(type: string): Promise<ServiceProvider[]>;
   createServiceProvider(provider: InsertServiceProvider): Promise<ServiceProvider>;
+
+  // Financing Providers
+  getFinancingProviders(): Promise<FinancingProvider[]>;
+  getFinancingProvider(id: number): Promise<FinancingProvider | undefined>;
+  getFinancingProviderByProviderId(providerId: string): Promise<FinancingProvider | undefined>;
+  getFinancingProvidersByService(service: string): Promise<FinancingProvider[]>;
+  createFinancingProvider(provider: InsertFinancingProvider): Promise<FinancingProvider>;
+  updateFinancingProvider(id: number, provider: Partial<InsertFinancingProvider>): Promise<FinancingProvider | undefined>;
+  deleteFinancingProvider(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private properties: Map<number, Property>;
   private serviceProviders: Map<number, ServiceProvider>;
+  private financingProviders: Map<number, FinancingProvider>;
   private propertyId: number;
   private providerId: number;
+  private financingProviderId: number;
 
   constructor() {
     this.properties = new Map();
     this.serviceProviders = new Map();
+    this.financingProviders = new Map();
     this.propertyId = 1;
     this.providerId = 1;
+    this.financingProviderId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
   }
   
   private initializeSampleData() {
+    // Sample financing providers
+    const sampleFinancingProviders: InsertFinancingProvider[] = [
+      {
+        providerId: "fp-001",
+        name: "Prime Mortgage Solutions",
+        contactName: "Alex Johnson",
+        contactEmail: "alex.johnson@primemortgage.example.com",
+        contactPhone: "555-100-1234",
+        website: "https://primemortgage.example.com",
+        description: "Leading provider of mortgage solutions with competitive rates and flexible terms for all types of home buyers.",
+        servicesOffered: ["Mortgages", "Refinancing", "Home Equity Loans", "FHA Loans", "VA Loans"],
+        areasServed: ["California", "Nevada", "Arizona"],
+        logoUrl: "https://images.unsplash.com/photo-1560472355-536de3962603?auto=format&fit=crop&w=300&q=80",
+        rating: 5,
+        verified: true,
+        specialOffers: ["First-time homebuyer discount", "No closing costs option"]
+      },
+      {
+        providerId: "fp-002",
+        name: "Heritage Financial",
+        contactName: "Maria Rodriguez",
+        contactEmail: "maria@heritagefinancial.example.com",
+        contactPhone: "555-200-5678",
+        website: "https://heritagefinancial.example.com",
+        description: "Family-owned mortgage company specializing in personalized service and local expertise for over 30 years.",
+        servicesOffered: ["Mortgages", "Jumbo Loans", "Construction Loans", "Conventional Loans"],
+        areasServed: ["Texas", "Oklahoma", "Louisiana"],
+        logoUrl: "https://images.unsplash.com/photo-1565514158740-064f34bd6cfd?auto=format&fit=crop&w=300&q=80",
+        rating: 4,
+        verified: true
+      },
+      {
+        providerId: "fp-003",
+        name: "NextGen Lending",
+        contactName: "Jason Kim",
+        contactEmail: "jkim@nextgenlending.example.com",
+        contactPhone: "555-300-9012",
+        website: "https://nextgenlending.example.com",
+        description: "Modern digital lending platform offering streamlined application process and quick approvals with minimal paperwork.",
+        servicesOffered: ["Mortgages", "Refinancing", "Fixed-Rate Loans", "Adjustable-Rate Loans"],
+        areasServed: ["Nationwide"],
+        logoUrl: "https://images.unsplash.com/photo-1551836022-deb4988cc6c0?auto=format&fit=crop&w=300&q=80",
+        rating: 5,
+        verified: true,
+        specialOffers: ["Digital-only discount", "Rate match guarantee"]
+      }
+    ];
+    
     // Sample properties
     const sampleProperties: InsertProperty[] = [
       {
@@ -191,6 +252,11 @@ export class MemStorage implements IStorage {
     sampleProviders.forEach(provider => {
       this.createServiceProvider(provider);
     });
+    
+    // Add financing providers to storage
+    sampleFinancingProviders.forEach(provider => {
+      this.createFinancingProvider(provider);
+    });
   }
 
   async getProperties(): Promise<Property[]> {
@@ -203,7 +269,14 @@ export class MemStorage implements IStorage {
 
   async createProperty(insertProperty: InsertProperty): Promise<Property> {
     const id = this.propertyId++;
-    const property: Property = { ...insertProperty, id };
+    // Ensure optional fields are handled properly
+    const property: Property = { 
+      ...insertProperty, 
+      id,
+      city: insertProperty.city || null,
+      state: insertProperty.state || null,
+      zipCode: insertProperty.zipCode || null
+    };
     this.properties.set(id, property);
     return property;
   }
@@ -229,6 +302,66 @@ export class MemStorage implements IStorage {
     const provider: ServiceProvider = { ...insertProvider, id, rating };
     this.serviceProviders.set(id, provider);
     return provider;
+  }
+
+  // Financing Providers methods
+  async getFinancingProviders(): Promise<FinancingProvider[]> {
+    return Array.from(this.financingProviders.values());
+  }
+
+  async getFinancingProvider(id: number): Promise<FinancingProvider | undefined> {
+    return this.financingProviders.get(id);
+  }
+
+  async getFinancingProviderByProviderId(providerId: string): Promise<FinancingProvider | undefined> {
+    return Array.from(this.financingProviders.values()).find(
+      (provider) => provider.providerId === providerId
+    );
+  }
+
+  async getFinancingProvidersByService(service: string): Promise<FinancingProvider[]> {
+    return Array.from(this.financingProviders.values()).filter(
+      (provider) => provider.servicesOffered.includes(service)
+    );
+  }
+
+  async createFinancingProvider(insertProvider: InsertFinancingProvider): Promise<FinancingProvider> {
+    const id = this.financingProviderId++;
+    // Ensure optional fields are handled properly
+    const provider: FinancingProvider = { 
+      ...insertProvider, 
+      id,
+      rating: insertProvider.rating || null,
+      website: insertProvider.website || null,
+      logoUrl: insertProvider.logoUrl || null,
+      specialOffers: insertProvider.specialOffers || [],
+      userType: insertProvider.userType || "vendor",
+      verified: insertProvider.verified ?? false
+    };
+    this.financingProviders.set(id, provider);
+    return provider;
+  }
+
+  async updateFinancingProvider(id: number, updates: Partial<InsertFinancingProvider>): Promise<FinancingProvider | undefined> {
+    const existingProvider = this.financingProviders.get(id);
+    if (!existingProvider) {
+      return undefined;
+    }
+
+    // Create a new provider object with the updates
+    const updatedProvider: FinancingProvider = {
+      ...existingProvider,
+      ...updates,
+      // Make sure id doesn't get overwritten
+      id
+    };
+
+    this.financingProviders.set(id, updatedProvider);
+    return updatedProvider;
+  }
+
+  async deleteFinancingProvider(id: number): Promise<boolean> {
+    return this.financingProviders.delete(id);
   }
 }
 

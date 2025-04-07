@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPropertySchema, insertServiceProviderSchema } from "@shared/schema";
+import { insertPropertySchema, insertServiceProviderSchema, insertFinancingProviderSchema } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
 import {
   predictPropertyPrice,
@@ -446,6 +446,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[express] Error parsing property document:", error);
       res.status(500).json({ 
         message: "Failed to parse property document",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ----- Financing Provider Routes -----
+  
+  // Get all financing providers
+  app.get("/api/financing-providers", async (_req, res) => {
+    try {
+      const providers = await storage.getFinancingProviders();
+      console.log(`[express] Fetched ${providers.length} financing providers`);
+      res.json(providers);
+    } catch (error) {
+      console.error("[express] Error fetching financing providers:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch financing providers",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get a specific financing provider by ID
+  app.get("/api/financing-providers/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const provider = await storage.getFinancingProvider(id);
+      
+      if (!provider) {
+        return res.status(404).json({ message: "Financing provider not found" });
+      }
+      
+      console.log(`[express] Fetched financing provider: ${provider.name}`);
+      res.json(provider);
+    } catch (error) {
+      console.error("[express] Error fetching financing provider:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch financing provider",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get financing providers by service offered
+  app.get("/api/financing-providers/service/:service", async (req, res) => {
+    try {
+      const service = req.params.service;
+      const providers = await storage.getFinancingProvidersByService(service);
+      
+      console.log(`[express] Fetched ${providers.length} financing providers offering ${service}`);
+      res.json(providers);
+    } catch (error) {
+      console.error(`[express] Error fetching financing providers by service ${req.params.service}:`, error);
+      res.status(500).json({ 
+        message: "Failed to fetch financing providers by service",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Create a new financing provider
+  app.post("/api/financing-providers", async (req, res) => {
+    try {
+      const data = insertFinancingProviderSchema.parse(req.body);
+      const provider = await storage.createFinancingProvider(data);
+      
+      console.log(`[express] Created new financing provider: ${provider.name}`);
+      res.status(201).json(provider);
+    } catch (error) {
+      console.error("[express] Error creating financing provider:", error);
+      res.status(400).json({ 
+        message: "Invalid financing provider data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Update a financing provider
+  app.patch("/api/financing-providers/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const updates = req.body;
+      
+      const updatedProvider = await storage.updateFinancingProvider(id, updates);
+      
+      if (!updatedProvider) {
+        return res.status(404).json({ message: "Financing provider not found" });
+      }
+      
+      console.log(`[express] Updated financing provider: ${updatedProvider.name}`);
+      res.json(updatedProvider);
+    } catch (error) {
+      console.error("[express] Error updating financing provider:", error);
+      res.status(400).json({ 
+        message: "Invalid financing provider data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Delete a financing provider
+  app.delete("/api/financing-providers/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteFinancingProvider(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Financing provider not found" });
+      }
+      
+      console.log(`[express] Deleted financing provider with ID: ${id}`);
+      res.status(204).end();
+    } catch (error) {
+      console.error("[express] Error deleting financing provider:", error);
+      res.status(500).json({ 
+        message: "Failed to delete financing provider",
         error: error instanceof Error ? error.message : String(error)
       });
     }

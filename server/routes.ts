@@ -571,30 +571,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ----- Google Places API Integration Routes -----
   
   // Check if Google Places API key is configured
-  app.get("/api/places/status", async (_req, res) => {
-    try {
-      const hasApiKey = !!process.env.GOOGLE_PLACES_API_KEY;
-      const apiKey = process.env.GOOGLE_PLACES_API_KEY || 'not-set';
-      console.log("[express] /api/places/status called, hasApiKey =", hasApiKey);
-      console.log("[express] API Key first 4 chars:", apiKey.substring(0, 4) + '...');
-      
-      // Always enable Google Places API if we have the key
-      const enabled = hasApiKey;
-      
-      const response = { 
-        enabled,
-        message: enabled ? 
-          "Google Places API is configured and ready to use" : 
-          "Google Places API key is not configured"
-      };
-      
-      console.log("[express] Sending API status response:", response);
-      res.json(response);
-    } catch (error) {
-      console.error("Error checking Google Places API status:", error);
-      res.status(500).json({ message: "Error checking Google Places API status" });
-    }
-  });
+  // First version of the places status endpoint was removed to avoid duplication
+  // The enhanced version that actually tests the API is kept below
   
   // Search for places using Google Places API
   app.get("/api/places/search", async (req, res) => {

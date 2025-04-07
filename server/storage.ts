@@ -342,35 +342,61 @@ export class MemStorage implements IStorage {
       this.createServiceExpert(expert);
     });
     
-    // Add sample service bundles
+    // Add sample service bundles based on the pricing tiers
     const bundle1 = this.createServiceBundle({
-      name: "Home Buyer Essentials",
-      description: "Everything you need for a smooth home buying experience",
-      price: "$1,899",
-      savings: "$450",
-      popularityRank: 1,
+      name: "FREE",
+      description: "Find your perfect match with AI-driven property discovery",
+      price: "$0",
+      savings: "",
+      popularityRank: 3,
       featuredImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3",
-      isActive: true
+      isActive: true,
+      features: [
+        "AI-powered property search & alerts",
+        "Communicate, schedule and complete necessary paperwork with direct connection to listing agents/sellers",
+        "Add inspiration photos, design and visualize your home before moving in"
+      ]
     });
 
     const bundle2 = this.createServiceBundle({
-      name: "Premium Seller Package",
-      description: "Comprehensive services for sellers looking to maximize value",
-      price: "$2,499",
-      savings: "$750",
+      name: "BASIC",
+      description: "Expert virtual guidance on offers and due diligence",
+      price: "As low as $1,500",
+      savings: "Save time and money",
       popularityRank: 2,
       featuredImage: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3",
-      isActive: true
+      isActive: true,
+      features: [
+        "All 'Free' features",
+        "Craft competitive offers and navigate negotiations with Realty AI tools and guidance",
+        "Market analysis reports (comparable sales data) and purchase strategies",
+        "Offer negotiation guidance (email/chat support) with a real estate expert",
+        "Document review, digital signing and AI assistant to simplify and explain all terms and conditions",
+        "Neighborhood insights",
+        "Due Diligence Checklist & Support (guidance through the due diligence process)",
+        "2 expert sign offs (detailed notes)"
+      ]
     });
 
     const bundle3 = this.createServiceBundle({
-      name: "Investor's Toolkit",
-      description: "Specialized services for property investors and developers",
-      price: "$3,299",
-      savings: "$980",
-      popularityRank: 3,
+      name: "PREMIUM",
+      description: "Full virtual support from offer to post-closing",
+      price: "As low as $2,500",
+      savings: "Peace of mind",
+      popularityRank: 1,
       featuredImage: "https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?ixlib=rb-4.0.3",
-      isActive: true
+      isActive: true,
+      features: [
+        "All 'Basic' features",
+        "Offer Strategy Consultation (phone/video call with a real estate expert)",
+        "24/7 phone support",
+        "Inspection/appraisal coordination Expert review (scheduling and vendor recommendations)",
+        "Preferred Vendor pricing for repairs",
+        "Dedicated Buyer Advocate (phone/in-person support throughout the transaction)",
+        "Closing Coordination (assistance with paperwork and logistics)",
+        "Post-Closing Support (referrals to local service providers, utility setup assistance)",
+        "4 expert sign off (detailed notes, viewing, inspection/staging, contingencies & compliance, negotiation & credits)"
+      ]
     });
 
     // Add sample service offerings
@@ -595,12 +621,16 @@ export class MemStorage implements IStorage {
     const createdAt = new Date();
     
     const serviceBundle: ServiceBundle = {
-      ...bundle,
       id,
-      createdAt,
+      name: bundle.name,
+      description: bundle.description,
+      price: bundle.price,
+      savings: bundle.savings || null,
       popularityRank: bundle.popularityRank || null,
       featuredImage: bundle.featuredImage || null,
-      isActive: bundle.isActive ?? true
+      isActive: bundle.isActive ?? true,
+      createdAt,
+      features: bundle.features || null
     };
     
     this.serviceBundles.set(id, serviceBundle);

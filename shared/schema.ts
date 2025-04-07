@@ -61,12 +61,13 @@ export const serviceBundles = pgTable("service_bundles", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  price: numeric("price").notNull(),
-  savings: numeric("savings").notNull(), // How much saved compared to individual services
+  price: text("price").notNull(), // Changed to text to support formatted pricing like "As low as $1,500"
+  savings: text("savings"), // Changed to optional to support empty strings
   popularityRank: integer("popularity_rank"),
   featuredImage: text("featured_image"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  features: text("features").array(), // Added for the feature list of each bundle
 });
 
 // Service offerings table (individual services)

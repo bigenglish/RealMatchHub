@@ -608,28 +608,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Get details for a specific place
-  app.get("/api/places/:placeId", async (req, res) => {
-    try {
-      const placeId = req.params.placeId;
-      
-      console.log(`[express] Fetching details for place ID: ${placeId}`);
-      const placeDetails = await getPlaceDetails(placeId);
-      
-      if (!placeDetails) {
-        return res.status(404).json({ message: "Place not found" });
-      }
-      
-      res.json(placeDetails);
-    } catch (error) {
-      console.error("Error fetching place details:", error);
-      res.status(500).json({ 
-        message: "Error fetching place details",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
   // Get a photo URL for a place
   app.get("/api/places/photo/:photoReference", async (req, res) => {
     try {
@@ -706,8 +684,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Google Places API status endpoint
-  app.get("/api/places/status", async (_req, res) => {
+  // Google Places API status endpoint with renamed URL to avoid conflicts with placesId
+  app.get("/api/places-status", async (_req, res) => {
     try {
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       const hasApiKey = !!apiKey;
@@ -766,6 +744,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         enabled: false,
         message: "Error checking Google Places API status"
+      });
+    }
+  });
+
+  // Get details for a specific place - MUST be placed after all other /api/places/* routes
+  app.get("/api/places/:placeId", async (req, res) => {
+    try {
+      const placeId = req.params.placeId;
+      
+      console.log(`[express] Fetching details for place ID: ${placeId}`);
+      const placeDetails = await getPlaceDetails(placeId);
+      
+      if (!placeDetails) {
+        return res.status(404).json({ message: "Place not found" });
+      }
+      
+      res.json(placeDetails);
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+      res.status(500).json({ 
+        message: "Error fetching place details",
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

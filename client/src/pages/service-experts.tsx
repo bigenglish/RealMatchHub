@@ -112,7 +112,7 @@ const ServiceExpertsPage = () => {
     const checkGooglePlacesStatus = async () => {
       try {
         console.log("Checking Google Places API status...");
-        const response = await fetch('/api/places/status');
+        const response = await fetch('/api/places-status'); // Updated to use the new endpoint name
         
         if (response.ok) {
           const status = await response.json();
@@ -312,31 +312,70 @@ const ServiceExpertsPage = () => {
             </Alert>
           )}
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Search by name, service, or description"
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          {/* Location Input and Search/Filter Controls */}
+          <div className="flex flex-col gap-4 mb-6">
+            {/* Location Input */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-grow">
+                <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Enter location (e.g., 37.7749,-122.4194 for San Francisco)"
+                  className="pl-8"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const { latitude, longitude } = position.coords;
+                        setLocation(`${latitude},${longitude}`);
+                        console.log("Using current location:", latitude, longitude);
+                      },
+                      (error) => {
+                        console.error("Error getting user location:", error);
+                      }
+                    );
+                  }
+                }}
+                className="whitespace-nowrap"
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                Use Current Location
+              </Button>
             </div>
-            <div className="w-full md:w-64">
-              <Select value={expertTypeFilter} onValueChange={setExpertTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by expert type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Expert Types</SelectItem>
-                  {expertTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Search by name, service, or description"
+                  className="pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="w-full md:w-64">
+                <Select value={expertTypeFilter} onValueChange={setExpertTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by expert type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Expert Types</SelectItem>
+                    {expertTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

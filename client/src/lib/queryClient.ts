@@ -7,20 +7,46 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
+// Overloaded version of apiRequest that supports both typed and untyped responses
+export async function apiRequest<T = any>(url: string, data?: unknown): Promise<T>;
+export async function apiRequest<T = any>(method: string, url: string, data?: unknown): Promise<T>;
+export async function apiRequest<T = any>(
+  methodOrUrl: string,
+  urlOrData?: string | unknown,
+  data?: unknown
+): Promise<T> {
+  let method: string;
+  let url: string;
+  let body: unknown | undefined;
+
+  // Determine which overload was called
+  if (urlOrData === undefined || typeof urlOrData !== 'string') {
+    // apiRequest(url, data?) overload
+    method = 'GET';
+    url = methodOrUrl;
+    body = urlOrData;
+  } else {
+    // apiRequest(method, url, data?) overload
+    method = methodOrUrl;
+    url = urlOrData;
+    body = data;
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: body ? { "Content-Type": "application/json" } : {},
+    body: body ? JSON.stringify(body) : undefined,
     credentials: "include",
   });
 
   await throwIfResNotOk(res);
-  return res;
+  
+  // For HEAD and other methods that don't return content
+  if (method === 'HEAD' || res.status === 204) {
+    return null as unknown as T;
+  }
+  
+  return await res.json() as T;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

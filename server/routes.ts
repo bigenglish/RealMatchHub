@@ -12,6 +12,7 @@ import {
 } from "./vertex-ai"; // Import Vertex AI functions
 import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API function
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
+import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl } from "./google-places"; // Import Google Places API functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -563,6 +564,230 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Failed to delete service expert",
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ----- Google Places API Integration Routes -----
+  
+  // Check if Google Places API key is configured
+  app.get("/api/places/status", async (_req, res) => {
+    try {
+      const hasApiKey = !!process.env.GOOGLE_PLACES_API_KEY;
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY || 'not-set';
+      console.log("[express] /api/places/status called, hasApiKey =", hasApiKey);
+      console.log("[express] API Key first 4 chars:", apiKey.substring(0, 4) + '...');
+      
+      // Always enable Google Places API if we have the key
+      const enabled = hasApiKey;
+      
+      const response = { 
+        enabled,
+        message: enabled ? 
+          "Google Places API is configured and ready to use" : 
+          "Google Places API key is not configured"
+      };
+      
+      console.log("[express] Sending API status response:", response);
+      res.json(response);
+    } catch (error) {
+      console.error("Error checking Google Places API status:", error);
+      res.status(500).json({ message: "Error checking Google Places API status" });
+    }
+  });
+  
+  // Search for places using Google Places API
+  app.get("/api/places/search", async (req, res) => {
+    try {
+      const query = req.query.query as string;
+      const location = req.query.location as string;
+      const radius = parseInt(req.query.radius as string) || 10000;
+      const category = req.query.category as string;
+      
+      if (!query || !location) {
+        return res.status(400).json({ 
+          message: "Query and location parameters are required" 
+        });
+      }
+      
+      console.log(`[express] Searching for places with query: ${query}, location: ${location}, radius: ${radius}, category: ${category || 'any'}`);
+      
+      const places = await searchNearbyPlaces({
+        query,
+        location,
+        radius,
+        category
+      });
+      
+      console.log(`[express] Found ${places.length} places matching search criteria`);
+      res.json(places);
+    } catch (error) {
+      console.error("Error searching for places:", error);
+      res.status(500).json({ 
+        message: "Error searching for places",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get details for a specific place
+  app.get("/api/places/:placeId", async (req, res) => {
+    try {
+      const placeId = req.params.placeId;
+      
+      console.log(`[express] Fetching details for place ID: ${placeId}`);
+      const placeDetails = await getPlaceDetails(placeId);
+      
+      if (!placeDetails) {
+        return res.status(404).json({ message: "Place not found" });
+      }
+      
+      res.json(placeDetails);
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+      res.status(500).json({ 
+        message: "Error fetching place details",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get a photo URL for a place
+  app.get("/api/places/photo/:photoReference", async (req, res) => {
+    try {
+      const photoReference = req.params.photoReference;
+      const maxWidth = parseInt(req.query.maxWidth as string) || 400;
+      
+      console.log(`[express] Getting photo URL for reference: ${photoReference}`);
+      const photoUrl = getPlacePhotoUrl(photoReference, maxWidth);
+      
+      if (!photoUrl) {
+        return res.status(404).json({ message: "Photo not found" });
+      }
+      
+      res.json({ photoUrl });
+    } catch (error) {
+      console.error("Error getting place photo URL:", error);
+      res.status(500).json({ 
+        message: "Error getting place photo URL",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Search service experts from Google Places based on service type
+  app.get("/api/places/service-experts/:serviceType", async (req, res) => {
+    try {
+      const serviceType = req.params.serviceType;
+      const location = req.query.location as string || "37.7749,-122.4194"; // Default to San Francisco
+      const radius = parseInt(req.query.radius as string) || 10000;
+      
+      console.log(`[express] Searching for ${serviceType} service experts near ${location}`);
+      
+      // Map service types to appropriate Google Places search terms
+      let searchQuery = serviceType;
+      
+      switch(serviceType.toLowerCase()) {
+        case "mortgage_broker":
+          searchQuery = "mortgage broker real estate";
+          break;
+        case "insurance_agent":
+          searchQuery = "home insurance agent";
+          break;
+        case "real_estate_attorney":
+          searchQuery = "real estate attorney lawyer";
+          break;
+        case "home_inspector":
+          searchQuery = "home inspector";
+          break;
+        case "appraiser":
+          searchQuery = "real estate appraiser";
+          break;
+        case "title_company":
+          searchQuery = "title company real estate";
+          break;
+        default:
+          searchQuery = `${serviceType.replace(/_/g, ' ')} real estate`;
+      }
+      
+      const places = await searchNearbyPlaces({
+        query: searchQuery,
+        location,
+        radius
+      });
+      
+      console.log(`[express] Found ${places.length} service experts of type: ${serviceType}`);
+      
+      res.json(places);
+    } catch (error) {
+      console.error(`[express] Error searching for service experts of type ${req.params.serviceType}:`, error);
+      res.status(500).json({ 
+        message: "Error searching for service experts",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Google Places API status endpoint
+  app.get("/api/places/status", async (_req, res) => {
+    try {
+      const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+      const hasApiKey = !!apiKey;
+      
+      console.log("[express] Checking Google Places API status");
+      console.log("[express] API key present:", hasApiKey);
+      
+      if (hasApiKey) {
+        console.log("[express] API key first 4 chars:", apiKey!.substring(0, 4) + "...");
+        
+        // Make a test API call to verify the API key works
+        try {
+          // Default location: San Francisco City Hall
+          const testLocation = "37.7793,-122.4193";
+          const testRadius = 1000;
+          const testQuery = "cafe";
+          
+          console.log("[express] Making test API call to Google Places API");
+          const testResult = await searchNearbyPlaces({
+            query: testQuery,
+            location: testLocation,
+            radius: testRadius
+          });
+          
+          // Check the specific error that might be in the response
+          // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
+          if (Array.isArray(testResult)) {
+            console.log("[express] Test API call successful, got", testResult.length, "results");
+            res.json({
+              enabled: true,
+              message: "Google Places API is configured and working",
+              results_count: testResult.length
+            });
+          } else {
+            console.log("[express] Test API call failed, didn't get array response");
+            res.json({
+              enabled: false,
+              message: "Google Places API returned unexpected response format"
+            });
+          }
+        } catch (error: any) {
+          console.error("[express] Test API call to Google Places failed:", error.message);
+          res.json({
+            enabled: false,
+            message: `Google Places API key is present but failed: ${error.message}`
+          });
+        }
+      } else {
+        res.json({
+          enabled: false,
+          message: "Google Places API key is not configured"
+        });
+      }
+    } catch (error) {
+      console.error("[express] Error checking Google Places API status:", error);
+      res.status(500).json({ 
+        enabled: false,
+        message: "Error checking Google Places API status"
       });
     }
   });

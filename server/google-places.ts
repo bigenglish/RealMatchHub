@@ -5,6 +5,13 @@ import axios from 'axios';
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
 
+console.log('[google-places] Module loaded, API key present:', !!GOOGLE_PLACES_API_KEY);
+if (GOOGLE_PLACES_API_KEY) {
+  console.log('[google-places] API key first 4 chars:', GOOGLE_PLACES_API_KEY.substring(0, 4) + '...');
+} else {
+  console.log('[google-places] WARNING: Google Places API key not found in environment variables');
+}
+
 export interface PlacesSearchParams {
   query: string;
   location: string;
@@ -40,19 +47,42 @@ export interface PlaceSearchResult {
  */
 export async function searchNearbyPlaces(params: PlacesSearchParams): Promise<PlaceSearchResult[]> {
   if (!GOOGLE_PLACES_API_KEY) {
-    console.error('Google Places API key not found in environment variables');
+    console.error('[google-places] Cannot search places: API key not found in environment variables');
     return [];
   }
 
   const { query, location, radius, category } = params;
   
+  console.log(`[google-places] Searching for "${query}" near ${location} with radius ${radius}m${category ? ` and category ${category}` : ''}`);
+  
   const apiUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=${GOOGLE_PLACES_API_KEY}&keyword=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}&radius=${radius}&type=${encodeURIComponent(category || '')}`;
 
   try {
+    console.log(`[google-places] Making API request to: ${apiUrl.replace(GOOGLE_PLACES_API_KEY, 'API_KEY_HIDDEN')}`);
     const response = await axios.get(apiUrl);
-    return response.data.results;
+    
+    console.log(`[google-places] API response status: ${response.status}`);
+    if (response.data && response.data.status) {
+      console.log(`[google-places] Google API status: ${response.data.status}`);
+      
+      if (response.data.status !== 'OK') {
+        console.log(`[google-places] API error: ${response.data.error_message || 'No error message provided'}`);
+      }
+    }
+    
+    const results = response.data.results || [];
+    console.log(`[google-places] Found ${results.length} results`);
+    
+    return results;
   } catch (error: any) {
-    console.error('Error fetching from Google Places API:', error.message);
+    console.error('[google-places] Error fetching from Google Places API:', error.message);
+    if (error.response) {
+      console.error('[google-places] API response error:', {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+    }
     return [];
   }
 }

@@ -480,7 +480,7 @@ const ServiceExpertsPage = () => {
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
                     {/* We're displaying the buttons for each expert type */}
-                    {(expertTypes as string[]).map((type) => (
+                    {Array.from(expertTypes).map((type) => (
                       <Button 
                         key={type} 
                         variant="outline" 

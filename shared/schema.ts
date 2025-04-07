@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, date, timestamp, real, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -51,11 +51,66 @@ export const serviceExperts = pgTable("service_experts", {
   address: text("address"),
   placeId: text("place_id"), // Google Places ID if applicable
   serviceType: text("service_type").notNull(), // Type of service expert (Mortgage Lender, Home Inspector, etc.)
+  location: text("location"), // Latitude,longitude
+  serviceArea: integer("service_area"), // Service radius in miles
+  availabilityJson: jsonb("availability"), // Availability schedule as JSON
+});
+
+// Service bundles table
+export const serviceBundles = pgTable("service_bundles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  price: numeric("price").notNull(),
+  savings: numeric("savings").notNull(), // How much saved compared to individual services
+  popularityRank: integer("popularity_rank"),
+  featuredImage: text("featured_image"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Service offerings table (individual services)
+export const serviceOfferings = pgTable("service_offerings", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  serviceType: text("service_type").notNull(), // Corresponds to expertTypes
+  price: numeric("price").notNull(),
+  estimatedDuration: text("estimated_duration").notNull(),
+  requiredDocuments: text("required_documents").array(),
+  typicalTimingInTransaction: text("typical_timing").notNull(), // e.g. "Before listing", "Before closing", etc.
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Bundle-service relationship table (many-to-many)
+export const bundleServices = pgTable("bundle_services", {
+  id: serial("id").primaryKey(),
+  bundleId: integer("bundle_id").notNull().references(() => serviceBundles.id),
+  serviceId: integer("service_id").notNull().references(() => serviceOfferings.id),
+});
+
+// Service requests table
+export const serviceRequests = pgTable("service_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  serviceExpertId: integer("service_expert_id").notNull().references(() => serviceExperts.id),
+  serviceType: text("service_type").notNull(),
+  requestDate: timestamp("request_date").defaultNow().notNull(),
+  needByDate: timestamp("need_by_date"),
+  status: text("status").notNull().default("pending"),
+  notes: text("notes"),
+  propertyId: integer("property_id").references(() => properties.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({ id: true });
 export const insertServiceProviderSchema = createInsertSchema(serviceProviders).omit({ id: true });
 export const insertServiceExpertSchema = createInsertSchema(serviceExperts).omit({ id: true });
+export const insertServiceBundleSchema = createInsertSchema(serviceBundles).omit({ id: true, createdAt: true });
+export const insertServiceOfferingSchema = createInsertSchema(serviceOfferings).omit({ id: true, createdAt: true });
+export const insertBundleServiceSchema = createInsertSchema(bundleServices).omit({ id: true });
+export const insertServiceRequestSchema = createInsertSchema(serviceRequests).omit({ id: true, requestDate: true, createdAt: true });
 
 export type Property = typeof properties.$inferSelect;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
@@ -63,6 +118,22 @@ export type ServiceProvider = typeof serviceProviders.$inferSelect;
 export type InsertServiceProvider = z.infer<typeof insertServiceProviderSchema>;
 export type ServiceExpert = typeof serviceExperts.$inferSelect;
 export type InsertServiceExpert = z.infer<typeof insertServiceExpertSchema>;
+export type ServiceBundle = typeof serviceBundles.$inferSelect;
+export type InsertServiceBundle = z.infer<typeof insertServiceBundleSchema>;
+export type ServiceOffering = typeof serviceOfferings.$inferSelect;
+export type InsertServiceOffering = z.infer<typeof insertServiceOfferingSchema>;
+export type BundleService = typeof bundleServices.$inferSelect;
+export type InsertBundleService = z.infer<typeof insertBundleServiceSchema>;
+export type ServiceRequest = typeof serviceRequests.$inferSelect;
+export type InsertServiceRequest = z.infer<typeof insertServiceRequestSchema>;
+
+// Service availability type (stored as JSON)
+export interface ServiceAvailability {
+  dayOfWeek: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+  startTime: string; // Format: "HH:MM"
+  endTime: string; // Format: "HH:MM"
+  available: boolean;
+}
 
 export const propertyTypes = [
   "Single Family Home",
@@ -120,4 +191,23 @@ export const expertTypes = [
   "Appraiser",
   "Property Manager",
   "Interior Designer"
+] as const;
+
+// Transaction stages for service timing
+export const transactionStages = [
+  "Pre-Listing",
+  "During Listing",
+  "Under Contract",
+  "Pre-Closing",
+  "Closing",
+  "Post-Closing"
+] as const;
+
+// Service request statuses
+export const requestStatuses = [
+  "pending",
+  "accepted",
+  "declined",
+  "completed",
+  "cancelled"
 ] as const;

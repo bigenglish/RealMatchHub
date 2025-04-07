@@ -1,4 +1,9 @@
-import { Property, ServiceProvider, InsertProperty, InsertServiceProvider, ServiceExpert, InsertServiceExpert } from "@shared/schema";
+import { 
+  Property, ServiceProvider, InsertProperty, InsertServiceProvider, 
+  ServiceExpert, InsertServiceExpert, ServiceBundle, InsertServiceBundle,
+  ServiceOffering, InsertServiceOffering, BundleService, InsertBundleService,
+  ServiceRequest, InsertServiceRequest, ServiceAvailability 
+} from "@shared/schema";
 
 export interface IStorage {
   // Properties
@@ -20,23 +25,69 @@ export interface IStorage {
   createServiceExpert(provider: InsertServiceExpert): Promise<ServiceExpert>;
   updateServiceExpert(id: number, provider: Partial<InsertServiceExpert>): Promise<ServiceExpert | undefined>;
   deleteServiceExpert(id: number): Promise<boolean>;
+  getServiceExpertsByLocation(location: string, radius: number): Promise<ServiceExpert[]>;
+  getServiceExpertsByAvailability(date: Date): Promise<ServiceExpert[]>;
+  
+  // Service Bundles (packages)
+  getServiceBundles(): Promise<ServiceBundle[]>;
+  getServiceBundle(id: number): Promise<ServiceBundle | undefined>;
+  createServiceBundle(bundle: InsertServiceBundle): Promise<ServiceBundle>;
+  updateServiceBundle(id: number, bundle: Partial<InsertServiceBundle>): Promise<ServiceBundle | undefined>;
+  deleteServiceBundle(id: number): Promise<boolean>;
+  
+  // Service Offerings (individual services)
+  getServiceOfferings(): Promise<ServiceOffering[]>;
+  getServiceOffering(id: number): Promise<ServiceOffering | undefined>;
+  getServiceOfferingsByType(type: string): Promise<ServiceOffering[]>;
+  createServiceOffering(offering: InsertServiceOffering): Promise<ServiceOffering>;
+  updateServiceOffering(id: number, offering: Partial<InsertServiceOffering>): Promise<ServiceOffering | undefined>;
+  deleteServiceOffering(id: number): Promise<boolean>;
+  
+  // Bundle Services (many-to-many relationship)
+  getServicesInBundle(bundleId: number): Promise<ServiceOffering[]>;
+  addServiceToBundle(bundleId: number, serviceId: number): Promise<BundleService>;
+  removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean>;
+  
+  // Service Requests (marketplace)
+  getServiceRequests(): Promise<ServiceRequest[]>;
+  getServiceRequest(id: number): Promise<ServiceRequest | undefined>;
+  getServiceRequestsByUser(userId: number): Promise<ServiceRequest[]>;
+  getServiceRequestsByExpert(expertId: number): Promise<ServiceRequest[]>;
+  createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest>;
+  updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private properties: Map<number, Property>;
   private serviceProviders: Map<number, ServiceProvider>;
   private serviceExperts: Map<number, ServiceExpert>;
+  private serviceBundles: Map<number, ServiceBundle>;
+  private serviceOfferings: Map<number, ServiceOffering>;
+  private bundleServices: Map<number, BundleService>;
+  private serviceRequests: Map<number, ServiceRequest>;
   private propertyId: number;
   private providerId: number;
   private serviceExpertId: number;
+  private serviceBundleId: number;
+  private serviceOfferingId: number;
+  private bundleServiceId: number;
+  private serviceRequestId: number;
 
   constructor() {
     this.properties = new Map();
     this.serviceProviders = new Map();
     this.serviceExperts = new Map();
+    this.serviceBundles = new Map();
+    this.serviceOfferings = new Map();
+    this.bundleServices = new Map();
+    this.serviceRequests = new Map();
     this.propertyId = 1;
     this.providerId = 1;
     this.serviceExpertId = 1;
+    this.serviceBundleId = 1;
+    this.serviceOfferingId = 1;
+    this.bundleServiceId = 1;
+    this.serviceRequestId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
@@ -372,7 +423,10 @@ export class MemStorage implements IStorage {
       verified: insertExpert.verified ?? false,
       address: insertExpert.address || null,
       placeId: insertExpert.placeId || null,
-      businessHours: insertExpert.businessHours || null
+      businessHours: insertExpert.businessHours || null,
+      location: insertExpert.location || null,
+      serviceArea: insertExpert.serviceArea || null,
+      availabilityJson: insertExpert.availabilityJson || null
     };
     this.serviceExperts.set(id, expert);
     return expert;
@@ -398,6 +452,211 @@ export class MemStorage implements IStorage {
 
   async deleteServiceExpert(id: number): Promise<boolean> {
     return this.serviceExperts.delete(id);
+  }
+
+  // New methods for location and availability-based expert search
+  async getServiceExpertsByLocation(location: string, radius: number): Promise<ServiceExpert[]> {
+    // For now, just return all experts since we're not doing real geocoding calculations
+    // In a real implementation, this would filter by distance from the provided location
+    return this.getServiceExperts();
+  }
+
+  async getServiceExpertsByAvailability(date: Date): Promise<ServiceExpert[]> {
+    // For now, just return all experts
+    // In a real implementation, this would check the availabilityJson field
+    return this.getServiceExperts();
+  }
+
+  // Service Bundles methods
+  async getServiceBundles(): Promise<ServiceBundle[]> {
+    return Array.from(this.serviceBundles.values());
+  }
+
+  async getServiceBundle(id: number): Promise<ServiceBundle | undefined> {
+    return this.serviceBundles.get(id);
+  }
+
+  async createServiceBundle(bundle: InsertServiceBundle): Promise<ServiceBundle> {
+    const id = this.serviceBundleId++;
+    const createdAt = new Date();
+    
+    const serviceBundle: ServiceBundle = {
+      ...bundle,
+      id,
+      createdAt,
+      popularityRank: bundle.popularityRank || null,
+      featuredImage: bundle.featuredImage || null,
+      isActive: bundle.isActive ?? true
+    };
+    
+    this.serviceBundles.set(id, serviceBundle);
+    return serviceBundle;
+  }
+
+  async updateServiceBundle(id: number, updates: Partial<InsertServiceBundle>): Promise<ServiceBundle | undefined> {
+    const existingBundle = this.serviceBundles.get(id);
+    if (!existingBundle) {
+      return undefined;
+    }
+
+    const updatedBundle: ServiceBundle = {
+      ...existingBundle,
+      ...updates,
+      id
+    };
+
+    this.serviceBundles.set(id, updatedBundle);
+    return updatedBundle;
+  }
+
+  async deleteServiceBundle(id: number): Promise<boolean> {
+    return this.serviceBundles.delete(id);
+  }
+
+  // Service Offerings methods
+  async getServiceOfferings(): Promise<ServiceOffering[]> {
+    return Array.from(this.serviceOfferings.values());
+  }
+
+  async getServiceOffering(id: number): Promise<ServiceOffering | undefined> {
+    return this.serviceOfferings.get(id);
+  }
+
+  async getServiceOfferingsByType(type: string): Promise<ServiceOffering[]> {
+    return Array.from(this.serviceOfferings.values()).filter(
+      (offering) => offering.serviceType === type
+    );
+  }
+
+  async createServiceOffering(offering: InsertServiceOffering): Promise<ServiceOffering> {
+    const id = this.serviceOfferingId++;
+    const createdAt = new Date();
+    
+    const serviceOffering: ServiceOffering = {
+      ...offering,
+      id,
+      createdAt,
+      isActive: offering.isActive ?? true,
+      requiredDocuments: offering.requiredDocuments || null
+    };
+    
+    this.serviceOfferings.set(id, serviceOffering);
+    return serviceOffering;
+  }
+
+  async updateServiceOffering(id: number, updates: Partial<InsertServiceOffering>): Promise<ServiceOffering | undefined> {
+    const existingOffering = this.serviceOfferings.get(id);
+    if (!existingOffering) {
+      return undefined;
+    }
+
+    const updatedOffering: ServiceOffering = {
+      ...existingOffering,
+      ...updates,
+      id
+    };
+
+    this.serviceOfferings.set(id, updatedOffering);
+    return updatedOffering;
+  }
+
+  async deleteServiceOffering(id: number): Promise<boolean> {
+    return this.serviceOfferings.delete(id);
+  }
+
+  // Bundle Services methods
+  async getServicesInBundle(bundleId: number): Promise<ServiceOffering[]> {
+    // Get all BundleService records for the given bundle
+    const bundleServiceEntries = Array.from(this.bundleServices.values())
+      .filter(bs => bs.bundleId === bundleId);
+    
+    // Get all service offerings for those service IDs
+    const serviceIds = bundleServiceEntries.map(bs => bs.serviceId);
+    const services = Array.from(this.serviceOfferings.values())
+      .filter(service => serviceIds.includes(service.id));
+    
+    return services;
+  }
+
+  async addServiceToBundle(bundleId: number, serviceId: number): Promise<BundleService> {
+    const id = this.bundleServiceId++;
+    
+    const bundleService: BundleService = {
+      id,
+      bundleId,
+      serviceId
+    };
+    
+    this.bundleServices.set(id, bundleService);
+    return bundleService;
+  }
+
+  async removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean> {
+    const bundleServiceEntry = Array.from(this.bundleServices.values())
+      .find(bs => bs.bundleId === bundleId && bs.serviceId === serviceId);
+    
+    if (!bundleServiceEntry) {
+      return false;
+    }
+    
+    return this.bundleServices.delete(bundleServiceEntry.id);
+  }
+
+  // Service Requests methods
+  async getServiceRequests(): Promise<ServiceRequest[]> {
+    return Array.from(this.serviceRequests.values());
+  }
+
+  async getServiceRequest(id: number): Promise<ServiceRequest | undefined> {
+    return this.serviceRequests.get(id);
+  }
+
+  async getServiceRequestsByUser(userId: number): Promise<ServiceRequest[]> {
+    return Array.from(this.serviceRequests.values())
+      .filter(request => request.userId === userId);
+  }
+
+  async getServiceRequestsByExpert(expertId: number): Promise<ServiceRequest[]> {
+    return Array.from(this.serviceRequests.values())
+      .filter(request => request.serviceExpertId === expertId);
+  }
+
+  async createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest> {
+    const id = this.serviceRequestId++;
+    const requestDate = new Date();
+    const createdAt = new Date();
+    
+    // Create a properly typed ServiceRequest object without using spread operator
+    const serviceRequest: ServiceRequest = {
+      id,
+      serviceType: request.serviceType,
+      status: request.status || "pending",
+      createdAt,
+      userId: request.userId,
+      serviceExpertId: request.serviceExpertId,
+      requestDate,
+      needByDate: request.needByDate || null,
+      notes: request.notes || null,
+      propertyId: request.propertyId || null
+    };
+    
+    this.serviceRequests.set(id, serviceRequest);
+    return serviceRequest;
+  }
+
+  async updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined> {
+    const existingRequest = this.serviceRequests.get(id);
+    if (!existingRequest) {
+      return undefined;
+    }
+
+    const updatedRequest: ServiceRequest = {
+      ...existingRequest,
+      status
+    };
+
+    this.serviceRequests.set(id, updatedRequest);
+    return updatedRequest;
   }
 }
 

@@ -103,9 +103,11 @@ const ServiceExpertsPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [expertTypeFilter, setExpertTypeFilter] = useState("all");
   const [location, setLocation] = useState("37.7749,-122.4194"); // Default to San Francisco
+  const [locationInput, setLocationInput] = useState("San Francisco, CA");
   const [locationName, setLocationName] = useState("San Francisco, CA");
   const [useGooglePlaces, setUseGooglePlaces] = useState(false); // Default to false until confirmed
   const [googlePlacesStatus, setGooglePlacesStatus] = useState<PlacesAPIStatus | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Check if Google Places API is enabled
   useEffect(() => {
@@ -153,6 +155,38 @@ const ServiceExpertsPage = () => {
     checkGooglePlacesStatus();
   }, []);
 
+  // Geocode an address to coordinates
+  const geocodeAddress = async (address: string) => {
+    if (!address) return;
+    
+    setIsGeocoding(true);
+    try {
+      console.log(`Geocoding address: ${address}`);
+      const response = await fetch(`/api/places/geocode?address=${encodeURIComponent(address)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.coordinates) {
+          console.log(`Successfully geocoded address to: ${data.coordinates}`);
+          setLocation(data.coordinates);
+          setLocationName(address); // Use the entered address as the location name
+          return data.coordinates;
+        } else {
+          console.error("Geocoding failed:", data.message);
+          return null;
+        }
+      } else {
+        console.error("Error response from geocoding endpoint:", response.status);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+      return null;
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+  
   // Try to get user's location
   useEffect(() => {
     if (navigator.geolocation) {
@@ -160,6 +194,7 @@ const ServiceExpertsPage = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setLocation(`${latitude},${longitude}`);
+          setLocationInput("Current Location");
           
           // We'll keep using the default location name
           // since we can't do reverse geocoding without the API key
@@ -320,12 +355,21 @@ const ServiceExpertsPage = () => {
                 <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
                   type="text"
-                  placeholder="Enter location (e.g., 37.7749,-122.4194 for San Francisco)"
+                  placeholder="Enter a city or address (e.g., San Francisco, CA)"
                   className="pl-8"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
                 />
               </div>
+              <Button 
+                variant="default" 
+                onClick={() => geocodeAddress(locationInput)}
+                disabled={isGeocoding || !locationInput}
+                className="whitespace-nowrap"
+              >
+                <Search className="mr-2 h-4 w-4" />
+                {isGeocoding ? "Searching..." : "Search Location"}
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -334,6 +378,8 @@ const ServiceExpertsPage = () => {
                       (position) => {
                         const { latitude, longitude } = position.coords;
                         setLocation(`${latitude},${longitude}`);
+                        setLocationInput("Current Location");
+                        setLocationName("Current Location");
                         console.log("Using current location:", latitude, longitude);
                       },
                       (error) => {

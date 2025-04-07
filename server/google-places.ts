@@ -120,3 +120,42 @@ export function getPlacePhotoUrl(photoReference: string, maxWidth: number = 400)
   
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
 }
+
+/**
+ * Geocode an address string to coordinates (latitude,longitude)
+ * @param address Address to geocode (e.g., "San Francisco, CA")
+ * @returns Promise resolving to "lat,lng" string or null if geocoding fails
+ */
+export async function geocodeAddress(address: string): Promise<string | null> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.error('[google-places] Cannot geocode address: API key not found in environment variables');
+    return null;
+  }
+
+  // If the input already looks like coordinates, return it as is
+  if (/^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(address)) {
+    console.log(`[google-places] Input "${address}" appears to be coordinates already, skipping geocoding`);
+    return address;
+  }
+
+  try {
+    console.log(`[google-places] Geocoding address: "${address}"`);
+    const apiUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_PLACES_API_KEY}`;
+    
+    const response = await axios.get(apiUrl);
+    
+    if (response.data.status === 'OK' && response.data.results && response.data.results.length > 0) {
+      const location = response.data.results[0].geometry.location;
+      const coords = `${location.lat},${location.lng}`;
+      console.log(`[google-places] Geocoded "${address}" to coordinates: ${coords}`);
+      return coords;
+    } else {
+      console.error(`[google-places] Geocoding failed: ${response.data.status}`);
+      console.error(`[google-places] Error message: ${response.data.error_message || 'No error message provided'}`);
+      return null;
+    }
+  } catch (error: any) {
+    console.error('[google-places] Error during geocoding:', error.message);
+    return null;
+  }
+}

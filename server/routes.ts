@@ -12,7 +12,7 @@ import {
 } from "./vertex-ai"; // Import Vertex AI functions
 import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API function
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
-import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl } from "./google-places"; // Import Google Places API functions
+import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress } from "./google-places"; // Import Google Places API functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -569,6 +569,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Google Places API Integration Routes -----
+  
+  // Geocode an address to coordinates - returns lat,lng string
+  app.get("/api/places/geocode", async (req, res) => {
+    try {
+      const address = req.query.address as string;
+      
+      if (!address) {
+        return res.status(400).json({ 
+          message: "Address parameter is required" 
+        });
+      }
+      
+      console.log(`[express] Geocoding address: "${address}"`);
+      const coordinates = await geocodeAddress(address);
+      
+      if (coordinates) {
+        console.log(`[express] Successfully geocoded to: ${coordinates}`);
+        res.json({ coordinates, success: true });
+      } else {
+        console.log(`[express] Failed to geocode address: "${address}"`);
+        res.status(400).json({ 
+          message: "Could not geocode the provided address",
+          success: false
+        });
+      }
+    } catch (error) {
+      console.error(`[express] Error geocoding address:`, error);
+      res.status(500).json({ 
+        message: "Error geocoding address",
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
   
   // Check if Google Places API key is configured
   // First version of the places status endpoint was removed to avoid duplication

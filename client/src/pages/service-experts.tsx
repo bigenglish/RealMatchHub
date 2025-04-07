@@ -108,6 +108,24 @@ const ServiceExpertsPage = () => {
   const [useGooglePlaces, setUseGooglePlaces] = useState(false); // Default to false until confirmed
   const [googlePlacesStatus, setGooglePlacesStatus] = useState<PlacesAPIStatus | null>(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  
+  // Predefined suggestions for location autocomplete
+  const locationSuggestions = [
+    "Los Angeles, CA",
+    "San Francisco, CA",
+    "New York, NY",
+    "Chicago, IL",
+    "Miami, FL",
+    "Seattle, WA",
+    "Denver, CO",
+    "Austin, TX",
+    "Boston, MA",
+    "90210", // Beverly Hills
+    "10001", // New York
+    "60601", // Chicago
+    "75001", // Dallas
+    "02108", // Boston
+  ];
 
   // Check if Google Places API is enabled
   useEffect(() => {
@@ -261,12 +279,14 @@ const ServiceExpertsPage = () => {
       })
     : [];
 
-  // Combine local and Google Places experts
-  const allExperts = useGooglePlaces 
-    ? (convertedPlacesExperts.length > 0 
-        ? convertedPlacesExperts  // Use Google Places data if available
-        : localServiceExperts)    // Fall back to local data if no Google Places results
-    : localServiceExperts;        // Use local data if Google Places is disabled
+  // Combine local and Google Places experts, but don't show any experts until user selects a type
+  const showExperts = expertTypeFilter !== "all" || searchTerm.length > 0;
+  
+  const allExperts = !showExperts 
+    ? [] // Show no experts until user selects a specific type or searches
+    : (useGooglePlaces && convertedPlacesExperts.length > 0)
+      ? convertedPlacesExperts // Use Google Places data if available
+      : []; // Don't fall back to sample data
     
   // Log which data source we're using
   useEffect(() => {
@@ -365,7 +385,13 @@ const ServiceExpertsPage = () => {
                   className="pl-8"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
+                  list="location-suggestions"
                 />
+                <datalist id="location-suggestions">
+                  {locationSuggestions.map((location, index) => (
+                    <option key={index} value={location} />
+                  ))}
+                </datalist>
               </div>
               <Button 
                 variant="default" 
@@ -445,6 +471,26 @@ const ServiceExpertsPage = () => {
               {isLoading ? (
                 <div className="flex justify-center py-12">
                   <p>Loading service experts near {locationName}...</p>
+                </div>
+              ) : !showExperts ? (
+                <div className="text-center py-12">
+                  <h3 className="text-lg font-medium">Select a Service Type to Begin</h3>
+                  <p className="text-gray-500 mt-2">
+                    Choose a specific service type from the dropdown menu above to see available experts in your area.
+                  </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {/* We're displaying the buttons for each expert type */}
+                    {(expertTypes as string[]).map((type) => (
+                      <Button 
+                        key={type} 
+                        variant="outline" 
+                        onClick={() => setExpertTypeFilter(type)}
+                        className="m-1"
+                      >
+                        {type}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               ) : filteredExperts?.length === 0 ? (
                 <div className="text-center py-12">

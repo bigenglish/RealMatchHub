@@ -71,11 +71,8 @@ function convertIdxToProperty(idx: IdxListing): Property {
     bathrooms: typeof idx.bathrooms === 'number' ? idx.bathrooms : 0,
     sqft: typeof idx.sqft === 'number' ? idx.sqft : 0,
     propertyType: idx.propertyType || 'Residential',
-    features: [],
     images: Array.isArray(idx.images) ? idx.images : [], // Ensure images is always an array
     listedDate: idx.listedDate || new Date().toISOString().split('T')[0],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     listingId: idx.listingId || null
   };
 }

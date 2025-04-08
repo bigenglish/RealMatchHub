@@ -1,12 +1,20 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Check, Home, Building, Users, Briefcase, Sparkles, ChevronsRight } from "lucide-react";
+import { 
+  Check, Home, Building, Users, Briefcase, Sparkles, ChevronsRight, 
+  CalendarDays, MapPin, Search
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Autosuggest from "react-autosuggest";
 
 export type UserIntent = "buying" | "selling" | "both" | undefined;
 export type UserLifestage = "flexible-move" | "job-received" | "live-alone" | "own-home" | "have-children" | "life-change" | 
                             "flexible-downpayment" | "sold-property" | "self-employed" | "small-business" | "life-questions";
+export type TimelineOption = "asap" | "1-3months" | "3-6months" | "6-12months";
 
 export interface UserPreferences {
   intent?: UserIntent;
@@ -20,6 +28,7 @@ export interface UserPreferences {
   bedrooms?: number;
   bathrooms?: number;
   mustHaveFeatures?: string[];
+  timeframe?: TimelineOption;
 }
 
 interface PropertyQuestionnaireProps {
@@ -41,9 +50,56 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     bedrooms: 0,
     bathrooms: 0,
     mustHaveFeatures: [],
+    timeframe: "3-6months",
   });
   
-  const totalSteps = 3;
+  // Location search states for autosuggest
+  const [locationValue, setLocationValue] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  
+  // Popular cities for suggestions
+  const popularCities = [
+    "San Francisco, CA", 
+    "San Jose, CA", 
+    "San Diego, CA",
+    "Santa Monica, CA", 
+    "Santa Barbara, CA",
+    "New York, NY", 
+    "Los Angeles, CA", 
+    "Chicago, IL", 
+    "Houston, TX", 
+    "Phoenix, AZ",
+    "Philadelphia, PA", 
+    "Austin, TX", 
+    "Seattle, WA", 
+    "Boston, MA",
+    "Miami, FL",
+    "Dallas, TX",
+    "Denver, CO",
+    "Portland, OR",
+    "Las Vegas, NV",
+    "Atlanta, GA"
+  ];
+  
+  // Property types for dropdown
+  const propertyTypes = [
+    "Single Family Home",
+    "Condo",
+    "Townhouse",
+    "Multi-Family",
+    "Land",
+    "Apartment"
+  ];
+  
+  // Timeline options mapping
+  const timelineOptions = [
+    { value: "asap", label: "ASAP (ready to move)" },
+    { value: "1-3months", label: "1-3 months (begin making offers)" },
+    { value: "3-6months", label: "3-6 months (start my search)" },
+    { value: "6-12months", label: "6-12 months (early in the process)" }
+  ];
+  
+  const totalSteps = 4; // Increased steps to add location/timeline step
   const progress = Math.round((step / totalSteps) * 100);
   
   const handleIntentSelect = (intent: UserIntent) => {
@@ -62,6 +118,58 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   
   const isLifestageSelected = (lifestage: UserLifestage) => {
     return preferences.lifestage?.includes(lifestage) || false;
+  };
+  
+  // Handle location suggestions
+  const getSuggestions = (value: string) => {
+    const inputValue = value.trim().toLowerCase();
+    const inputLength = inputValue.length;
+    
+    return inputLength === 0 
+      ? [] 
+      : popularCities.filter(city => 
+          city.toLowerCase().includes(inputValue)
+        );
+  };
+  
+  // When suggestion is selected
+  const onLocationSuggestionSelected = (event: React.FormEvent<HTMLElement>, { suggestion }: { suggestion: string }) => {
+    setLocationValue(suggestion);
+    setPreferences({ ...preferences, location: suggestion });
+  };
+  
+  // Get suggestion value
+  const getSuggestionValue = (suggestion: string) => suggestion;
+  
+  // Render suggestion
+  const renderSuggestion = (suggestion: string) => (
+    <div className="p-2 hover:bg-muted cursor-pointer">
+      <div className="flex items-center gap-2">
+        <MapPin className="h-4 w-4 text-muted-foreground" />
+        {suggestion}
+      </div>
+    </div>
+  );
+  
+  // Input props for autosuggest
+  const inputProps = {
+    placeholder: preferences.intent === "selling" ? "Enter your property address" : "Where are you looking to buy?",
+    value: locationValue,
+    onChange: (_: React.FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
+      setLocationValue(newValue);
+      setPreferences({ ...preferences, location: newValue });
+    },
+    className: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+  };
+  
+  // Handle property type change
+  const handlePropertyTypeChange = (value: string) => {
+    setPreferences({ ...preferences, propertyType: value });
+  };
+  
+  // Handle timeline selection
+  const handleTimelineChange = (value: TimelineOption) => {
+    setPreferences({ ...preferences, timeframe: value });
   };
   
   const handleNextStep = () => {
@@ -244,6 +352,118 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       
       {step === 3 && (
         <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-center">
+            {preferences.intent === "buying" && "Where are you looking to buy?"}
+            {preferences.intent === "selling" && "Tell us about your property"}
+            {preferences.intent === "both" && "Tell us more about your real estate plans"}
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="location" className="font-semibold">
+                  {preferences.intent === "selling" ? "Property Address" : "Location"}
+                </Label>
+                <div className="relative">
+                  <Autosuggest
+                    suggestions={locationSuggestions}
+                    onSuggestionsFetchRequested={({ value }) => setLocationSuggestions(getSuggestions(value))}
+                    onSuggestionsClearRequested={() => setLocationSuggestions([])}
+                    onSuggestionSelected={onLocationSuggestionSelected}
+                    getSuggestionValue={getSuggestionValue}
+                    renderSuggestion={renderSuggestion}
+                    inputProps={inputProps}
+                    theme={{
+                      container: 'relative',
+                      input: 'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                      suggestionsContainer: 'absolute w-full z-10 mt-1 bg-background rounded-md shadow-lg',
+                      suggestionsList: 'max-h-72 overflow-auto py-1 text-sm',
+                      suggestion: 'px-2 py-1',
+                      suggestionHighlighted: 'bg-muted',
+                    }}
+                  />
+                  <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="property-type" className="font-semibold">Property Type</Label>
+                <Select 
+                  value={preferences.propertyType || undefined} 
+                  onValueChange={handlePropertyTypeChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select property type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="timeline" className="font-semibold">When are you planning to {preferences.intent === "buying" ? "buy" : 
+                preferences.intent === "selling" ? "sell" : "move"}?</Label>
+                <Select 
+                  value={preferences.timeframe || "3-6months"} 
+                  onValueChange={handleTimelineChange as any}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timeframe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timelineOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center gap-2">
+                          <CalendarDays className="h-4 w-4" />
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bedrooms" className="font-semibold">Bedrooms</Label>
+                <Select 
+                  value={preferences.bedrooms?.toString() || "0"} 
+                  onValueChange={(val) => setPreferences({ ...preferences, bedrooms: parseInt(val) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Any" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Any</SelectItem>
+                    <SelectItem value="1">1+</SelectItem>
+                    <SelectItem value="2">2+</SelectItem>
+                    <SelectItem value="3">3+</SelectItem>
+                    <SelectItem value="4">4+</SelectItem>
+                    <SelectItem value="5">5+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-center gap-4 pt-4">
+            <Button variant="outline" onClick={() => setStep(step - 1)}>
+              Go Back
+            </Button>
+            <Button onClick={handleNextStep}>
+              Continue
+              <ChevronsRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {step === 4 && (
+        <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">Ready to find your perfect match!</h3>
           <p className="text-center text-muted-foreground">
             {preferences.intent === "buying" && "We've prepared specialized property recommendations based on your needs."}
@@ -277,6 +497,32 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       ))}
                     </span>
                   </div>
+                </div>
+              )}
+              
+              {preferences.location && (
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">Location: </span>
+                  <span>{preferences.location}</span>
+                </div>
+              )}
+              
+              {preferences.propertyType && (
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">Property type: </span>
+                  <span>{preferences.propertyType}</span>
+                </div>
+              )}
+              
+              {preferences.timeframe && (
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-primary" />
+                  <span className="font-semibold">Timeline: </span>
+                  <span>
+                    {timelineOptions.find(option => option.value === preferences.timeframe)?.label || preferences.timeframe}
+                  </span>
                 </div>
               )}
             </div>

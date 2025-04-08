@@ -24,7 +24,7 @@ export interface SearchFilterValues {
 export default function SearchFilters({ onFilterChange, className = "" }: SearchFiltersProps) {
   const [filters, setFilters] = useState<SearchFilterValues>({
     location: "",
-    propertyType: "",
+    propertyType: "any",
     minPrice: undefined,
     maxPrice: undefined,
     minBeds: undefined,
@@ -60,7 +60,7 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
   const handleClearFilters = () => {
     const emptyFilters = {
       location: "",
-      propertyType: "",
+      propertyType: "any",
       minPrice: undefined,
       maxPrice: undefined,
       minBeds: undefined,
@@ -96,7 +96,7 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
               <SelectValue placeholder="Any type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any type</SelectItem>
+              <SelectItem value="any">Any type</SelectItem>
               <SelectItem value="Single Family">Single Family</SelectItem>
               <SelectItem value="Condo">Condo</SelectItem>
               <SelectItem value="Townhouse">Townhouse</SelectItem>
@@ -128,16 +128,16 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
         <div className="space-y-2">
           <Label htmlFor="beds">Beds</Label>
           <Select
-            value={filters.minBeds?.toString() || ""}
+            value={filters.minBeds?.toString() || "any"}
             onValueChange={(value) =>
-              handleSelectChange("minBeds", value ? parseInt(value) : undefined)
+              handleSelectChange("minBeds", value === "any" ? undefined : parseInt(value))
             }
           >
             <SelectTrigger id="beds">
               <SelectValue placeholder="Any" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="any">Any</SelectItem>
               <SelectItem value="1">1+</SelectItem>
               <SelectItem value="2">2+</SelectItem>
               <SelectItem value="3">3+</SelectItem>
@@ -150,16 +150,16 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
         <div className="space-y-2">
           <Label htmlFor="baths">Baths</Label>
           <Select
-            value={filters.minBaths?.toString() || ""}
+            value={filters.minBaths?.toString() || "any"}
             onValueChange={(value) =>
-              handleSelectChange("minBaths", value ? parseInt(value) : undefined)
+              handleSelectChange("minBaths", value === "any" ? undefined : parseInt(value))
             }
           >
             <SelectTrigger id="baths">
               <SelectValue placeholder="Any" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any</SelectItem>
+              <SelectItem value="any">Any</SelectItem>
               <SelectItem value="1">1+</SelectItem>
               <SelectItem value="2">2+</SelectItem>
               <SelectItem value="3">3+</SelectItem>

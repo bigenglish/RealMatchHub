@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
@@ -8,6 +9,7 @@ import IdxStatus from "@/components/idx-status";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 // Interface for IDX Broker listings
@@ -186,7 +188,7 @@ export default function PropertiesPage() {
     return (
       <div className="space-y-8">
         <h1 className="text-3xl font-bold">Properties</h1>
-        <SearchFilters onFilter={() => {}} />
+        <SearchFilters onFilterChange={() => {}} />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="space-y-4">
@@ -204,9 +206,24 @@ export default function PropertiesPage() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-3xl font-bold">Find Your Dream Property</h1>
+        <div className="flex items-center gap-4">
+          <Link href="/ai-search">
+            <Button className="bg-gradient-to-r from-violet-500 to-purple-700 hover:from-violet-600 hover:to-purple-800 text-white">
+              <span className="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M16 16s-1.5-2-4-2-4 2-4 2"></path>
+                  <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                  <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+                AI-Powered Search
+              </span>
+            </Button>
+          </Link>
+        </div>
       </div>
       
-      <SearchFilters onFilter={handleFilter} />
+      <SearchFilters onFilterChange={handleFilter} />
       
       {/* IDX Status Banner */}
       <IdxStatus className="mt-4" />

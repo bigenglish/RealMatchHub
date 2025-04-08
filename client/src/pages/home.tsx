@@ -30,48 +30,54 @@ export default function HomePage() {
     setVideoDialogOpen(true);
   };
   
-  // Hero video loading handler
+  // Hero video loading handler - simplified for maximum browser compatibility
   useEffect(() => {
-    const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
-    const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
-    
-    if (heroVideo) {
-      heroVideo.addEventListener('loadeddata', () => {
-        console.log('Hero video loaded successfully');
-        setVideoLoaded(true);
-      });
+    // We'll try a direct approach without too many event listeners
+    const loadAndPlay = (videoId: string) => {
+      const video = document.getElementById(videoId) as HTMLVideoElement;
+      if (!video) return;
       
-      heroVideo.addEventListener('error', (e) => {
-        console.error('Error loading hero video:', e);
-        // Try to reload on error
-        if (videoAttempts < 3) {
-          setTimeout(() => {
-            console.log('Attempting to reload video...');
-            heroVideo.load();
-            setVideoAttempts(prev => prev + 1);
-          }, 1000);
-        }
-      });
+      // Set video attributes directly to ensure they're set
+      video.muted = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.playsInline = true;
       
-      // Force video load if it hasn't loaded within 2 seconds
-      const timer = setTimeout(() => {
-        if (!videoLoaded && heroVideo.paused) {
-          console.log('Forcing video load and play');
-          heroVideo.load();
-          heroVideo.play().catch(e => console.error('Play failed:', e));
-        }
-      }, 2000);
-      
-      // Same for preview video
-      if (previewVideo) {
-        previewVideo.addEventListener('loadeddata', () => {
-          console.log('Preview video loaded successfully');
-        });
+      try {
+        video.load(); // Force reload
         
-        previewVideo.addEventListener('error', (e) => {
-          console.error('Error loading preview video:', e);
-        });
+        // Use a timeout to ensure the browser has processed the load request
+        setTimeout(() => {
+          try {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                // Auto-play was prevented, try once more with user interaction simulation
+                document.body.addEventListener('click', () => {
+                  video.play().catch(() => {});
+                }, { once: true });
+              });
+            }
+          } catch (e) {
+            console.log('Video play failed, will retry on user interaction');
+          }
+        }, 100);
+      } catch (e) {
+        console.log('Video load failed');
       }
+    };
+    
+    // Initial loading attempt
+    loadAndPlay('heroVideo');
+    loadAndPlay('previewVideo');
+    
+    // Retry loading after a delay if needed
+    if (!videoLoaded && videoAttempts < 3) {
+      const timer = setTimeout(() => {
+        loadAndPlay('heroVideo');
+        loadAndPlay('previewVideo');
+        setVideoAttempts(prev => prev + 1);
+      }, 2000);
       
       return () => clearTimeout(timer);
     }
@@ -79,19 +85,26 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section with Gradient Background */}
+      {/* Hero Section with Video Background */}
       <section className="relative h-screen flex items-center text-white">
-        {/* Attractive Gradient Background (more reliable than video) */}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 z-0"></div>
+        {/* Static Background (initially shown while video loads) */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
         
-        {/* Decorative Elements */}
+        {/* Video Background (lazy loaded) */}
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10"></div> {/* Overlay */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-400/30 blur-3xl"></div>
-            <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl"></div>
-            <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-purple-500/20 blur-3xl"></div>
-          </div>
+          <div className="absolute inset-0 bg-black/40 z-10"></div> {/* Overlay */}
+          <video 
+            id="heroVideo"
+            className="absolute w-full h-full object-cover"
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+            preload="auto"
+            src="/hero-video.mp4"
+          >
+            Your browser does not support the video tag.
+          </video>
         </div>
 
         {/* Hero Content */}
@@ -113,13 +126,31 @@ export default function HomePage() {
           </div>
           
           <div className="md:w-1/2 mt-10 md:mt-0">
-            <div className="relative rounded-xl overflow-hidden shadow-xl">
-              {/* Replace video with a gradient image for better reliability */}
-              <div className="w-full aspect-video bg-gradient-to-br from-blue-500 to-purple-700 flex items-center justify-center p-8">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 text-white text-center">
+            <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[300px]">
+              {/* Hero Video (right panel) */}
+              <video 
+                id="previewVideo"
+                className="w-full h-full object-cover absolute inset-0"
+                autoPlay 
+                muted 
+                loop 
+                playsInline
+                preload="auto"
+                controls={false}
+                style={{ minHeight: "320px" }}
+                src="/hero-video.mp4"
+              >
+                Your browser does not support the video tag.
+              </video>
+              
+              {/* Semi-transparent overlay that won't block video */}
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+              
+              {/* Fallback if video doesn't load */}
+              <div className="absolute inset-0 flex items-center justify-center text-white z-0">
+                <div className="text-center">
                   <div className="text-5xl mb-3">🏡</div>
                   <h3 className="text-xl font-semibold mb-2">Find Your Dream Home</h3>
-                  <p className="text-white/80 text-sm">AI-powered real estate matching for your perfect property</p>
                 </div>
               </div>
             </div>

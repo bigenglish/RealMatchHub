@@ -6,6 +6,7 @@ import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
 import IdxWidget from "@/components/idx-widget";
 import IdxStatus from "@/components/idx-status";
+import PropertyQuestionnaire, { UserPreferences } from "@/components/property-questionnaire";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ function convertIdxToProperty(idx: IdxListing): Property {
     id = 9000 + Math.floor(Math.random() * 1000); // Another fallback
   }
 
+  // Create the property with all required fields
   return {
     id,
     title: idx.address ? `${idx.address}, ${idx.city || ''}` : 'Property Listing',
@@ -60,12 +62,21 @@ function convertIdxToProperty(idx: IdxListing): Property {
     address: idx.address 
       ? `${idx.address}, ${idx.city || ''}, ${idx.state || ''} ${idx.zipCode || ''}`
       : 'Address not available',
+    city: idx.city || null,
+    state: idx.state || null,
+    zipCode: idx.zipCode || null,
+    latitude: null, // Not provided in IDX listing
+    longitude: null, // Not provided in IDX listing
     bedrooms: typeof idx.bedrooms === 'number' ? idx.bedrooms : 0,
     bathrooms: typeof idx.bathrooms === 'number' ? idx.bathrooms : 0,
     sqft: typeof idx.sqft === 'number' ? idx.sqft : 0,
     propertyType: idx.propertyType || 'Residential',
+    features: [],
     images: Array.isArray(idx.images) ? idx.images : [], // Ensure images is always an array
-    listedDate: idx.listedDate || new Date().toISOString().split('T')[0]
+    listedDate: idx.listedDate || new Date().toISOString().split('T')[0],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    listingId: idx.listingId || null
   };
 }
 
@@ -78,6 +89,8 @@ export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(true);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
   // Debug logging - remove after fixing
   useEffect(() => {
@@ -183,6 +196,51 @@ export default function PropertiesPage() {
   };
 
   const displayProperties = getDisplayProperties();
+  
+  // Handle the completion of the questionnaire
+  const handleQuestionnaireComplete = (preferences: UserPreferences) => {
+    setUserPreferences(preferences);
+    setShowQuestionnaire(false);
+    
+    // Apply initial filters based on the questionnaire responses
+    const initialFilters: any = {};
+    
+    if (preferences.budget) {
+      initialFilters.minPrice = preferences.budget.min;
+      initialFilters.maxPrice = preferences.budget.max;
+    }
+    
+    if (preferences.bedrooms && preferences.bedrooms > 0) {
+      initialFilters.minBeds = preferences.bedrooms;
+    }
+    
+    if (preferences.bathrooms && preferences.bathrooms > 0) {
+      initialFilters.minBaths = preferences.bathrooms;
+    }
+    
+    if (preferences.propertyType && preferences.propertyType !== "") {
+      initialFilters.propertyType = preferences.propertyType;
+    }
+    
+    if (preferences.location && preferences.location !== "") {
+      initialFilters.location = preferences.location;
+    }
+    
+    // Apply filters
+    handleFilter(initialFilters);
+    
+    // Set appropriate tab based on intent
+    if (preferences.intent === "selling") {
+      setActiveTab("your");
+    } else {
+      setActiveTab("idx");
+    }
+  };
+  
+  // Handle skipping the questionnaire
+  const handleSkipQuestionnaire = () => {
+    setShowQuestionnaire(false);
+  };
 
   if (isLoading) {
     return (
@@ -198,6 +256,22 @@ export default function PropertiesPage() {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+  
+  // Show the questionnaire if it hasn't been completed or skipped
+  if (showQuestionnaire) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h1 className="text-3xl font-bold">Find Your Dream Property</h1>
+        </div>
+        
+        <PropertyQuestionnaire 
+          onComplete={handleQuestionnaireComplete} 
+          onSkip={handleSkipQuestionnaire}
+        />
       </div>
     );
   }

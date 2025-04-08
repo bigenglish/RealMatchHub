@@ -31,11 +31,10 @@ export default function HomePage() {
     setVideoDialogOpen(true);
   };
   
-  // Enhanced video loading handler with direct control
+  // Video initialization focused on the preview video only
   useEffect(() => {
     // Direct approach for video initialization
-    const initializeVideos = () => {
-      const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
+    const initializeVideo = () => {
       const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
       
       // Helper function to properly initialize a video
@@ -57,10 +56,10 @@ export default function HomePage() {
         const attemptPlay = () => {
           video.play()
             .then(() => {
-              console.log(`Video ${video.id} playing successfully`);
+              console.log(`Video playing successfully`);
             })
             .catch(error => {
-              console.log(`Failed to play ${video.id}, retrying: ${error.message}`);
+              console.log(`Failed to play video, retrying: ${error.message}`);
               // Retry after a short delay
               setTimeout(attemptPlay, 300);
             });
@@ -70,13 +69,11 @@ export default function HomePage() {
         attemptPlay();
       };
       
-      // Set up both videos with direct source paths
-      if (heroVideo) setupVideo(heroVideo, '/hero-video.mp4');
-      if (previewVideo) setupVideo(previewVideo, '/hero-video.mp4');
+      // Set up the preview video with direct source path
+      if (previewVideo) setupVideo(previewVideo, '/Hero Video (1).mp4');
       
       // Also add interaction handler to ensure videos play on user interaction
       const handleUserInteraction = () => {
-        if (heroVideo) heroVideo.play().catch(e => console.log("User interaction play failed:", e));
         if (previewVideo) previewVideo.play().catch(e => console.log("User interaction play failed:", e));
       };
       
@@ -91,7 +88,7 @@ export default function HomePage() {
     };
     
     // Initialize videos with a small delay to ensure DOM is ready
-    const initTimer = setTimeout(initializeVideos, 500);
+    const initTimer = setTimeout(initializeVideo, 500);
     
     return () => {
       clearTimeout(initTimer);
@@ -102,24 +99,8 @@ export default function HomePage() {
     <div>
       {/* Hero Section with Video Background */}
       <section className="relative h-screen flex items-center text-white">
-        {/* Static Background (initially shown while video loads) */}
+        {/* Static Background */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
-        
-        {/* Video Background (lazy loaded) */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute inset-0 bg-black/40 z-10"></div> {/* Overlay */}
-          <video 
-            id="heroVideo"
-            className="absolute w-full h-full object-cover"
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-            preload="auto"
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
 
         {/* Hero Content */}
         <div className="container mx-auto px-4 relative z-20 pt-24 flex flex-col md:flex-row">

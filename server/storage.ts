@@ -8,7 +8,7 @@ import {
 
 export interface IStorage {
   // Properties
-  getProperties(): Promise<Property[]>;
+  getProperties(): Promise<Property[]> | Property[];
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   getPropertiesWithGeo(): Promise<PropertyWithGeo[]>;
@@ -500,6 +500,73 @@ export class MemStorage implements IStorage {
 
   async getProperties(): Promise<Property[]> {
     return Array.from(this.properties.values());
+  }
+  
+  // Non-promise version for AI search
+  getProperties(): Property[] {
+    return Array.from(this.properties.values()).map(property => ({
+      ...property,
+      style: this.getPropertyStyle(property),
+      features: this.getPropertyFeatures(property),
+      location: property.address  // For simplicity in the demo
+    }));
+  }
+  
+  private getPropertyStyle(property: Property): string {
+    // Extract architectural style from property details
+    if (property.title.toLowerCase().includes('modern')) return 'modern';
+    if (property.title.toLowerCase().includes('traditional')) return 'traditional';
+    if (property.title.toLowerCase().includes('victorian')) return 'victorian';
+    if (property.title.toLowerCase().includes('farmhouse')) return 'farmhouse';
+    if (property.title.toLowerCase().includes('colonial')) return 'colonial';
+    if (property.title.toLowerCase().includes('craftsman')) return 'craftsman';
+    if (property.title.toLowerCase().includes('mediterranean')) return 'mediterranean';
+    if (property.title.toLowerCase().includes('contemporary')) return 'contemporary';
+    
+    // Check description for style hints
+    const desc = property.description.toLowerCase();
+    if (desc.includes('modern')) return 'modern';
+    if (desc.includes('traditional')) return 'traditional';
+    if (desc.includes('victorian')) return 'victorian';
+    if (desc.includes('farmhouse')) return 'farmhouse';
+    if (desc.includes('colonial')) return 'colonial';
+    if (desc.includes('craftsman')) return 'craftsman';
+    if (desc.includes('mediterranean')) return 'mediterranean';
+    if (desc.includes('contemporary')) return 'contemporary';
+    if (desc.includes('industrial') || desc.includes('loft')) return 'industrial';
+    
+    // Default based on property type
+    if (property.propertyType === 'Condo' || property.propertyType === 'Apartment') return 'contemporary';
+    return 'traditional';
+  }
+  
+  private getPropertyFeatures(property: Property): string[] {
+    const features: string[] = [];
+    const desc = property.description.toLowerCase();
+    
+    // Extract features from description
+    if (desc.includes('garage') || desc.includes('parking')) features.push('garage');
+    if (desc.includes('garden') || desc.includes('yard') || desc.includes('outdoor')) features.push('garden');
+    if (desc.includes('pool') || desc.includes('swimming')) features.push('pool');
+    if (desc.includes('air conditioning') || desc.includes('a/c')) features.push('ac');
+    if (desc.includes('fireplace')) features.push('fireplace');
+    if (desc.includes('balcony') || desc.includes('terrace') || desc.includes('patio')) features.push('balcony');
+    if (desc.includes('basement')) features.push('basement');
+    if (desc.includes('view') || desc.includes('panoramic')) features.push('view');
+    if (desc.includes('security') || desc.includes('alarm')) features.push('security');
+    
+    // Add basic features based on property type
+    if (property.propertyType === 'Single Family Home') {
+      features.push('private entrance');
+      features.push('garden');
+    }
+    
+    if (property.propertyType === 'Condo') {
+      features.push('elevator');
+      features.push('gym access');
+    }
+    
+    return features;
   }
 
   async getProperty(id: number): Promise<Property | undefined> {

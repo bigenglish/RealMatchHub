@@ -14,9 +14,18 @@ import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API func
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
 import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress } from "./google-places"; // Import Google Places API functions
 import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functions
+import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+  
+  // Configure multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10 MB max file size
+    },
+  });
 
   // Property routes
   app.get("/api/properties", async (_req, res) => {
@@ -369,16 +378,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // AI Property Style Search
+  app.post("/api/ai/property-style-search", async (req, res) => {
+    try {
+      const searchQuery: PropertySearchQuery = req.body;
+      
+      console.log("[express] Performing AI property style search");
+      
+      if (!searchQuery.stylePreferences) {
+        return res.status(400).json({ 
+          message: "Style preferences are required for AI property search" 
+        });
+      }
+      
+      // Analyze inspiration images if provided
+      if (searchQuery.inspirationImages && searchQuery.inspirationImages.length > 0) {
+        console.log(`[express] Analyzing ${searchQuery.inspirationImages.length} inspiration images`);
+        
+        // For multiple images, generate a consolidated style profile
+        const styleProfile = await generateStyleProfile(
+          searchQuery.inspirationImages,
+          searchQuery.stylePreferences.style,
+          searchQuery.stylePreferences.features
+        );
+        
+        console.log("[express] Generated style profile:", styleProfile);
+      }
+      
+      // Find matching properties based on style and other requirements
+      const matchingProperties = await findMatchingProperties(searchQuery);
+      
+      console.log(`[express] Found ${matchingProperties.length} matching properties`);
+      
+      res.json({ 
+        matchCount: matchingProperties.length,
+        properties: matchingProperties 
+      });
+    } catch (error) {
+      console.error("[express] Error in AI property style search:", error);
+      res.status(500).json({ 
+        message: "Failed to complete AI property style search",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Analyze Style from Inspiration Image
+  app.post("/api/ai/analyze-style", upload.single('image'), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No image file uploaded" });
+      }
+      
+      console.log("[express] Analyzing style from inspiration image:", file.originalname);
+      
+      // Convert buffer to base64
+      const imageBase64 = file.buffer.toString('base64');
+      
+      // Analyze the image style
+      const styleAnalysis = await analyzeStyleFromImage(`data:${file.mimetype};base64,${imageBase64}`);
+      
+      res.json(styleAnalysis);
+    } catch (error) {
+      console.error("[express] Error analyzing style from image:", error);
+      res.status(500).json({ 
+        message: "Failed to analyze style from image",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
 
   // ----- Document AI OCR Integration Routes -----
-  
-  // Configure multer for file uploads
-  const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: {
-      fileSize: 10 * 1024 * 1024, // 10 MB max file size
-    },
-  });
   
   // Process document with OCR
   app.post("/api/ocr/process", upload.single('document'), async (req, res) => {

@@ -70,7 +70,7 @@ export default function HomePage() {
       };
       
       // Set up the preview video with direct source path
-      if (previewVideo) setupVideo(previewVideo, '/Hero Video (1).mp4');
+      if (previewVideo) setupVideo(previewVideo, '/hero.mp4');
       
       // Also add interaction handler to ensure videos play on user interaction
       const handleUserInteraction = () => {
@@ -132,6 +132,7 @@ export default function HomePage() {
                 playsInline
                 preload="auto"
                 controls={false}
+                src="/hero.mp4"
                 style={{ minHeight: "320px" }}
               >
                 Your browser does not support the video tag.

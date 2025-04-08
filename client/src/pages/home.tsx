@@ -30,58 +30,79 @@ export default function HomePage() {
     setVideoDialogOpen(true);
   };
   
-  // Hero video loading handler - simplified for maximum browser compatibility
+  // Enhanced video loading handler with source reload
   useEffect(() => {
-    // We'll try a direct approach without too many event listeners
-    const loadAndPlay = (videoId: string) => {
-      const video = document.getElementById(videoId) as HTMLVideoElement;
-      if (!video) return;
-      
-      // Set video attributes directly to ensure they're set
-      video.muted = true;
-      video.autoplay = true;
-      video.loop = true;
-      video.playsInline = true;
-      
-      try {
-        video.load(); // Force reload
+    // Small delay to ensure DOM is fully loaded
+    const initTimeout = setTimeout(() => {
+      // Check if videos exist and play them
+      const playVideo = (id: string) => {
+        const video = document.getElementById(id) as HTMLVideoElement;
+        if (!video) {
+          console.error(`Video element ${id} not found`);
+          return;
+        }
         
-        // Use a timeout to ensure the browser has processed the load request
-        setTimeout(() => {
-          try {
-            const playPromise = video.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(() => {
-                // Auto-play was prevented, try once more with user interaction simulation
-                document.body.addEventListener('click', () => {
-                  video.play().catch(() => {});
-                }, { once: true });
+        // Directly set attributes
+        video.muted = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.playsInline = true;
+        
+        // Force reload the video's source element
+        const sourceElement = video.querySelector('source');
+        if (sourceElement) {
+          const currentSrc = sourceElement.getAttribute('src');
+          console.log(`Video ${id} current source: ${currentSrc}`);
+          
+          // Check if the source is valid
+          if (currentSrc) {
+            // First, clear the src attribute temporarily
+            sourceElement.setAttribute('src', '');
+            
+            // Then reload with the original src after a brief delay
+            setTimeout(() => {
+              sourceElement.setAttribute('src', currentSrc);
+              video.load(); // Reload the video with updated source
+              
+              // Attempt to play
+              video.play().catch(error => {
+                console.log(`Could not autoplay ${id}, will try on user interaction: ${error.message}`);
               });
-            }
-          } catch (e) {
-            console.log('Video play failed, will retry on user interaction');
+            }, 100);
+          } else {
+            console.error(`No source found for video ${id}`);
           }
-        }, 100);
-      } catch (e) {
-        console.log('Video load failed');
-      }
-    };
-    
-    // Initial loading attempt
-    loadAndPlay('heroVideo');
-    loadAndPlay('previewVideo');
-    
-    // Retry loading after a delay if needed
-    if (!videoLoaded && videoAttempts < 3) {
-      const timer = setTimeout(() => {
-        loadAndPlay('heroVideo');
-        loadAndPlay('previewVideo');
-        setVideoAttempts(prev => prev + 1);
-      }, 2000);
+        } else {
+          console.error(`No source element found for video ${id}`);
+          
+          // Attempt direct play without source element manipulation
+          video.play().catch(error => {
+            console.log(`Could not autoplay ${id}, will try on user interaction: ${error.message}`);
+          });
+        }
+      };
       
-      return () => clearTimeout(timer);
-    }
-  }, [videoLoaded, videoAttempts]);
+      // Play both videos
+      playVideo('heroVideo');
+      playVideo('previewVideo');
+      
+      // Add click handler to document to start videos on user interaction
+      const handleClick = () => {
+        playVideo('heroVideo');
+        playVideo('previewVideo');
+      };
+      
+      document.addEventListener('click', handleClick, { once: true });
+      
+      return () => {
+        document.removeEventListener('click', handleClick);
+      };
+    }, 500); // 500ms delay
+    
+    return () => {
+      clearTimeout(initTimeout);
+    };
+  }, []);
 
   return (
     <div>
@@ -101,8 +122,8 @@ export default function HomePage() {
             loop 
             playsInline
             preload="auto"
-            src="/hero-video.mp4"
           >
+            <source src="/hero.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
@@ -138,8 +159,8 @@ export default function HomePage() {
                 preload="auto"
                 controls={false}
                 style={{ minHeight: "320px" }}
-                src="/hero-video.mp4"
               >
+                <source src="/hero.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               

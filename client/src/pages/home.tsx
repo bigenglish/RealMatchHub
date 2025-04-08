@@ -4,256 +4,147 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowRight, Home, Users, Building, Search, Briefcase, 
-  HomeIcon, HeartHandshake, Star, Shield, Clock 
+  ArrowRight, Search, Star, Calendar, MapPin
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 export default function HomePage() {
-  const [userType, setUserType] = useState<"buyer" | "seller">("buyer");
+  const [searchType, setSearchType] = useState("Buy");
 
   return (
-    <div className="space-y-16">
-      {/* Hero Section */}
-      <section className="text-center space-y-6 py-4">
-        <Badge variant="outline" className="px-3.5 py-1.5 text-base font-medium mb-2">
-          Your Real Estate Journey Starts Here
-        </Badge>
-        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text">
-          Find Your Dream Home &<br />
-          Connect with Top Professionals
-        </h1>
-        <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-          Your one-stop marketplace for all real estate needs. Browse properties and
-          connect with service providers to make your dream home a reality.
-        </p>
-        
-        {/* User Type Selection */}
-        <div className="max-w-md mx-auto">
-          <Tabs 
-            defaultValue="buyer" 
-            className="w-full"
-            onValueChange={(value) => setUserType(value as "buyer" | "seller")}
+    <div>
+      {/* Hero Section with Video Background */}
+      <section className="relative h-screen flex items-center text-white">
+        {/* Video Background */}
+        <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute inset-0 bg-black/40 z-10"></div> {/* Overlay */}
+          <video 
+            className="absolute w-full h-full object-cover"
+            autoPlay 
+            muted 
+            loop 
+            playsInline
           >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="buyer">I'm a Buyer</TabsTrigger>
-              <TabsTrigger value="seller">I'm a Seller</TabsTrigger>
-            </TabsList>
-            <TabsContent value="buyer" className="py-4">
-              <p className="text-muted-foreground mb-4">
-                Looking for your dream home? We'll help you find properties and connect with professionals.
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Link href="/properties">
-                  <Button size="lg">
-                    Browse Properties
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/services">
-                  <Button size="lg" variant="outline">
-                    Find Agents
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-            <TabsContent value="seller" className="py-4">
-              <p className="text-muted-foreground mb-4">
-                Ready to sell your property? Connect with our network of agents and service providers.
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Link href="/services">
-                  <Button size="lg">
-                    Find Agents
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Button size="lg" variant="outline">
-                  List Your Property
-                  <ArrowRight className="ml-2 h-4 w-4" />
+            <source src="/Hero Video (1).mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        {/* Hero Content */}
+        <div className="container mx-auto px-4 relative z-20 pt-24 flex flex-col md:flex-row">
+          <div className="md:w-1/2 space-y-6">
+            <h1 className="text-5xl md:text-6xl font-bold">
+              Realty.ai: <span className="block">The Future of Real Estate is Here.</span>
+            </h1>
+            <p className="text-xl max-w-lg">
+              Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance. Buy or Sell Your next home, Effortlessly.
+            </p>
+            <div className="pt-4">
+              <Link href="/get-started">
+                <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
+                  GET STARTED FREE
                 </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section className="grid gap-8 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-8 text-card-foreground shadow-sm hover:shadow-md transition-shadow">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Home className="h-6 w-6 text-primary" />
+              </Link>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mb-4">Property Listings</h2>
-          <p className="text-muted-foreground mb-6">
-            Explore our curated collection of properties. From cozy apartments to
-            luxurious homes, find the perfect property that matches your needs.
-          </p>
-          <Link href="/properties">
-            <Button variant="default">
-              View Listings
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="rounded-lg border bg-card p-8 text-card-foreground shadow-sm hover:shadow-md transition-shadow">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Users className="h-6 w-6 text-primary" />
+          
+          <div className="md:w-1/2 mt-10 md:mt-0 flex justify-end">
+            <div className="bg-black/60 rounded-3xl backdrop-blur p-6 max-w-md">
+              <div className="mb-6">
+                <div className="text-lg font-medium mb-2">John D., Los Angeles</div>
+                <div className="text-lg font-medium mb-2">Home Seller</div>
+                <p className="text-md">
+                  "I paid no agent commissions when selling my home and saved $24,000 with Realty.ai."
+                </p>
+                <div className="flex mt-2">
+                  {[1, 2, 3, 4, 5].map((_, i) => (
+                    <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mb-4">Service Providers</h2>
-          <p className="text-muted-foreground mb-6">
-            Connect with top-rated real estate professionals. From agents to
-            inspectors, we've got all the experts you need.
-          </p>
-          <Link href="/services">
-            <Button variant="default">
-              Find Services
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+        </div>
+
+        {/* Property Search Bar */}
+        <div className="absolute bottom-8 left-0 right-0 mx-auto container z-20">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl mx-auto overflow-hidden">
+            <div className="flex border-b">
+              <button 
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                onClick={() => setSearchType('Rent')}
+              >
+                Rent
+              </button>
+              <button 
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                onClick={() => setSearchType('Buy')}
+              >
+                Buy
+              </button>
+              <button 
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                onClick={() => setSearchType('Sell')}
+              >
+                Sell
+              </button>
+            </div>
+            
+            <div className="flex flex-col md:flex-row p-4 gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input 
+                    placeholder="NY city, USA" 
+                    className="pl-10"
+                    defaultValue="NY city, USA"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
+                <Select defaultValue="house">
+                  <SelectTrigger>
+                    <SelectValue placeholder="House" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input 
+                    placeholder="Select date" 
+                    className="pl-10"
+                    defaultValue="Select date"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-end">
+                <Link href="/properties">
+                  <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
+                    Browse Properties
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="pt-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-3">Why Choose Our Platform</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            We provide a comprehensive marketplace connecting buyers and sellers with all the services needed for a successful real estate transaction.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-none shadow-sm">
-            <CardContent className="pt-6">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Search className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Easy Search</h3>
-              <p className="text-muted-foreground">
-                Powerful filters to find properties that match your exact criteria.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-none shadow-sm">
-            <CardContent className="pt-6">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <HeartHandshake className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Verified Providers</h3>
-              <p className="text-muted-foreground">
-                All service providers are vetted and reviewed for quality.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-none shadow-sm">
-            <CardContent className="pt-6">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Secure Process</h3>
-              <p className="text-muted-foreground">
-                Safe and secure platform for all your real estate transactions.
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-none shadow-sm">
-            <CardContent className="pt-6">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Time Saving</h3>
-              <p className="text-muted-foreground">
-                Find everything you need in one place, saving you time and stress.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      {/* Testimonials Section */}
-      <section className="pt-8 pb-16">
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-3">What Our Users Say</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what people who have used our platform have to say.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex mb-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "Found my dream home in just two weeks! The filtering options made it easy to narrow down exactly what I was looking for."
-              </p>
-              <div className="font-medium">Michael R.</div>
-              <div className="text-sm text-muted-foreground">First-time Homebuyer</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex mb-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "As a real estate agent, this platform has connected me with serious clients and helped me grow my business substantially."
-              </p>
-              <div className="font-medium">Jennifer K.</div>
-              <div className="text-sm text-muted-foreground">Real Estate Agent</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex mb-4">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-muted-foreground mb-4">
-                "Sold my house faster than I expected and found all the services I needed - from inspectors to lawyers - on the same platform."
-              </p>
-              <div className="font-medium">David L.</div>
-              <div className="text-sm text-muted-foreground">Property Seller</div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="bg-primary/5 rounded-2xl p-8 md:p-12 text-center">
-        <h2 className="text-3xl font-bold mb-4">Ready to Start Your Real Estate Journey?</h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
-          Whether you're buying, selling, or providing services, our platform has everything you need to succeed.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/properties">
-            <Button size="lg">
-              Explore Properties
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/services">
-            <Button size="lg" variant="outline">
-              Connect with Professionals
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      {/* Rest of the page would go here - this implements the hero section from the image */}
     </div>
   );
 }

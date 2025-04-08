@@ -20,13 +20,33 @@ export default function HomePage() {
   const [searchType, setSearchType] = useState("Buy");
   const [userType, setUserType] = useState("Buyers");
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(""); 
+  const [currentVideo, setCurrentVideo] = useState("");
+  const [videoLoaded, setVideoLoaded] = useState(false);
   
   // Video player functionality
   const openVideoDialog = (videoSrc: string) => {
     setCurrentVideo(videoSrc);
     setVideoDialogOpen(true);
   };
+  
+  // Hero video loading handler
+  useEffect(() => {
+    const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
+    if (heroVideo) {
+      heroVideo.addEventListener('loadeddata', () => {
+        setVideoLoaded(true);
+      });
+      
+      // Force video load if it hasn't loaded within 2 seconds
+      const timer = setTimeout(() => {
+        if (!videoLoaded) {
+          heroVideo.load();
+        }
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [videoLoaded]);
 
   return (
     <div>
@@ -39,12 +59,13 @@ export default function HomePage() {
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
           <div className="absolute inset-0 bg-black/40 z-10"></div> {/* Overlay */}
           <video 
+            id="heroVideo"
             className="absolute w-full h-full object-cover"
             autoPlay 
             muted 
             loop 
             playsInline
-            preload="metadata"
+            preload="auto"
           >
             <source src="/Hero Video (1).mp4" type="video/mp4" />
             Your browser does not support the video tag.

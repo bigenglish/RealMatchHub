@@ -71,34 +71,17 @@ export default function HomePage() {
           
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl">
-              {/* Placeholder before video loads */}
-              <div className="w-full aspect-video bg-olive-800 animate-pulse"></div>
-              
               <video 
-                className="absolute inset-0 w-full h-full object-cover"
+                className="w-full h-full object-cover"
                 autoPlay 
                 muted 
                 loop 
                 playsInline
-                preload="metadata"
-                poster="/images/video-poster.jpg" 
+                preload="auto"
               >
                 <source src="/Hero Video (1).mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
-              
-              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-4 backdrop-blur-sm">
-                <div className="text-lg font-medium">John D., Los Angeles</div>
-                <div className="text-sm mb-1">Home Seller</div>
-                <p className="text-sm italic">
-                  "I paid no agent commissions when selling my home and saved $24,000 with Realty.ai."
-                </p>
-                <div className="flex mt-1">
-                  {[1, 2, 3, 4, 5].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -665,6 +648,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+
 
       {/* Explore Featured Listings Section */}
       <section className="py-20 bg-realGreen-light/10">

@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowRight, Search, Star, Calendar, MapPin, Check, Play, FileVideo, 
   Users, Building2 as Building, Briefcase, X,
-  ArrowLeft, Signal as SignalHigh, Wifi, Battery, Home, MessageSquare, User
+  ArrowLeft, Signal as SignalHigh, Wifi, Battery, Home, MessageSquare, User,
+  Facebook, Twitter, Instagram, Linkedin, Mail, Phone
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1026,24 +1027,124 @@ export default function HomePage() {
       {/* AI Chatbot */}
       <AIChatbot />
       
-      {/* Video Dialog */}
-      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
-        <DialogContent className="sm:max-w-4xl bg-black border-none">
-          <DialogClose className="absolute right-4 top-4 z-10">
-            <X className="h-6 w-6 text-white" />
-          </DialogClose>
-          {currentVideo && (
-            <div className="aspect-video w-full">
-              <video 
-                className="w-full h-full" 
-                src={currentVideo} 
-                controls 
-                autoPlay
-              />
+      {/* Ready to Get Started Section */}
+      <section className="py-20 bg-gray-50 text-center">
+        <div className="container mx-auto px-4">
+          <h2 className="text-6xl font-bold mb-12 text-gray-800">READY TO GET STARTED?</h2>
+          
+          <div className="mb-10">
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
+              Create Your Free Account
+            </Button>
+          </div>
+          
+          <p className="text-2xl text-gray-700 max-w-3xl mx-auto">
+            Join Reaty.ai and experience a smarter, more efficient way to achieve your real estate goals."
+          </p>
+        </div>
+      </section>
+      
+      {/* Footer */}
+      <footer className="bg-gray-50 pt-20 pb-10 border-t">
+        <div className="container mx-auto px-4">
+          {/* Logo Section */}
+          <div className="flex justify-center mb-12">
+            <div className="text-center">
+              <div className="flex justify-center">
+                <img 
+                  src="/logo.svg" 
+                  alt="Realty.AI Logo" 
+                  className="h-20 w-auto"
+                  onError={(e) => {
+                    // If logo.svg doesn't exist, show text logo instead
+                    e.currentTarget.style.display = 'none';
+                    document.getElementById('text-logo')?.classList.remove('hidden');
+                  }}
+                />
+                <div id="text-logo" className="hidden text-3xl font-bold text-olive-600">
+                  REALTY.AI
+                </div>
+              </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </div>
+          
+          {/* Footer Links */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Pages Link</h3>
+              <ul className="space-y-2">
+                <li><Link href="/" className="text-gray-600 hover:text-olive-600">Home</Link></li>
+                <li><Link href="/properties" className="text-gray-600 hover:text-olive-600">Properties</Link></li>
+                <li><Link href="/services" className="text-gray-600 hover:text-olive-600">Services</Link></li>
+                <li><Link href="/marketplace" className="text-gray-600 hover:text-olive-600">Marketplace</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><Link href="/pricing" className="text-gray-600 hover:text-olive-600">Pricing</Link></li>
+                <li><Link href="/about" className="text-gray-600 hover:text-olive-600">About Us</Link></li>
+                <li><Link href="/blog" className="text-gray-600 hover:text-olive-600">Blog</Link></li>
+                <li><Link href="/faqs" className="text-gray-600 hover:text-olive-600">FAQs</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Follow Us On</h3>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-600 hover:text-olive-600 p-2 border rounded-full">
+                  f
+                </a>
+                <a href="#" className="text-gray-600 hover:text-olive-600 p-2 border rounded-full">
+                  t
+                </a>
+                <a href="#" className="text-gray-600 hover:text-olive-600 p-2 border rounded-full">
+                  i
+                </a>
+                <a href="#" className="text-gray-600 hover:text-olive-600 p-2 border rounded-full">
+                  in
+                </a>
+              </div>
+              <div className="mt-4">
+                <div className="text-gray-600">facebook</div>
+                <div className="text-gray-600">twitter</div>
+                <div className="text-gray-600">instagram</div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Contact Us</h3>
+              <ul className="space-y-2">
+                <li className="flex items-center">
+                  <span className="w-5 h-5 mr-2 text-gray-600">✉️</span>
+                  <a href="mailto:abc@example.com" className="text-gray-600 hover:text-olive-600">
+                    abc@example.com
+                  </a>
+                </li>
+                <li className="flex items-center">
+                  <span className="w-5 h-5 mr-2 text-gray-600">📞</span>
+                  <a href="tel:+1234567890" className="text-gray-600 hover:text-olive-600">
+                    +1 (234) 567-890
+                  </a>
+                </li>
+                <li className="flex items-start">
+                  <span className="w-5 h-5 mr-2 text-gray-600 mt-1">📍</span>
+                  <span className="text-gray-600">
+                    123 Real Estate Ave, <br />
+                    New York, NY 10001
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Copyright */}
+          <div className="text-center text-gray-600 pt-8 border-t border-gray-200">
+            <p>&copy; {new Date().getFullYear()} Realty.AI. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -22,6 +22,7 @@ export default function HomePage() {
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [currentVideo, setCurrentVideo] = useState("");
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoAttempts, setVideoAttempts] = useState(0);
   
   // Video player functionality
   const openVideoDialog = (videoSrc: string) => {
@@ -32,21 +33,49 @@ export default function HomePage() {
   // Hero video loading handler
   useEffect(() => {
     const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
+    const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
+    
     if (heroVideo) {
       heroVideo.addEventListener('loadeddata', () => {
+        console.log('Hero video loaded successfully');
         setVideoLoaded(true);
+      });
+      
+      heroVideo.addEventListener('error', (e) => {
+        console.error('Error loading hero video:', e);
+        // Try to reload on error
+        if (videoAttempts < 3) {
+          setTimeout(() => {
+            console.log('Attempting to reload video...');
+            heroVideo.load();
+            setVideoAttempts(prev => prev + 1);
+          }, 1000);
+        }
       });
       
       // Force video load if it hasn't loaded within 2 seconds
       const timer = setTimeout(() => {
-        if (!videoLoaded) {
+        if (!videoLoaded && heroVideo.paused) {
+          console.log('Forcing video load and play');
           heroVideo.load();
+          heroVideo.play().catch(e => console.error('Play failed:', e));
         }
       }, 2000);
       
+      // Same for preview video
+      if (previewVideo) {
+        previewVideo.addEventListener('loadeddata', () => {
+          console.log('Preview video loaded successfully');
+        });
+        
+        previewVideo.addEventListener('error', (e) => {
+          console.error('Error loading preview video:', e);
+        });
+      }
+      
       return () => clearTimeout(timer);
     }
-  }, [videoLoaded]);
+  }, [videoLoaded, videoAttempts]);
 
   return (
     <div>
@@ -67,7 +96,7 @@ export default function HomePage() {
             playsInline
             preload="auto"
           >
-            <source src="/Hero Video (1).mp4" type="video/mp4" />
+            <source src="/hero-video.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
@@ -93,6 +122,7 @@ export default function HomePage() {
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl">
               <video 
+                id="previewVideo"
                 className="w-full h-full object-cover"
                 autoPlay 
                 muted 
@@ -100,7 +130,7 @@ export default function HomePage() {
                 playsInline
                 preload="auto"
               >
-                <source src="/Hero Video (1).mp4" type="video/mp4" />
+                <source src="/hero-video.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>

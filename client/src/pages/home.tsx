@@ -613,6 +613,54 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Real Estate Success Section */}
+      <section className="py-20 bg-gray-900 text-white">
+        <div className="container mx-auto px-4">
+          <div className="relative rounded-xl overflow-hidden">
+            {/* Background image with overlay */}
+            <div className="absolute inset-0 bg-black/50">
+              <img 
+                src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1773&q=80" 
+                alt="Office desk with documents" 
+                className="w-full h-full object-cover mix-blend-overlay"
+              />
+            </div>
+            
+            {/* Content */}
+            <div className="relative z-10 p-12">
+              <div className="flex flex-col lg:flex-row">
+                <div className="lg:w-1/2">
+                  <h2 className="text-5xl font-bold mb-10">YOUR STEPS TO REAL ESTATE SUCCESS</h2>
+                  
+                  <div className="space-y-8">
+                    <div>
+                      <h3 className="font-bold text-xl mb-2">Review with Confidence:</h3>
+                      <p className="text-white/80">Get expert assistance with contracts, invoices, and rebates.</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-bold text-xl mb-2">Stay Up-to-Date:</h3>
+                      <p className="text-white/80">Receive insights on regulations and rebates affecting your home and finances.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:w-1/2 flex items-center justify-end mt-8 lg:mt-0">
+                  <div className="flex flex-col gap-4">
+                    <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
+                      See How It Works
+                    </Button>
+                    <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
+                      Start For Free
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How To Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">

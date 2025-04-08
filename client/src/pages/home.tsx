@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowRight, Search, Star, Calendar, MapPin, Check
+  ArrowRight, Search, Star, Calendar, MapPin, Check, 
+  Users, Building2 as Building, Briefcase,
+  ArrowLeft, Signal as SignalHigh, Wifi, Battery, Home, MessageSquare, User
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -480,6 +482,322 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Expert Network Section */}
+      <section className="py-20 bg-gray-900 text-white">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row gap-8 items-center">
+            <div className="lg:w-1/2">
+              <h2 className="text-5xl font-bold mb-6">Expert Network</h2>
+              <div className="mb-8">
+                <p className="text-white/80 mb-4">Powered by Realty.ai Experts Marketplace:</p>
+                <p className="text-lg mb-6">
+                  Unlock 24/7 access to top-tier industry experts across real estate, select from realtors,
+                  lenders, contractors, and attorneys armed with unmatched AI expertise for all your buying
+                  and selling needs.
+                </p>
+              </div>
+              
+              <div className="mb-8">
+                <p className="text-white/80 mb-4">Connect with Realty.ai Team:</p>
+                <p className="text-lg mb-6">
+                  Submit questions and communicate with agents via email, text, or video chat.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
+                  See How It Works
+                </Button>
+                <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
+                  Start For Free
+                </Button>
+              </div>
+            </div>
+            <div className="lg:w-1/2">
+              {/* This would typically be an image, but we'll use a placeholder for now */}
+              <div className="bg-gradient-to-r from-olive-700 to-olive-800 h-[400px] rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <div className="flex justify-center mb-6">
+                    {/* Icons representing different experts */}
+                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                      <Users className="h-8 w-8" />
+                    </div>
+                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                      <Building className="h-8 w-8" />
+                    </div>
+                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                      <Briefcase className="h-8 w-8" />
+                    </div>
+                  </div>
+                  <p className="text-xl">Connect with our expert network</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Personalized Matching Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="mb-12">
+            <h2 className="text-5xl font-bold mb-6">PERSONALIZED MATCHING</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="font-bold text-xl mb-2">Curate Your Dream Home:</h3>
+                <p className="text-gray-700">Save photos, listings, and design ideas for inspiration.</p>
+              </div>
+              
+              <div>
+                <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
+                <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-4 mt-8">
+              <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8">
+                See How It Works
+              </Button>
+              <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8">
+                Start For Free
+              </Button>
+            </div>
+          </div>
+          
+          {/* Property Recommendations */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-16">
+            {/* User Profile */}
+            <div className="text-center">
+              <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-3">
+                <img 
+                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHByb2Zlc3Npb25hbCUyMG1hbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60" 
+                  alt="User" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <p className="font-medium">Kevin Junior</p>
+            </div>
+            
+            {/* Property Cards */}
+            {[1, 2, 3, 4].map((_, index) => (
+              <div key={index} className="rounded-lg overflow-hidden shadow-md">
+                <div className="h-48 bg-gray-200 relative">
+                  <img 
+                    src={`https://images.unsplash.com/photo-${1580587771200 + index * 100}-3b8a0eb5f822?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80`} 
+                    alt={`Property ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-3">
+                  <p className="text-gray-700 text-sm">
+                    {index === 0 ? 'Colonial Style Home' : 
+                     index === 1 ? 'Modern Farmhouse' : 
+                     index === 2 ? 'Tudor Revival' : 'Craftsman Style'}
+                  </p>
+                  <div className="mt-3">
+                    <Button size="sm" className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-100">
+                      See More
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How To Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row">
+            <div className="lg:w-1/2 pr-4 lg:pr-10">
+              {/* User Journey Tabs */}
+              <Tabs defaultValue="buying" className="mb-10">
+                <TabsList className="flex w-full mb-8">
+                  <TabsTrigger value="buying" className="flex-1 py-3 rounded-full">Buying</TabsTrigger>
+                  <TabsTrigger value="selling" className="flex-1 py-3 rounded-full">Selling</TabsTrigger>
+                  <TabsTrigger value="renting" className="flex-1 py-3 rounded-full">Renting</TabsTrigger>
+                </TabsList>
+                
+                <div>
+                  <h2 className="text-5xl font-bold mb-4">YOUR STEPS TO REAL ESTATE SUCCESS</h2>
+                  <h3 className="text-xl mb-10">Step-by-Step Breakdown</h3>
+                </div>
+                
+                <TabsContent value="buying" className="space-y-8">
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
+                    <div className="text-2xl font-bold text-olive-600">Search</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">02</div>
+                    <div className="text-2xl font-bold text-olive-600">Explore</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">03</div>
+                    <div className="text-2xl font-bold text-olive-600">Choose Your Services</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">04</div>
+                    <div className="text-2xl font-bold text-olive-600">Manage Your Journey</div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="selling" className="space-y-8">
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
+                    <div className="text-2xl font-bold text-olive-600">Assess Your Property</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">02</div>
+                    <div className="text-2xl font-bold text-olive-600">Get Market Analysis</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">03</div>
+                    <div className="text-2xl font-bold text-olive-600">Choose Your Services</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">04</div>
+                    <div className="text-2xl font-bold text-olive-600">Manage Your Sale</div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="renting" className="space-y-8">
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
+                    <div className="text-2xl font-bold text-olive-600">Define Your Needs</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">02</div>
+                    <div className="text-2xl font-bold text-olive-600">Browse Rentals</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">03</div>
+                    <div className="text-2xl font-bold text-olive-600">Schedule Viewings</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="text-4xl font-bold text-gray-800 mr-8">04</div>
+                    <div className="text-2xl font-bold text-olive-600">Apply & Move In</div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+            
+            <div className="lg:w-1/2 mt-10 lg:mt-0 relative">
+              {/* Phone mockup with app interface */}
+              <div className="relative">
+                <div className="relative mx-auto w-72 h-[500px]">
+                  {/* Hand holding phone effect */}
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-12 w-96 h-40 bg-contain bg-bottom bg-no-repeat z-10"
+                       style={{ backgroundImage: "url('https://freepngimg.com/thumb/hands/41-hands-png-image.png')" }}>
+                  </div>
+                  
+                  {/* Phone frame */}
+                  <div className="absolute inset-0 bg-black rounded-[40px] shadow-lg z-0"></div>
+                  
+                  {/* Phone screen */}
+                  <div className="absolute inset-2 rounded-[36px] overflow-hidden bg-white z-1">
+                    {/* App UI mockup */}
+                    <div className="h-full flex flex-col bg-gray-50">
+                      {/* Status bar */}
+                      <div className="h-7 bg-white flex justify-between items-center px-4">
+                        <div className="text-xs">9:41</div>
+                        <div className="flex items-center space-x-1">
+                          <SignalHigh className="h-3 w-3" />
+                          <Wifi className="h-3 w-3" />
+                          <Battery className="h-3 w-3" />
+                        </div>
+                      </div>
+                      
+                      {/* App header */}
+                      <div className="h-12 bg-olive-600 flex items-center px-4">
+                        <ArrowLeft className="h-5 w-5 text-white" />
+                        <div className="ml-4 text-white font-medium">Application (1)</div>
+                      </div>
+                      
+                      {/* App content */}
+                      <div className="flex-1 p-4">
+                        <div className="mb-4">
+                          <div className="text-sm font-medium text-gray-600">Income</div>
+                          <div className="text-sm text-gray-600">Property</div>
+                          <div className="text-sm font-medium text-gray-600">Application (1)</div>
+                          <div className="text-sm text-gray-400">End in 04/17/2025</div>
+                        </div>
+                        
+                        {/* Progress steps */}
+                        <div className="space-y-4 mt-6">
+                          <div className="flex items-center">
+                            <div className="w-5 h-5 rounded-full bg-olive-600 flex-shrink-0"></div>
+                            <div className="h-1 flex-grow bg-olive-600 mx-2"></div>
+                            <div className="text-xs text-gray-400">5 days ago</div>
+                          </div>
+                          <div className="ml-2 text-sm">Application started</div>
+                          
+                          <div className="flex items-center">
+                            <div className="w-5 h-5 rounded-full bg-olive-600 flex-shrink-0"></div>
+                            <div className="h-1 flex-grow bg-olive-600 mx-2"></div>
+                            <div className="text-xs text-gray-400">10 days ago</div>
+                          </div>
+                          <div className="ml-2 text-sm">Reviewed by Authorities</div>
+                          
+                          <div className="flex items-center">
+                            <div className="w-5 h-5 rounded-full bg-olive-600 flex-shrink-0"></div>
+                            <div className="h-1 flex-grow bg-gray-300 mx-2"></div>
+                            <div className="text-xs text-gray-400">In Verification</div>
+                          </div>
+                          <div className="ml-2 text-sm">ID Verification</div>
+                          
+                          <div className="flex items-center">
+                            <div className="w-5 h-5 rounded-full bg-gray-300 flex-shrink-0"></div>
+                            <div className="h-1 flex-grow bg-gray-300 mx-2"></div>
+                            <div className="text-xs text-gray-400">Coming soon</div>
+                          </div>
+                          <div className="ml-2 text-sm">Final Stage</div>
+                        </div>
+                        
+                        {/* Action buttons */}
+                        <div className="mt-10 space-y-3">
+                          <button className="w-full py-2 px-4 bg-olive-600 text-white text-sm rounded">
+                            Continue to Next Step
+                          </button>
+                          <button className="w-full py-2 px-4 border border-olive-600 text-olive-600 text-sm rounded">
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Bottom navigation */}
+                      <div className="h-16 bg-white flex justify-around items-center border-t border-gray-200">
+                        <div className="flex flex-col items-center">
+                          <Home className="h-5 w-5 text-olive-600" />
+                          <span className="text-xs text-olive-600">Home</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <Search className="h-5 w-5 text-gray-400" />
+                          <span className="text-xs text-gray-400">Search</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <MessageSquare className="h-5 w-5 text-gray-400" />
+                          <span className="text-xs text-gray-400">Chat</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                          <User className="h-5 w-5 text-gray-400" />
+                          <span className="text-xs text-gray-400">Profile</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Green circle behind the phone */}
+                <div className="absolute bottom-0 right-0 w-64 h-64 bg-olive-600 rounded-full opacity-30 -z-10"></div>
               </div>
             </div>
           </div>

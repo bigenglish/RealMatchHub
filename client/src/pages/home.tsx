@@ -124,6 +124,7 @@ export default function HomePage() {
             playsInline
             preload="auto"
           >
+            <source src="/Hero Video (1).mp4" type="video/mp4" />
             <source src="/hero.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
@@ -161,20 +162,13 @@ export default function HomePage() {
                 controls={false}
                 style={{ minHeight: "320px" }}
               >
+                <source src="/Hero Video (1).mp4" type="video/mp4" />
                 <source src="/hero.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               
               {/* Semi-transparent overlay that won't block video */}
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-              
-              {/* Fallback if video doesn't load */}
-              <div className="absolute inset-0 flex items-center justify-center text-white z-0">
-                <div className="text-center">
-                  <div className="text-5xl mb-3">🏡</div>
-                  <h3 className="text-xl font-semibold mb-2">Find Your Dream Home</h3>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -595,62 +589,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Pay Your Way Video Section */}
-      <section id="pay-your-way" className="py-16 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="lg:w-1/2">
-              <h2 className="text-4xl font-bold mb-6">PAY YOUR WAY</h2>
-              <p className="text-lg text-gray-700 mb-8">
-                Our flexible payment options allow you to choose the plan that works best for your budget and needs. 
-                Watch this video to learn more about how our pricing works and the value each tier brings to your real estate journey.
-              </p>
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="bg-olive-600 p-2 rounded-full mr-4 mt-1">
-                    <DollarSign className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-2">Transparent Pricing</h3>
-                    <p className="text-gray-600">No hidden fees or surprise costs. Know exactly what you're paying for.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="bg-olive-600 p-2 rounded-full mr-4 mt-1">
-                    <ArrowUpDown className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-2">Scalable Options</h3>
-                    <p className="text-gray-600">Start with what you need and upgrade as your requirements grow.</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="bg-olive-600 p-2 rounded-full mr-4 mt-1">
-                    <ShieldCheck className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-2">Value Guarantee</h3>
-                    <p className="text-gray-600">Our services deliver quantifiable value beyond their cost.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="lg:w-1/2">
-              <div className="rounded-xl overflow-hidden shadow-xl">
-                <video 
-                  className="w-full h-auto" 
-                  controls
-                  autoPlay={false}
-                >
-                  <source src="/pay-your-way.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Expert Network Section */}
       <section className="py-20 bg-gray-900 text-white">
         <div className="container mx-auto px-4">
@@ -676,10 +614,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Button 
                   className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8"
-                  onClick={() => {
-                    const section = document.getElementById('pay-your-way');
-                    section?.scrollIntoView({ behavior: 'smooth' });
-                  }}
+                  onClick={() => openVideoDialog("/pay-your-way.mp4")}
                 >
                   See How It Works
                 </Button>
@@ -733,10 +668,7 @@ export default function HomePage() {
             <div className="flex justify-end gap-4 mt-8">
               <Button 
                 className="bg-olive-600 hover:bg-olive-700 py-6 px-8"
-                onClick={() => {
-                  const section = document.getElementById('pay-your-way');
-                  section?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => openVideoDialog("/pay-your-way.mp4")}
               >
                 See How It Works
               </Button>
@@ -826,10 +758,7 @@ export default function HomePage() {
             <div className="mt-6 md:mt-0">
               <Button 
                 className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white flex items-center gap-2"
-                onClick={() => {
-                  const section = document.getElementById('pay-your-way');
-                  section?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => openVideoDialog("/pay-your-way.mp4")}
               >
                 <Play className="h-5 w-5" /> Play Demo
               </Button>

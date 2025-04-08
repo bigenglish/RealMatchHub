@@ -13,6 +13,7 @@ import {
 import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API function
 import { processDocument, parsePropertyDocument } from "./document-ai"; // Import Document AI functions
 import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress } from "./google-places"; // Import Google Places API functions
+import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functions
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1026,6 +1027,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[express] Error fetching service types:", error);
       res.status(500).json({ 
         message: "Failed to fetch service types",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Realty.AI Chatbot
+  app.post("/api/chatbot", async (req, res) => {
+    try {
+      const { query, chatHistory } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
+      
+      console.log(`[express] Processing chatbot query: "${query}"`);
+      
+      const response = await processRealEstateQuery(query, chatHistory || []);
+      res.json(response);
+    } catch (error) {
+      console.error("[express] Error with chatbot:", error);
+      res.status(500).json({ 
+        message: "Error processing chatbot query",
         error: error instanceof Error ? error.message : String(error)
       });
     }

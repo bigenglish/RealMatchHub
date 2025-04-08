@@ -1,17 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowRight, Search, Star, Calendar, MapPin
+  ArrowRight, Search, Star, Calendar, MapPin, Check
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import AIChatbot from "@/components/ai-chatbot";
 
 export default function HomePage() {
   const [searchType, setSearchType] = useState("Buy");
+  const [userType, setUserType] = useState("Buyers");
 
   return (
     <div>
@@ -144,7 +146,348 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Rest of the page would go here - this implements the hero section from the image */}
+      {/* Trusted By / Reviews Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-16">Trusted By</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Testimonial 1 */}
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex mb-4">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-orange-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6">
+                "I paid no agent commissions when selling my home and saved $24,000 with Realty.ai."
+              </p>
+              <div className="flex items-center">
+                <div>
+                  <div className="font-medium">John D., Los Angeles</div>
+                  <div className="text-sm text-gray-500">Home Seller</div>
+                  <div className="text-sm text-gray-500">Feb 4, 2025</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Testimonial 2 */}
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex mb-4">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-orange-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6">
+                "First time buying a home and Realty.ai was incredibly helpful. They walked me through the paperwork and connected me to a great lending option and two local Experts who helped me through every step of the process, making my experience stress-free."
+              </p>
+              <div className="flex items-center">
+                <div>
+                  <div className="font-medium">Sarah J., First-Time Homebuyer</div>
+                  <div className="text-sm text-gray-500">Feb 1, 2025</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Testimonial 3 */}
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex mb-4">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-orange-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6">
+                "The Realty.ai platform simplified the entire paperwork process. Their AI assistant explained everything clearly, and I always had access to expert support when I needed it."
+              </p>
+              <div className="flex items-center">
+                <div>
+                  <div className="font-medium">David L., Homeowner</div>
+                  <div className="text-sm text-gray-500">Jan 30, 2025</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Testimonial 4 */}
+            <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="flex mb-4">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-orange-400 fill-current" />
+                ))}
+              </div>
+              <p className="text-gray-700 mb-6">
+                "When I bought my first condo I just wanted to make sure I knew about the HOA and all other fees I could expect to pay. Realty.ai allowed me to keep more of my money and put what would have been commission payments towards my down payment."
+              </p>
+              <div className="flex items-center">
+                <div>
+                  <div className="font-medium">Shirley, Homeowner</div>
+                  <div className="text-sm text-gray-500">Jan 26, 2025</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-center items-center mt-8 text-gray-500">
+            <div className="flex items-center mr-4">
+              {[1, 2, 3, 4, 5].map((_, i) => (
+                <Star key={i} className="h-5 w-5 text-orange-400 fill-current" />
+              ))}
+            </div>
+            <span className="mr-4 font-medium">Ratings 5 Star:</span>
+            <span className="mr-4">55+ Reviews</span>
+            <div className="text-gray-400">Powered By google</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Tiers Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-6">Choose Your Plan</h2>
+          <p className="text-center text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
+            Select the perfect package for your real estate needs with transparent pricing and no hidden fees.
+          </p>
+          
+          {/* User Type Tabs */}
+          <div className="flex justify-center mb-12">
+            <div className="inline-flex bg-gray-100 rounded-full p-1">
+              {['Buyers', 'Sellers', 'Renters'].map((type) => (
+                <button
+                  key={type}
+                  className={`px-8 py-3 rounded-full font-medium ${
+                    userType === type 
+                      ? 'bg-olive-600 text-white' 
+                      : 'text-gray-700 hover:bg-gray-200'
+                  }`}
+                  onClick={() => setUserType(type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* FREE Tier */}
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white">
+              <div className="bg-olive-600 p-4 text-white text-center">
+                <h3 className="text-3xl font-bold">FREE</h3>
+              </div>
+              <div className="p-6 bg-amber-50">
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold mb-2">Find your perfect match with AI-driven property discovery.</h4>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>AI-powered property search & alerts.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Communicate, schedule and complete necessary paperwork with direct connection to listing agents/sellers.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Add inspiration photos, design and visualize your home before moving in.</span>
+                  </li>
+                </ul>
+                <div className="mt-8">
+                  <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                    GET IT NOW
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* BASIC Tier */}
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white">
+              <div className="bg-olive-600 p-4 text-white text-center">
+                <h3 className="text-3xl font-bold">BASIC</h3>
+                <p className="text-white/90">As low as $1,500</p>
+              </div>
+              <div className="p-6 bg-green-50">
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold mb-2">Expert virtual guidance on offers and due diligence.</h4>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>All "Free" features.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Craft competitive offers and navigate negotiations with Realty.AI tools and guidance.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Market analysis reports (comparable sales data) and pricing strategies.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Offer negotiation guidance (email/chat support) with a real estate expert.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Document review, digital signing and AI assistant to simplify and explain all terms and conditions.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Neighborhood insights.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Due Diligence Checklist & Support (guidance through the due diligence process).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>2 expert sign offs (detailed notes).</span>
+                  </li>
+                </ul>
+                <div className="mt-8">
+                  <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                    CHOOSE BASIC
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* PREMIUM Tier */}
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white">
+              <div className="bg-olive-600 p-4 text-white text-center">
+                <h3 className="text-3xl font-bold">PREMIUM</h3>
+                <p className="text-white/90">As low as $2,500</p>
+              </div>
+              <div className="p-6 bg-amber-50">
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold mb-2">Full virtual support from offer to post-closing.</h4>
+                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>All "Basic" features.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Offer Strategy Consultation (phone/video call with a real estate expert).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>24/7 phone support.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Inspection/appraisal coordination Expert review (scheduling and vendor recommendations).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Preferred Vendor pricing for repairs.</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Dedicated Buyer Advocate (phone/in-person support throughout the transaction).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Closing Coordination (assistance with paperwork and logistics).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Post-Closing Support (referrals to local service providers, utility setup assistance).</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>4 expert sign off (detailed notes, viewing, inspection/staging, contingencies & compliance, negotiation & credits).</span>
+                  </li>
+                </ul>
+                <div className="mt-8">
+                  <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                    CHOOSE PREMIUM
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pay Your Way Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-5xl font-bold mb-10">PAY YOUR WAY</h2>
+          
+          <div className="max-w-4xl mx-auto">
+            <ul className="space-y-4 mb-8">
+              <li className="flex items-start">
+                <span className="font-bold mr-2">• Flexible Pricing:</span>
+                <span>Choose only the services you need, from a la carte options to comprehensive bundles.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="font-bold mr-2">• No Hidden Fees:</span>
+                <span>Affordable, transparent pricing upfront, so you know exactly what you're paying for.</span>
+              </li>
+            </ul>
+            
+            <div className="flex flex-col md:flex-row gap-6 mb-10">
+              <Button className="bg-olive-600 hover:bg-olive-700 text-white py-6">
+                See How It Works
+              </Button>
+              <Button className="bg-olive-600 hover:bg-olive-700 text-white py-6">
+                Start For Free
+              </Button>
+            </div>
+            
+            {/* Comparison Example */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 bg-white rounded-xl overflow-hidden shadow-lg">
+              {/* Traditional Side */}
+              <div className="relative overflow-hidden">
+                <img 
+                  src="/house1.jpg" 
+                  alt="Traditional real estate" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50 p-8 text-white flex flex-col justify-between">
+                  <h3 className="text-2xl font-bold mb-4">Traditional Commission</h3>
+                  <div className="text-xl font-bold">$700,000 × 5% = $35,000</div>
+                </div>
+              </div>
+              
+              {/* Realty.ai Side */}
+              <div className="relative overflow-hidden">
+                <img 
+                  src="/house2.jpg" 
+                  alt="Realty.ai approach" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50 p-8 text-white flex flex-col">
+                  <div className="bg-white text-black rounded-lg px-4 py-2 inline-block mb-4">
+                    <span className="block text-center font-bold">Example</span>
+                    <span className="block text-center">$700,000</span>
+                    <span className="block text-center font-bold">Home Sale</span>
+                  </div>
+                  
+                  <div className="space-y-2 mb-auto">
+                    <div>Standard bundle = $3000</div>
+                    <div>+ Expert Consultation(s) = $1800</div>
+                  </div>
+                  
+                  <div className="bg-white text-black p-4 rounded-lg mt-4">
+                    <span className="font-bold text-xl">Saving: $30,200</span>
+                  </div>
+                  
+                  <div className="mt-4 flex justify-end">
+                    <div className="w-16 h-16">
+                      <img src="/logo.png" alt="Realty.ai Logo" className="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Chatbot */}
+      <AIChatbot />
     </div>
   );
 }

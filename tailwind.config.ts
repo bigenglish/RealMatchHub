@@ -48,11 +48,21 @@ export default {
           300: "#b9c589",
           400: "#a1af66",
           500: "#87944c",
-          600: "#606C38", // Main olive color from image
-          700: "#525d31",
-          800: "#424a28",
-          900: "#343c21",
+          600: "#3E5956", // Updated to dark green from color chart
+          700: "#344A47", // Darker variant
+          800: "#2A3B39", // Even darker
+          900: "#202C2B", // Darkest
           950: "#1b2010",
+        },
+        // New colors from the chart
+        realGreen: {
+          dark: "#3E5956", // Dark green
+          medium: "#6C8C86", // Medium green
+          light: "#92A69A", // Light green
+        },
+        neutral: {
+          gray: "#BFBFBF", // Light gray
+          beige: "#F2C3A7", // Light beige/peach
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -1,21 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  ArrowRight, Search, Star, Calendar, MapPin, Check, 
-  Users, Building2 as Building, Briefcase,
+  ArrowRight, Search, Star, Calendar, MapPin, Check, Play, FileVideo, 
+  Users, Building2 as Building, Briefcase, X,
   ArrowLeft, Signal as SignalHigh, Wifi, Battery, Home, MessageSquare, User
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import AIChatbot from "@/components/ai-chatbot";
+import { colors } from "@/lib/colors";
 
 export default function HomePage() {
   const [searchType, setSearchType] = useState("Buy");
   const [userType, setUserType] = useState("Buyers");
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [currentVideo, setCurrentVideo] = useState(""); 
+  
+  // Video player functionality
+  const openVideoDialog = (videoSrc: string) => {
+    setCurrentVideo(videoSrc);
+    setVideoDialogOpen(true);
+  };
 
   return (
     <div>
@@ -586,29 +596,187 @@ export default function HomePage() {
             </div>
             
             {/* Property Cards */}
-            {[1, 2, 3, 4].map((_, index) => (
-              <div key={index} className="rounded-lg overflow-hidden shadow-md">
-                <div className="h-48 bg-gray-200 relative">
+            {[
+              { 
+                image: "https://images.unsplash.com/photo-1513584684374-8bab748fbf90?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+                title: "Colonial Style Home",
+                price: "$1,250,000"
+              },
+              { 
+                image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+                title: "Modern Farmhouse",
+                price: "$890,000"
+              },
+              { 
+                image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+                title: "Tudor Revival",
+                price: "$1,150,000"
+              },
+              { 
+                image: "https://images.unsplash.com/photo-1575517111839-3a3843ee7f5d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80",
+                title: "Craftsman Style",
+                price: "$975,000"
+              }
+            ].map((property, index) => (
+              <div key={index} className="rounded-lg overflow-hidden shadow-md group hover:shadow-xl transition-all duration-300">
+                <div className="h-48 bg-realGreen-medium/20 relative overflow-hidden">
                   <img 
-                    src={`https://images.unsplash.com/photo-${1580587771200 + index * 100}-3b8a0eb5f822?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=500&q=80`} 
-                    alt={`Property ${index + 1}`} 
-                    className="w-full h-full object-cover"
+                    src={property.image}
+                    alt={property.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+                  <div className="absolute top-2 right-2 bg-neutral-beige text-realGreen-dark font-bold px-3 py-1 rounded-full text-sm">
+                    {property.price}
+                  </div>
                 </div>
-                <div className="p-3">
-                  <p className="text-gray-700 text-sm">
-                    {index === 0 ? 'Colonial Style Home' : 
-                     index === 1 ? 'Modern Farmhouse' : 
-                     index === 2 ? 'Tudor Revival' : 'Craftsman Style'}
+                <div className="p-3 bg-white">
+                  <p className="text-realGreen-dark font-medium">
+                    {property.title}
                   </p>
                   <div className="mt-3">
-                    <Button size="sm" className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-100">
+                    <Button size="sm" className="w-full bg-realGreen-dark text-white hover:bg-realGreen-dark/90">
                       See More
                     </Button>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Explore Featured Listings Section */}
+      <section className="py-20 bg-realGreen-light/10">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-start justify-between mb-12">
+            <div className="max-w-2xl">
+              <h2 className="text-5xl font-bold mb-6 text-realGreen-dark">EXPLORE FEATURED LISTINGS</h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Discover properties tailored to your preferences in neighborhoods that match your lifestyle.
+              </p>
+            </div>
+            
+            <div className="mt-6 md:mt-0">
+              <Button 
+                className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white flex items-center gap-2"
+                onClick={() => openVideoDialog("/PAY YOUR WAY.mp4")}
+              >
+                <Play className="h-5 w-5" /> Play Demo
+              </Button>
+            </div>
+          </div>
+          
+          {/* Featured Listings Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Modern Luxury Villa",
+                location: "Beverly Hills, CA",
+                price: "$4,250,000",
+                beds: 5,
+                baths: 4,
+                sqft: 4200,
+                tag: "Premium"
+              },
+              {
+                image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Waterfront Mansion",
+                location: "Miami Beach, FL",
+                price: "$6,900,000",
+                beds: 6,
+                baths: 7,
+                sqft: 6500,
+                tag: "New"
+              },
+              {
+                image: "https://images.unsplash.com/photo-1600607687939-ce8a6c8a16c9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Classic Craftsman",
+                location: "Portland, OR",
+                price: "$1,195,000",
+                beds: 4,
+                baths: 3,
+                sqft: 2850,
+                tag: "Featured"
+              },
+              {
+                image: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Urban Penthouse",
+                location: "New York, NY",
+                price: "$3,750,000",
+                beds: 3,
+                baths: 3.5,
+                sqft: 2200,
+                tag: "Hot"
+              },
+              {
+                image: "https://images.unsplash.com/photo-1592595896551-12b371d546d5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Mountain Retreat",
+                location: "Aspen, CO",
+                price: "$2,850,000",
+                beds: 4,
+                baths: 4,
+                sqft: 3600,
+                tag: "Exclusive"
+              },
+              {
+                image: "https://images.unsplash.com/photo-1600566753376-12c8ab8e17a9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+                title: "Beachfront Cottage",
+                location: "Malibu, CA",
+                price: "$3,199,000",
+                beds: 3,
+                baths: 2,
+                sqft: 1800,
+                tag: "Hot"
+              }
+            ].map((listing, index) => (
+              <div key={index} className="rounded-xl overflow-hidden shadow-lg bg-white group hover:shadow-xl transition-all duration-300">
+                <div className="relative h-64 overflow-hidden">
+                  <img 
+                    src={listing.image}
+                    alt={listing.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 right-3 bg-neutral-beige text-realGreen-dark font-bold px-3 py-1 rounded-full text-sm">
+                    {listing.tag}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-4">
+                    <p className="font-bold text-xl">{listing.price}</p>
+                  </div>
+                </div>
+                
+                <div className="p-5">
+                  <h3 className="font-bold text-xl mb-2 text-realGreen-dark">{listing.title}</h3>
+                  <p className="text-gray-600 mb-4 flex items-center">
+                    <MapPin className="h-4 w-4 mr-1" /> {listing.location}
+                  </p>
+                  
+                  <div className="flex justify-between text-sm text-gray-700 mb-4">
+                    <div><span className="font-semibold">{listing.beds}</span> Beds</div>
+                    <div><span className="font-semibold">{listing.baths}</span> Baths</div>
+                    <div><span className="font-semibold">{listing.sqft.toLocaleString()}</span> sqft</div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Button className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white">
+                      View Details
+                    </Button>
+                    <button 
+                      className="p-2 rounded-full bg-neutral-beige/20 hover:bg-neutral-beige/40 transition-colors"
+                      onClick={() => openVideoDialog("/Informed Decision.mp4")}
+                    >
+                      <FileVideo className="h-5 w-5 text-realGreen-dark" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-12 text-center">
+            <Button className="bg-realGreen-medium hover:bg-realGreen-medium/90 text-white px-10 py-6 text-lg">
+              View All Properties
+            </Button>
           </div>
         </div>
       </section>
@@ -647,8 +815,11 @@ export default function HomePage() {
                 
                 <div className="lg:w-1/2 flex items-center justify-end mt-8 lg:mt-0">
                   <div className="flex flex-col gap-4">
-                    <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
-                      See How It Works
+                    <Button 
+                      className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6 flex items-center gap-2"
+                      onClick={() => openVideoDialog("/Personalized Matching.mp4")}
+                    >
+                      <Play className="h-5 w-5" /> See How It Works
                     </Button>
                     <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
                       Start For Free
@@ -854,6 +1025,25 @@ export default function HomePage() {
 
       {/* AI Chatbot */}
       <AIChatbot />
+      
+      {/* Video Dialog */}
+      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+        <DialogContent className="sm:max-w-4xl bg-black border-none">
+          <DialogClose className="absolute right-4 top-4 z-10">
+            <X className="h-6 w-6 text-white" />
+          </DialogClose>
+          {currentVideo && (
+            <div className="aspect-video w-full">
+              <video 
+                className="w-full h-full" 
+                src={currentVideo} 
+                controls 
+                autoPlay
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

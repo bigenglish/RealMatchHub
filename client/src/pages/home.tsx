@@ -79,26 +79,19 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section with Video Background */}
+      {/* Hero Section with Gradient Background */}
       <section className="relative h-screen flex items-center text-white">
-        {/* Static Background (initially shown while video loads) */}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
+        {/* Attractive Gradient Background (more reliable than video) */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 z-0"></div>
         
-        {/* Video Background (lazy loaded) */}
+        {/* Decorative Elements */}
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute inset-0 bg-black/40 z-10"></div> {/* Overlay */}
-          <video 
-            id="heroVideo"
-            className="absolute w-full h-full object-cover"
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-            preload="auto"
-          >
-            <source src="/hero-video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10"></div> {/* Overlay */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-400/30 blur-3xl"></div>
+            <div className="absolute bottom-1/3 right-1/3 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl"></div>
+            <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-purple-500/20 blur-3xl"></div>
+          </div>
         </div>
 
         {/* Hero Content */}
@@ -121,18 +114,14 @@ export default function HomePage() {
           
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl">
-              <video 
-                id="previewVideo"
-                className="w-full h-full object-cover"
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                preload="auto"
-              >
-                <source src="/hero-video.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              {/* Replace video with a gradient image for better reliability */}
+              <div className="w-full aspect-video bg-gradient-to-br from-blue-500 to-purple-700 flex items-center justify-center p-8">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 text-white text-center">
+                  <div className="text-5xl mb-3">🏡</div>
+                  <h3 className="text-xl font-semibold mb-2">Find Your Dream Home</h3>
+                  <p className="text-white/80 text-sm">AI-powered real estate matching for your perfect property</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

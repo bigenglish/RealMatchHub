@@ -2,7 +2,8 @@ import {
   Property, ServiceProvider, InsertProperty, InsertServiceProvider, 
   ServiceExpert, InsertServiceExpert, ServiceBundle, InsertServiceBundle,
   ServiceOffering, InsertServiceOffering, BundleService, InsertBundleService,
-  ServiceRequest, InsertServiceRequest, ServiceAvailability 
+  ServiceRequest, InsertServiceRequest, ServiceAvailability,
+  MarketTrend, InsertMarketTrend, PropertyWithGeo, MarketTrendData 
 } from "@shared/schema";
 
 export interface IStorage {
@@ -10,6 +11,14 @@ export interface IStorage {
   getProperties(): Promise<Property[]>;
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
+  getPropertiesWithGeo(): Promise<PropertyWithGeo[]>;
+  
+  // Market Trends
+  getMarketTrends(): Promise<MarketTrend[]>;
+  getMarketTrendsByYear(year: number): Promise<MarketTrend[]>;
+  getMarketTrendsByNeighborhood(neighborhood: string): Promise<MarketTrend[]>;
+  getMarketTrendData(): Promise<MarketTrendData[]>;
+  createMarketTrend(trend: InsertMarketTrend): Promise<MarketTrend>;
   
   // Service Providers
   getServiceProviders(): Promise<ServiceProvider[]>;
@@ -65,6 +74,7 @@ export class MemStorage implements IStorage {
   private serviceOfferings: Map<number, ServiceOffering>;
   private bundleServices: Map<number, BundleService>;
   private serviceRequests: Map<number, ServiceRequest>;
+  private marketTrends: Map<number, MarketTrend>;
   private propertyId: number;
   private providerId: number;
   private serviceExpertId: number;
@@ -72,6 +82,7 @@ export class MemStorage implements IStorage {
   private serviceOfferingId: number;
   private bundleServiceId: number;
   private serviceRequestId: number;
+  private marketTrendId: number;
 
   constructor() {
     this.properties = new Map();
@@ -81,6 +92,7 @@ export class MemStorage implements IStorage {
     this.serviceOfferings = new Map();
     this.bundleServices = new Map();
     this.serviceRequests = new Map();
+    this.marketTrends = new Map();
     this.propertyId = 1;
     this.providerId = 1;
     this.serviceExpertId = 1;
@@ -88,12 +100,16 @@ export class MemStorage implements IStorage {
     this.serviceOfferingId = 1;
     this.bundleServiceId = 1;
     this.serviceRequestId = 1;
+    this.marketTrendId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
   }
   
   private initializeSampleData() {
+    // Initialize market trends
+    this.initializeSampleMarketTrends();
+    
     // Sample service experts
     const sampleServiceExperts: InsertServiceExpert[] = [
       {
@@ -803,6 +819,138 @@ export class MemStorage implements IStorage {
 
     this.serviceRequests.set(id, updatedRequest);
     return updatedRequest;
+  }
+  
+  // Properties with geo coordinates for map visualization
+  async getPropertiesWithGeo(): Promise<PropertyWithGeo[]> {
+    // Convert properties to PropertyWithGeo format with coordinates
+    const propertiesWithGeo: PropertyWithGeo[] = Array.from(this.properties.values()).map(property => {
+      // Simulate geocoding for sample properties
+      // In a real implementation, these would come from the database or geocoding API
+      const latitude = 37.7749 + (Math.random() - 0.5) * 0.1; // Randomize around San Francisco
+      const longitude = -122.4194 + (Math.random() - 0.5) * 0.1;
+      
+      return {
+        listingId: property.id.toString(),
+        address: property.address,
+        city: property.city || '',
+        state: property.state || '',
+        zipCode: property.zipCode || '',
+        price: property.price,
+        bedrooms: property.bedrooms,
+        bathrooms: property.bathrooms,
+        sqft: property.sqft,
+        propertyType: property.propertyType,
+        latitude,
+        longitude,
+        images: property.images,
+        description: property.description,
+        listedDate: property.listedDate.toString(),
+      };
+    });
+    
+    return propertiesWithGeo;
+  }
+  
+  // Market Trends methods
+  async getMarketTrends(): Promise<MarketTrend[]> {
+    return Array.from(this.marketTrends.values());
+  }
+  
+  async getMarketTrendsByYear(year: number): Promise<MarketTrend[]> {
+    return Array.from(this.marketTrends.values()).filter(trend => trend.year === year);
+  }
+  
+  async getMarketTrendsByNeighborhood(neighborhood: string): Promise<MarketTrend[]> {
+    return Array.from(this.marketTrends.values()).filter(trend => 
+      trend.neighborhood === neighborhood || !neighborhood
+    );
+  }
+  
+  async createMarketTrend(trend: InsertMarketTrend): Promise<MarketTrend> {
+    const id = this.marketTrendId++;
+    const newTrend: MarketTrend = {
+      id,
+      ...trend
+    };
+    
+    this.marketTrends.set(id, newTrend);
+    return newTrend;
+  }
+  
+  async getMarketTrendData(): Promise<MarketTrendData[]> {
+    // If we don't have market trends data, create sample data
+    if (this.marketTrends.size === 0) {
+      this.initializeSampleMarketTrends();
+    }
+    
+    return Array.from(this.marketTrends.values()).map(trend => ({
+      year: trend.year,
+      quarter: trend.quarter,
+      neighborhood: trend.neighborhood || undefined,
+      averagePrice: trend.averagePrice,
+      medianPrice: trend.medianPrice,
+      salesVolume: trend.salesVolume,
+      daysOnMarket: trend.daysOnMarket,
+      percentageChange: trend.percentageChange,
+      propertyType: trend.propertyType || undefined
+    }));
+  }
+  
+  private initializeSampleMarketTrends() {
+    // Generate sample market trend data for the last 5 years
+    const currentYear = new Date().getFullYear();
+    const neighborhoods = ['Downtown', 'Suburban Heights', 'Westside', 'Eastside', 'Northgate'];
+    const propertyTypes = ['Single Family Home', 'Condo', 'Townhouse'];
+    
+    let basePrice = 850000; // Starting average price
+    
+    for (let year = currentYear - 5; year <= currentYear; year++) {
+      for (let quarter = 1; quarter <= 4; quarter++) {
+        // Skip future quarters
+        if (year === currentYear && quarter > Math.floor((new Date().getMonth() + 3) / 3)) {
+          continue;
+        }
+        
+        // Price trends with seasonal variations and general upward trend
+        // Price grows about 5% per year with quarterly fluctuations
+        const yearFactor = 1 + (year - (currentYear - 5)) * 0.05; // 5% annual increase
+        const quarterFactor = 1 + (quarter === 2 || quarter === 3 ? 0.02 : -0.01); // Seasonal variations
+        
+        // Calculate this quarter's price based on the base price with yearly and quarterly factors
+        const quarterPrice = Math.round(basePrice * yearFactor * quarterFactor);
+        
+        // Calculate percentage change from previous quarter
+        const prevPrice = basePrice * (year === currentYear - 5 && quarter === 1 ? 1 : yearFactor * (1 + ((quarter === 1 ? 4 : quarter - 1) === 2 || (quarter === 1 ? 4 : quarter - 1) === 3 ? 0.02 : -0.01)));
+        const percentageChange = ((quarterPrice - prevPrice) / prevPrice) * 100;
+        
+        // For each neighborhood, add slightly different data
+        neighborhoods.forEach((neighborhood, index) => {
+          // Each neighborhood has slightly different prices and trends
+          const neighborhoodFactor = 1 + (index - 2) * 0.1; // -0.2 to +0.2 variation
+          
+          propertyTypes.forEach((propertyType, typeIndex) => {
+            // Each property type has different price levels
+            const typeFactor = typeIndex === 0 ? 1.2 : typeIndex === 1 ? 0.7 : 0.9;
+            
+            const finalPrice = Math.round(quarterPrice * neighborhoodFactor * typeFactor);
+            const medianPrice = Math.round(finalPrice * 0.9); // Median is typically lower than average
+            
+            this.createMarketTrend({
+              year,
+              quarter,
+              neighborhood,
+              averagePrice: finalPrice,
+              medianPrice,
+              salesVolume: Math.floor(50 + Math.random() * 50 * (quarter === 2 || quarter === 3 ? 1.5 : 0.8)),
+              daysOnMarket: Math.floor(30 + Math.random() * 20 * (quarter === 1 || quarter === 4 ? 1.3 : 0.7)),
+              percentageChange: parseFloat(percentageChange.toFixed(2)),
+              propertyType
+            });
+          });
+        });
+      }
+    }
   }
 }
 

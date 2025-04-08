@@ -1054,5 +1054,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ----- Property Map Visualization and Market Trends Routes -----
+  
+  // Get properties with geo data for map visualization
+  app.get("/api/properties-geo", async (req, res) => {
+    try {
+      console.log("[express] Fetching properties with geo data for map visualization");
+      
+      // Get properties with geo coordinates from storage
+      const propertiesWithGeo = await storage.getPropertiesWithGeo();
+      
+      // If includeIDX query parameter is true, also fetch and include IDX listings with geo data
+      const includeIDX = req.query.includeIDX === "true";
+      let idxListings: any[] = [];
+      
+      if (includeIDX && process.env.IDX_BROKER_API_KEY) {
+        try {
+          console.log("[express] Including IDX listings in geo data");
+          const idxResponse = await fetchIdxListings({});
+          
+          // Geocode the IDX listings (in a real implementation, these would already have coordinates)
+          idxListings = idxResponse.listings.map((listing, index) => {
+            // Generate some random coordinates near San Francisco for demo purposes
+            const latitude = 37.7749 + (Math.random() - 0.5) * 0.1;
+            const longitude = -122.4194 + (Math.random() - 0.5) * 0.1;
+            
+            return {
+              listingId: listing.listingId || `idx-${index}`,
+              address: listing.address,
+              city: listing.city,
+              state: listing.state,
+              zipCode: listing.zipCode,
+              price: listing.price,
+              bedrooms: listing.bedrooms,
+              bathrooms: listing.bathrooms,
+              sqft: listing.sqft,
+              propertyType: listing.propertyType,
+              latitude,
+              longitude,
+              images: listing.images || [],
+              description: listing.description,
+              listedDate: listing.listedDate,
+            };
+          });
+        } catch (idxError) {
+          console.error("[express] Error fetching IDX listings for map:", idxError);
+        }
+      }
+      
+      // Combine properties
+      const allProperties = [...propertiesWithGeo, ...idxListings];
+      
+      res.json({
+        listings: allProperties,
+        totalCount: allProperties.length,
+        hasMoreListings: false
+      });
+    } catch (error) {
+      console.error("[express] Error fetching geo properties:", error);
+      res.status(500).json({ 
+        message: "Error fetching properties with geo data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get market trends data
+  app.get("/api/market-trends", async (req, res) => {
+    try {
+      console.log("[express] Fetching market trends data");
+      
+      // Get filter parameters
+      const year = req.query.year ? Number(req.query.year) : undefined;
+      const neighborhood = req.query.neighborhood ? String(req.query.neighborhood) : undefined;
+      const propertyType = req.query.propertyType ? String(req.query.propertyType) : undefined;
+      
+      let trendsData;
+      
+      // Apply filters if provided
+      if (year) {
+        trendsData = await storage.getMarketTrendsByYear(year);
+      } else {
+        trendsData = await storage.getMarketTrendData();
+      }
+      
+      // Filter by neighborhood if provided
+      if (neighborhood) {
+        trendsData = trendsData.filter(trend => 
+          trend.neighborhood === neighborhood || trend.neighborhood === undefined
+        );
+      }
+      
+      // Filter by property type if provided
+      if (propertyType) {
+        trendsData = trendsData.filter(trend => 
+          trend.propertyType === propertyType || trend.propertyType === undefined
+        );
+      }
+      
+      res.json(trendsData);
+    } catch (error) {
+      console.error("[express] Error fetching market trends:", error);
+      res.status(500).json({ 
+        message: "Error fetching market trends data",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Get neighborhood statistics
+  app.get("/api/neighborhoods", async (req, res) => {
+    try {
+      console.log("[express] Fetching neighborhood statistics");
+      
+      // Get all market trend data
+      const trendsData = await storage.getMarketTrendData();
+      
+      // Get unique neighborhoods
+      const neighborhoods = Array.from(new Set(
+        trendsData.map(trend => trend.neighborhood).filter(Boolean)
+      ));
+      
+      // Calculate stats for each neighborhood
+      const stats = neighborhoods.map(neighborhood => {
+        // Filter data for this neighborhood
+        const neighborhoodData = trendsData.filter(trend => trend.neighborhood === neighborhood);
+        
+        // Get most recent data point
+        const latestData = neighborhoodData.sort((a, b) => {
+          // Sort by year and quarter (descending)
+          if (a.year !== b.year) return b.year - a.year;
+          return b.quarter - a.quarter;
+        })[0];
+        
+        // Calculate averages
+        const averagePrice = Math.round(
+          neighborhoodData.reduce((sum, trend) => sum + trend.averagePrice, 0) / neighborhoodData.length
+        );
+        
+        const averageDaysOnMarket = Math.round(
+          neighborhoodData.reduce((sum, trend) => sum + trend.daysOnMarket, 0) / neighborhoodData.length
+        );
+        
+        return {
+          name: neighborhood,
+          averagePrice,
+          medianPrice: latestData.medianPrice,
+          averageDaysOnMarket,
+          percentageChange: latestData.percentageChange,
+          salesVolume: latestData.salesVolume
+        };
+      });
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("[express] Error fetching neighborhood statistics:", error);
+      res.status(500).json({ 
+        message: "Error fetching neighborhood statistics",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   return httpServer;
 }

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, date, timestamp, real, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, date, timestamp, real, numeric, doublePrecision } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,6 +17,23 @@ export const properties = pgTable("properties", {
   propertyType: text("property_type").notNull(),
   images: text("images").array().notNull(),
   listedDate: date("listed_date").notNull(),
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  listingId: text("listing_id"), // External listing ID from IDX Broker
+});
+
+// Market trends data for real estate market analysis
+export const marketTrends = pgTable("market_trends", {
+  id: serial("id").primaryKey(),
+  year: integer("year").notNull(),
+  quarter: integer("quarter").notNull(),
+  neighborhood: text("neighborhood"),
+  averagePrice: integer("average_price").notNull(),
+  medianPrice: integer("median_price").notNull(),
+  salesVolume: integer("sales_volume").notNull(),
+  daysOnMarket: integer("days_on_market").notNull(),
+  percentageChange: real("percentage_change").notNull(),
+  propertyType: text("property_type"),
 });
 
 export const serviceProviders = pgTable("service_providers", {
@@ -112,6 +129,7 @@ export const insertServiceBundleSchema = createInsertSchema(serviceBundles).omit
 export const insertServiceOfferingSchema = createInsertSchema(serviceOfferings).omit({ id: true, createdAt: true });
 export const insertBundleServiceSchema = createInsertSchema(bundleServices).omit({ id: true });
 export const insertServiceRequestSchema = createInsertSchema(serviceRequests).omit({ id: true, requestDate: true, createdAt: true });
+export const insertMarketTrendSchema = createInsertSchema(marketTrends).omit({ id: true });
 
 export type Property = typeof properties.$inferSelect;
 export type InsertProperty = z.infer<typeof insertPropertySchema>;
@@ -127,6 +145,47 @@ export type BundleService = typeof bundleServices.$inferSelect;
 export type InsertBundleService = z.infer<typeof insertBundleServiceSchema>;
 export type ServiceRequest = typeof serviceRequests.$inferSelect;
 export type InsertServiceRequest = z.infer<typeof insertServiceRequestSchema>;
+export type MarketTrend = typeof marketTrends.$inferSelect;
+export type InsertMarketTrend = z.infer<typeof insertMarketTrendSchema>;
+
+// Type for property with geo information
+export interface PropertyWithGeo {
+  listingId: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  propertyType: string;
+  latitude: number;
+  longitude: number;
+  images: string[];
+  description: string;
+  listedDate: string;
+}
+
+// Type for map visualization data
+export interface PropertyMapData {
+  listings: PropertyWithGeo[];
+  totalCount: number;
+  hasMoreListings: boolean;
+}
+
+// Type for market trend data
+export interface MarketTrendData {
+  year: number;
+  quarter: number;
+  neighborhood?: string;
+  averagePrice: number;
+  medianPrice: number;
+  salesVolume: number;
+  daysOnMarket: number;
+  percentageChange: number;
+  propertyType?: string;
+}
 
 // Service availability type (stored as JSON)
 export interface ServiceAvailability {

@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
 import IdxWidget from "@/components/idx-widget";
 import IdxStatus from "@/components/idx-status";
 import PropertyQuestionnaire, { UserPreferences } from "@/components/property-questionnaire";
+import AIPropertyRecommendations from "@/components/ai-property-recommendations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -295,6 +296,19 @@ export default function PropertiesPage() {
       </div>
       
       <SearchFilters onFilterChange={handleFilter} />
+      
+      {/* AI Property Recommendations */}
+      {userPreferences && (
+        <div className="mb-12">
+          <AIPropertyRecommendations 
+            userPreferences={userPreferences}
+            onViewDetails={(property) => {
+              // Navigate to the property details page
+              window.location.href = `/property/${property.id}`;
+            }}
+          />
+        </div>
+      )}
       
       {/* IDX Status Banner */}
       <IdxStatus className="mt-4" />

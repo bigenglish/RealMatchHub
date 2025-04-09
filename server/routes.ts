@@ -15,6 +15,7 @@ import { processDocument, parsePropertyDocument } from "./document-ai"; // Impor
 import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress } from "./google-places"; // Import Google Places API functions
 import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functions
 import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
+import { generatePropertyRecommendations } from "./ai-property-recommendations"; // Import AI property recommendations
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -419,6 +420,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("[express] Error in AI property style search:", error);
       res.status(500).json({ 
         message: "Failed to complete AI property style search",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // Smart AI-powered property matching recommendations
+  app.post("/api/recommendations", async (req, res) => {
+    try {
+      const { preferences } = req.body;
+      console.log("[express] Generating smart property recommendations based on user preferences");
+      
+      if (!preferences) {
+        return res.status(400).json({ 
+          message: "User preferences are required for property recommendations" 
+        });
+      }
+      
+      const recommendedProperties = await generatePropertyRecommendations(preferences);
+      
+      console.log(`[express] Generated ${recommendedProperties.length} AI-powered property recommendations`);
+      
+      res.json({ 
+        count: recommendedProperties.length,
+        properties: recommendedProperties 
+      });
+    } catch (error) {
+      console.error("[express] Error generating property recommendations:", error);
+      res.status(500).json({ 
+        message: "Failed to generate property recommendations",
         error: error instanceof Error ? error.message : String(error)
       });
     }
@@ -1284,6 +1314,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Error fetching neighborhood statistics",
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+  
+  // AI property recommendations endpoint based on user preferences
+  app.post("/api/ai-property-recommendations", async (req, res) => {
+    try {
+      const userPreferences = req.body;
+      
+      if (!userPreferences) {
+        return res.status(400).json({ error: "User preferences are required" });
+      }
+      
+      console.log("[express] Generating AI property recommendations based on user preferences");
+      
+      // Generate recommendations
+      const recommendedProperties = await generatePropertyRecommendations(userPreferences);
+      
+      console.log(`[express] Found ${recommendedProperties.length} recommended properties`);
+      
+      res.json(recommendedProperties);
+    } catch (error) {
+      console.error("AI property recommendations error:", error);
+      res.status(500).json({ 
+        error: "Error generating property recommendations", 
+        message: error instanceof Error ? error.message : String(error)
       });
     }
   });

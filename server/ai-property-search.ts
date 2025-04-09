@@ -6,6 +6,7 @@
 import { VertexAI } from '@google-cloud/vertexai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { storage } from './storage';
+import { calculateCommuteTime } from './google-places';
 
 // Initialize Google Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
@@ -17,6 +18,7 @@ export interface PropertySearchQuery {
     style: string;
     features: string[];
   };
+  keywords?: string; // Added keyword search capabilities
   locationPreferences: {
     location: string;
     commuteDestination?: string;
@@ -247,6 +249,26 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
           return false;
         }
         
+        // Apply keyword search if provided
+        if (query.keywords && query.keywords.trim().length > 0) {
+          const keywords = query.keywords.toLowerCase().trim().split(/\s+/);
+          const propertyText = [
+            property.title, 
+            property.description, 
+            property.address,
+            property.city,
+            property.state,
+            property.propertyType,
+            ...(property.features || [])
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          // Check if all keywords appear in the property text
+          const keywordMatches = keywords.filter(keyword => propertyText.includes(keyword));
+          if (keywordMatches.length === 0) {
+            return false;
+          }
+        }
+        
         // Could add location filter here with geocoding
         return true;
       })
@@ -351,25 +373,50 @@ function calculateStyleMatch(styleProfile: any, property: any): number {
  * @param mode Transportation mode
  * @returns Estimated commute time in minutes
  */
-function estimateCommuteTime(
+async function estimateCommuteTime(
   origin: string,
   destination: string,
   mode: 'car' | 'transit' | 'bike' | 'walk'
-): number {
-  // In a real implementation, this would call Google Maps Distance Matrix API
-  // For demo purposes, return a random time based on transportation mode
-  const baseTime = Math.floor(Math.random() * 20) + 10; // 10-30 minutes base time
-  
-  switch (mode) {
-    case 'car':
-      return baseTime;
-    case 'transit':
-      return baseTime * 1.5;
-    case 'bike':
-      return baseTime * 2;
-    case 'walk':
-      return baseTime * 4;
-    default:
-      return baseTime;
+): Promise<number> {
+  try {
+    console.log(`[ai-property-search] Calculating commute time from "${origin}" to "${destination}"`);
+    
+    // Convert our transportation modes to Google Maps API format
+    const googleMapsMode = mode === 'car' ? 'driving' :
+                          mode === 'transit' ? 'transit' :
+                          mode === 'bike' ? 'bicycling' : 'walking';
+    
+    // Call the Google Places API to get commute time
+    const commuteData = await calculateCommuteTime(
+      origin,
+      destination,
+      googleMapsMode as 'driving' | 'transit' | 'bicycling' | 'walking'
+    );
+    
+    if (commuteData) {
+      // Convert seconds to minutes and round
+      return Math.round(commuteData.durationValue / 60);
+    }
+    
+    throw new Error('Failed to calculate commute time');
+  } catch (error) {
+    console.error('[ai-property-search] Error estimating commute time:', error);
+    
+    // Fall back to approximation if API call fails
+    console.log('[ai-property-search] Using fallback commute time calculation');
+    const baseTime = Math.floor(Math.random() * 20) + 10; // 10-30 minutes base time
+    
+    switch (mode) {
+      case 'car':
+        return baseTime;
+      case 'transit':
+        return baseTime * 1.5;
+      case 'bike':
+        return baseTime * 2;
+      case 'walk':
+        return baseTime * 4;
+      default:
+        return baseTime;
+    }
   }
 }

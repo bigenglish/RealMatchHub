@@ -159,3 +159,70 @@ export async function geocodeAddress(address: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Calculate commute time between two locations
+ * @param origin Origin address
+ * @param destination Destination address
+ * @param mode Mode of transportation (driving, transit, bicycling, walking)
+ * @returns Promise resolving to commute details or null if calculation fails
+ */
+export async function calculateCommuteTime(
+  origin: string, 
+  destination: string, 
+  mode: 'driving' | 'transit' | 'bicycling' | 'walking' = 'driving'
+): Promise<{
+  durationText: string,
+  durationValue: number,
+  distanceText: string,
+  distanceValue: number
+} | null> {
+  if (!GOOGLE_PLACES_API_KEY) {
+    console.error('[google-places] Cannot calculate commute time: API key not found in environment variables');
+    return null;
+  }
+  
+  try {
+    console.log(`[google-places] Calculating commute time from "${origin}" to "${destination}" using mode: ${mode}`);
+    
+    // Step 1: Geocode addresses if needed
+    const originCoords = await geocodeAddress(origin);
+    const destCoords = await geocodeAddress(destination);
+    
+    if (!originCoords || !destCoords) {
+      console.error('[google-places] Cannot calculate commute time: Failed to geocode one or both addresses');
+      return null;
+    }
+    
+    // Step 2: Use Distance Matrix API to calculate commute time
+    const apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originCoords)}&destinations=${encodeURIComponent(destCoords)}&mode=${encodeURIComponent(mode)}&key=${GOOGLE_PLACES_API_KEY}`;
+    
+    const response = await axios.get(apiUrl);
+    
+    if (response.data.status === 'OK' && 
+        response.data.rows && 
+        response.data.rows.length > 0 && 
+        response.data.rows[0].elements && 
+        response.data.rows[0].elements.length > 0 &&
+        response.data.rows[0].elements[0].status === 'OK') {
+      
+      const element = response.data.rows[0].elements[0];
+      
+      console.log(`[google-places] Commute calculation result: ${element.duration.text} (${element.distance.text})`);
+      
+      return {
+        durationText: element.duration.text,
+        durationValue: element.duration.value, // seconds
+        distanceText: element.distance.text,
+        distanceValue: element.distance.value // meters
+      };
+    } else {
+      console.error(`[google-places] Commute time calculation failed: ${response.data.status}`);
+      console.error(`[google-places] Error details:`, response.data);
+      return null;
+    }
+  } catch (error: any) {
+    console.error('[google-places] Error calculating commute time:', error.message);
+    return null;
+  }
+}

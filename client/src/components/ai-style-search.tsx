@@ -20,7 +20,8 @@ import {
   BookOpen,
   Briefcase,
   ShoppingBag,
-  X
+  X,
+  Search
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -62,6 +63,7 @@ export default function AiStyleSearch({ onSearchComplete }: AiStyleSearchProps):
   const [preferences, setPreferences] = useState({
     style: "",
     features: [] as string[],
+    keywords: "",
     commute: {
       workLocation: "",
       maxTime: 30,
@@ -153,6 +155,7 @@ export default function AiStyleSearch({ onSearchComplete }: AiStyleSearchProps):
           style: preferences.style,
           features: preferences.features
         },
+        keywords: preferences.keywords,
         locationPreferences: {
           location: preferences.location,
           commuteDestination: preferences.commute.workLocation,
@@ -511,6 +514,22 @@ export default function AiStyleSearch({ onSearchComplete }: AiStyleSearchProps):
                     onChange={(e) => setPreferences({...preferences, location: e.target.value})}
                   />
                 </div>
+              </div>
+              
+              <div className="mt-6">
+                <Label className="text-base">Keyword Search</Label>
+                <div className="relative mt-2">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input 
+                    placeholder="Enter keywords (e.g., renovated, views, open floor plan)" 
+                    className="pl-10"
+                    value={preferences.keywords}
+                    onChange={(e) => setPreferences({...preferences, keywords: e.target.value})}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Add specific terms to find properties with features that match your needs
+                </p>
               </div>
             </div>
           </div>

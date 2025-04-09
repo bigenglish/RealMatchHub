@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
   Check, Home, Building, Users, Briefcase, Sparkles, ChevronsRight, 
-  CalendarDays, MapPin, Search
+  CalendarDays, MapPin, Search, Camera, Upload, Image, X
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,8 @@ export interface UserPreferences {
   bathrooms?: number;
   mustHaveFeatures?: string[];
   timeframe?: TimelineOption;
+  inspirationPhotos?: string[]; // Base64 encoded image data
+  inspirationUrls?: string[]; // URLs to inspiration listings
 }
 
 interface PropertyQuestionnaireProps {
@@ -51,7 +53,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     bathrooms: 0,
     mustHaveFeatures: [],
     timeframe: "3-6months",
+    inspirationPhotos: [],
+    inspirationUrls: [],
   });
+  
+  // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Location search states for autosuggest
   const [locationValue, setLocationValue] = useState("");
@@ -99,7 +106,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { value: "6-12months", label: "6-12 months (early in the process)" }
   ];
   
-  const totalSteps = 4; // Increased steps to add location/timeline step
+  const totalSteps = 5; // Increased steps to add inspiration photos step
   const progress = Math.round((step / totalSteps) * 100);
   
   const handleIntentSelect = (intent: UserIntent) => {
@@ -170,6 +177,36 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   // Handle timeline selection
   const handleTimelineChange = (value: TimelineOption) => {
     setPreferences({ ...preferences, timeframe: value });
+  };
+  
+  // Handle image upload
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      if (event.target && typeof event.target.result === 'string') {
+        const newPhotos = [...(preferences.inspirationPhotos || []), event.target.result];
+        setPreferences({ ...preferences, inspirationPhotos: newPhotos });
+      }
+    };
+    
+    reader.readAsDataURL(file);
+    
+    // Reset the input value so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  // Remove inspiration photo
+  const removeInspirationPhoto = (index: number) => {
+    const photos = [...(preferences.inspirationPhotos || [])];
+    photos.splice(index, 1);
+    setPreferences({ ...preferences, inspirationPhotos: photos });
   };
   
   const handleNextStep = () => {
@@ -464,6 +501,83 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       
       {step === 4 && (
         <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-center">
+            {preferences.intent === "buying" && "Share your style inspiration"}
+            {preferences.intent === "selling" && "Add photos of your property"}
+            {preferences.intent === "both" && "Share your style preferences"}
+          </h3>
+          <p className="text-center text-muted-foreground">
+            {preferences.intent === "buying" && "Upload photos of homes you love to help our AI find properties that match your style."}
+            {preferences.intent === "selling" && "Upload photos of your property to help us assess its style and features."}
+            {preferences.intent === "both" && "Upload photos of homes you love to help our AI find properties that match your style."}
+          </p>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Upload Button */}
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center h-48 cursor-pointer hover:border-primary transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-10 w-10 text-gray-400 mb-2" />
+                <p className="text-sm text-gray-500 text-center">
+                  Click to upload an image
+                </p>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageUpload}
+                />
+              </div>
+              
+              {/* Uploaded Images */}
+              {(preferences.inspirationPhotos || []).map((img, index) => (
+                <div key={index} className="relative group h-48 rounded-lg overflow-hidden border border-gray-200">
+                  <img 
+                    src={img} 
+                    alt={`Inspiration ${index + 1}`} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button 
+                      variant="destructive" 
+                      size="icon" 
+                      className="h-8 w-8 rounded-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeInspirationPhoto(index);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="text-center text-sm text-muted-foreground">
+              {preferences.intent === "buying" && "Upload photos of homes, interiors, or architectural styles you love."}
+              {preferences.intent === "selling" && "Upload photos of your property's exterior and interior spaces."}
+              {preferences.intent === "both" && "Upload photos of homes, interiors, or architectural styles you love."}
+            </div>
+          </div>
+          
+          <div className="flex justify-center gap-4 pt-4">
+            <Button variant="outline" onClick={() => setStep(step - 1)}>
+              Go Back
+            </Button>
+            <Button onClick={handleNextStep}>
+              {(preferences.inspirationPhotos || []).length > 0 ? "Continue" : "Skip this step"}
+              <ChevronsRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {step === 5 && (
+        <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">Ready to find your perfect match!</h3>
           <p className="text-center text-muted-foreground">
             {preferences.intent === "buying" && "We've prepared specialized property recommendations based on your needs."}
@@ -523,6 +637,27 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <span>
                     {timelineOptions.find(option => option.value === preferences.timeframe)?.label || preferences.timeframe}
                   </span>
+                </div>
+              )}
+              
+              {preferences.inspirationPhotos && preferences.inspirationPhotos.length > 0 && (
+                <div className="flex flex-col gap-2 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary" />
+                    <span className="font-semibold">Style Inspiration Photos: </span>
+                    <span>{preferences.inspirationPhotos.length} photos uploaded</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {preferences.inspirationPhotos.map((photo, index) => (
+                      <div key={index} className="rounded-md overflow-hidden h-20 border border-gray-200">
+                        <img 
+                          src={photo} 
+                          alt={`Inspiration ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

@@ -174,18 +174,21 @@ export default function HomePage() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
-                    placeholder="NY city, USA" 
+                    placeholder="City, State or ZIP" 
                     className="pl-10"
-                    defaultValue="NY city, USA"
+                    onChange={(e) => console.log("Location changed:", e.target.value)}
                   />
                 </div>
               </div>
               
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
-                <Select defaultValue="house">
+                <Select 
+                  defaultValue="house"
+                  onValueChange={(value) => console.log("Property type changed:", value)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="House" />
+                    <SelectValue placeholder="Select property type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="house">House</SelectItem>
@@ -200,11 +203,20 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input 
-                    placeholder="Select date" 
-                    className="pl-10"
-                    defaultValue="Select date"
-                  />
+                  <Select 
+                    defaultValue="3-6months"
+                    onValueChange={(value) => console.log("Timeline changed:", value)}
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Select timeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asap">ASAP (ready to move)</SelectItem>
+                      <SelectItem value="1-3months">1-3 months</SelectItem>
+                      <SelectItem value="3-6months">3-6 months</SelectItem>
+                      <SelectItem value="6-12months">6-12 months</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               

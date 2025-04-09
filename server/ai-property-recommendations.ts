@@ -4,7 +4,7 @@ import { Property } from '../shared/schema';
 import { UserPreferences } from '../client/src/components/property-questionnaire';
 
 // Import Gemini API
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Function to get a Google Gemini client
 function getGoogleGeminiClient() {

@@ -69,8 +69,12 @@ export default function HomePage() {
         attemptPlay();
       };
       
-      // Set up the preview video with direct source path
-      if (previewVideo) setupVideo(previewVideo, '/hero.mp4');
+      // Set up the preview video with direct source path - try different video filenames
+      // We have multiple versions of the hero video, try the one that works
+      if (previewVideo) {
+        // Try the renamed video first 
+        setupVideo(previewVideo, '/Hero Video (1).mp4');
+      }
       
       // Also add interaction handler to ensure videos play on user interaction
       const handleUserInteraction = () => {
@@ -132,7 +136,7 @@ export default function HomePage() {
                 playsInline
                 preload="auto"
                 controls={false}
-                src="/hero.mp4"
+                src="/Hero Video (1).mp4"
                 style={{ minHeight: "320px" }}
               >
                 Your browser does not support the video tag.

@@ -27,27 +27,27 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-5 lg:space-x-8">
-            <Link href="/properties" className="text-sm font-medium text-gray-700 hover:text-olive-600">
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-6">
+            <Link href="/properties" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Buy/Sell
             </Link>
-            <Link href="/how-it-works" className="text-sm font-medium text-gray-700 hover:text-olive-600">
+            <Link href="/how-it-works" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               How It Works
             </Link>
-            <Link href="/marketplace" className="text-sm font-medium text-gray-700 hover:text-olive-600">
+            <Link href="/marketplace" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Pricing
             </Link>
-            <Link href="/service-experts" className="text-sm font-medium text-gray-700 hover:text-olive-600">
-              Select your Experts
+            <Link href="/service-experts" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              Experts
             </Link>
-            <Link href="/resources" className="text-sm font-medium text-gray-700 hover:text-olive-600">
+            <Link href="/resources" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Resources
             </Link>
-            <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600">
-              Watch a Demo
+            <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              Demo
             </Link>
             <Link href="/get-started">
-              <Button className="bg-olive-600 hover:bg-olive-700 text-white px-6">
+              <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
                 GET STARTED
               </Button>
             </Link>
@@ -81,13 +81,13 @@ export default function Navbar() {
               Pricing
             </Link>
             <Link href="/service-experts" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Select your Experts
+              Experts
             </Link>
             <Link href="/resources" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Resources
             </Link>
             <Link href="/demo" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Watch a Demo
+              Demo
             </Link>
             <Link href="/get-started" className="block">
               <Button className="w-full bg-olive-600 hover:bg-olive-700 text-white">

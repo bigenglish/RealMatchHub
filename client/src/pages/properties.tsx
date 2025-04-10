@@ -8,11 +8,18 @@ import IdxWidget from "@/components/idx-widget";
 import IdxStatus from "@/components/idx-status";
 import PropertyQuestionnaire, { UserPreferences } from "@/components/property-questionnaire";
 import AIPropertyRecommendations from "@/components/ai-property-recommendations";
+import ServiceSelection from "@/components/service-selection";
+import CostSummary from "@/components/cost-summary";
+import PaymentProcessor from "@/components/payment-processor";
+import { ServiceOffering as BaseServiceOffering } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { CreditCard, Building, Users, Zap } from 'lucide-react';
 
 // Interface for IDX Broker listings
 interface IdxListing {
@@ -78,6 +85,11 @@ function convertIdxToProperty(idx: IdxListing): Property {
   };
 }
 
+// Define the interface for service offerings in this component
+interface ServiceOffering extends BaseServiceOffering {
+  price?: string | number;
+}
+
 export default function PropertiesPage() {
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],
@@ -89,6 +101,15 @@ export default function PropertiesPage() {
   const [isFiltered, setIsFiltered] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false); // Changed to false to skip questionnaire
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  
+  // Service selection state
+  const [showServiceSelection, setShowServiceSelection] = useState(false);
+  const [showCostSummary, setShowCostSummary] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedServices, setSelectedServices] = useState<ServiceOffering[]>([]);
+  const [totalCost, setTotalCost] = useState(0);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const { toast } = useToast();
 
   // Prepare the property data
   const yourProperties = data?.yourProperties || [];
@@ -117,6 +138,53 @@ export default function PropertiesPage() {
   // Handle skipping the questionnaire
   const handleSkipQuestionnaire = () => {
     setShowQuestionnaire(false);
+  };
+  
+  // Handle opening service selection dialog for a specific property
+  const handleOpenServiceSelection = (property: Property) => {
+    setSelectedProperty(property);
+    setShowServiceSelection(true);
+  };
+  
+  // Handle service selection completion
+  const handleServiceSelectionComplete = (services: ServiceOffering[], totalAmount: number) => {
+    setSelectedServices(services);
+    setTotalCost(totalAmount);
+    setShowServiceSelection(false);
+    setShowCostSummary(true);
+  };
+  
+  // Handle service selection cancellation
+  const handleServiceSelectionCancel = () => {
+    setShowServiceSelection(false);
+  };
+  
+  // Handle going back from cost summary to service selection
+  const handleCostSummaryBack = () => {
+    setShowCostSummary(false);
+    setShowServiceSelection(true);
+  };
+  
+  // Handle payment initiation from cost summary
+  const handlePayNow = () => {
+    setShowCostSummary(false);
+    setShowPayment(true);
+  };
+  
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    setShowPayment(false);
+    toast({
+      title: "Payment Successful",
+      description: `Your payment for services related to ${selectedProperty?.address} has been processed successfully.`,
+      variant: "default",
+    });
+  };
+  
+  // Handle payment cancellation
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+    setShowCostSummary(true);
   };
 
   if (isLoading) {
@@ -190,6 +258,107 @@ export default function PropertiesPage() {
           />
         </CardContent>
       </Card>
+      
+      {/* Featured Properties Section */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold mb-6">Featured Properties</h2>
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {idxListings.slice(0, 6).map((property) => (
+            <Card key={property.id} className="overflow-hidden">
+              {property.images && property.images.length > 0 ? (
+                <img 
+                  src={property.images[0]} 
+                  alt={property.title} 
+                  className="w-full h-48 object-cover" 
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+                  <Building className="h-12 w-12 text-gray-400" />
+                </div>
+              )}
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg line-clamp-1">{property.title}</CardTitle>
+                <div className="flex items-center text-sm text-gray-500">
+                  <span>{property.city}, {property.state}</span>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xl font-bold">${property.price.toLocaleString()}</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center"><span className="mr-1">🛏️</span> {property.bedrooms}</span>
+                    <span className="flex items-center"><span className="mr-1">🚿</span> {property.bathrooms}</span>
+                    <span className="flex items-center"><span className="mr-1">📏</span> {property.sqft} ft²</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-4">
+                  <Link href={`/property/${property.id}`}>
+                    <Button variant="outline" size="sm">View Details</Button>
+                  </Link>
+                  <Button 
+                    onClick={() => handleOpenServiceSelection(property)}
+                    variant="default" 
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Get Services
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+      
+      {/* Service Selection Dialog */}
+      <Dialog open={showServiceSelection} onOpenChange={setShowServiceSelection}>
+        <DialogContent className="max-w-4xl">
+          <DialogTitle>Select Services for {selectedProperty?.address}</DialogTitle>
+          <DialogDescription>
+            Choose the real estate services you need for this property
+          </DialogDescription>
+          <ServiceSelection 
+            onComplete={handleServiceSelectionComplete}
+            onCancel={handleServiceSelectionCancel}
+            propertyAddress={selectedProperty?.address}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Cost Summary Dialog */}
+      <Dialog open={showCostSummary} onOpenChange={setShowCostSummary}>
+        <DialogContent className="max-w-3xl">
+          <DialogTitle>Service Cost Summary</DialogTitle>
+          <DialogDescription>
+            Review your selected services for {selectedProperty?.address}
+          </DialogDescription>
+          <CostSummary 
+            selectedServices={selectedServices}
+            totalCost={totalCost}
+            onBack={handleCostSummaryBack}
+            onPayNow={handlePayNow}
+            propertyAddress={selectedProperty?.address}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Payment Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="max-w-2xl">
+          <DialogTitle>Complete Your Payment</DialogTitle>
+          <DialogDescription>
+            Please enter your payment details to complete the transaction.
+          </DialogDescription>
+          
+          <PaymentProcessor
+            services={selectedServices}
+            totalAmount={totalCost}
+            onSuccess={handlePaymentSuccess}
+            onCancel={handlePaymentCancel}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

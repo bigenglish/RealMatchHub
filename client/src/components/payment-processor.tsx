@@ -140,43 +140,89 @@ export default function PaymentProcessor({
   onCancel
 }: PaymentProcessorProps) {
   const [clientSecret, setClientSecret] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchPaymentIntent = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+        
         // Create PaymentIntent as soon as the component loads
         const serviceIds = services.map(service => service.id);
+        
+        // Ensure amount is a valid number
+        const amount = typeof totalAmount === 'number' ? 
+          Math.max(0.5, totalAmount) : // Minimum of 50 cents for Stripe
+          0.5;
+        
         const response = await apiRequest('POST', '/api/create-payment-intent', { 
           serviceIds,
-          amount: totalAmount 
+          amount: amount 
         });
         
         if (!response.ok) {
-          throw new Error('Failed to create payment intent');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Failed to create payment intent');
         }
         
         const data = await response.json();
+        
+        if (!data.clientSecret) {
+          throw new Error('No client secret received from server');
+        }
+        
         setClientSecret(data.clientSecret);
       } catch (error) {
         console.error('Error creating payment intent:', error);
+        setError('Payment setup failed. Please try again later.');
         toast({
           title: 'Payment Setup Failed',
           description: 'Unable to initialize payment. Please try again later.',
           variant: 'destructive'
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (services.length > 0 && totalAmount > 0) {
       fetchPaymentIntent();
+    } else {
+      setIsLoading(false);
+      setError('Invalid service selection or amount');
     }
   }, [services, totalAmount, toast]);
 
-  if (!clientSecret) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-60">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  
+  if (error || !clientSecret) {
+    return (
+      <div className="flex flex-col justify-center items-center h-60 p-4 text-center">
+        <div className="text-destructive mb-2 text-xl">
+          <span className="inline-block rounded-full bg-destructive/10 p-2 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </span>
+          <h3 className="font-medium">Payment Setup Failed</h3>
+        </div>
+        <p className="text-muted-foreground mb-4">
+          {error || "Unable to initialize payment. Please try again later."}
+        </p>
+        <Button onClick={onCancel} variant="outline">
+          Go Back
+        </Button>
       </div>
     );
   }

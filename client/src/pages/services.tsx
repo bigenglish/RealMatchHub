@@ -197,7 +197,7 @@ export default function Services() {
     toast({
       title: "Payment Successful",
       description: "Your payment has been processed successfully. You can now access your purchased services.",
-      variant: "success",
+      variant: "default",
     });
   };
   

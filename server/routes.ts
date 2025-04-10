@@ -1441,9 +1441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[express] STRIPE_SECRET_KEY is not set, payment features will not work');
   } else {
     console.log('[express] Stripe integration initialized');
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
-    });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     // Create payment intent for one-time payments
     app.post("/api/create-payment-intent", async (req, res) => {

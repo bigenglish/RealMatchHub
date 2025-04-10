@@ -93,12 +93,17 @@ export const serviceOfferings = pgTable("service_offerings", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   serviceType: text("service_type").notNull(), // Corresponds to expertTypes
-  price: numeric("price").notNull(),
+  minPrice: numeric("min_price").notNull(),
+  maxPrice: numeric("max_price").notNull(),
+  priceDisplay: text("price_display").notNull(), // e.g. "$200-$400"
+  color: text("color"), // For UI color coding
+  icon: text("icon"), // Icon name or path
   estimatedDuration: text("estimated_duration").notNull(),
   requiredDocuments: text("required_documents").array(),
   typicalTimingInTransaction: text("typical_timing").notNull(), // e.g. "Before listing", "Before closing", etc.
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
+  pricingUnit: text("pricing_unit"), // e.g. "per session", "per connection", etc.
 });
 
 // Bundle-service relationship table (many-to-many)

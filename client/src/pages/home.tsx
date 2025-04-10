@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import AIChatbot from "@/components/ai-chatbot";
+import CostComparison from "@/components/cost-comparison";
 import { colors } from "@/lib/colors";
 
 export default function HomePage() {

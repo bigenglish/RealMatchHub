@@ -3,34 +3,33 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import type { Property } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bed, Bath, Move, MapPin, Calendar, Phone, Image } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import ContactForm from "@/components/contact-form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { MapPin, Calendar, ChevronDown } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Bed, Bath, Move, Image } from "lucide-react";
+
 
 export default function PropertyPage() {
   const { id } = useParams<{ id: string }>();
   const { data: property, isLoading } = useQuery<Property>({
     queryKey: ["/api/properties", id],
   });
-  const [showContactForm, setShowContactForm] = useState(false);
-  
-  // Set default fallback image
+
   const defaultImage = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
 
   if (isLoading) {
     return (
       <div className="space-y-8">
         <Skeleton className="h-[400px] w-full" />
-        <div className="grid gap-8 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-6 w-1/2" />
-            <Skeleton className="h-24 w-full" />
-          </div>
-          <Skeleton className="h-[200px]" />
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-24 w-full" />
         </div>
       </div>
     );
@@ -41,192 +40,166 @@ export default function PropertyPage() {
       <div className="p-12 text-center">
         <h1 className="text-3xl font-bold mb-4">Property Not Found</h1>
         <p className="text-muted-foreground mb-6">
-          The property you're looking for could not be found. It may have been removed or the ID may be incorrect.
+          The property you're looking for could not be found.
         </p>
         <Button onClick={() => window.history.back()}>Go Back</Button>
       </div>
     );
   }
-  
-  // Make sure we have an image to display
-  const imageUrl = property.images && property.images.length > 0 
-    ? property.images[0] 
-    : defaultImage;
-    
+
+  const imageUrl = property.images?.[0] || defaultImage;
+  const monthlyPayment = property.price ? Math.round(property.price * 0.005) : 0;
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString();
     } catch (e) {
-      // Return today's date if the date is invalid
       return new Date().toLocaleDateString();
     }
   };
-  
-  // Calculate monthly payment only if price is available
-  const monthlyPayment = property.price ? Math.round(property.price * 0.005).toLocaleString() : "N/A";
 
   return (
-    <div className="space-y-8">
-      <div className="aspect-video overflow-hidden rounded-lg">
-        <img
-          src={imageUrl}
-          alt={property.title || "Property"}
-          className="w-full object-cover"
-          onError={(e) => {
-            e.currentTarget.src = defaultImage;
-          }}
-        />
+    <div className="max-w-3xl mx-auto pb-12">
+      <div className="relative">
+        <div className="aspect-[16/9] overflow-hidden rounded-lg">
+          <img
+            src={imageUrl}
+            alt={property.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = defaultImage;
+            }}
+          />
+        </div>
+        <div className="grid grid-cols-4 gap-2 mt-2">
+          {property.images?.slice(1, 5).map((img, i) => (
+            <div key={i} className="aspect-[4/3] overflow-hidden rounded-md">
+              <img src={img} alt={`View ${i + 2}`} className="w-full h-full object-cover" onError={(e) => {
+                e.currentTarget.src = defaultImage;
+              }} />
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
-          <div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">{property.title}</h1>
-              <Badge variant="outline">{property.propertyType || "Property"}</Badge>
-            </div>
-            <p className="text-2xl font-bold text-primary mt-2">
-              ${(property.price || 0).toLocaleString()}
-            </p>
+      <div className="mt-6">
+        <h1 className="text-2xl font-semibold">{property.title || 'Unnamed Property'}</h1>
+        <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center">
+            <Bed className="h-5 w-5 mr-2" />
+            <span>{property.bedrooms || 0} Bedrooms</span>
           </div>
-
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center">
-              <Bed className="h-5 w-5 mr-2" />
-              <span>{property.bedrooms || 0} beds</span>
-            </div>
-            <div className="flex items-center">
-              <Bath className="h-5 w-5 mr-2" />
-              <span>{property.bathrooms || 0} baths</span>
-            </div>
-            <div className="flex items-center">
-              <Move className="h-5 w-5 mr-2" />
-              <span>{property.sqft || 0} sqft</span>
-            </div>
+          <div className="flex items-center">
+            <Bath className="h-5 w-5 mr-2" />
+            <span>{property.bathrooms || 0} Bathrooms</span>
           </div>
-          
-          <Tabs defaultValue="description">
-            <TabsList>
-              <TabsTrigger value="description">Description</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
-              <TabsTrigger value="photos">Photos</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="description" className="pt-4">
-              <p className="text-muted-foreground">{property.description || "No description available for this property."}</p>
-            </TabsContent>
-            
-            <TabsContent value="details" className="pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="font-medium">Property Type</div>
-                  <div className="text-muted-foreground">{property.propertyType || "Not specified"}</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium">Year Built</div>
-                  <div className="text-muted-foreground">2010</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium">Lot Size</div>
-                  <div className="text-muted-foreground">0.25 acres</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium">Garage</div>
-                  <div className="text-muted-foreground">2 cars</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium">Heating/Cooling</div>
-                  <div className="text-muted-foreground">Central AC</div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium">Basement</div>
-                  <div className="text-muted-foreground">Finished</div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="photos" className="pt-4">
-              <div className="grid grid-cols-2 gap-4">
-                {(property.images || []).map((image, index) => (
-                  <div key={index} className="aspect-video rounded-md overflow-hidden">
-                    <img 
-                      src={image} 
-                      alt={`Photo ${index + 1}`} 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = defaultImage;
-                      }}
-                    />
-                  </div>
-                ))}
-                {(!property.images || property.images.length === 0 || property.images.length === 1) && (
-                  <div className="aspect-video rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                    <Image className="h-12 w-12 text-muted-foreground opacity-50" />
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="flex items-center">
+            <Move className="h-5 w-5 mr-2" />
+            <span>{property.sqft || 0} sqft</span>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-primary" />
-                <span>{property.address || "Address not provided"}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-primary" />
-                <span>Listed {formatDate(property.listedDate)}</span>
-              </div>
-              {!showContactForm && (
-                <Button 
-                  className="w-full" 
-                  size="lg" 
-                  onClick={() => setShowContactForm(true)}
-                >
-                  <Phone className="h-5 w-5 mr-2" />
-                  Contact Agent
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-          
-          {showContactForm && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Contact Agent</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ContactForm 
-                  subject={`Inquiry about: ${property.title || `Property ID ${property.id}`}`} 
-                  onSuccess={() => setShowContactForm(false)} 
-                />
-              </CardContent>
-            </Card>
-          )}
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Financing Options</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <div className="flex items-center mt-2">
+          <MapPin className="h-5 w-5 text-muted-foreground mr-2" />
+          <span>{property.address || 'Address not provided'}</span>
+        </div>
+
+        <div className="mt-4">
+          <div className="text-3xl font-bold">
+            ${(property.price || 0).toLocaleString()}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mt-4">
+          <Button variant="default" className="w-full">
+            Check Availability
+          </Button>
+          <Button variant="outline" className="w-full">
+            Contact Agent
+          </Button>
+          <Button variant="outline" className="w-full">
+            Share Home
+          </Button>
+        </div>
+
+        <Accordion type="single" collapsible className="mt-6">
+          <AccordionItem value="open-houses">
+            <AccordionTrigger>Open houses</AccordionTrigger>
+            <AccordionContent>
+              No open houses scheduled
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="property-details">
+            <AccordionTrigger>Property details</AccordionTrigger>
+            <AccordionContent>
               <div className="space-y-2">
-                <div className="font-medium">Estimated Monthly Payment</div>
-                <div className="text-2xl font-bold text-primary">
-                  ${monthlyPayment}/month
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Based on 30-year fixed rate mortgage at 5.5% APR with 20% down payment.
+                <p>{property.description}</p>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <span className="font-medium">Property Type:</span>
+                    <span className="ml-2">{property.propertyType}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Year Built:</span>
+                    <span className="ml-2">2020</span>
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" className="w-full">
-                Get Pre-Qualified
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="monthly-payment">
+            <AccordionTrigger>Monthly payment</AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Principal & Interest</span>
+                  <span>${monthlyPayment.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Property Tax</span>
+                  <span>${Math.round(monthlyPayment * 0.2).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>HOA fees</span>
+                  <span>${Math.round(monthlyPayment * 0.1).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Total</span>
+                  <span>${Math.round(monthlyPayment * 1.3).toLocaleString()}</span>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="connect-lender">
+            <AccordionTrigger>Connect with a lender</AccordionTrigger>
+            <AccordionContent>
+              Contact our preferred lenders for financing options
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="veterans-benefits">
+            <AccordionTrigger>Veterans & military benefits</AccordionTrigger>
+            <AccordionContent>
+              Learn about VA loans and military benefits
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="property-history">
+            <AccordionTrigger>Property history</AccordionTrigger>
+            <AccordionContent>
+              View property history and past transactions
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="neighborhood">
+            <AccordionTrigger>Neighborhood & schools</AccordionTrigger>
+            <AccordionContent>
+              Explore the local area and nearby schools
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );

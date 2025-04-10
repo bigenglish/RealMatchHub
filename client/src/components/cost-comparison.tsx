@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { Play, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +8,29 @@ interface CostComparisonProps {
 }
 
 export default function CostComparison({ className = '' }: CostComparisonProps) {
-  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Toggle video display and play/pause
+  const toggleVideo = () => {
+    setShowVideo(!showVideo);
+  };
+
+  // Effect to play video when shown
+  useEffect(() => {
+    if (showVideo && videoRef.current) {
+      const playVideo = async () => {
+        try {
+          await videoRef.current?.play();
+          console.log("Video playing successfully");
+        } catch (error) {
+          console.error("Error playing video:", error);
+        }
+      };
+      
+      playVideo();
+    }
+  }, [showVideo]);
   
   return (
     <section className={cn("py-20", className)}>
@@ -31,14 +52,38 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
           <div className="flex flex-col md:flex-row gap-6 mb-10">
             <Button 
               className="bg-slate-700 hover:bg-slate-800 text-white py-6 px-8"
-              onClick={() => setVideoDialogOpen(true)}
+              onClick={toggleVideo}
             >
-              See How It Works
+              {showVideo ? "Hide Video" : "See How It Works"}
             </Button>
             <Button className="bg-slate-700 hover:bg-slate-800 text-white py-6 px-8">
               Start For Free
             </Button>
           </div>
+          
+          {/* Video Display (Inline) */}
+          {showVideo && (
+            <div className="mb-8 bg-black rounded-lg overflow-hidden">
+              <div className="p-3 flex justify-between items-center">
+                <h3 className="text-white text-lg font-medium">Pay Your Way</h3>
+                <button 
+                  onClick={toggleVideo} 
+                  className="rounded-full p-1 bg-gray-700 text-white hover:bg-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <video 
+                ref={videoRef}
+                className="w-full" 
+                controls
+                preload="auto"
+              >
+                <source src="/pay-your-way-video.mp4" type="video/mp4" />
+                Your browser does not support video playback.
+              </video>
+            </div>
+          )}
           
           {/* Comparison Example - Simple Version matching the screenshot */}
           <div className="w-full mt-8">
@@ -86,32 +131,6 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
           </div>
         </div>
       </div>
-      
-      {/* Video Dialog */}
-      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
-        <DialogContent className="max-w-4xl p-0 bg-black overflow-hidden">
-          <div className="relative">
-            <DialogClose className="absolute top-2 right-2 z-10 rounded-full p-2 bg-black/50 text-white hover:bg-black/70">
-              <X className="h-5 w-5" />
-            </DialogClose>
-            {videoDialogOpen && (
-              <div className="bg-black p-1">
-                <h3 className="text-white text-lg font-medium mb-2 p-2">Pay Your Way</h3>
-                <video 
-                  width="100%" 
-                  height="auto" 
-                  controls 
-                  autoPlay
-                  playsInline
-                >
-                  <source src="/pay-your-way-video.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

@@ -144,8 +144,8 @@ export default function HomePage() {
             </p>
           </div>
           
-          {/* Video now takes full width - made even wider */}
-          <div className="w-full max-w-5xl mx-auto">
+          {/* Video now takes full width - made to match search box width */}
+          <div className="w-full max-w-4xl mx-auto">
             <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]">
               {/* Direct Video Element - Now even wider and taller */}
               <div className="relative w-full h-full" style={{ minHeight: "500px" }}>

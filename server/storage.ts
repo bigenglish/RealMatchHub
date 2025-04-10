@@ -6,6 +6,12 @@ import {
   MarketTrend, InsertMarketTrend, PropertyWithGeo, MarketTrendData 
 } from "@shared/schema";
 
+import {
+  ChatConversation, InsertChatConversation, ChatParticipant, InsertChatParticipant,
+  ChatMessage, InsertChatMessage, Appointment, InsertAppointment,
+  ChatConversationWithDetails, AppointmentDetails
+} from "@shared/chat-schema";
+
 export interface IStorage {
   // Properties
   getProperties(): Promise<Property[]> | Property[];
@@ -64,6 +70,28 @@ export interface IStorage {
   getServiceRequestsByExpert(expertId: number): Promise<ServiceRequest[]>;
   createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest>;
   updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined>;
+  
+  // Chat Conversations
+  createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
+  getChatConversation(id: number): Promise<ChatConversation | undefined>;
+  getChatConversations(): Promise<ChatConversation[]>;
+  getChatConversationsByUserId(userId: number): Promise<ChatConversationWithDetails[]>;
+  addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
+  removeChatParticipant(conversationId: number, userId: number): Promise<boolean>;
+  
+  // Chat Messages
+  saveChatMessage(message: Omit<ChatMessage, 'id'>): Promise<ChatMessage>;
+  getChatMessages(conversationId: number): Promise<ChatMessage[]>;
+  getChatUnreadMessages(userId: number): Promise<{ conversationId: number, count: number }[]>;
+  markChatMessagesAsRead(conversationId: number, userId: number): Promise<boolean>;
+  
+  // Appointments
+  createAppointment(appointment: AppointmentDetails): Promise<Appointment>;
+  getAppointment(id: number): Promise<Appointment | undefined>;
+  getAppointmentsByUser(userId: number): Promise<Appointment[]>;
+  getAppointmentsByExpert(expertId: number): Promise<Appointment[]>;
+  getAppointmentsByProperty(propertyId: number): Promise<Appointment[]>;
+  updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -75,6 +103,12 @@ export class MemStorage implements IStorage {
   private bundleServices: Map<number, BundleService>;
   private serviceRequests: Map<number, ServiceRequest>;
   private marketTrends: Map<number, MarketTrend>;
+  // Chat and Appointment storage maps
+  private chatConversations: Map<number, ChatConversation>;
+  private chatParticipants: Map<number, ChatParticipant>;
+  private chatMessages: Map<number, ChatMessage>;
+  private appointments: Map<number, Appointment>;
+  // IDs for auto-increment
   private propertyId: number;
   private providerId: number;
   private serviceExpertId: number;
@@ -83,6 +117,10 @@ export class MemStorage implements IStorage {
   private bundleServiceId: number;
   private serviceRequestId: number;
   private marketTrendId: number;
+  private chatConversationId: number;
+  private chatParticipantId: number;
+  private chatMessageId: number;
+  private appointmentId: number;
 
   constructor() {
     this.properties = new Map();

@@ -137,9 +137,10 @@ export default function HomePage() {
                 playsInline
                 preload="auto"
                 controls={false}
-                src="/Hero Video (1).mp4"
                 style={{ minHeight: "320px" }}
               >
+                <source src="/hero-video.mov" type="video/quicktime" />
+                <source src="/Hero Video (1).mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               

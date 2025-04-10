@@ -76,7 +76,7 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
               
               <div className="relative">
                 <iframe
-                  src="/video-player.html"
+                  src="/pay-your-way-player.html"
                   className="w-full"
                   style={{ height: '450px', border: 'none' }}
                   title="Pay Your Way Video"

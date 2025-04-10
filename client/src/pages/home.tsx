@@ -137,7 +137,7 @@ export default function HomePage() {
           {/* Title and tagline now above the video */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold">
-              Realty.ai: <span>The Future of Real Estate is Here.</span>
+              Realty.AI: <span>The Future of Real Estate is Here.</span>
             </h1>
             <p className="text-xl mt-4 max-w-2xl mx-auto">
               Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
@@ -312,7 +312,7 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="text-gray-700 mb-6">
-                "I paid no agent commissions when selling my home and saved $24,000 with Realty.ai."
+                "I paid no agent commissions when selling my home and saved $24,000 with Realty.AI."
               </p>
               <div className="flex items-center">
                 <div>
@@ -331,7 +331,7 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="text-gray-700 mb-6">
-                "First time buying a home and Realty.ai was incredibly helpful. They walked me through the paperwork and connected me to a great lending option and two local Experts who helped me through every step of the process, making my experience stress-free."
+                "First time buying a home and Realty.AI was incredibly helpful. They walked me through the paperwork and connected me to a great lending option and two local Experts who helped me through every step of the process, making my experience stress-free."
               </p>
               <div className="flex items-center">
                 <div>
@@ -349,7 +349,7 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="text-gray-700 mb-6">
-                "The Realty.ai platform simplified the entire paperwork process. Their AI assistant explained everything clearly, and I always had access to expert support when I needed it."
+                "The Realty.AI platform simplified the entire paperwork process. Their AI assistant explained everything clearly, and I always had access to expert support when I needed it."
               </p>
               <div className="flex items-center">
                 <div>
@@ -367,7 +367,7 @@ export default function HomePage() {
                 ))}
               </div>
               <p className="text-gray-700 mb-6">
-                "When I bought my first condo I just wanted to make sure I knew about the HOA and all other fees I could expect to pay. Realty.ai allowed me to keep more of my money and put what would have been commission payments towards my down payment."
+                "When I bought my first condo I just wanted to make sure I knew about the HOA and all other fees I could expect to pay. Realty.AI allowed me to keep more of my money and put what would have been commission payments towards my down payment."
               </p>
               <div className="flex items-center">
                 <div>
@@ -577,7 +577,7 @@ export default function HomePage() {
             <div className="lg:w-1/2">
               <h2 className="text-5xl font-bold mb-6">Expert Network</h2>
               <div className="mb-8">
-                <p className="text-white/80 mb-4">Powered by Realty.ai Experts Marketplace:</p>
+                <p className="text-white/80 mb-4">Powered by Realty.AI Experts Marketplace:</p>
                 <p className="text-lg mb-6">
                   Unlock 24/7 access to top-tier industry experts across real estate, select from realtors,
                   lenders, contractors, and attorneys armed with unmatched AI expertise for all your buying
@@ -586,7 +586,7 @@ export default function HomePage() {
               </div>
               
               <div className="mb-8">
-                <p className="text-white/80 mb-4">Connect with Realty.ai Team:</p>
+                <p className="text-white/80 mb-4">Connect with Realty.AI Team:</p>
                 <p className="text-lg mb-6">
                   Submit questions and communicate with agents via email, text, or video chat.
                 </p>

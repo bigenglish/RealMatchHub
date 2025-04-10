@@ -1448,7 +1448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Create payment intent for one-time payments
     app.post("/api/create-payment-intent", async (req, res) => {
       try {
-        const { amount, metadata } = req.body;
+        const { amount, serviceIds, metadata } = req.body;
         
         if (!amount || amount <= 0) {
           return res.status(400).json({ message: "Amount is required and must be greater than 0" });
@@ -1456,11 +1456,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`[express] Creating payment intent for amount: ${amount}`);
         
+        let enhancedMetadata = metadata || {};
+        
+        // If service IDs are provided, retrieve service details and include in metadata
+        if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
+          try {
+            // Get service details to include in metadata
+            const services = await Promise.all(
+              serviceIds.map(async (id) => {
+                const service = await storage.getServiceOffering(Number(id));
+                return service ? {
+                  id: service.id,
+                  name: service.name,
+                  type: service.serviceType
+                } : null;
+              })
+            );
+            
+            const validServices = services.filter(s => s !== null);
+            enhancedMetadata = {
+              ...enhancedMetadata,
+              services: JSON.stringify(validServices),
+              serviceCount: validServices.length
+            };
+            
+            console.log(`[express] Payment for ${validServices.length} services: ${validServices.map(s => s.name).join(', ')}`);
+          } catch (err) {
+            console.error('[express] Error retrieving service details:', err);
+            // Continue with payment intent creation even if service details couldn't be retrieved
+          }
+        }
+        
         // Create a payment intent
         const paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(amount), // Amount in cents
+          amount: Math.round(amount * 100), // Convert to cents
           currency: 'usd',
-          metadata: metadata || {},
+          metadata: enhancedMetadata,
           automatic_payment_methods: {
             enabled: true,
           },

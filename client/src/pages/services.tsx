@@ -11,6 +11,7 @@ import AppointmentScheduler, { ServiceExpert } from '@/components/appointment-sc
 import ChatInterface from '@/components/chat-interface';
 import ServiceSelection from '@/components/service-selection';
 import CostSummary from '@/components/cost-summary';
+import PaymentProcessor from '@/components/payment-processor';
 import { ServiceOffering as BaseServiceOffering } from '@shared/schema';
 
 // Extend the ServiceOffering type to include the price field from API
@@ -132,6 +133,7 @@ export default function Services() {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [showServiceSelection, setShowServiceSelection] = useState<boolean>(false);
   const [showCostSummary, setShowCostSummary] = useState<boolean>(false);
+  const [showPayment, setShowPayment] = useState<boolean>(false);
   const [selectedServices, setSelectedServices] = useState<ServiceOffering[]>([]);
   const [totalCost, setTotalCost] = useState<number>(0);
   const { toast } = useToast();
@@ -182,11 +184,26 @@ export default function Services() {
   const handlePayNow = () => {
     toast({
       title: "Payment Initiated",
-      description: `Processing payment for ${selectedServices.length} services totaling $${totalCost.toFixed(0)}`,
+      description: `Processing payment for ${selectedServices.length} services totaling $${totalCost.toFixed(2)}`,
     });
     
-    // Here you would normally redirect to a checkout page or open a payment dialog
+    // Show payment dialog
     setShowCostSummary(false);
+    setShowPayment(true);
+  };
+  
+  const handlePaymentSuccess = () => {
+    setShowPayment(false);
+    toast({
+      title: "Payment Successful",
+      description: "Your payment has been processed successfully. You can now access your purchased services.",
+      variant: "success",
+    });
+  };
+  
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+    setShowCostSummary(true);
   };
 
   const renderExpertCard = (expert: ServiceExpert, serviceType: string) => (
@@ -361,6 +378,23 @@ export default function Services() {
             totalCost={totalCost}
             onBack={handleCostSummaryBack}
             onPayNow={handlePayNow}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Payment Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="max-w-2xl">
+          <DialogTitle>Complete Your Payment</DialogTitle>
+          <DialogDescription>
+            Please enter your payment details to complete the transaction.
+          </DialogDescription>
+          
+          <PaymentProcessor
+            services={selectedServices}
+            totalAmount={totalCost}
+            onSuccess={handlePaymentSuccess}
+            onCancel={handlePaymentCancel}
           />
         </DialogContent>
       </Dialog>

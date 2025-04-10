@@ -49,9 +49,10 @@ const CHART_COLORS = ['#4ECDC4', '#FF6B6B', '#C5E063', '#662E9B', '#F8C250', '#2
 interface ServiceSelectionProps {
   onComplete: (selectedServices: ServiceOffering[], totalCost: number) => void;
   onCancel: () => void;
+  propertyAddress?: string;
 }
 
-export default function ServiceSelection({ onComplete, onCancel }: ServiceSelectionProps) {
+export default function ServiceSelection({ onComplete, onCancel, propertyAddress }: ServiceSelectionProps) {
   const [selectedServices, setSelectedServices] = useState<ServiceOffering[]>([]);
   const [totalCost, setTotalCost] = useState(0);
   const [chartData, setChartData] = useState<Array<{ name: string, value: number, color: string }>>([]);
@@ -154,6 +155,13 @@ export default function ServiceSelection({ onComplete, onCancel }: ServiceSelect
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Select Services</h2>
+        {propertyAddress ? (
+          <div className="mb-2">
+            <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-0">
+              Property: {propertyAddress}
+            </Badge>
+          </div>
+        ) : null}
         <p className="text-gray-500">Choose the services you need for your real estate transaction.</p>
       </div>
 

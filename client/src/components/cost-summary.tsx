@@ -18,9 +18,10 @@ interface CostSummaryProps {
   totalCost: number;
   onBack: () => void;
   onPayNow: () => void;
+  propertyAddress?: string;
 }
 
-export default function CostSummary({ selectedServices, totalCost, onBack, onPayNow }: CostSummaryProps) {
+export default function CostSummary({ selectedServices, totalCost, onBack, onPayNow, propertyAddress }: CostSummaryProps) {
   // Generate chart data from selected services
   const chartData = selectedServices.map((service, index) => {
     // Extract price from priceDisplay or parse from price field
@@ -53,6 +54,15 @@ export default function CostSummary({ selectedServices, totalCost, onBack, onPay
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold mb-2">Services Summary</h2>
+        {propertyAddress && (
+          <div className="bg-muted p-2 rounded-md mb-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span className="text-sm font-medium">{propertyAddress}</span>
+          </div>
+        )}
         <p className="text-gray-500">Review your selected services before proceeding.</p>
       </div>
 

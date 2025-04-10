@@ -127,24 +127,24 @@ export default function HomePage() {
           
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[300px]">
-              {/* Hero Image (right panel) */}
-              <div 
+              {/* Hero Video (right panel) */}
+              <video 
+                id="previewVideo"
                 className="w-full h-full object-cover absolute inset-0"
-                style={{ 
-                  minHeight: "320px",
-                  backgroundImage: "linear-gradient(to right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url('/images/backgrounds/modern-house.svg')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center"
-                }}
+                autoPlay 
+                muted 
+                loop 
+                playsInline
+                preload="auto"
+                controls={false}
+                style={{ minHeight: "320px" }}
+                src="/Hero Video (1).mp4"
               >
-                {/* Play button overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <img src="/play-button.svg" alt="Play Video" className="w-16 h-16 opacity-80 hover:opacity-100 transition-opacity" />
-                </div>
-              </div>
+                Your browser does not support the video tag.
+              </video>
               
-              {/* Semi-transparent overlay */}
-              <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
+              {/* Semi-transparent overlay that won't block video */}
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
             </div>
           </div>
         </div>

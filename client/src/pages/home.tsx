@@ -83,6 +83,8 @@ export default function HomePage() {
       if (heroVideo) {
         // Initially false means NOT muted = audio plays
         setupVideo(heroVideo, '', false);
+        // Set the initial state to match the video (not muted)
+        setIsVideoMuted(false);
       }
       
       // Add interaction handler to ensure videos play on user interaction
@@ -120,28 +122,23 @@ export default function HomePage() {
         {/* Static Background */}
         <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
 
-        {/* Hero Content */}
-        <div className="container mx-auto px-4 relative z-20 pt-24 flex flex-col md:flex-row">
-          <div className="md:w-3/5 space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold">
-              Realty.ai: <span className="block">The Future of Real Estate is Here.</span>
+        {/* Hero Content - Restructured with heading above video */}
+        <div className="container mx-auto px-4 relative z-20 pt-16 flex flex-col">
+          {/* Title and tagline now above the video */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Realty.ai: <span>The Future of Real Estate is Here.</span>
             </h1>
-            <p className="text-xl max-w-lg">
-              Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance. Buy or Sell Your next home, Effortlessly.
+            <p className="text-xl mt-4 max-w-2xl mx-auto">
+              Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
             </p>
-            <div className="pt-4">
-              <Link href="/get-started">
-                <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
-                  GET STARTED FREE
-                </Button>
-              </Link>
-            </div>
           </div>
           
-          <div className="md:w-2/5 mt-10 md:mt-0">
-            <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[340px]">
-              {/* Direct Video Element */}
-              <div className="relative w-full h-full" style={{ minHeight: "340px" }}>
+          {/* Video now takes full width - made even wider */}
+          <div className="w-full max-w-5xl mx-auto">
+            <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]">
+              {/* Direct Video Element - Now even wider and taller */}
+              <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
                 <video
                   id="heroVideo"
                   className="absolute inset-0 w-full h-full object-cover"
@@ -152,42 +149,55 @@ export default function HomePage() {
                   poster="/hero-video-poster.jpg"
                 >
                   {/* Multiple sources for browser compatibility */}
-                  <source src="/Hero-Video.mp4" type="video/mp4" />
-                  <source src="/PAY-YOUR-WAY.webm" type="video/webm" />
+                  <source src="/Hero Video (1).mp4" type="video/mp4" />
+                  <source src="/PAY YOUR WAY.mp4" type="video/mp4" />
+                  <source src="/PAY YOUR WAY.webm" type="video/webm" />
                   <p className="text-center text-white">
                     Your browser doesn't support HTML5 video
                   </p>
                 </video>
                 
-                {/* Sound control button */}
+                {/* Sound control button - Made much larger and more visible */}
                 <button 
-                  className="absolute bottom-4 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 z-10 transition-all"
+                  className="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-4 z-10 transition-all shadow-lg"
                   onClick={() => {
                     const video = document.getElementById('heroVideo') as HTMLVideoElement;
                     if (video) {
+                      // Toggle mute state
                       const newMutedState = !video.muted;
                       video.muted = newMutedState;
                       setIsVideoMuted(newMutedState);
+                      console.log("Video mute toggled to:", newMutedState);
                     }
                   }}
+                  aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
                 >
                   {isVideoMuted ? (
                     // Muted icon (volume off)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                     </svg>
                   ) : (
                     // Unmuted icon (volume on)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                     </svg>
                   )}
                 </button>
                 
-                {/* Semi-transparent overlay for text readability */}
-                <div className="absolute inset-0 bg-black/20"></div>
+                {/* Lighter overlay for better video visibility */}
+                <div className="absolute inset-0 bg-black/10"></div>
               </div>
             </div>
+          </div>
+          
+          {/* Call to action button below video */}
+          <div className="mt-8 text-center">
+            <Link href="/get-started">
+              <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
+                GET STARTED FREE
+              </Button>
+            </Link>
           </div>
         </div>
 

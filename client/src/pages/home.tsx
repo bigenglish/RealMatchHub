@@ -76,13 +76,23 @@ export default function HomePage() {
       
       // Set up the preview video if it exists
       if (previewVideo) {
-        setupVideo(previewVideo, '/Hero Video (1).mp4');
+        setupVideo(previewVideo, '/hero-video.mp4');
       }
       
       // Set up the hero video if it exists - muted for autoplay
       if (heroVideo) {
-        // Initially true means muted for autoplay
-        setupVideo(heroVideo, '', true);
+        // Directly set the source and play
+        heroVideo.muted = true;
+        heroVideo.loop = true;
+        heroVideo.playsInline = true;
+        
+        // Set source directly 
+        heroVideo.src = '/hero-video.mp4';
+        
+        // Load and play
+        heroVideo.load();
+        heroVideo.play().catch(e => console.error("Hero video play failed:", e));
+        
         // Set the initial state to muted
         setIsVideoMuted(true);
       }
@@ -150,7 +160,7 @@ export default function HomePage() {
                   poster="/hero-video-poster.jpg"
                 >
                   {/* Multiple sources for browser compatibility */}
-                  <source src="/Hero Video (1).mp4" type="video/mp4" />
+                  <source src="/hero-video.mp4" type="video/mp4" />
                   <p className="text-center text-white">
                     Your browser doesn't support HTML5 video
                   </p>

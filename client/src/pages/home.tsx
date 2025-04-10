@@ -32,8 +32,8 @@ export default function HomePage() {
     setVideoDialogOpen(true);
   };
   
-  // State to track video mute status
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  // State to track video mute status - default to true initially for autoplay
+  const [isVideoMuted, setIsVideoMuted] = useState(true);
   
   // Video initialization for all videos
   useEffect(() => {
@@ -79,12 +79,12 @@ export default function HomePage() {
         setupVideo(previewVideo, '/Hero Video (1).mp4');
       }
       
-      // Set up the hero video if it exists - not muted to allow audio
+      // Set up the hero video if it exists - muted for autoplay
       if (heroVideo) {
-        // Initially false means NOT muted = audio plays
-        setupVideo(heroVideo, '', false);
-        // Set the initial state to match the video (not muted)
-        setIsVideoMuted(false);
+        // Initially true means muted for autoplay
+        setupVideo(heroVideo, '', true);
+        // Set the initial state to muted
+        setIsVideoMuted(true);
       }
       
       // Add interaction handler to ensure videos play on user interaction
@@ -143,6 +143,7 @@ export default function HomePage() {
                   id="heroVideo"
                   className="absolute inset-0 w-full h-full object-cover"
                   autoPlay
+                  muted
                   loop
                   playsInline
                   preload="auto"
@@ -150,8 +151,6 @@ export default function HomePage() {
                 >
                   {/* Multiple sources for browser compatibility */}
                   <source src="/Hero Video (1).mp4" type="video/mp4" />
-                  <source src="/PAY YOUR WAY.mp4" type="video/mp4" />
-                  <source src="/PAY YOUR WAY.webm" type="video/webm" />
                   <p className="text-center text-white">
                     Your browser doesn't support HTML5 video
                   </p>

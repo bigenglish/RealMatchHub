@@ -242,7 +242,7 @@ export default function HomePage() {
                   <Input 
                     type="text"
                     placeholder="City, State or ZIP" 
-                    className="pl-10 w-full"
+                    className="pl-10 w-full text-gray-900"
                     onChange={(e) => {
                       const value = e.target.value;
                       console.log("Location changed:", value);

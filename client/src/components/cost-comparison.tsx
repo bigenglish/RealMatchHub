@@ -61,10 +61,10 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
             </Button>
           </div>
           
-          {/* Video Display (Inline) - Static Image Replacement */}
+          {/* Video Display (Inline) - WebM Version */}
           {showVideo && (
-            <div className="mb-8 bg-gray-100 rounded-lg overflow-hidden">
-              <div className="p-3 flex justify-between items-center bg-gray-800 text-white">
+            <div className="mb-8 bg-black rounded-lg overflow-hidden">
+              <div className="p-3 flex justify-between items-center">
                 <h3 className="text-white text-lg font-medium">Pay Your Way</h3>
                 <button 
                   onClick={toggleVideo} 
@@ -74,31 +74,15 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
                 </button>
               </div>
               
-              <div className="p-6 text-center">
-                <div className="max-w-xl mx-auto bg-gray-200 p-4 rounded-lg border border-gray-300">
-                  <h3 className="text-xl font-semibold mb-4">Pay Your Way Video</h3>
-                  <p className="mb-4">Learn how Realty.ai can save you thousands on your real estate transaction.</p>
-                  <div className="flex justify-center items-center gap-2 text-gray-700">
-                    <Play className="h-5 w-5" />
-                    <span>Video demonstration shows how you'll pay only for the services you need.</span>
-                  </div>
-                  <div className="mt-6 mb-2">
-                    <ul className="text-left space-y-2 max-w-md mx-auto">
-                      <li className="flex items-start">
-                        <span className="font-bold mr-2">•</span>
-                        <span>Traditional Commission: $35,000 on a $700,000 home</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="font-bold mr-2">•</span>
-                        <span>Realty.ai Approach: Only $4,800 for the same transaction</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="font-bold mr-2">•</span>
-                        <span>Your Savings: $30,200</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+              <div className="relative">
+                <iframe
+                  src="/video-player.html"
+                  className="w-full"
+                  style={{ height: '450px', border: 'none' }}
+                  title="Pay Your Way Video"
+                  allow="autoplay"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
           )}

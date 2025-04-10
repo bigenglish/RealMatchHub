@@ -1,177 +1,172 @@
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Slider } from '@/components/ui/slider';
-import { InfoIcon, PlayCircle } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Play, X, Check, ArrowRight, DollarSign } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CostComparisonProps {
   className?: string;
 }
 
 export default function CostComparison({ className = '' }: CostComparisonProps) {
-  const [homePrice, setHomePrice] = useState(700000);
-  const [showVideo, setShowVideo] = useState(false);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [homeValue, setHomeValue] = useState(700000);
+  const [savingsAmount, setSavingsAmount] = useState(30200);
+  const [commissionPercent, setCommissionPercent] = useState(5);
+  const [realtyCost, setRealtyCost] = useState(4800);
   
-  // Calculate savings
-  const traditionalCommission = homePrice * 0.05; // 5% traditional commission
-  const realtyAiCost = 3000 + 1800; // Standard bundle + Expert consultation(s)
-  const savings = traditionalCommission - realtyAiCost;
-
-  // Format currency
-  const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  });
-
+  // Calculate updated values when homeValue changes
+  const handleHomeValueChange = (value: number) => {
+    setHomeValue(value);
+    const traditionalCommission = value * (commissionPercent / 100);
+    setSavingsAmount(Math.round(traditionalCommission - realtyCost));
+  };
+  
   return (
-    <div className={`py-10 ${className}`}>
-      <div className="container max-w-6xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">PAY YOUR WAY</h2>
+    <section className={cn("py-20", className)}>
+      <div className="container mx-auto px-4">
+        <h2 className="text-5xl font-bold mb-10">PAY YOUR WAY</h2>
         
-        <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-8">
-          <p className="text-lg mb-4">
-            <span className="font-semibold">• Flexible Pricing:</span>{' '}
-            Choose only the services you need, from à la carte options to comprehensive bundles.
-          </p>
-          <p className="text-lg mb-6">
-            <span className="font-semibold">• No Hidden Fees:</span>{' '}
-            Affordable, transparent pricing upfront, so you know exactly what you're paying for.
-          </p>
-
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Dialog open={showVideo} onOpenChange={setShowVideo}>
-              <DialogTrigger asChild>
-                <Button className="bg-[#2f4644] hover:bg-[#1a2928] text-white flex items-center gap-2">
-                  <PlayCircle size={18} />
-                  See How It Works
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl p-0 overflow-hidden">
-                <DialogHeader className="p-4 bg-black/90 text-white">
-                  <DialogTitle>How It Works</DialogTitle>
-                </DialogHeader>
-                <div className="aspect-video w-full bg-black">
-                  <video 
-                    className="w-full h-full" 
-                    controls 
-                    autoPlay
-                    src="/PAY YOUR WAY.mp4"
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Button variant="outline" className="bg-[#2f4644] hover:bg-[#1a2928] text-white">
+        <div className="max-w-4xl mx-auto">
+          <ul className="space-y-4 mb-8">
+            <li className="flex items-start">
+              <span className="font-bold mr-2">• Flexible Pricing:</span>
+              <span>Choose only the services you need, from a la carte options to comprehensive bundles.</span>
+            </li>
+            <li className="flex items-start">
+              <span className="font-bold mr-2">• No Hidden Fees:</span>
+              <span>Affordable, transparent pricing upfront, so you know exactly what you're paying for.</span>
+            </li>
+          </ul>
+          
+          <div className="flex flex-col md:flex-row gap-6 mb-10">
+            <Button 
+              className="bg-olive-600 hover:bg-olive-700 text-white py-6"
+              onClick={() => setVideoDialogOpen(true)}
+            >
+              <Play className="h-5 w-5 mr-2" />
+              See How It Works
+            </Button>
+            <Button className="bg-white text-olive-600 border-olive-600 border py-6">
               Start For Free
             </Button>
           </div>
-        </div>
-
-        {/* Cost comparison section */}
-        <div className="relative my-12 bg-slate-100 p-6 rounded-xl shadow-md">
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold mb-2">Cost Comparison</h3>
-            <p className="text-gray-600 mb-6">See how much you could save with Realty.ai</p>
-            
-            <div className="max-w-lg mx-auto">
-              <p className="text-sm text-gray-500 mb-2">Home Price: {formatter.format(homePrice)}</p>
-              <Slider
-                value={[homePrice]}
-                min={300000}
-                max={1500000}
-                step={25000}
-                onValueChange={(value) => setHomePrice(value[0])}
-                className="mb-4"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-8 justify-between items-center">
-            {/* Left column - Traditional */}
-            <div className="w-full lg:w-5/12">
-              <div className="bg-white p-5 rounded-lg shadow-md">
-                <div className="bg-[#2f4644] text-white p-3 rounded-md text-center mb-6">
-                  <h4 className="text-xl font-semibold">Traditional Commission</h4>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-gray-600 mb-2">Standard Industry Rate</p>
-                  <p className="text-3xl font-bold mb-3">5%</p>
-                  
-                  <Separator className="my-6" />
-                  
-                  <div className="bg-gray-100 p-4 rounded-md">
-                    <p className="text-gray-600 text-lg">Total Cost</p>
-                    <p className="text-4xl font-bold text-red-600">
-                      {formatter.format(traditionalCommission)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Center column - VS */}
-            <div className="hidden lg:flex flex-col items-center justify-center">
-              <div className="bg-white h-16 w-16 rounded-full flex items-center justify-center shadow-md text-lg font-bold">
-                VS
-              </div>
-            </div>
-            
-            {/* Right column - Realty.ai */}
-            <div className="w-full lg:w-5/12">
-              <div className="bg-white p-5 rounded-lg shadow-md">
-                <div className="bg-[#2f4644] text-white p-3 rounded-md text-center mb-6">
-                  <h4 className="text-xl font-semibold">Realty.ai Approach</h4>
-                </div>
-                
-                <div className="text-center">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                      <span>Standard Bundle</span>
-                      <span className="font-semibold">{formatter.format(3000)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Expert Consultation(s)</span>
-                      <span className="font-semibold">{formatter.format(1800)}</span>
-                    </div>
-                  </div>
-                  
-                  <Separator className="my-6" />
-                  
-                  <div className="bg-gray-100 p-4 rounded-md mb-4">
-                    <p className="text-gray-600 text-lg">Total Cost</p>
-                    <p className="text-4xl font-bold text-green-600">
-                      {formatter.format(realtyAiCost)}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-green-100 p-3 rounded-md border-2 border-green-500">
-                    <p className="text-green-700 font-semibold">Your Savings</p>
-                    <p className="text-3xl font-bold text-green-700">
-                      {formatter.format(savings)}
-                    </p>
+          
+          {/* Cost Calculator */}
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-10">
+            <h3 className="text-2xl font-bold mb-4">Cost Comparison Calculator</h3>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Home Value
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="range"
+                    min="200000"
+                    max="2000000"
+                    step="10000"
+                    value={homeValue}
+                    onChange={(e) => handleHomeValueChange(parseInt(e.target.value))}
+                    className="w-full mt-2"
+                  />
+                  <div className="text-center text-xl font-bold mt-2">
+                    ${homeValue.toLocaleString()}
                   </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="text-center mt-8">
-            <Button className="bg-[#2f4644] hover:bg-[#1a2928] text-white">
-              Get Started Today
-            </Button>
-            <p className="text-sm text-gray-500 mt-2 flex items-center justify-center gap-1">
-              <InfoIcon size={14} />
-              Exact savings may vary based on your specific needs and property details
-            </p>
+          {/* Comparison Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-xl overflow-hidden shadow-lg">
+            {/* Traditional Side */}
+            <div className="p-6 bg-gray-100 border-r border-gray-200">
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">Traditional Commission</h3>
+              <div className="text-5xl font-bold mb-6 text-gray-900">
+                ${(homeValue * commissionPercent / 100).toLocaleString()}
+              </div>
+              <div className="text-lg text-gray-700 mb-4">
+                {commissionPercent}% of home value (${homeValue.toLocaleString()})
+              </div>
+              <div className="space-y-3 mt-8">
+                <div className="flex items-start">
+                  <X className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>High percentage-based fees</p>
+                </div>
+                <div className="flex items-start">
+                  <X className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>Paying for services you might not need</p>
+                </div>
+                <div className="flex items-start">
+                  <X className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>Limited control over the process</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Realty.ai Side */}
+            <div className="p-6 bg-white">
+              <h3 className="text-2xl font-bold mb-6 text-olive-800">Realty.ai Approach</h3>
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span>Standard Bundle</span>
+                  <span className="font-bold">$3,000</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-200 pb-2">
+                  <span>Expert Consultation(s)</span>
+                  <span className="font-bold">$1,800</span>
+                </div>
+                <div className="flex justify-between pt-2 font-bold">
+                  <span>Total Cost</span>
+                  <span>${realtyCost.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <div className="bg-green-100 p-4 rounded-lg border-2 border-green-500 text-center mt-6">
+                <span className="text-2xl font-bold text-green-700">
+                  ${savingsAmount.toLocaleString()} savings
+                </span>
+              </div>
+              
+              <div className="space-y-3 mt-8">
+                <div className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>Fixed transparent pricing</p>
+                </div>
+                <div className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>Pay only for what you need</p>
+                </div>
+                <div className="flex items-start">
+                  <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <p>Full control with expert guidance</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Video Dialog */}
+      <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
+        <DialogContent className="max-w-4xl p-0 bg-black rounded-lg overflow-hidden">
+          <div className="relative">
+            <DialogClose className="absolute top-2 right-2 z-10 rounded-full p-2 bg-black/50 text-white hover:bg-black/70">
+              <X className="h-5 w-5" />
+            </DialogClose>
+            <video 
+              className="w-full h-auto"
+              controls
+              autoPlay
+              src="/PAY YOUR WAY.mp4"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </section>
   );
 }

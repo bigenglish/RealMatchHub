@@ -127,37 +127,29 @@ export default function HomePage() {
           
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[300px]">
-              {/* Hero Video Fallback with Image */}
-              <div 
-                className="w-full h-full absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-700"
-                style={{ 
-                  minHeight: "320px",
-                }}
-              >
-                {/* Visual video representation */}
-                <div className="absolute inset-0 flex items-center justify-center flex-col text-white">
-                  <div className="relative w-16 h-16 mb-4">
-                    <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse"></div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="5 3 19 12 5 21 5 3" fill="white" />
-                    </svg>
-                  </div>
-                  <p className="text-center text-sm opacity-80 px-8">
-                    Video showcasing modern homes and satisfied customers
+              {/* Direct Video Element */}
+              <div className="relative w-full h-full" style={{ minHeight: "320px" }}>
+                <video
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  controls={false}
+                  preload="auto"
+                  poster="/hero-video-poster.jpg"
+                >
+                  {/* Multiple sources for browser compatibility */}
+                  <source src="/Hero-Video.mp4" type="video/mp4" />
+                  <source src="/PAY-YOUR-WAY.webm" type="video/webm" />
+                  <p className="text-center text-white">
+                    Your browser doesn't support HTML5 video
                   </p>
-                </div>
-
-                {/* Home image overlay */}
-                <div 
-                  className="absolute inset-0 opacity-20 bg-center bg-cover mix-blend-overlay"
-                  style={{
-                    backgroundImage: "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&q=80')",
-                  }}
-                ></div>
+                </video>
+                
+                {/* Semi-transparent overlay for text readability */}
+                <div className="absolute inset-0 bg-black/20"></div>
               </div>
-              
-              {/* Semi-transparent overlay */}
-              <div className="absolute inset-0 bg-black/10 backdrop-blur-sm"></div>
             </div>
           </div>
         </div>

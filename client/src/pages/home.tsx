@@ -109,7 +109,7 @@ export default function HomePage() {
 
         {/* Hero Content */}
         <div className="container mx-auto px-4 relative z-20 pt-24 flex flex-col md:flex-row">
-          <div className="md:w-1/2 space-y-6">
+          <div className="md:w-3/5 space-y-6">
             <h1 className="text-5xl md:text-6xl font-bold">
               Realty.ai: <span className="block">The Future of Real Estate is Here.</span>
             </h1>
@@ -125,17 +125,16 @@ export default function HomePage() {
             </div>
           </div>
           
-          <div className="md:w-1/2 mt-10 md:mt-0">
-            <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[300px]">
+          <div className="md:w-2/5 mt-10 md:mt-0">
+            <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[340px]">
               {/* Direct Video Element */}
-              <div className="relative w-full h-full" style={{ minHeight: "320px" }}>
+              <div className="relative w-full h-full" style={{ minHeight: "340px" }}>
                 <video
+                  id="heroVideo"
                   className="absolute inset-0 w-full h-full object-cover"
                   autoPlay
-                  muted
                   loop
                   playsInline
-                  controls={false}
                   preload="auto"
                   poster="/hero-video-poster.jpg"
                 >
@@ -146,6 +145,21 @@ export default function HomePage() {
                     Your browser doesn't support HTML5 video
                   </p>
                 </video>
+                
+                {/* Sound control button */}
+                <button 
+                  className="absolute bottom-4 right-4 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 z-10 transition-all"
+                  onClick={() => {
+                    const video = document.getElementById('heroVideo') as HTMLVideoElement;
+                    if (video) {
+                      video.muted = !video.muted;
+                    }
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                </button>
                 
                 {/* Semi-transparent overlay for text readability */}
                 <div className="absolute inset-0 bg-black/20"></div>

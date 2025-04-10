@@ -24,6 +24,7 @@ import {
   insertChatMessageSchema 
 } from "@shared/chat-schema"; // Import chat schemas
 import Stripe from "stripe"; // Import Stripe
+import { registerVideoRoutes } from "./video-static"; // Import video routes handler
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1601,6 +1602,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error updating appointment status" });
     }
   });
+  
+  // Register custom video serving routes
+  registerVideoRoutes(app);
   
   return httpServer;
 }

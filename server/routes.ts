@@ -2,7 +2,13 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertPropertySchema, insertServiceProviderSchema, insertServiceExpertSchema } from "@shared/schema";
+import { 
+  insertPropertySchema, 
+  insertServiceProviderSchema, 
+  insertServiceExpertSchema,
+  insertServiceOfferingSchema,
+  insertServiceBundleSchema
+} from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
 import {
   predictPropertyPrice,
@@ -206,6 +212,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(provider);
     } catch (error) {
       res.status(400).json({ message: "Invalid service provider data" });
+    }
+  });
+
+  // Service offerings routes
+  app.get("/api/service-offerings", async (_req, res) => {
+    try {
+      const offerings = await storage.getServiceOfferings();
+      res.json(offerings);
+    } catch (error) {
+      console.error("Error fetching service offerings:", error);
+      res.status(500).json({ message: "Error fetching service offerings" });
+    }
+  });
+
+  app.get("/api/service-offerings/:id", async (req, res) => {
+    try {
+      const offering = await storage.getServiceOffering(Number(req.params.id));
+      if (!offering) {
+        return res.status(404).json({ message: "Service offering not found" });
+      }
+      res.json(offering);
+    } catch (error) {
+      console.error(`Error fetching service offering ${req.params.id}:`, error);
+      res.status(500).json({ message: "Error fetching service offering" });
+    }
+  });
+
+  app.post("/api/service-offerings", async (req, res) => {
+    try {
+      const data = insertServiceOfferingSchema.parse(req.body);
+      const offering = await storage.createServiceOffering(data);
+      res.status(201).json(offering);
+    } catch (error) {
+      console.error("Error creating service offering:", error);
+      res.status(400).json({ message: "Invalid service offering data" });
+    }
+  });
+
+  // Service bundles routes
+  app.get("/api/service-bundles", async (_req, res) => {
+    try {
+      const bundles = await storage.getServiceBundles();
+      res.json(bundles);
+    } catch (error) {
+      console.error("Error fetching service bundles:", error);
+      res.status(500).json({ message: "Error fetching service bundles" });
+    }
+  });
+
+  app.get("/api/service-bundles/:id", async (req, res) => {
+    try {
+      const bundle = await storage.getServiceBundle(Number(req.params.id));
+      if (!bundle) {
+        return res.status(404).json({ message: "Service bundle not found" });
+      }
+      
+      // Get associated services for the bundle
+      const services = await storage.getServicesInBundle(bundle.id);
+      
+      res.json({
+        ...bundle,
+        services
+      });
+    } catch (error) {
+      console.error(`Error fetching service bundle ${req.params.id}:`, error);
+      res.status(500).json({ message: "Error fetching service bundle" });
+    }
+  });
+
+  app.post("/api/service-bundles", async (req, res) => {
+    try {
+      const data = insertServiceBundleSchema.parse(req.body);
+      const bundle = await storage.createServiceBundle(data);
+      res.status(201).json(bundle);
+    } catch (error) {
+      console.error("Error creating service bundle:", error);
+      res.status(400).json({ message: "Invalid service bundle data" });
     }
   });
   

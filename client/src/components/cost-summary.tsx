@@ -3,7 +3,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { ServiceOffering } from '@shared/schema';
+import { ServiceOffering as BaseServiceOffering } from '@shared/schema';
+
+// Extend the ServiceOffering type to include the price field from API
+interface ServiceOffering extends BaseServiceOffering {
+  price?: string | number;
+}
 
 // Default colors for chart segments if service has no defined color
 const DEFAULT_COLORS = ['#4ECDC4', '#FF6B6B', '#C5E063', '#662E9B', '#F8C250', '#254B62', '#C7C7C7'];
@@ -18,8 +23,24 @@ interface CostSummaryProps {
 export default function CostSummary({ selectedServices, totalCost, onBack, onPayNow }: CostSummaryProps) {
   // Generate chart data from selected services
   const chartData = selectedServices.map((service, index) => {
-    // For demo purposes, use the average of min and max price
-    const servicePrice = (Number(service.minPrice) + Number(service.maxPrice)) / 2;
+    // Extract price from priceDisplay or parse from price field
+    let servicePrice = 0;
+    if (service.price) {
+      // If price is in format "$XXX" or similar
+      const priceMatch = String(service.price).match(/\$?([\d,]+)/);
+      if (priceMatch && priceMatch[1]) {
+        servicePrice = Number(priceMatch[1].replace(/,/g, ''));
+      }
+    } else if (service.minPrice && service.maxPrice) {
+      // If we have min/max price fields
+      servicePrice = (Number(service.minPrice) + Number(service.maxPrice)) / 2;
+    } else if (service.priceDisplay) {
+      // Try to extract from priceDisplay
+      const priceMatch = service.priceDisplay.match(/\$?([\d,]+)/);
+      if (priceMatch && priceMatch[1]) {
+        servicePrice = Number(priceMatch[1].replace(/,/g, ''));
+      }
+    }
     
     return {
       name: service.name,
@@ -77,7 +98,11 @@ export default function CostSummary({ selectedServices, totalCost, onBack, onPay
                   />
                   <span>{service.name}</span>
                 </div>
-                <span className="font-medium">${((Number(service.minPrice) + Number(service.maxPrice)) / 2).toFixed(0)}</span>
+                <span className="font-medium">
+                  {service.priceDisplay || service.price || (service.minPrice && service.maxPrice ? 
+                    `$${((Number(service.minPrice) + Number(service.maxPrice)) / 2).toFixed(0)}` : 
+                    '$0')}
+                </span>
               </div>
             ))}
           </div>

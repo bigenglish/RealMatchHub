@@ -11,7 +11,12 @@ import AppointmentScheduler, { ServiceExpert } from '@/components/appointment-sc
 import ChatInterface from '@/components/chat-interface';
 import ServiceSelection from '@/components/service-selection';
 import CostSummary from '@/components/cost-summary';
-import { ServiceOffering } from '@shared/schema';
+import { ServiceOffering as BaseServiceOffering } from '@shared/schema';
+
+// Extend the ServiceOffering type to include the price field from API
+interface ServiceOffering extends BaseServiceOffering {
+  price?: string | number;
+}
 
 // Mock user for the demo
 const currentUser = {

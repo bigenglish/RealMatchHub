@@ -9,7 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Check, Camera, Home, Layout, BarChart, Users, Link, Clipboard, FileText, Info } from 'lucide-react';
-import { ServiceOffering } from '@shared/schema';
+import { ServiceOffering as BaseServiceOffering } from '@shared/schema';
+
+// Extend the ServiceOffering type to include the price field from API
+interface ServiceOffering extends BaseServiceOffering {
+  price?: string | number;
+}
 
 // Map service types to icons
 const serviceIcons: Record<string, React.ReactNode> = {
@@ -74,8 +79,25 @@ export default function ServiceSelection({ onComplete, onCancel }: ServiceSelect
       // Calculate total
       let total = 0;
       const chartItems = selectedServices.map((service, index) => {
-        // For simplicity, we'll use the average of min and max price
-        const servicePrice = (Number(service.minPrice) + Number(service.maxPrice)) / 2;
+        // Extract price from priceDisplay or parse from price field
+        let servicePrice = 0;
+        if (service.price) {
+          // If price is in format "$XXX" or similar
+          const priceMatch = String(service.price).match(/\$?([\d,]+)/);
+          if (priceMatch && priceMatch[1]) {
+            servicePrice = Number(priceMatch[1].replace(/,/g, ''));
+          }
+        } else if (service.minPrice && service.maxPrice) {
+          // If we have min/max price fields
+          servicePrice = (Number(service.minPrice) + Number(service.maxPrice)) / 2;
+        } else if (service.priceDisplay) {
+          // Try to extract from priceDisplay
+          const priceMatch = service.priceDisplay.match(/\$?([\d,]+)/);
+          if (priceMatch && priceMatch[1]) {
+            servicePrice = Number(priceMatch[1].replace(/,/g, ''));
+          }
+        }
+        
         total += servicePrice;
         
         // Use the service's color if defined, otherwise use from our chart colors array

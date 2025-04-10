@@ -6,9 +6,12 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Home, Info, Users, Calendar, MessageSquare, CheckCircle, Building, User } from 'lucide-react';
+import { Home, Info, Users, Calendar, MessageSquare, CheckCircle, Building, User, CreditCard } from 'lucide-react';
 import AppointmentScheduler, { ServiceExpert } from '@/components/appointment-scheduler';
 import ChatInterface from '@/components/chat-interface';
+import ServiceSelection from '@/components/service-selection';
+import CostSummary from '@/components/cost-summary';
+import { ServiceOffering } from '@shared/schema';
 
 // Mock user for the demo
 const currentUser = {
@@ -122,6 +125,10 @@ export default function Services() {
   const [showAppointment, setShowAppointment] = useState<boolean>(false);
   const [showChat, setShowChat] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [showServiceSelection, setShowServiceSelection] = useState<boolean>(false);
+  const [showCostSummary, setShowCostSummary] = useState<boolean>(false);
+  const [selectedServices, setSelectedServices] = useState<ServiceOffering[]>([]);
+  const [totalCost, setTotalCost] = useState<number>(0);
   const { toast } = useToast();
 
   const handleScheduleAppointment = (expert: ServiceExpert, serviceType: string) => {
@@ -145,6 +152,36 @@ export default function Services() {
 
   const handleChatClose = () => {
     setShowChat(false);
+  };
+  
+  const handleOpenServiceSelection = () => {
+    setShowServiceSelection(true);
+  };
+
+  const handleServiceSelectionComplete = (services: ServiceOffering[], cost: number) => {
+    setSelectedServices(services);
+    setTotalCost(cost);
+    setShowServiceSelection(false);
+    setShowCostSummary(true);
+  };
+
+  const handleServiceSelectionCancel = () => {
+    setShowServiceSelection(false);
+  };
+
+  const handleCostSummaryBack = () => {
+    setShowCostSummary(false);
+    setShowServiceSelection(true);
+  };
+
+  const handlePayNow = () => {
+    toast({
+      title: "Payment Initiated",
+      description: `Processing payment for ${selectedServices.length} services totaling $${totalCost.toFixed(0)}`,
+    });
+    
+    // Here you would normally redirect to a checkout page or open a payment dialog
+    setShowCostSummary(false);
   };
 
   const renderExpertCard = (expert: ServiceExpert, serviceType: string) => (
@@ -217,11 +254,23 @@ export default function Services() {
 
   return (
     <div className="container py-6 max-w-5xl mx-auto">
-      <div className="flex flex-col space-y-1.5 mb-6">
-        <h1 className="text-3xl font-bold">Real Estate Services</h1>
-        <p className="text-gray-500">
-          Connect with top real estate professionals to help with your property journey
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Real Estate Services</h1>
+          <p className="text-gray-500">
+            Connect with top real estate professionals to help with your property journey
+          </p>
+        </div>
+        <div>
+          <Button 
+            onClick={handleOpenServiceSelection}
+            size="lg"
+            className="gap-2"
+          >
+            <CreditCard className="h-4 w-4" />
+            Browse Service Packages
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
@@ -286,6 +335,28 @@ export default function Services() {
               onClose={handleChatClose}
             />
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Service Selection Dialog */}
+      <Dialog open={showServiceSelection} onOpenChange={setShowServiceSelection}>
+        <DialogContent className="max-w-4xl">
+          <ServiceSelection 
+            onComplete={handleServiceSelectionComplete}
+            onCancel={handleServiceSelectionCancel}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Cost Summary Dialog */}
+      <Dialog open={showCostSummary} onOpenChange={setShowCostSummary}>
+        <DialogContent className="max-w-3xl">
+          <CostSummary 
+            selectedServices={selectedServices}
+            totalCost={totalCost}
+            onBack={handleCostSummaryBack}
+            onPayNow={handlePayNow}
+          />
         </DialogContent>
       </Dialog>
     </div>

@@ -23,6 +23,7 @@ import {
   insertChatParticipantSchema, 
   insertChatMessageSchema 
 } from "@shared/chat-schema"; // Import chat schemas
+import Stripe from "stripe"; // Import Stripe
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1350,6 +1351,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Payment processing with Stripe
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn('[express] STRIPE_SECRET_KEY is not set, payment features will not work');
+  } else {
+    console.log('[express] Stripe integration initialized');
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2023-10-16',
+    });
+
+    // Create payment intent for one-time payments
+    app.post("/api/create-payment-intent", async (req, res) => {
+      try {
+        const { amount, metadata } = req.body;
+        
+        if (!amount || amount <= 0) {
+          return res.status(400).json({ message: "Amount is required and must be greater than 0" });
+        }
+
+        console.log(`[express] Creating payment intent for amount: ${amount}`);
+        
+        // Create a payment intent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(amount), // Amount in cents
+          currency: 'usd',
+          metadata: metadata || {},
+          automatic_payment_methods: {
+            enabled: true,
+          },
+        });
+        
+        console.log(`[express] Payment intent created: ${paymentIntent.id}`);
+        
+        res.json({
+          clientSecret: paymentIntent.client_secret,
+        });
+      } catch (error) {
+        console.error('[express] Error creating payment intent:', error);
+        res.status(500).json({ 
+          message: "Error creating payment intent", 
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+    });
+
+    // Webhook to handle Stripe events
+    app.post("/api/stripe-webhook", async (req, res) => {
+      const sig = req.headers['stripe-signature'];
+      
+      // In a production app, we'd implement proper signature verification
+      // with a webhook secret, but we're skipping that for this demo
+      try {
+        const event = req.body;
+        
+        // Handle different event types
+        switch (event.type) {
+          case 'payment_intent.succeeded':
+            const paymentIntent = event.data.object;
+            console.log(`[express] Payment succeeded: ${paymentIntent.id}`);
+            // Here we would update our database, send confirmation emails, etc.
+            break;
+            
+          case 'payment_intent.payment_failed':
+            const failedPayment = event.data.object;
+            console.log(`[express] Payment failed: ${failedPayment.id}`);
+            // Here we would handle failed payments
+            break;
+            
+          default:
+            console.log(`[express] Unhandled Stripe event: ${event.type}`);
+        }
+        
+        res.sendStatus(200);
+      } catch (error) {
+        console.error('[express] Error handling webhook:', error);
+        res.status(400).send(`Webhook Error: ${error.message}`);
+      }
+    });
+  }
 
   // Initialize chat service
   const wss = initializeChat(httpServer);

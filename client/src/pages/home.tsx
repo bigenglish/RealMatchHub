@@ -247,7 +247,17 @@ export default function HomePage() {
                       const value = e.target.value;
                       console.log("Location changed:", value);
                     }}
+                    list="location-suggestions"
                   />
+                  <datalist id="location-suggestions">
+                    <option value="Los Angeles, CA" />
+                    <option value="San Francisco, CA" />
+                    <option value="New York, NY" />
+                    <option value="Chicago, IL" />
+                    <option value="Miami, FL" />
+                    <option value="90210" />
+                    <option value="10001" />
+                  </datalist>
                 </div>
               </div>
               

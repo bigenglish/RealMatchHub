@@ -89,19 +89,26 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
       
       {/* Video Dialog */}
       <Dialog open={videoDialogOpen} onOpenChange={setVideoDialogOpen}>
-        <DialogContent className="max-w-4xl p-0 bg-black rounded-lg overflow-hidden">
+        <DialogContent className="max-w-4xl p-0 bg-black overflow-hidden">
           <div className="relative">
             <DialogClose className="absolute top-2 right-2 z-10 rounded-full p-2 bg-black/50 text-white hover:bg-black/70">
               <X className="h-5 w-5" />
             </DialogClose>
-            <video 
-              className="w-full h-auto"
-              controls
-              autoPlay
-              src="/PAY YOUR WAY.mp4"
-            >
-              Your browser does not support the video tag.
-            </video>
+            {videoDialogOpen && (
+              <div className="bg-black p-1">
+                <h3 className="text-white text-lg font-medium mb-2 p-2">Pay Your Way</h3>
+                <video 
+                  width="100%" 
+                  height="auto" 
+                  controls 
+                  autoPlay
+                  playsInline
+                >
+                  <source src="/pay-your-way-video.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

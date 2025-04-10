@@ -128,20 +128,14 @@ export default function HomePage() {
           <div className="md:w-1/2 mt-10 md:mt-0">
             <div className="relative rounded-xl overflow-hidden shadow-xl w-full h-full min-h-[300px]">
               {/* Hero Video (right panel) */}
-              <video 
-                id="previewVideo"
-                className="w-full h-full object-cover absolute inset-0"
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-                preload="auto"
-                controls={false}
+              <iframe
+                src="/hero-video-player.html"
+                className="w-full h-full absolute inset-0 border-0"
                 style={{ minHeight: "320px" }}
-                src="/Hero Video (1).mp4"
-              >
-                Your browser does not support the video tag.
-              </video>
+                title="Hero Video"
+                allow="autoplay"
+                frameBorder="0"
+              ></iframe>
               
               {/* Semi-transparent overlay that won't block video */}
               <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>

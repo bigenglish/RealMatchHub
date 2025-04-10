@@ -1,413 +1,607 @@
 import React, { useState, useEffect } from 'react';
-import { format, parseISO, addDays, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Clock, CalendarIcon, MapPin, Video, User } from 'lucide-react';
+import { format, addDays, parse, isAfter, isBefore, addWeeks } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import PaymentProcessor from './payment-processor';
+import { CalendarIcon, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Tour types
-const TOUR_TYPES = [
-  { id: 'in-person', label: 'In-Person Guided Tour', icon: <MapPin className="h-5 w-5" /> },
-  { id: 'live-video', label: 'Live Video Tour', icon: <Video className="h-5 w-5" /> },
-  { id: 'self-guided', label: 'Self-Guided Tour', icon: <User className="h-5 w-5" /> }
-];
-
-// Time slots
-const TIME_SLOTS = [
-  '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
-  '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM',
-  '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM'
-];
-
-interface AppointmentSchedulerProps {
-  propertyId?: string;
-  propertyAddress?: string;
-  onScheduleComplete?: (appointmentDetails: {
-    tourType: string;
-    date: Date;
-    time: string;
-    name: string;
-    email: string;
-    phone: string;
-    notes: string;
-  }) => void;
-  buttonLabel?: string;
-  buttonVariant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link';
-  buttonSize?: 'default' | 'sm' | 'lg' | 'icon';
-  isFullWidth?: boolean;
+export interface ServiceExpert {
+  id: number;
+  name: string;
+  title: string;
+  description: string;
+  services: string[];
+  rating: number;
+  price: number;
+  image?: string;
+  availability?: string[];
 }
 
+interface AppointmentSchedulerProps {
+  userId: number;
+  userName: string;
+  propertyId?: number;
+  propertyAddress?: string;
+  expertId?: number;
+  serviceType: string;
+  onComplete?: (appointmentId: number) => void;
+  onCancel?: () => void;
+}
+
+type AppointmentStep = 'datetime' | 'details' | 'payment' | 'confirmation';
+type TimeSlot = { time: string; available: boolean };
+
+const generateTimeSlots = (date: Date, bookedTimes: string[] = []): TimeSlot[] => {
+  const slots: TimeSlot[] = [];
+  const startHour = 9; // 9 AM
+  const endHour = 18; // 6 PM
+  
+  for (let hour = startHour; hour < endHour; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const dateTimeString = `${format(date, 'yyyy-MM-dd')}T${timeString}:00`;
+      
+      slots.push({
+        time: timeString,
+        available: !bookedTimes.includes(dateTimeString)
+      });
+    }
+  }
+  
+  return slots;
+};
+
 export default function AppointmentScheduler({
+  userId,
+  userName,
   propertyId,
-  propertyAddress = "Property",
-  onScheduleComplete,
-  buttonLabel = "Schedule a Tour",
-  buttonVariant = "default",
-  buttonSize = "default",
-  isFullWidth = false
+  propertyAddress,
+  expertId,
+  serviceType,
+  onComplete,
+  onCancel
 }: AppointmentSchedulerProps) {
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState(1);
-  const [tourType, setTourType] = useState('');
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [time, setTime] = useState('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [notes, setNotes] = useState('');
-  const [availableDates, setAvailableDates] = useState<Date[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<string[]>(TIME_SLOTS);
-  
-  // Generate available dates (next 30 days)
+  const [step, setStep] = useState<AppointmentStep>('datetime');
+  const [date, setDate] = useState<Date | undefined>(addDays(new Date(), 1));
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [appointmentType, setAppointmentType] = useState<string>(serviceType);
+  const [subType, setSubType] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [experts, setExperts] = useState<ServiceExpert[]>([]);
+  const [selectedExpert, setSelectedExpert] = useState<ServiceExpert | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<Record<string, string[]>>({});
+  const [appointmentId, setAppointmentId] = useState<number | null>(null);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const { toast } = useToast();
+
+  // Fetch experts based on service type
   useEffect(() => {
-    const dates = eachDayOfInterval({
-      start: new Date(),
-      end: addMonths(new Date(), 1)
-    });
-    
-    // Filter out weekends if needed or other logic to determine availability
-    const filteredDates = dates.filter(date => {
-      const day = date.getDay();
-      // Example: exclude Sundays (0)
-      return day !== 0;
-    });
-    
-    setAvailableDates(filteredDates);
-  }, []);
-  
-  // Reset time when date changes
+    const fetchExperts = async () => {
+      try {
+        const response = await apiRequest('GET', `/api/service-experts?serviceType=${serviceType}`);
+        const data = await response.json();
+        
+        if (data.length > 0) {
+          setExperts(data);
+          
+          // If expertId is provided, select that expert
+          if (expertId) {
+            const expert = data.find((e: ServiceExpert) => e.id === expertId);
+            if (expert) {
+              setSelectedExpert(expert);
+            }
+          } else {
+            // Otherwise select the first expert
+            setSelectedExpert(data[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching experts:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load available experts',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    fetchExperts();
+  }, [serviceType, expertId]);
+
+  // Update time slots when date changes
   useEffect(() => {
     if (date) {
-      // Here you would typically fetch available time slots for the selected date
-      // For now, we'll use all time slots but filter based on the day
-      const day = date.getDay();
-      // Example: fewer slots on Saturdays
-      const slots = day === 6 
-        ? TIME_SLOTS.filter((_, i) => i < 8) // Only morning slots on Saturday
-        : TIME_SLOTS;
-      
-      setAvailableTimes(slots);
-      setTime(''); // Reset time selection
+      const dateString = format(date, 'yyyy-MM-dd');
+      const bookedTimes = bookedSlots[dateString] || [];
+      setTimeSlots(generateTimeSlots(date, bookedTimes));
+      setSelectedTime(null); // Reset selected time
     }
-  }, [date]);
-  
-  const handleComplete = () => {
-    if (!date || !time || !tourType) return;
-    
-    const appointmentDetails = {
-      tourType,
-      date,
-      time,
-      name,
-      email,
-      phone,
-      notes
-    };
-    
-    // Call the callback if provided
-    if (onScheduleComplete) {
-      onScheduleComplete(appointmentDetails);
-    }
-    
-    // For demo, just show a success message and close
-    console.log('Appointment scheduled:', appointmentDetails);
-    
-    // Reset form and close dialog
-    resetForm();
-    setOpen(false);
-  };
-  
-  const resetForm = () => {
-    setStep(1);
-    setTourType('');
-    setDate(undefined);
-    setTime('');
-    setName('');
-    setEmail('');
-    setPhone('');
-    setNotes('');
-  };
-  
-  return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
-      if (!isOpen) resetForm();
-    }}>
-      <DialogTrigger asChild>
-        <Button 
-          variant={buttonVariant} 
-          size={buttonSize} 
-          className={isFullWidth ? "w-full" : ""}
-        >
-          {buttonLabel}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {step === 1 && "Schedule a Tour"}
-            {step === 2 && "Select Date & Time"}
-            {step === 3 && "Your Information"}
-            {step === 4 && "Confirm Appointment"}
-          </DialogTitle>
-          <DialogDescription>
-            {propertyAddress && `For property at: ${propertyAddress}`}
-          </DialogDescription>
-        </DialogHeader>
+  }, [date, bookedSlots]);
 
-        {/* Step 1: Tour Type Selection */}
-        {step === 1 && (
-          <div className="py-4">
-            <h3 className="text-lg font-medium mb-4">Choose Tour Type</h3>
-            <div className="grid gap-4 md:grid-cols-3">
-              {TOUR_TYPES.map((type) => (
-                <Card 
-                  key={type.id}
-                  className={`cursor-pointer border-2 transition-all ${
-                    tourType === type.id 
-                      ? 'border-primary bg-primary/5' 
-                      : 'hover:border-gray-400'
-                  }`}
-                  onClick={() => setTourType(type.id)}
-                >
-                  <CardContent className="p-4 flex flex-col items-center justify-center text-center h-40">
-                    <div className={`p-3 rounded-full mb-2 ${
-                      tourType === type.id ? 'bg-primary/20 text-primary' : 'bg-gray-100'
-                    }`}>
-                      {type.icon}
-                    </div>
-                    <h4 className="font-medium">{type.label}</h4>
-                    {tourType === type.id && (
-                      <CheckCircle className="text-primary w-5 h-5 mt-2 absolute top-2 right-2" />
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Step 2: Date & Time Selection */}
-        {step === 2 && (
-          <div className="py-4">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <h3 className="text-lg font-medium mb-4">Select a Date</h3>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  disabled={(date) => {
-                    // Disable dates that aren't in availableDates
-                    return !availableDates.some(availableDate => 
-                      isSameDay(availableDate, date)
-                    );
-                  }}
-                  className="border rounded-md p-2"
-                />
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-medium mb-4">
-                  {date 
-                    ? `Select a Time for ${format(date, 'MMMM d, yyyy')}` 
-                    : 'Select a Date First'}
-                </h3>
-                <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                  {date ? (
-                    availableTimes.map((timeSlot) => (
-                      <Button
-                        key={timeSlot}
-                        variant={time === timeSlot ? "default" : "outline"}
-                        className="justify-start"
-                        onClick={() => setTime(timeSlot)}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        {timeSlot}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 col-span-2">
-                      Please select a date first
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Step 3: Contact Information */}
-        {step === 3 && (
-          <div className="py-4 space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  placeholder="Your full name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="your.email@example.com"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  id="phone" 
-                  value={phone} 
-                  onChange={(e) => setPhone(e.target.value)} 
-                  placeholder="(123) 456-7890"
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes">Notes or Questions (Optional)</Label>
-                <Input 
-                  id="notes" 
-                  value={notes} 
-                  onChange={(e) => setNotes(e.target.value)} 
-                  placeholder="Any specific questions or requests?"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Step 4: Confirmation */}
-        {step === 4 && (
-          <div className="py-4">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-lg mb-2">Tour Details</h3>
-              
-              <div className="grid gap-2 mb-4">
-                <div className="flex">
-                  <div className="font-medium w-32">Tour Type:</div>
-                  <div>{TOUR_TYPES.find(t => t.id === tourType)?.label}</div>
-                </div>
-                
-                <div className="flex">
-                  <div className="font-medium w-32">Date:</div>
-                  <div>{date ? format(date, 'MMMM d, yyyy') : ''}</div>
-                </div>
-                
-                <div className="flex">
-                  <div className="font-medium w-32">Time:</div>
-                  <div>{time}</div>
-                </div>
-              </div>
-              
-              <h3 className="font-medium text-lg mb-2">Contact Information</h3>
-              
-              <div className="grid gap-2">
-                <div className="flex">
-                  <div className="font-medium w-32">Name:</div>
-                  <div>{name}</div>
-                </div>
-                
-                <div className="flex">
-                  <div className="font-medium w-32">Email:</div>
-                  <div>{email}</div>
-                </div>
-                
-                <div className="flex">
-                  <div className="font-medium w-32">Phone:</div>
-                  <div>{phone}</div>
-                </div>
-                
-                {notes && (
-                  <div className="flex">
-                    <div className="font-medium w-32">Notes:</div>
-                    <div>{notes}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <p className="mt-4 text-sm text-gray-500">
-              After confirming, you'll receive a confirmation email with details about your appointment.
-              {tourType === 'live-video' && " A link to join the video call will be provided closer to the appointment time."}
-            </p>
-          </div>
-        )}
-        
-        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between sm:space-x-2">
-          {step > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setStep(step - 1)}
-            >
-              Back
-            </Button>
-          )}
+  // Fetch booked appointments for the current expert
+  useEffect(() => {
+    if (selectedExpert) {
+      const fetchBookings = async () => {
+        try {
+          const response = await apiRequest('GET', `/api/appointments?expertId=${selectedExpert.id}`);
+          const appointments = await response.json();
           
-          <div className="flex space-x-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                resetForm();
-                setOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
+          // Organize booked slots by date
+          const slots: Record<string, string[]> = {};
+          
+          appointments.forEach((apt: any) => {
+            const aptDate = new Date(apt.date);
+            const dateString = format(aptDate, 'yyyy-MM-dd');
+            const timeString = format(aptDate, "yyyy-MM-dd'T'HH:mm:ss");
             
-            {step < 4 ? (
-              <Button
-                type="button"
-                onClick={() => {
-                  // Validation before proceeding
-                  if (step === 1 && !tourType) return;
-                  if (step === 2 && (!date || !time)) return;
-                  if (step === 3 && (!name || !email || !phone)) return;
-                  
-                  setStep(step + 1);
-                }}
-                disabled={
-                  (step === 1 && !tourType) ||
-                  (step === 2 && (!date || !time)) ||
-                  (step === 3 && (!name || !email || !phone))
-                }
-              >
-                Continue
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleComplete}
-              >
-                Confirm Appointment
-              </Button>
+            if (!slots[dateString]) {
+              slots[dateString] = [];
+            }
+            
+            slots[dateString].push(timeString);
+          });
+          
+          setBookedSlots(slots);
+        } catch (error) {
+          console.error('Error fetching bookings:', error);
+        }
+      };
+      
+      fetchBookings();
+    }
+  }, [selectedExpert]);
+
+  const handleSelectTime = (time: string) => {
+    setSelectedTime(time);
+  };
+
+  const handleNextStep = () => {
+    if (step === 'datetime' && date && selectedTime) {
+      setStep('details');
+    } else if (step === 'details') {
+      setStep('payment');
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (step === 'details') {
+      setStep('datetime');
+    } else if (step === 'payment') {
+      setStep('details');
+    }
+  };
+
+  const handlePaymentComplete = async (paymentId: string) => {
+    if (!date || !selectedTime || !selectedExpert) {
+      return;
+    }
+
+    try {
+      // Format date and time for the appointment
+      const dateTimeString = `${format(date, 'yyyy-MM-dd')}T${selectedTime}:00`;
+      const appointmentDateTime = new Date(dateTimeString);
+
+      // Create appointment
+      const appointmentData = {
+        userId,
+        expertId: selectedExpert.id,
+        propertyId,
+        type: appointmentType,
+        subType,
+        date: appointmentDateTime.toISOString(),
+        notes,
+        status: 'confirmed',
+        paymentId,
+        metadata: {
+          customerName: userName,
+          propertyAddress,
+          serviceName: `${appointmentType} - ${subType}`,
+          expertName: selectedExpert.name,
+          price: selectedExpert.price
+        }
+      };
+
+      const response = await apiRequest('POST', '/api/appointments', appointmentData);
+      const appointment = await response.json();
+      
+      setAppointmentId(appointment.id);
+      setStep('confirmation');
+      
+      toast({
+        title: 'Appointment Scheduled',
+        description: `Your appointment has been scheduled for ${format(date, 'MMMM d, yyyy')} at ${selectedTime}`,
+      });
+      
+      if (onComplete) {
+        onComplete(appointment.id);
+      }
+    } catch (error) {
+      console.error('Error scheduling appointment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to schedule appointment',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const renderTimeSelector = () => {
+    return (
+      <div className="grid grid-cols-4 gap-2 mt-4">
+        {timeSlots.map((slot, index) => (
+          <Button
+            key={index}
+            variant={selectedTime === slot.time ? 'default' : 'outline'}
+            className={`
+              ${!slot.available ? 'opacity-50 cursor-not-allowed' : ''}
+              ${selectedTime === slot.time ? 'bg-primary' : ''}
+            `}
+            onClick={() => slot.available && handleSelectTime(slot.time)}
+            disabled={!slot.available}
+          >
+            {slot.time}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+
+  const renderExpertSelector = () => {
+    if (experts.length === 0) {
+      return (
+        <div className="p-4 bg-muted rounded">
+          No experts available for this service.
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <RadioGroup
+          value={selectedExpert?.id.toString()}
+          onValueChange={(value) => {
+            const expert = experts.find(e => e.id.toString() === value);
+            if (expert) {
+              setSelectedExpert(expert);
+            }
+          }}
+        >
+          {experts.map((expert) => (
+            <div key={expert.id} className="flex items-start space-x-3 p-3 border rounded-md">
+              <RadioGroupItem value={expert.id.toString()} id={`expert-${expert.id}`} />
+              <div className="flex-1">
+                <div className="flex justify-between">
+                  <Label htmlFor={`expert-${expert.id}`} className="font-medium">
+                    {expert.name}
+                  </Label>
+                  <div className="text-sm font-medium">${expert.price.toFixed(2)}</div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">{expert.title}</p>
+                <div className="mt-1 flex items-center">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span 
+                      key={i} 
+                      className={`text-sm ${i < expert.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span className="ml-1 text-xs text-gray-500">({expert.rating.toFixed(1)})</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </RadioGroup>
+      </div>
+    );
+  };
+
+  // Sub-type options based on appointment type
+  const getSubTypeOptions = () => {
+    switch (appointmentType) {
+      case 'property_tour':
+        return ['In-person Tour', 'Virtual Tour', 'Open House Visit'];
+      case 'consultation':
+        return ['Property Valuation', 'Buying Strategy', 'Selling Strategy', 'Investment Consultation'];
+      case 'inspection':
+        return ['Full Home Inspection', 'Specialized Inspection', 'Pre-listing Inspection'];
+      case 'appraisal':
+        return ['Full Appraisal', 'Desktop Appraisal', 'Drive-by Appraisal'];
+      case 'mortgage':
+        return ['Initial Consultation', 'Loan Application', 'Rate Discussion'];
+      case 'legal':
+        return ['Contract Review', 'Title Search', 'Closing Preparation'];
+      default:
+        return ['General Appointment'];
+    }
+  };
+
+  const renderDatetimeStep = () => (
+    <>
+      <CardHeader>
+        <CardTitle>Schedule an Appointment</CardTitle>
+        <CardDescription>
+          Select a date and time for your {serviceType.replace('_', ' ')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="bg-muted/50 p-3 rounded-md">
+          <div className="flex items-center mb-2">
+            <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+            <h3 className="font-medium">Select Date</h3>
+          </div>
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={setDate}
+            disabled={(date) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return (
+                isBefore(date, today) || 
+                isAfter(date, addWeeks(today, 4)) || 
+                date.getDay() === 0 || // Sunday
+                date.getDay() === 6    // Saturday
+              );
+            }}
+            className="rounded-md border"
+          />
+        </div>
+
+        {date && (
+          <div className="bg-muted/50 p-3 rounded-md">
+            <div className="flex items-center mb-2">
+              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+              <h3 className="font-medium">Select Time</h3>
+            </div>
+            {renderTimeSelector()}
+          </div>
+        )}
+
+        <div className="bg-muted/50 p-3 rounded-md">
+          <div className="flex items-center mb-2">
+            <h3 className="font-medium">Select Expert</h3>
+          </div>
+          {renderExpertSelector()}
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button 
+          onClick={handleNextStep}
+          disabled={!date || !selectedTime || !selectedExpert}
+        >
+          Next
+        </Button>
+      </CardFooter>
+    </>
+  );
+
+  const renderDetailsStep = () => (
+    <>
+      <CardHeader>
+        <CardTitle>Appointment Details</CardTitle>
+        <CardDescription>
+          Provide additional details for your appointment
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Label htmlFor="appointment-type">Appointment Type</Label>
+          <Select 
+            value={appointmentType} 
+            onValueChange={setAppointmentType}
+          >
+            <SelectTrigger id="appointment-type">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="property_tour">Property Tour</SelectItem>
+              <SelectItem value="consultation">Consultation</SelectItem>
+              <SelectItem value="inspection">Inspection</SelectItem>
+              <SelectItem value="appraisal">Appraisal</SelectItem>
+              <SelectItem value="mortgage">Mortgage</SelectItem>
+              <SelectItem value="legal">Legal</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="sub-type">Appointment Sub-type</Label>
+          <Select 
+            value={subType} 
+            onValueChange={setSubType}
+          >
+            <SelectTrigger id="sub-type">
+              <SelectValue placeholder="Select sub-type" />
+            </SelectTrigger>
+            <SelectContent>
+              {getSubTypeOptions().map((option) => (
+                <SelectItem key={option} value={option}>{option}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {propertyAddress && (
+          <div>
+            <Label>Property</Label>
+            <div className="p-3 bg-muted rounded-md">
+              {propertyAddress}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <Label htmlFor="notes">Additional Notes</Label>
+          <Textarea
+            id="notes"
+            placeholder="Any special requirements or questions..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="min-h-[100px]"
+          />
+        </div>
+
+        <div className="bg-muted/50 p-3 rounded-md">
+          <h3 className="font-medium mb-2">Appointment Summary</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Date:</span>
+              <span className="font-medium">{date ? format(date, 'MMMM d, yyyy') : ''}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Time:</span>
+              <span className="font-medium">{selectedTime}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Expert:</span>
+              <span className="font-medium">{selectedExpert?.name}</span>
+            </div>
+            <Separator className="my-2" />
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Price:</span>
+              <span className="font-medium">${selectedExpert?.price.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={handlePreviousStep}>
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back
+        </Button>
+        <Button 
+          onClick={handleNextStep}
+          disabled={!appointmentType || !subType}
+        >
+          Proceed to Payment
+          <ChevronRight className="ml-1 h-4 w-4" />
+        </Button>
+      </CardFooter>
+    </>
+  );
+
+  const renderPaymentStep = () => (
+    <>
+      <CardHeader>
+        <CardTitle>Payment</CardTitle>
+        <CardDescription>
+          Complete payment to schedule your appointment
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {selectedExpert && (
+          <PaymentProcessor
+            serviceName={`${appointmentType.replace('_', ' ')} - ${subType}`}
+            description={`Appointment with ${selectedExpert.name} on ${date ? format(date, 'MMMM d, yyyy') : ''} at ${selectedTime}`}
+            amount={selectedExpert.price}
+            onComplete={handlePaymentComplete}
+            onCancel={handlePreviousStep}
+          />
+        )}
+      </CardContent>
+    </>
+  );
+
+  const renderConfirmationStep = () => (
+    <>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
+          Appointment Confirmed
+        </CardTitle>
+        <CardDescription>
+          Your appointment has been successfully scheduled
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="bg-muted/50 p-4 rounded-md">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Appointment ID:</span>
+              <span className="font-medium">#{appointmentId}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Date:</span>
+              <span className="font-medium">{date ? format(date, 'MMMM d, yyyy') : ''}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Time:</span>
+              <span className="font-medium">{selectedTime}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Type:</span>
+              <span className="font-medium">{appointmentType.replace('_', ' ')} - {subType}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Expert:</span>
+              <span className="font-medium">{selectedExpert?.name}</span>
+            </div>
+            {propertyAddress && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Property:</span>
+                <span className="font-medium">{propertyAddress}</span>
+              </div>
             )}
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          A confirmation email has been sent to your registered email address.
+          You can also view this appointment in your account dashboard.
+        </p>
+
+        <div className="flex flex-col items-center">
+          <Badge className="mb-2">Add to Calendar</Badge>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">Google</Button>
+            <Button variant="outline" size="sm">Apple</Button>
+            <Button variant="outline" size="sm">Outlook</Button>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button 
+          className="w-full" 
+          onClick={() => onComplete && onComplete(appointmentId || 0)}
+        >
+          Done
+        </Button>
+      </CardFooter>
+    </>
+  );
+
+  const renderCurrentStep = () => {
+    switch (step) {
+      case 'datetime':
+        return renderDatetimeStep();
+      case 'details':
+        return renderDetailsStep();
+      case 'payment':
+        return renderPaymentStep();
+      case 'confirmation':
+        return renderConfirmationStep();
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      {renderCurrentStep()}
+    </Card>
   );
 }

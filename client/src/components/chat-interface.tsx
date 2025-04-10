@@ -19,7 +19,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, User, Users, Phone, Video, Info } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { MessageType, ParticipantType } from "../../server/chat-service";
+
+// Define these types here since we can't import from server
+enum MessageType {
+  CHAT = 'chat',
+  SYSTEM = 'system',
+  JOIN = 'join',
+  LEAVE = 'leave'
+}
+
+enum ParticipantType {
+  BUYER = 'buyer',
+  SELLER = 'seller',
+  EXPERT = 'expert',
+  CUSTOMER_SERVICE = 'customer_service'
+}
 
 // Chat message type
 interface ChatMessage {

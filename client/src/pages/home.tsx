@@ -240,9 +240,13 @@ export default function HomePage() {
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
+                    type="text"
                     placeholder="City, State or ZIP" 
-                    className="pl-10"
-                    onChange={(e) => console.log("Location changed:", e.target.value)}
+                    className="pl-10 w-full"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      console.log("Location changed:", value);
+                    }}
                   />
                 </div>
               </div>

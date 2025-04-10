@@ -283,23 +283,23 @@ export default function PropertiesPage() {
                 </div>
               </CardHeader>
               <CardContent className="pb-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xl font-bold">${property.price.toLocaleString()}</span>
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center"><span className="mr-1">🛏️</span> {property.bedrooms}</span>
-                    <span className="flex items-center"><span className="mr-1">🚿</span> {property.bathrooms}</span>
-                    <span className="flex items-center"><span className="mr-1">📏</span> {property.sqft} ft²</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                  <span className="text-xl font-bold mb-2 sm:mb-0">${property.price.toLocaleString()}</span>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    <span className="flex items-center text-sm"><span className="mr-1">🛏️</span> {property.bedrooms}</span>
+                    <span className="flex items-center text-sm"><span className="mr-1">🚿</span> {property.bathrooms}</span>
+                    <span className="flex items-center text-sm"><span className="mr-1">📏</span> {property.sqft} ft²</span>
                   </div>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  <Link href={`/property/${property.id}`}>
-                    <Button variant="outline" size="sm">View Details</Button>
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mt-4">
+                  <Link href={`/property/${property.id}`} className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">View Details</Button>
                   </Link>
                   <Button 
                     onClick={() => handleOpenServiceSelection(property)}
                     variant="default" 
                     size="sm"
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 w-full sm:w-auto"
                   >
                     <CreditCard className="h-4 w-4" />
                     Get Services
@@ -313,8 +313,14 @@ export default function PropertiesPage() {
       
       {/* Service Selection Dialog */}
       <Dialog open={showServiceSelection} onOpenChange={setShowServiceSelection}>
-        <DialogContent className="max-w-4xl">
-          <DialogTitle>Select Services for {selectedProperty?.address}</DialogTitle>
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="text-xl sm:text-2xl">
+            Select Services for {selectedProperty?.address ? (
+              <span className="block text-sm sm:text-base mt-1 text-muted-foreground truncate">
+                {selectedProperty.address}
+              </span>
+            ) : null}
+          </DialogTitle>
           <DialogDescription>
             Choose the real estate services you need for this property
           </DialogDescription>
@@ -328,10 +334,12 @@ export default function PropertiesPage() {
       
       {/* Cost Summary Dialog */}
       <Dialog open={showCostSummary} onOpenChange={setShowCostSummary}>
-        <DialogContent className="max-w-3xl">
-          <DialogTitle>Service Cost Summary</DialogTitle>
+        <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="text-xl sm:text-2xl">Service Cost Summary</DialogTitle>
           <DialogDescription>
-            Review your selected services for {selectedProperty?.address}
+            Review your selected services for {selectedProperty?.address ? (
+              <span className="font-medium">{selectedProperty.address}</span>
+            ) : null}
           </DialogDescription>
           <CostSummary 
             selectedServices={selectedServices}
@@ -345,8 +353,8 @@ export default function PropertiesPage() {
       
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-2xl">
-          <DialogTitle>Complete Your Payment</DialogTitle>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="text-xl sm:text-2xl">Complete Your Payment</DialogTitle>
           <DialogDescription>
             Please enter your payment details to complete the transaction.
           </DialogDescription>

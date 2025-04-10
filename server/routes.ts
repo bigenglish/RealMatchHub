@@ -1448,11 +1448,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const { amount, serviceIds, metadata } = req.body;
         
-        if (!amount || amount <= 0) {
-          return res.status(400).json({ message: "Amount is required and must be greater than 0" });
+        // Validate amount - must be a number and at least 0.5 for Stripe
+        if (!amount || typeof amount !== 'number' || isNaN(amount) || amount < 0.5) {
+          return res.status(400).json({ 
+            message: "Amount is required and must be at least $0.50",
+            error: "Invalid amount"
+          });
         }
 
-        console.log(`[express] Creating payment intent for amount: ${amount}`);
+        console.log(`[express] Creating payment intent for amount: $${amount.toFixed(2)}`);
         
         let enhancedMetadata = metadata || {};
         
@@ -1462,12 +1466,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get service details to include in metadata
             const services = await Promise.all(
               serviceIds.map(async (id) => {
-                const service = await storage.getServiceOffering(Number(id));
-                return service ? {
-                  id: service.id,
-                  name: service.name,
-                  type: service.serviceType
-                } : null;
+                try {
+                  const service = await storage.getServiceOffering(Number(id));
+                  return service ? {
+                    id: service.id,
+                    name: service.name,
+                    type: service.serviceType
+                  } : null;
+                } catch (err) {
+                  console.error(`[express] Error retrieving service ID ${id}:`, err);
+                  return null;
+                }
               })
             );
             
@@ -1485,21 +1494,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Create a payment intent
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: Math.round(amount * 100), // Convert to cents
-          currency: 'usd',
-          metadata: enhancedMetadata,
-          automatic_payment_methods: {
-            enabled: true,
-          },
-        });
-        
-        console.log(`[express] Payment intent created: ${paymentIntent.id}`);
-        
-        res.json({
-          clientSecret: paymentIntent.client_secret,
-        });
+        try {
+          // Create a payment intent
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: 'usd',
+            metadata: enhancedMetadata,
+            automatic_payment_methods: {
+              enabled: true,
+            },
+          });
+          
+          console.log(`[express] Payment intent created: ${paymentIntent.id}`);
+          
+          res.json({
+            clientSecret: paymentIntent.client_secret,
+          });
+        } catch (stripeError) {
+          console.error('[express] Stripe API error:', stripeError);
+          
+          // Handle specific Stripe errors
+          if (stripeError.type === 'StripeCardError') {
+            return res.status(400).json({ 
+              message: "Payment card error", 
+              error: stripeError.message 
+            });
+          } else if (stripeError.type === 'StripeInvalidRequestError') {
+            return res.status(400).json({ 
+              message: "Invalid request to payment processor", 
+              error: stripeError.message 
+            });
+          } else {
+            // For other types of errors
+            return res.status(500).json({ 
+              message: "Payment processor error", 
+              error: stripeError.message 
+            });
+          }
+        }
       } catch (error) {
         console.error('[express] Error creating payment intent:', error);
         res.status(500).json({ 

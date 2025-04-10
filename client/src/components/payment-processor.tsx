@@ -153,19 +153,30 @@ export default function PaymentProcessor({
         // Create PaymentIntent as soon as the component loads
         const serviceIds = services.map(service => service.id);
         
-        // Ensure amount is a valid number
-        const amount = typeof totalAmount === 'number' ? 
-          Math.max(0.5, totalAmount) : // Minimum of 50 cents for Stripe
-          0.5;
+        // Ensure amount is a valid number and meets Stripe's minimum requirement
+        // Stripe requires the amount to be at least $0.50 USD
+        const minimumAmount = 0.5;
+        const safeAmount = typeof totalAmount === 'number' && !isNaN(totalAmount) && totalAmount > 0
+          ? Math.max(minimumAmount, totalAmount) 
+          : minimumAmount;
+        
+        console.log(`Creating payment intent for amount: $${safeAmount.toFixed(2)}`);
         
         const response = await apiRequest('POST', '/api/create-payment-intent', { 
           serviceIds,
-          amount: amount 
+          amount: safeAmount
         });
         
+        // Handle non-OK responses
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to create payment intent');
+          let errorMessage = 'Failed to create payment intent';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch (e) {
+            // If JSON parsing fails, use the default error message
+          }
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -177,10 +188,11 @@ export default function PaymentProcessor({
         setClientSecret(data.clientSecret);
       } catch (error) {
         console.error('Error creating payment intent:', error);
-        setError('Payment setup failed. Please try again later.');
+        const errorMessage = error instanceof Error ? error.message : 'Payment setup failed. Please try again later.';
+        setError(errorMessage);
         toast({
           title: 'Payment Setup Failed',
-          description: 'Unable to initialize payment. Please try again later.',
+          description: errorMessage,
           variant: 'destructive'
         });
       } finally {

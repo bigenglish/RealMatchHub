@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, X } from "lucide-react";
+import { Play, X, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CostComparisonProps {
@@ -9,28 +9,11 @@ interface CostComparisonProps {
 
 export default function CostComparison({ className = '' }: CostComparisonProps) {
   const [showVideo, setShowVideo] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Toggle video display and play/pause
+  // Toggle video display
   const toggleVideo = () => {
     setShowVideo(!showVideo);
   };
-
-  // Effect to play video when shown
-  useEffect(() => {
-    if (showVideo && videoRef.current) {
-      const playVideo = async () => {
-        try {
-          await videoRef.current?.play();
-          console.log("Video playing successfully");
-        } catch (error) {
-          console.error("Error playing video:", error);
-        }
-      };
-      
-      playVideo();
-    }
-  }, [showVideo]);
   
   return (
     <section className={cn("py-20", className)}>
@@ -54,16 +37,16 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
               className="bg-slate-700 hover:bg-slate-800 text-white py-6 px-8"
               onClick={toggleVideo}
             >
-              {showVideo ? "Hide Video" : "See How It Works"}
+              {showVideo ? "Hide Video Preview" : "See How It Works"}
             </Button>
             <Button className="bg-slate-700 hover:bg-slate-800 text-white py-6 px-8">
               Start For Free
             </Button>
           </div>
           
-          {/* Video Display (Inline) - WebM Version */}
+          {/* Video Preview (Static Image) */}
           {showVideo && (
-            <div className="mb-8 bg-black rounded-lg overflow-hidden">
+            <div className="mb-8 bg-gray-800 rounded-lg overflow-hidden">
               <div className="p-3 flex justify-between items-center">
                 <h3 className="text-white text-lg font-medium">Pay Your Way</h3>
                 <button 
@@ -74,15 +57,33 @@ export default function CostComparison({ className = '' }: CostComparisonProps) 
                 </button>
               </div>
               
-              <div className="relative">
-                <iframe
-                  src="/pay-your-way-player.html"
-                  className="w-full"
-                  style={{ height: '450px', border: 'none' }}
-                  title="Pay Your Way Video"
-                  allow="autoplay"
-                  allowFullScreen
-                ></iframe>
+              <div className="relative bg-gray-900 p-6">
+                <div className="bg-gray-800 p-6 rounded-lg max-w-2xl mx-auto">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="flex items-center gap-3">
+                      <DollarSign className="h-8 w-8 text-green-500" />
+                      <h4 className="text-2xl font-bold text-white">Pay Only For What You Need</h4>
+                    </div>
+                  </div>
+                  
+                  <div className="relative w-full h-48 md:h-64 bg-gray-700 rounded-lg mb-4 overflow-hidden flex items-center justify-center group">
+                    <img 
+                      src="/play-button.svg"
+                      alt="Play Button"
+                      className="absolute w-16 h-16 z-10"
+                    />
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <p className="text-white text-center max-w-xs px-4">
+                        Video content shows how Realty.ai can save you thousands on your real estate transaction
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-gray-300 text-center">
+                    <p>Video demonstrates cost comparison between traditional real estate commissions 
+                    and Realty.ai's transparent pricing structure.</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

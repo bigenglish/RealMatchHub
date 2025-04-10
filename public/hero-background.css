@@ -1,0 +1,6 @@
+/* Hero video background replacement */
+.hero-static-bg {
+  background-image: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6)), url("/images/backgrounds/modern-house.jpg");
+  background-size: cover;
+  background-position: center;
+}

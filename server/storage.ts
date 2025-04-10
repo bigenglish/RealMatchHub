@@ -131,6 +131,11 @@ export class MemStorage implements IStorage {
     this.bundleServices = new Map();
     this.serviceRequests = new Map();
     this.marketTrends = new Map();
+    this.chatConversations = new Map();
+    this.chatParticipants = new Map();
+    this.chatMessages = new Map();
+    this.appointments = new Map();
+    
     this.propertyId = 1;
     this.providerId = 1;
     this.serviceExpertId = 1;
@@ -139,6 +144,10 @@ export class MemStorage implements IStorage {
     this.bundleServiceId = 1;
     this.serviceRequestId = 1;
     this.marketTrendId = 1;
+    this.chatConversationId = 1;
+    this.chatParticipantId = 1;
+    this.chatMessageId = 1;
+    this.appointmentId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
@@ -1056,6 +1065,226 @@ export class MemStorage implements IStorage {
         });
       }
     }
+  }
+  
+  // Chat Conversations
+  async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
+    const id = this.chatConversationId++;
+    const newConversation: ChatConversation = {
+      ...conversation,
+      id,
+      createdAt: new Date().toISOString(),
+      lastMessageAt: new Date().toISOString()
+    };
+    this.chatConversations.set(id, newConversation);
+    return newConversation;
+  }
+  
+  async getChatConversation(id: number): Promise<ChatConversation | undefined> {
+    return this.chatConversations.get(id);
+  }
+  
+  async getChatConversations(): Promise<ChatConversation[]> {
+    return Array.from(this.chatConversations.values());
+  }
+  
+  async getChatConversationsByUserId(userId: number): Promise<ChatConversationWithDetails[]> {
+    // Get all participants for this user
+    const userParticipations = Array.from(this.chatParticipants.values())
+      .filter(participant => participant.userId === userId)
+      .map(participant => participant.conversationId);
+    
+    // Get conversations
+    const conversations = Array.from(this.chatConversations.values())
+      .filter(conversation => userParticipations.includes(conversation.id));
+    
+    // Enrich with participants and latest message
+    return Promise.all(conversations.map(async conversation => {
+      const participants = Array.from(this.chatParticipants.values())
+        .filter(participant => participant.conversationId === conversation.id);
+      
+      const messages = Array.from(this.chatMessages.values())
+        .filter(message => message.conversationId === conversation.id)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      const latestMessage = messages.length > 0 ? messages[0] : undefined;
+      
+      const unreadCount = messages.filter(message => 
+        !message.isRead && message.senderId !== userId
+      ).length;
+      
+      return {
+        ...conversation,
+        participants,
+        latestMessage,
+        unreadCount
+      };
+    }));
+  }
+  
+  async addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant> {
+    const id = this.chatParticipantId++;
+    const newParticipant: ChatParticipant = {
+      ...participant,
+      id,
+      joinedAt: new Date().toISOString(),
+      lastReadAt: new Date().toISOString()
+    };
+    this.chatParticipants.set(id, newParticipant);
+    return newParticipant;
+  }
+  
+  async removeChatParticipant(conversationId: number, userId: number): Promise<boolean> {
+    const participants = Array.from(this.chatParticipants.values());
+    const participantToRemove = participants.find(p => 
+      p.conversationId === conversationId && p.userId === userId
+    );
+    
+    if (participantToRemove) {
+      this.chatParticipants.delete(participantToRemove.id);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  // Chat Messages
+  async saveChatMessage(message: Omit<ChatMessage, 'id'>): Promise<ChatMessage> {
+    const id = this.chatMessageId++;
+    const newMessage: ChatMessage = {
+      ...message,
+      id: id.toString(),
+    };
+    this.chatMessages.set(id, newMessage);
+    
+    // Update last message timestamp on conversation
+    const conversation = this.chatConversations.get(parseInt(message.conversationId));
+    if (conversation) {
+      conversation.lastMessageAt = message.timestamp;
+      this.chatConversations.set(conversation.id, conversation);
+    }
+    
+    return newMessage;
+  }
+  
+  async getChatMessages(conversationId: number): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter(message => parseInt(message.conversationId) === conversationId)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }
+  
+  async getChatUnreadMessages(userId: number): Promise<{ conversationId: number, count: number }[]> {
+    // Get conversations this user is a part of
+    const userParticipations = Array.from(this.chatParticipants.values())
+      .filter(participant => participant.userId === userId)
+      .map(participant => participant.conversationId);
+    
+    const result: { conversationId: number, count: number }[] = [];
+    
+    // For each conversation, count unread messages
+    for (const conversationId of userParticipations) {
+      const unreadCount = Array.from(this.chatMessages.values()).filter(message => 
+        parseInt(message.conversationId) === conversationId && 
+        message.senderId !== userId &&
+        !message.isRead
+      ).length;
+      
+      if (unreadCount > 0) {
+        result.push({ conversationId, count: unreadCount });
+      }
+    }
+    
+    return result;
+  }
+  
+  async markChatMessagesAsRead(conversationId: number, userId: number): Promise<boolean> {
+    const messages = Array.from(this.chatMessages.values())
+      .filter(message => 
+        parseInt(message.conversationId) === conversationId && 
+        message.senderId !== userId &&
+        !message.isRead
+      );
+    
+    // Mark all messages as read
+    for (const message of messages) {
+      message.isRead = true;
+      this.chatMessages.set(parseInt(message.id), message);
+    }
+    
+    // Update last read timestamp for participant
+    const participant = Array.from(this.chatParticipants.values()).find(p => 
+      p.conversationId === conversationId && p.userId === userId
+    );
+    
+    if (participant) {
+      participant.lastReadAt = new Date().toISOString();
+      this.chatParticipants.set(participant.id, participant);
+    }
+    
+    return true;
+  }
+  
+  // Appointments
+  async createAppointment(appointmentDetails: AppointmentDetails): Promise<Appointment> {
+    const id = this.appointmentId++;
+    const now = new Date().toISOString();
+    
+    const appointment: Appointment = {
+      id,
+      propertyId: appointmentDetails.propertyId || null,
+      userId: appointmentDetails.userId,
+      expertId: appointmentDetails.expertId || null,
+      type: appointmentDetails.type,
+      subType: appointmentDetails.subType,
+      status: 'pending',
+      date: appointmentDetails.date.toISOString(),
+      notes: appointmentDetails.notes || null,
+      createdAt: now,
+      updatedAt: now,
+      metadata: appointmentDetails.metadata || null
+    };
+    
+    this.appointments.set(id, appointment);
+    return appointment;
+  }
+  
+  async getAppointment(id: number): Promise<Appointment | undefined> {
+    return this.appointments.get(id);
+  }
+  
+  async getAppointmentsByUser(userId: number): Promise<Appointment[]> {
+    return Array.from(this.appointments.values())
+      .filter(appointment => appointment.userId === userId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  
+  async getAppointmentsByExpert(expertId: number): Promise<Appointment[]> {
+    return Array.from(this.appointments.values())
+      .filter(appointment => appointment.expertId === expertId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  
+  async getAppointmentsByProperty(propertyId: number): Promise<Appointment[]> {
+    return Array.from(this.appointments.values())
+      .filter(appointment => appointment.propertyId === propertyId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  
+  async updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined> {
+    const appointment = this.appointments.get(id);
+    
+    if (appointment) {
+      const updatedAppointment: Appointment = {
+        ...appointment,
+        status,
+        updatedAt: new Date().toISOString()
+      };
+      
+      this.appointments.set(id, updatedAppointment);
+      return updatedAppointment;
+    }
+    
+    return undefined;
   }
 }
 

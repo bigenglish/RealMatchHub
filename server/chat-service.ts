@@ -1,6 +1,6 @@
 import { Server as HTTPServer } from 'http';
-import { Server as WebSocketServer } from 'ws';
 import WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
 import { storage } from './storage';
 
 // Message types

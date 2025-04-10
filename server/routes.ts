@@ -16,6 +16,13 @@ import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress }
 import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functions
 import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
 import { generatePropertyRecommendations } from "./ai-property-recommendations"; // Import AI property recommendations
+import { initializeChat } from "./chat-service"; // Import chat service
+import { 
+  insertAppointmentSchema, 
+  insertChatConversationSchema, 
+  insertChatParticipantSchema, 
+  insertChatMessageSchema 
+} from "@shared/chat-schema"; // Import chat schemas
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1344,5 +1351,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialize chat service
+  const wss = initializeChat(httpServer);
+  console.log('[express] WebSocket server initialized for chat');
+  
+  // Chat conversation routes
+  app.post("/api/chat/conversations", async (req, res) => {
+    try {
+      const data = insertChatConversationSchema.parse(req.body);
+      const conversation = await storage.createChatConversation(data);
+      res.status(201).json(conversation);
+    } catch (error) {
+      console.error('[express] Error creating chat conversation:', error);
+      res.status(400).json({ message: "Invalid conversation data" });
+    }
+  });
+  
+  app.get("/api/chat/conversations", async (req, res) => {
+    try {
+      const userId = req.query.userId ? Number(req.query.userId) : undefined;
+      
+      if (userId) {
+        const conversations = await storage.getChatConversationsByUserId(userId);
+        res.json(conversations);
+      } else {
+        const conversations = await storage.getChatConversations();
+        res.json(conversations);
+      }
+    } catch (error) {
+      console.error('[express] Error fetching chat conversations:', error);
+      res.status(500).json({ message: "Error fetching conversations" });
+    }
+  });
+  
+  app.get("/api/chat/conversations/:id", async (req, res) => {
+    try {
+      const conversation = await storage.getChatConversation(Number(req.params.id));
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      res.json(conversation);
+    } catch (error) {
+      console.error('[express] Error fetching chat conversation:', error);
+      res.status(500).json({ message: "Error fetching conversation" });
+    }
+  });
+  
+  app.post("/api/chat/participants", async (req, res) => {
+    try {
+      const data = insertChatParticipantSchema.parse(req.body);
+      const participant = await storage.addChatParticipant(data);
+      res.status(201).json(participant);
+    } catch (error) {
+      console.error('[express] Error adding chat participant:', error);
+      res.status(400).json({ message: "Invalid participant data" });
+    }
+  });
+  
+  app.delete("/api/chat/participants/:conversationId/:userId", async (req, res) => {
+    try {
+      const conversationId = Number(req.params.conversationId);
+      const userId = Number(req.params.userId);
+      
+      const removed = await storage.removeChatParticipant(conversationId, userId);
+      if (!removed) {
+        return res.status(404).json({ message: "Participant not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('[express] Error removing chat participant:', error);
+      res.status(500).json({ message: "Error removing participant" });
+    }
+  });
+  
+  app.get("/api/chat/messages/:conversationId", async (req, res) => {
+    try {
+      const conversationId = Number(req.params.conversationId);
+      const messages = await storage.getChatMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error('[express] Error fetching chat messages:', error);
+      res.status(500).json({ message: "Error fetching messages" });
+    }
+  });
+  
+  app.post("/api/chat/read/:conversationId/:userId", async (req, res) => {
+    try {
+      const conversationId = Number(req.params.conversationId);
+      const userId = Number(req.params.userId);
+      
+      await storage.markChatMessagesAsRead(conversationId, userId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('[express] Error marking messages as read:', error);
+      res.status(500).json({ message: "Error marking messages as read" });
+    }
+  });
+  
+  // Appointment routes
+  app.post("/api/appointments", async (req, res) => {
+    try {
+      // Convert the string date to a Date object
+      const appointmentData = {
+        ...req.body,
+        date: new Date(req.body.date)
+      };
+      
+      const appointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(appointment);
+    } catch (error) {
+      console.error('[express] Error creating appointment:', error);
+      res.status(400).json({ message: "Invalid appointment data" });
+    }
+  });
+  
+  app.get("/api/appointments", async (req, res) => {
+    try {
+      const userId = req.query.userId ? Number(req.query.userId) : undefined;
+      const expertId = req.query.expertId ? Number(req.query.expertId) : undefined;
+      const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+      
+      if (userId) {
+        const appointments = await storage.getAppointmentsByUser(userId);
+        res.json(appointments);
+      } else if (expertId) {
+        const appointments = await storage.getAppointmentsByExpert(expertId);
+        res.json(appointments);
+      } else if (propertyId) {
+        const appointments = await storage.getAppointmentsByProperty(propertyId);
+        res.json(appointments);
+      } else {
+        res.status(400).json({ message: "Missing filter parameter (userId, expertId, or propertyId)" });
+      }
+    } catch (error) {
+      console.error('[express] Error fetching appointments:', error);
+      res.status(500).json({ message: "Error fetching appointments" });
+    }
+  });
+  
+  app.get("/api/appointments/:id", async (req, res) => {
+    try {
+      const appointment = await storage.getAppointment(Number(req.params.id));
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      res.json(appointment);
+    } catch (error) {
+      console.error('[express] Error fetching appointment:', error);
+      res.status(500).json({ message: "Error fetching appointment" });
+    }
+  });
+  
+  app.patch("/api/appointments/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      const appointment = await storage.updateAppointmentStatus(Number(req.params.id), status);
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      res.json(appointment);
+    } catch (error) {
+      console.error('[express] Error updating appointment status:', error);
+      res.status(500).json({ message: "Error updating appointment status" });
+    }
+  });
+  
   return httpServer;
 }

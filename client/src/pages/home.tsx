@@ -32,26 +32,30 @@ export default function HomePage() {
     setVideoDialogOpen(true);
   };
   
-  // Video initialization focused on the preview video only
+  // State to track video mute status
+  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  
+  // Video initialization for all videos
   useEffect(() => {
     // Direct approach for video initialization
     const initializeVideo = () => {
       const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
+      const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
       
       // Helper function to properly initialize a video
-      const setupVideo = (video: HTMLVideoElement, src: string) => {
+      const setupVideo = (video: HTMLVideoElement, src: string, initiallyMuted = true) => {
         if (!video) return;
         
-        // Make sure video is muted (required for autoplay in most browsers)
-        video.muted = true;
+        // Set video properties
+        video.muted = initiallyMuted; // Hero video will have audio enabled
         video.playsInline = true;
         video.loop = true;
         
-        // Set source directly on the video element
-        video.src = src;
-        
-        // Load and try to play immediately
-        video.load();
+        // Set source directly on the video element if provided
+        if (src) {
+          video.src = src;
+          video.load();
+        }
         
         // Play the video with retry mechanism
         const attemptPlay = () => {
@@ -70,16 +74,25 @@ export default function HomePage() {
         attemptPlay();
       };
       
-      // Set up the preview video with direct source path - try different video filenames
-      // We have multiple versions of the hero video, try the one that works
+      // Set up the preview video if it exists
       if (previewVideo) {
-        // Try the renamed video first 
         setupVideo(previewVideo, '/Hero Video (1).mp4');
       }
       
-      // Also add interaction handler to ensure videos play on user interaction
+      // Set up the hero video if it exists - not muted to allow audio
+      if (heroVideo) {
+        // Initially false means NOT muted = audio plays
+        setupVideo(heroVideo, '', false);
+      }
+      
+      // Add interaction handler to ensure videos play on user interaction
       const handleUserInteraction = () => {
-        if (previewVideo) previewVideo.play().catch(e => console.log("User interaction play failed:", e));
+        if (previewVideo) {
+          previewVideo.play().catch(e => console.log("Preview video play failed:", e));
+        }
+        if (heroVideo) {
+          heroVideo.play().catch(e => console.log("Hero video play failed:", e));
+        }
       };
       
       // Add event listeners for user interaction
@@ -152,13 +165,23 @@ export default function HomePage() {
                   onClick={() => {
                     const video = document.getElementById('heroVideo') as HTMLVideoElement;
                     if (video) {
-                      video.muted = !video.muted;
+                      const newMutedState = !video.muted;
+                      video.muted = newMutedState;
+                      setIsVideoMuted(newMutedState);
                     }
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  </svg>
+                  {isVideoMuted ? (
+                    // Muted icon (volume off)
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                    </svg>
+                  ) : (
+                    // Unmuted icon (volume on)
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                  )}
                 </button>
                 
                 {/* Semi-transparent overlay for text readability */}

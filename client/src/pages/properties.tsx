@@ -99,7 +99,7 @@ export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false); // Changed to false to skip questionnaire
+  const [showQuestionnaire, setShowQuestionnaire] = useState(true); // Show questionnaire by default
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
   
   // Service selection state
@@ -152,6 +152,7 @@ export default function PropertiesPage() {
     setTotalCost(totalAmount);
     setShowServiceSelection(false);
     setShowCostSummary(true);
+    setShowQuestionnaire(true); // Show questionnaire after service selection
   };
   
   // Handle service selection cancellation

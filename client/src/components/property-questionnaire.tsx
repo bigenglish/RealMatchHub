@@ -6,7 +6,7 @@ import {
   Check, Home, Building, ChevronsRight, CalendarDays, MapPin, Search, 
   Camera, Upload, Image, X, Wallet, Calculator, Shield, Key, Ruler,
   Bed, Bath, CheckSquare, Clock, MoveVertical, TrendingUp, DollarSign,
-  Package, Calendar
+  Package, Calendar, SplitSquareVertical
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -276,7 +276,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               onClick={() => handleIntentSelect("both")}
             >
               <div className="flex flex-col items-center text-center space-y-3">
-                <Sparkles className="h-10 w-10 text-primary" />
+                <SplitSquareVertical className="h-10 w-10 text-primary" />
                 <h4 className="font-semibold text-lg">Both</h4>
                 <p className="text-sm text-muted-foreground">
                   I'm looking to sell my current property and buy a new one

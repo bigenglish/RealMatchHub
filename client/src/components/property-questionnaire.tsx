@@ -3,8 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
-  Check, Home, Building, Users, Briefcase, Sparkles, ChevronsRight, 
-  CalendarDays, MapPin, Search, Camera, Upload, Image, X
+  Check, Home, Building, ChevronsRight, CalendarDays, MapPin, Search, 
+  Camera, Upload, Image, X, Wallet, Calculator, Shield, Key, Ruler,
+  Bed, Bath, CheckSquare, Clock, MoveVertical, TrendingUp, DollarSign,
+  Package, Calendar
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Autosuggest from "react-autosuggest";
 
 export type UserIntent = "buying" | "selling" | "both" | undefined;
-export type UserLifestage = "flexible-move" | "job-received" | "live-alone" | "own-home" | "have-children" | "life-change" | 
-                            "flexible-downpayment" | "sold-property" | "self-employed" | "small-business" | "life-questions";
+export type UserLifestage = "down-payment" | "need-mortgage" | "pre-approve" | "insurance-quotes" | "renovation-plans" |
+                           "property-type" | "property-size" | "bedrooms" | "bathrooms" | "property-media" | "property-features" |
+                           "property-location" | "timeframe" | "sell-urgency" | "relocating" | "size-change" | "financial-reasons" |
+                           "moving-services" | "buy-after-sell";
 export type TimelineOption = "asap" | "1-3months" | "3-6months" | "6-12months";
 
 export interface UserPreferences {
@@ -289,93 +293,163 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           <p className="text-center text-muted-foreground">Select all that apply to you</p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <LifestageCard 
-              icon={<Users className="h-6 w-6" />}
-              title="I'm flexible on when I move"
-              value="flexible-move"
-              selected={isLifestageSelected("flexible-move")}
-              onClick={() => handleLifestageSelect("flexible-move")}
-            />
-            
-            <LifestageCard 
-              icon={<Briefcase className="h-6 w-6" />}
-              title="I have a job (received W-2)"
-              value="job-received"
-              selected={isLifestageSelected("job-received")}
-              onClick={() => handleLifestageSelect("job-received")}
-            />
-            
-            <LifestageCard 
-              icon={<Users className="h-6 w-6" />}
-              title="I live alone"
-              value="live-alone"
-              selected={isLifestageSelected("live-alone")}
-              onClick={() => handleLifestageSelect("live-alone")}
-            />
-            
-            <LifestageCard 
-              icon={<Home className="h-6 w-6" />}
-              title="I own a home"
-              value="own-home"
-              selected={isLifestageSelected("own-home")}
-              onClick={() => handleLifestageSelect("own-home")}
-            />
-            
-            <LifestageCard 
-              icon={<Users className="h-6 w-6" />}
-              title="I have children or dependents"
-              value="have-children"
-              selected={isLifestageSelected("have-children")}
-              onClick={() => handleLifestageSelect("have-children")}
-            />
-            
-            <LifestageCard 
-              icon={<Sparkles className="h-6 w-6" />}
-              title="Expecting a change in major life event"
-              value="life-change"
-              selected={isLifestageSelected("life-change")}
-              onClick={() => handleLifestageSelect("life-change")}
-            />
-            
-            <LifestageCard 
-              icon={<Building className="h-6 w-6" />}
-              title="I'm flexible on downpayment"
-              value="flexible-downpayment"
-              selected={isLifestageSelected("flexible-downpayment")}
-              onClick={() => handleLifestageSelect("flexible-downpayment")}
-            />
-            
-            <LifestageCard 
-              icon={<Building className="h-6 w-6" />}
-              title="I sold stock or own rental property"
-              value="sold-property"
-              selected={isLifestageSelected("sold-property")}
-              onClick={() => handleLifestageSelect("sold-property")}
-            />
-            
-            <LifestageCard 
-              icon={<Briefcase className="h-6 w-6" />}
-              title="I'm self-employed/freelancer"
-              value="self-employed"
-              selected={isLifestageSelected("self-employed")}
-              onClick={() => handleLifestageSelect("self-employed")}
-            />
-            
-            <LifestageCard 
-              icon={<Building className="h-6 w-6" />}
-              title="I own a small business"
-              value="small-business"
-              selected={isLifestageSelected("small-business")}
-              onClick={() => handleLifestageSelect("small-business")}
-            />
-            
-            <LifestageCard 
-              icon={<Sparkles className="h-6 w-6" />}
-              title="My life has changed and I have questions"
-              value="life-questions"
-              selected={isLifestageSelected("life-questions")}
-              onClick={() => handleLifestageSelect("life-questions")}
-            />
+            {preferences.intent === "buying" ? (
+              <>
+                <LifestageCard 
+                  icon={<Wallet className="h-6 w-6" />}
+                  title="Down Payment Amount"
+                  value="down-payment"
+                  selected={isLifestageSelected("down-payment")}
+                  onClick={() => handleLifestageSelect("down-payment")}
+                />
+                
+                <LifestageCard 
+                  icon={<Building className="h-6 w-6" />}
+                  title="Need Mortgage Financing"
+                  value="need-mortgage"
+                  selected={isLifestageSelected("need-mortgage")}
+                  onClick={() => handleLifestageSelect("need-mortgage")}
+                />
+                
+                <LifestageCard 
+                  icon={<Calculator className="h-6 w-6" />}
+                  title="Pre-Approve for a Loan Today"
+                  value="pre-approve"
+                  selected={isLifestageSelected("pre-approve")}
+                  onClick={() => handleLifestageSelect("pre-approve")}
+                />
+                
+                <LifestageCard 
+                  icon={<Shield className="h-6 w-6" />}
+                  title="Interest in Home Insurance quotes"
+                  value="insurance-quotes"
+                  selected={isLifestageSelected("insurance-quotes")}
+                  onClick={() => handleLifestageSelect("insurance-quotes")}
+                />
+                
+                <LifestageCard 
+                  icon={<Key className="h-6 w-6" />}
+                  title="Future Renovation Plans"
+                  value="renovation-plans"
+                  selected={isLifestageSelected("renovation-plans")}
+                  onClick={() => handleLifestageSelect("renovation-plans")}
+                />
+              </>
+            ) : (
+              <>
+                <LifestageCard 
+                  icon={<Home className="h-6 w-6" />}
+                  title="Property Type"
+                  value="property-type"
+                  selected={isLifestageSelected("property-type")}
+                  onClick={() => handleLifestageSelect("property-type")}
+                />
+                
+                <LifestageCard 
+                  icon={<Ruler className="h-6 w-6" />}
+                  title="Size (SF)"
+                  value="property-size"
+                  selected={isLifestageSelected("property-size")}
+                  onClick={() => handleLifestageSelect("property-size")}
+                />
+                
+                <LifestageCard 
+                  icon={<Bed className="h-6 w-6" />}
+                  title="Number of Bedrooms"
+                  value="bedrooms"
+                  selected={isLifestageSelected("bedrooms")}
+                  onClick={() => handleLifestageSelect("bedrooms")}
+                />
+                
+                <LifestageCard 
+                  icon={<Bath className="h-6 w-6" />}
+                  title="Number of Bathrooms"
+                  value="bathrooms"
+                  selected={isLifestageSelected("bathrooms")}
+                  onClick={() => handleLifestageSelect("bathrooms")}
+                />
+                
+                <LifestageCard 
+                  icon={<Camera className="h-6 w-6" />}
+                  title="Property Photos/Videos"
+                  value="property-media"
+                  selected={isLifestageSelected("property-media")}
+                  onClick={() => handleLifestageSelect("property-media")}
+                />
+                
+                <LifestageCard 
+                  icon={<CheckSquare className="h-6 w-6" />}
+                  title="Property Features/Amenities"
+                  value="property-features"
+                  selected={isLifestageSelected("property-features")}
+                  onClick={() => handleLifestageSelect("property-features")}
+                />
+                
+                <LifestageCard 
+                  icon={<MapPin className="h-6 w-6" />}
+                  title="Property Address/Location"
+                  value="property-location"
+                  selected={isLifestageSelected("property-location")}
+                  onClick={() => handleLifestageSelect("property-location")}
+                />
+                
+                <LifestageCard 
+                  icon={<Calendar className="h-6 w-6" />}
+                  title="Specific Timeframe"
+                  value="timeframe"
+                  selected={isLifestageSelected("timeframe")}
+                  onClick={() => handleLifestageSelect("timeframe")}
+                />
+                
+                <LifestageCard 
+                  icon={<Clock className="h-6 w-6" />}
+                  title="Urgency to Sell"
+                  value="sell-urgency"
+                  selected={isLifestageSelected("sell-urgency")}
+                  onClick={() => handleLifestageSelect("sell-urgency")}
+                />
+                
+                <LifestageCard 
+                  icon={<MoveVertical className="h-6 w-6" />}
+                  title="Relocating"
+                  value="relocating"
+                  selected={isLifestageSelected("relocating")}
+                  onClick={() => handleLifestageSelect("relocating")}
+                />
+                
+                <LifestageCard 
+                  icon={<TrendingUp className="h-6 w-6" />}
+                  title="Upgrading/Downsizing"
+                  value="size-change"
+                  selected={isLifestageSelected("size-change")}
+                  onClick={() => handleLifestageSelect("size-change")}
+                />
+                
+                <LifestageCard 
+                  icon={<DollarSign className="h-6 w-6" />}
+                  title="Financial Reasons"
+                  value="financial-reasons"
+                  selected={isLifestageSelected("financial-reasons")}
+                  onClick={() => handleLifestageSelect("financial-reasons")}
+                />
+                
+                <LifestageCard 
+                  icon={<Package className="h-6 w-6" />}
+                  title="Need help with moving services"
+                  value="moving-services"
+                  selected={isLifestageSelected("moving-services")}
+                  onClick={() => handleLifestageSelect("moving-services")}
+                />
+                
+                <LifestageCard 
+                  icon={<Building className="h-6 w-6" />}
+                  title="Looking to buy after selling"
+                  value="buy-after-sell"
+                  selected={isLifestageSelected("buy-after-sell")}
+                  onClick={() => handleLifestageSelect("buy-after-sell")}
+                />
+              </>
+            )}
           </div>
           
           <div className="flex justify-center pt-4">

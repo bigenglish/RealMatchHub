@@ -12,6 +12,7 @@ import Documents from "@/pages/documents";
 import ContractTerms from "@/pages/contract-terms";
 import ServiceExperts from "@/pages/service-experts";
 import Marketplace from "@/pages/marketplace";
+import Appointments from "@/pages/appointments";
 import Navbar from "@/components/navbar";
 
 // Placeholder components for new pages

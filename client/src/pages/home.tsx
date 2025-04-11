@@ -245,17 +245,15 @@ export default function HomePage() {
                     className="pl-10 w-full text-gray-900"
                     onChange={async (e) => {
                       const value = e.target.value;
-                      console.log("Location changed:", value);
-
-                      if (searchType === 'Sell' && value.length > 3) {
+                      if (value.length > 2) {
                         try {
-                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=address`);
+                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=${searchType === 'Sell' ? 'address' : ''}`);
                           if (response.ok) {
                             const suggestions = await response.json();
                             const datalist = document.getElementById('location-suggestions');
                             if (datalist) {
                               datalist.innerHTML = suggestions.map((s: string) => 
-                                `<option value="${s}" />`
+                                `<option value="${s}">${s}</option>`
                               ).join('');
                             }
                           }
@@ -276,10 +274,10 @@ export default function HomePage() {
                   defaultValue="house"
                   onValueChange={(value) => console.log("Property type changed:", value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="property-type-select" className="w-full">
                     <SelectValue placeholder="Select property type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent position="popper">
                     <SelectItem value="house">House</SelectItem>
                     <SelectItem value="apartment">Apartment</SelectItem>
                     <SelectItem value="condo">Condo</SelectItem>
@@ -296,10 +294,10 @@ export default function HomePage() {
                     defaultValue="3-6months"
                     onValueChange={(value) => console.log("Timeline changed:", value)}
                   >
-                    <SelectTrigger className="pl-10">
+                    <SelectTrigger id="timeline-select" className="pl-10 w-full">
                       <SelectValue placeholder="Select timeline" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="asap">ASAP (ready to move)</SelectItem>
                       <SelectItem value="1-3months">1-3 months</SelectItem>
                       <SelectItem value="3-6months">3-6 months</SelectItem>

@@ -38,6 +38,7 @@ function Router() {
           <Route path="/contract-terms" component={ContractTerms} />
           <Route path="/service-experts" component={ServiceExperts} />
           <Route path="/marketplace" component={Marketplace} />
+          <Route path="/appointments" component={Appointments} />
           <Route path="/resources" component={Resources} />
           <Route path="/demo" component={Demo} />
           <Route path="/get-started" component={GetStarted} />

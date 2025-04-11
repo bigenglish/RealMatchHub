@@ -221,8 +221,8 @@ export default function AppointmentScheduler({
           propertyId: propertyId,
           propertyAddress: values.location || propertyAddress,
           expertName: selectedExpert?.name,
-          expertSpecialty: selectedExpert?.specialty,
-          userEmail: selectedExpert?.email,
+          expertServiceType: selectedExpert?.serviceType,
+          userEmail: selectedExpert?.contactEmail,
         }
       };
 

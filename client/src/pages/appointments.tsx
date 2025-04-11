@@ -177,16 +177,16 @@ export default function AppointmentsPage() {
                   <ClockIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span>{formatAppointmentTime(appointment.date)}</span>
                 </div>
-                {appointment.metadata?.propertyAddress && (
+                {appointment.metadata && appointment.metadata.propertyAddress && (
                   <div className="flex items-center text-sm">
                     <MapPinIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span className="truncate">{appointment.metadata.propertyAddress}</span>
+                    <span className="truncate">{String(appointment.metadata.propertyAddress)}</span>
                   </div>
                 )}
-                {appointment.metadata?.expertName && (
+                {appointment.metadata && appointment.metadata.expertName && (
                   <div className="flex items-center text-sm">
                     <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <span>{appointment.metadata.expertName}</span>
+                    <span>{String(appointment.metadata.expertName)}</span>
                   </div>
                 )}
               </div>
@@ -298,22 +298,22 @@ export default function AppointmentsPage() {
                     </div>
                   </div>
                   
-                  {selectedAppointment.metadata?.propertyAddress && (
+                  {selectedAppointment.metadata && selectedAppointment.metadata.propertyAddress && (
                     <div>
                       <span className="font-medium block mb-1">Property:</span>
                       <div className="flex items-start">
                         <MapPinIcon className="h-4 w-4 mr-2 text-muted-foreground mt-0.5" />
-                        <span>{selectedAppointment.metadata.propertyAddress}</span>
+                        <span>{String(selectedAppointment.metadata.propertyAddress)}</span>
                       </div>
                     </div>
                   )}
                   
-                  {selectedAppointment.metadata?.expertName && (
+                  {selectedAppointment.metadata && selectedAppointment.metadata.expertName && (
                     <div>
                       <span className="font-medium block mb-1">Expert:</span>
                       <div className="flex items-center">
                         <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{selectedAppointment.metadata.expertName}</span>
+                        <span>{String(selectedAppointment.metadata.expertName)}</span>
                       </div>
                     </div>
                   )}

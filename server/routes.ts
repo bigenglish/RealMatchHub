@@ -39,6 +39,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({ 
     storage: multer.memoryStorage(),
     limits: {
+
+// Google Places autocomplete endpoint
+app.get('/api/places/autocomplete', async (req, res) => {
+  const query = req.query.query as string;
+  const types = req.query.types as string;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query parameter is required' });
+  }
+
+  try {
+    const suggestions = await searchNearbyPlaces({
+      query,
+      location: '37.7749,-122.4194', // Default to US center
+      radius: 50000,
+      category: types
+    });
+    
+    const addresses = suggestions.map(place => place.vicinity || place.name);
+    res.json(addresses);
+  } catch (error) {
+    console.error('Error fetching place suggestions:', error);
+    res.status(500).json({ error: 'Failed to fetch suggestions' });
+  }
+});
+
       fileSize: 10 * 1024 * 1024, // 10 MB max file size
     },
   });

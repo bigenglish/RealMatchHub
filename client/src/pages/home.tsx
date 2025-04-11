@@ -25,38 +25,38 @@ export default function HomePage() {
   const [currentVideo, setCurrentVideo] = useState("");
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoAttempts, setVideoAttempts] = useState(0);
-  
+
   // Video player functionality
   const openVideoDialog = (videoSrc: string) => {
     setCurrentVideo(videoSrc);
     setVideoDialogOpen(true);
   };
-  
+
   // State to track video mute status - default to true initially for autoplay
   const [isVideoMuted, setIsVideoMuted] = useState(true);
-  
+
   // Video initialization for all videos
   useEffect(() => {
     // Direct approach for video initialization
     const initializeVideo = () => {
       const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
       const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
-      
+
       // Helper function to properly initialize a video
       const setupVideo = (video: HTMLVideoElement, src: string, initiallyMuted = true) => {
         if (!video) return;
-        
+
         // Set video properties
         video.muted = initiallyMuted; // Hero video will have audio enabled
         video.playsInline = true;
         video.loop = true;
-        
+
         // Set source directly on the video element if provided
         if (src) {
           video.src = src;
           video.load();
         }
-        
+
         // Play the video with retry mechanism
         const attemptPlay = () => {
           video.play()
@@ -69,34 +69,34 @@ export default function HomePage() {
               setTimeout(attemptPlay, 300);
             });
         };
-        
+
         // Start attempting to play
         attemptPlay();
       };
-      
+
       // Set up the preview video if it exists
       if (previewVideo) {
         setupVideo(previewVideo, '/hero-video.mp4');
       }
-      
+
       // Set up the hero video if it exists - muted for autoplay
       if (heroVideo) {
         // Directly set the source and play
         heroVideo.muted = true;
         heroVideo.loop = true;
         heroVideo.playsInline = true;
-        
+
         // Set source directly 
         heroVideo.src = '/hero-video.mp4';
-        
+
         // Load and play
         heroVideo.load();
         heroVideo.play().catch(e => console.error("Hero video play failed:", e));
-        
+
         // Set the initial state to muted
         setIsVideoMuted(true);
       }
-      
+
       // Add interaction handler to ensure videos play on user interaction
       const handleUserInteraction = () => {
         if (previewVideo) {
@@ -106,20 +106,20 @@ export default function HomePage() {
           heroVideo.play().catch(e => console.log("Hero video play failed:", e));
         }
       };
-      
+
       // Add event listeners for user interaction
       document.addEventListener('click', handleUserInteraction, { once: true });
       document.addEventListener('touchstart', handleUserInteraction, { once: true });
-      
+
       return () => {
         document.removeEventListener('click', handleUserInteraction);
         document.removeEventListener('touchstart', handleUserInteraction);
       };
     };
-    
+
     // Initialize videos with a small delay to ensure DOM is ready
     const initTimer = setTimeout(initializeVideo, 500);
-    
+
     return () => {
       clearTimeout(initTimer);
     };
@@ -143,7 +143,7 @@ export default function HomePage() {
               Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
             </p>
           </div>
-          
+
           {/* Video now takes full width - made to match search box width */}
           <div className="w-full max-w-4xl mx-auto">
             <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]">
@@ -165,7 +165,7 @@ export default function HomePage() {
                     Your browser doesn't support HTML5 video
                   </p>
                 </video>
-                
+
                 {/* Sound control button - Made much larger and more visible */}
                 <button 
                   className="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-4 z-10 transition-all shadow-lg"
@@ -193,13 +193,13 @@ export default function HomePage() {
                     </svg>
                   )}
                 </button>
-                
+
                 {/* Lighter overlay for better video visibility */}
                 <div className="absolute inset-0 bg-black/10"></div>
               </div>
             </div>
           </div>
-          
+
           {/* Call to action button below video */}
           <div className="mt-8 text-center">
             <Link href="/get-started">
@@ -233,34 +233,43 @@ export default function HomePage() {
                 Sell
               </button>
             </div>
-            
+
             <div className="flex flex-col md:flex-row p-4 gap-4">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input 
+                  <Input
                     type="text"
-                    placeholder="City, State or ZIP" 
+                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
                     className="pl-10 w-full text-gray-900"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const value = e.target.value;
                       console.log("Location changed:", value);
+
+                      if (searchType === 'Sell' && value.length > 3) {
+                        try {
+                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=address`);
+                          if (response.ok) {
+                            const suggestions = await response.json();
+                            const datalist = document.getElementById('location-suggestions');
+                            if (datalist) {
+                              datalist.innerHTML = suggestions.map((s: string) => 
+                                `<option value="${s}" />`
+                              ).join('');
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Error fetching address suggestions:', error);
+                        }
+                      }
                     }}
                     list="location-suggestions"
                   />
-                  <datalist id="location-suggestions">
-                    <option value="Los Angeles, CA" />
-                    <option value="San Francisco, CA" />
-                    <option value="New York, NY" />
-                    <option value="Chicago, IL" />
-                    <option value="Miami, FL" />
-                    <option value="90210" />
-                    <option value="10001" />
-                  </datalist>
+                  <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
-              
+
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
                 <Select 
@@ -278,7 +287,7 @@ export default function HomePage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
                 <div className="relative">
@@ -299,7 +308,7 @@ export default function HomePage() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="flex items-end">
                 <Link href="/properties">
                   <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
@@ -316,7 +325,7 @@ export default function HomePage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">Trusted By</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Testimonial 1 */}
             <div className="bg-white p-6 rounded-xl shadow-md">
@@ -336,7 +345,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Testimonial 2 */}
             <div className="bg-white p-6 rounded-xl shadow-md">
               <div className="flex mb-4">
@@ -354,7 +363,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Testimonial 3 */}
             <div className="bg-white p-6 rounded-xl shadow-md">
               <div className="flex mb-4">
@@ -372,7 +381,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Testimonial 4 */}
             <div className="bg-white p-6 rounded-xl shadow-md">
               <div className="flex mb-4">
@@ -391,7 +400,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-center items-center mt-8 text-gray-500">
             <div className="flex items-center mr-4">
               {[1, 2, 3, 4, 5].map((_, i) => (
@@ -412,7 +421,7 @@ export default function HomePage() {
           <p className="text-center text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
             Select the perfect package for your real estate needs with transparent pricing and no hidden fees.
           </p>
-          
+
           {/* User Type Tabs */}
           <div className="flex justify-center mb-12">
             <div className="inline-flex bg-gray-100 rounded-full p-1">
@@ -431,7 +440,7 @@ export default function HomePage() {
               ))}
             </div>
           </div>
-          
+
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* FREE Tier */}
@@ -464,7 +473,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* BASIC Tier */}
             <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
               <div className="bg-olive-600 p-4 text-white text-center">
@@ -521,7 +530,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            
+
             {/* PREMIUM Tier */}
             <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
               <div className="bg-olive-600 p-4 text-white text-center">
@@ -598,14 +607,14 @@ export default function HomePage() {
                   and selling needs.
                 </p>
               </div>
-              
+
               <div className="mb-8">
                 <p className="text-white/80 mb-4">Connect with Realty.AI Team:</p>
                 <p className="text-lg mb-6">
                   Submit questions and communicate with agents via email, text, or video chat.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Button 
                   className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8"
@@ -627,7 +636,7 @@ export default function HomePage() {
                     <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Users className="h-8 w-8" />
                     </div>
-                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                    <div className="w-16 h-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Building className="h-8 w-8" />
                     </div>
                     <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
@@ -647,19 +656,19 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="mb-12">
             <h2 className="text-5xl font-bold mb-6">PERSONALIZED MATCHING</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h3 className="font-bold text-xl mb-2">Curate Your Dream Home:</h3>
                 <p className="text-gray-700">Save photos, listings, and design ideas for inspiration.</p>
               </div>
-              
+
               <div>
                 <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
                 <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-4 mt-8">
               <Button 
                 className="bg-olive-600 hover:bg-olive-700 py-6 px-8"
@@ -672,7 +681,7 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-          
+
           {/* Property Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-16">
             {/* User Profile */}
@@ -686,7 +695,7 @@ export default function HomePage() {
               </div>
               <p className="font-medium">Kevin Junior</p>
             </div>
-            
+
             {/* Property Cards */}
             {[
               { 
@@ -749,7 +758,7 @@ export default function HomePage() {
                 Discover properties tailored to your preferences in neighborhoods that match your lifestyle.
               </p>
             </div>
-            
+
             <div className="mt-6 md:mt-0">
               <Button 
                 className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white flex items-center gap-2"
@@ -759,7 +768,7 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-          
+
           {/* Featured Listings Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -838,19 +847,19 @@ export default function HomePage() {
                     <p className="font-bold text-xl">{listing.price}</p>
                   </div>
                 </div>
-                
+
                 <div className="p-5">
                   <h3 className="font-bold text-xl mb-2 text-realGreen-dark">{listing.title}</h3>
                   <p className="text-gray-600 mb-4 flex items-center">
                     <MapPin className="h-4 w-4 mr-1" /> {listing.location}
                   </p>
-                  
+
                   <div className="flex justify-between text-sm text-gray-700 mb-4">
                     <div><span className="font-semibold">{listing.beds}</span> Beds</div>
                     <div><span className="font-semibold">{listing.baths}</span> Baths</div>
                     <div><span className="font-semibold">{listing.sqft.toLocaleString()}</span> sqft</div>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <Button className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white">
                       View Details
@@ -866,7 +875,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-12 text-center">
             <Button className="bg-realGreen-medium hover:bg-realGreen-medium/90 text-white px-10 py-6 text-lg">
               View All Properties
@@ -887,26 +896,26 @@ export default function HomePage() {
                 className="w-full h-full object-cover mix-blend-overlay"
               />
             </div>
-            
+
             {/* Content */}
             <div className="relative z-10 p-12">
               <div className="flex flex-col lg:flex-row">
                 <div className="lg:w-1/2">
                   <h2 className="text-5xl font-bold mb-10">YOUR STEPS TO REAL ESTATE SUCCESS</h2>
-                  
+
                   <div className="space-y-8">
                     <div>
                       <h3 className="font-bold text-xl mb-2">Review with Confidence:</h3>
                       <p className="text-white/80">Get expert assistance with contracts, invoices, and rebates.</p>
                     </div>
-                    
+
                     <div>
                       <h3 className="font-bold text-xl mb-2">Stay Up-to-Date:</h3>
                       <p className="text-white/80">Receive insights on regulations and rebates affecting your home and finances.</p>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="lg:w-1/2 flex items-center justify-end mt-8 lg:mt-0">
                   <div className="flex flex-col gap-4">
                     <Button 
@@ -938,12 +947,12 @@ export default function HomePage() {
                   <TabsTrigger value="selling" className="flex-1 py-3 rounded-full">Selling</TabsTrigger>
                   <TabsTrigger value="renting" className="flex-1 py-3 rounded-full">Renting</TabsTrigger>
                 </TabsList>
-                
+
                 <div>
                   <h2 className="text-5xl font-bold mb-4">YOUR STEPS TO REAL ESTATE SUCCESS</h2>
                   <h3 className="text-xl mb-10">Step-by-Step Breakdown</h3>
                 </div>
-                
+
                 <TabsContent value="buying" className="space-y-8">
                   <div className="flex items-center">
                     <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
@@ -962,7 +971,7 @@ export default function HomePage() {
                     <div className="text-2xl font-bold text-olive-600">Manage Your Journey</div>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="selling" className="space-y-8">
                   <div className="flex items-center">
                     <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
@@ -981,7 +990,7 @@ export default function HomePage() {
                     <div className="text-2xl font-bold text-olive-600">Manage Your Sale</div>
                   </div>
                 </TabsContent>
-                
+
                 <TabsContent value="renting" className="space-y-8">
                   <div className="flex items-center">
                     <div className="text-4xl font-bold text-gray-800 mr-8">01</div>
@@ -1002,7 +1011,7 @@ export default function HomePage() {
                 </TabsContent>
               </Tabs>
             </div>
-            
+
             <div className="lg:w-1/2 mt-10 lg:mt-0 relative">
               {/* Phone mockup with app interface */}
               <div className="relative">
@@ -1011,10 +1020,10 @@ export default function HomePage() {
                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-12 w-96 h-40 bg-contain bg-bottom bg-no-repeat z-10"
                        style={{ backgroundImage: "url('https://freepngimg.com/thumb/hands/41-hands-png-image.png')" }}>
                   </div>
-                  
+
                   {/* Phone frame */}
                   <div className="absolute inset-0 bg-black rounded-[40px] shadow-lg z-0"></div>
-                  
+
                   {/* Phone screen */}
                   <div className="absolute inset-2 rounded-[36px] overflow-hidden bg-white z-1">
                     {/* App UI mockup */}
@@ -1028,13 +1037,13 @@ export default function HomePage() {
                           <Battery className="h-3 w-3" />
                         </div>
                       </div>
-                      
+
                       {/* App header */}
                       <div className="h-12 bg-olive-600 flex items-center px-4">
                         <ArrowLeft className="h-5 w-5 text-white" />
                         <div className="ml-4 text-white font-medium">Application (1)</div>
                       </div>
-                      
+
                       {/* App content */}
                       <div className="flex-1 p-4">
                         <div className="mb-4">
@@ -1043,7 +1052,7 @@ export default function HomePage() {
                           <div className="text-sm font-medium text-gray-600">Application (1)</div>
                           <div className="text-sm text-gray-400">End in 04/17/2025</div>
                         </div>
-                        
+
                         {/* Progress steps */}
                         <div className="space-y-4 mt-6">
                           <div className="flex items-center">
@@ -1052,21 +1061,21 @@ export default function HomePage() {
                             <div className="text-xs text-gray-400">5 days ago</div>
                           </div>
                           <div className="ml-2 text-sm">Application started</div>
-                          
+
                           <div className="flex items-center">
                             <div className="w-5 h-5 rounded-full bg-olive-600 flex-shrink-0"></div>
                             <div className="h-1 flex-grow bg-olive-600 mx-2"></div>
                             <div className="text-xs text-gray-400">10 days ago</div>
                           </div>
                           <div className="ml-2 text-sm">Reviewed by Authorities</div>
-                          
+
                           <div className="flex items-center">
                             <div className="w-5 h-5 rounded-full bg-olive-600 flex-shrink-0"></div>
                             <div className="h-1 flex-grow bg-gray-300 mx-2"></div>
                             <div className="text-xs text-gray-400">In Verification</div>
                           </div>
                           <div className="ml-2 text-sm">ID Verification</div>
-                          
+
                           <div className="flex items-center">
                             <div className="w-5 h-5 rounded-full bg-gray-300 flex-shrink-0"></div>
                             <div className="h-1 flex-grow bg-gray-300 mx-2"></div>
@@ -1074,7 +1083,7 @@ export default function HomePage() {
                           </div>
                           <div className="ml-2 text-sm">Final Stage</div>
                         </div>
-                        
+
                         {/* Action buttons */}
                         <div className="mt-10 space-y-3">
                           <button className="w-full py-2 px-4 bg-olive-600 text-white text-sm rounded">
@@ -1085,7 +1094,7 @@ export default function HomePage() {
                           </button>
                         </div>
                       </div>
-                      
+
                       {/* Bottom navigation */}
                       <div className="h-16 bg-white flex justify-around items-center border-t border-gray-200">
                         <div className="flex flex-col items-center">
@@ -1108,7 +1117,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Green circle behind the phone */}
                 <div className="absolute bottom-0 right-0 w-64 h-64 bg-olive-600 rounded-full opacity-30 -z-10"></div>
               </div>
@@ -1119,24 +1128,24 @@ export default function HomePage() {
 
       {/* AI Chatbot */}
       <AIChatbot />
-      
+
       {/* Ready to Get Started Section */}
       <section className="py-20 bg-gray-50 text-center">
         <div className="container mx-auto px-4">
           <h2 className="text-6xl font-bold mb-12 text-gray-800">READY TO GET STARTED?</h2>
-          
+
           <div className="mb-10">
             <Button className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
               Create Your Free Account
             </Button>
           </div>
-          
+
           <p className="text-2xl text-gray-700 max-w-3xl mx-auto">
             Join Reaty.ai and experience a smarter, more efficient way to achieve your real estate goals."
           </p>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="bg-gray-50 pt-20 pb-10 border-t">
         <div className="container mx-auto px-4">
@@ -1160,7 +1169,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           {/* Footer Links */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
             <div>
@@ -1172,7 +1181,7 @@ export default function HomePage() {
                 <li><Link href="/marketplace" className="text-gray-600 hover:text-olive-600">Marketplace</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-4 text-gray-800">Quick Links</h3>
               <ul className="space-y-2">
@@ -1182,7 +1191,7 @@ export default function HomePage() {
                 <li><Link href="/faqs" className="text-gray-600 hover:text-olive-600">FAQs</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-semibold mb-4 text-gray-800">Follow Us On</h3>
               <div className="flex space-x-4">
@@ -1204,9 +1213,7 @@ export default function HomePage() {
                 <div className="text-gray-600">twitter</div>
                 <div className="text-gray-600">instagram</div>
               </div>
-            </div>
-            
-            <div>
+            </div>            <div>
               <h3 className="text-lg font-semibold mb-4 text-gray-800">Contact Us</h3>
               <ul className="space-y-2">
                 <li className="flex items-center">
@@ -1231,7 +1238,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          
+
           {/* Copyright */}
           <div className="text-center text-gray-600 pt-8 border-t border-gray-200">
             <p>&copy; {new Date().getFullYear()} Realty.AI. All rights reserved.</p>

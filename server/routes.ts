@@ -39,9 +39,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({ 
     storage: multer.memoryStorage(),
     limits: {
+      fileSize: 10 * 1024 * 1024 // 10 MB
+    }
+  });
 
-// Google Places autocomplete endpoint
-app.get('/api/places/autocomplete', async (req, res) => {
+  // Google Places autocomplete endpoint
+  app.get('/api/places/autocomplete', async (req, res) => {
   const query = req.query.query as string;
   const types = req.query.types as string;
   
@@ -64,10 +67,6 @@ app.get('/api/places/autocomplete', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch suggestions' });
   }
 });
-
-      fileSize: 10 * 1024 * 1024, // 10 MB max file size
-    },
-  });
 
   // Property routes
   // Cache property data for 5 minutes

@@ -302,7 +302,7 @@ export default function AppointmentScheduler({
                           <div className="flex justify-between items-start">
                             <div>
                               <h3 className="font-medium">{expert.name}</h3>
-                              <p className="text-sm text-muted-foreground">{expert.specialty}</p>
+                              <p className="text-sm text-muted-foreground">{expert.serviceType}</p>
                             </div>
                             {form.getValues('expertId') === expert.id && (
                               <Check className="h-5 w-5 text-primary" />
@@ -310,9 +310,9 @@ export default function AppointmentScheduler({
                           </div>
                           <p className="text-sm mt-2">{expert.description}</p>
                           <div className="flex mt-3 gap-1 flex-wrap">
-                            {expert.tags?.map((tag, i) => (
+                            {expert.servicesOffered?.map((service: string, i: number) => (
                               <Badge key={i} variant="outline" className="text-xs">
-                                {tag}
+                                {service}
                               </Badge>
                             ))}
                           </div>
@@ -447,7 +447,7 @@ export default function AppointmentScheduler({
             <div>
               <p className="text-sm text-muted-foreground">Expert</p>
               <p className="font-medium">{selectedExpert?.name}</p>
-              <p className="text-sm">{selectedExpert?.specialty}</p>
+              <p className="text-sm">{selectedExpert?.serviceType}</p>
             </div>
             
             <div>

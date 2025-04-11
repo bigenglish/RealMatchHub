@@ -34,7 +34,7 @@ import { registerVideoRoutes } from "./video-static"; // Import video routes han
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // Configure multer for file uploads
   const upload = multer({ 
     storage: multer.memoryStorage(),
@@ -44,13 +44,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Property routes
+  // Cache property data for 5 minutes
+  const propertyCache = {
+    data: null,
+    timestamp: 0,
+    TTL: 300000 // 5 minutes
+  };
+
   app.get("/api/properties", async (_req, res) => {
     try {
-      console.log("[express] Fetching properties from IDX Broker only");
-      
+      // Check cache first
+      if (propertyCache.data && Date.now() - propertyCache.timestamp < propertyCache.TTL) {
+        return res.json(propertyCache.data);
+      }
+
+      console.log("[express] Fetching fresh properties from IDX Broker");
+
       const idxListings = await fetchIdxListings({ limit: 20 }); // Fetch 20 listings from IDX
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
-      
+
       // Log some IDX listings for debugging
       if (idxListings.listings.length > 0) {
         console.log("[express] First IDX listing sample:", {
@@ -66,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const listingId = idx.listingId || `idx-${index}`;
         const numericId = parseInt(listingId.replace(/\D/g, ''));
         const id = isNaN(numericId) ? 1000 + index : numericId + 1000;
-        
+
         return {
           id,
           title: `${idx.address}, ${idx.city}, ${idx.state}`,
@@ -96,7 +108,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Sending response with:", {
         idxListingsCount: convertedListings.length
       });
-      
+
+      // Update cache
+      propertyCache.data = response;
+      propertyCache.timestamp = Date.now();
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -106,16 +122,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/properties/:id", async (req, res) => {
     const id = Number(req.params.id);
-    
+
     try {
       console.log(`[express] Fetching property details for ID: ${id}`);
-      
+
       // All our properties are now from IDX with IDs >= 1000
       if (id >= 1000) {
         // Get IDX listings
         const idxResponse = await fetchIdxListings({ limit: 30 }); // Getting more listings to increase chance of finding the right one
         console.log(`[express] Fetched ${idxResponse.listings.length} IDX listings to search for ID ${id}`);
-        
+
         // We'll need to check various ID formats since we converted them in the API response
         // First, try to derive the original IDX ID
         const originalId = id - 1000;
@@ -124,24 +140,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `idx-${originalId}`,
           `${originalId}`
         ];
-        
+
         console.log(`[express] Looking for listing with possible IDs:`, possibleIdFormats);
-        
+
         // Find the first matching listing
         const idxListing = idxResponse.listings.find(listing => {
           const listingId = listing.listingId || '';
           return possibleIdFormats.some(format => listingId.includes(format));
         });
-        
+
         // As fallback, use the IDX listing at index (id - 1000) if within bounds
         const fallbackListing = originalId < idxResponse.listings.length ? 
           idxResponse.listings[originalId] : null;
-        
+
         const listing = idxListing || fallbackListing;
-        
+
         if (listing) {
           console.log(`[express] Found matching IDX listing: ${listing.address}`);
-          
+
           // Convert the IDX listing to the format expected by the frontend
           const convertedListing = {
             id,
@@ -161,13 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: new Date().toISOString(),
             status: 'active'
           };
-          
+
           return res.json(convertedListing);
         } else {
           console.log(`[express] No matching IDX listing found for ID ${id}`);
         }
       }
-      
+
       // If we reach here, the property wasn't found
       return res.status(404).json({ message: "Property not found" });
     } catch (error) {
@@ -267,10 +283,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!bundle) {
         return res.status(404).json({ message: "Service bundle not found" });
       }
-      
+
       // Get associated services for the bundle
       const services = await storage.getServicesInBundle(bundle.id);
-      
+
       res.json({
         ...bundle,
         services
@@ -291,20 +307,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid service bundle data" });
     }
   });
-  
+
   // Add endpoint to check if IDX API key is configured
   app.get("/api/idx-status", async (_req, res) => {
     try {
       const hasApiKey = !!process.env.IDX_BROKER_API_KEY;
       console.log("[express] /api/idx-status called, hasApiKey =", hasApiKey);
-      
+
       const response = { 
         enabled: hasApiKey,
         message: hasApiKey ? 
           "IDX Broker API is configured and ready to use" : 
           "IDX Broker API key is not configured"
       };
-      
+
       console.log("[express] /api/idx-status response:", response);
       res.json(response);
     } catch (error) {
@@ -312,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error checking IDX status" });
     }
   });
-  
+
   // Add endpoint to test the IDX API connection
   app.get("/api/idx-test", async (_req, res) => {
     try {
@@ -328,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Add endpoint to fetch IDX listings
   app.get("/api/idx-listings", async (req, res) => {
     try {
@@ -339,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : undefined;
       const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
       const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
-      
+
       const listings = await fetchIdxListings({
         limit,
         offset,
@@ -349,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bedrooms,
         bathrooms
       });
-      
+
       res.json(listings);
     } catch (error) {
       console.error("Error fetching IDX listings:", error);
@@ -361,13 +377,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Vertex AI Integration Routes -----
-  
+
   // Predict property price
   app.post("/api/ai/predict-price", async (req, res) => {
     try {
       const property = req.body;
       console.log("[express] Predicting price for property:", property.id || 'new');
-      
+
       const prediction = await predictPropertyPrice(property);
       res.json(prediction);
     } catch (error) {
@@ -378,13 +394,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Generate property description
   app.post("/api/ai/generate-description", async (req, res) => {
     try {
       const property = req.body;
       console.log("[express] Generating description for property:", property.id || 'new');
-      
+
       const description = await generatePropertyDescription(property);
       res.json({ description });
     } catch (error) {
@@ -395,16 +411,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Get personalized property recommendations
   app.post("/api/ai/recommendations", async (req, res) => {
     try {
       const { preferences } = req.body;
       console.log("[express] Getting recommendations based on preferences:", preferences);
-      
+
       // Get all properties to generate recommendations from
       const properties = await storage.getProperties();
-      
+
       // Get IDX listings if available
       let idxListings: any[] = [];
       if (process.env.IDX_BROKER_API_KEY) {
@@ -415,10 +431,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("[express] Error fetching IDX listings for recommendations:", idxError);
         }
       }
-      
+
       // Combine properties
       const allProperties = [...properties, ...idxListings];
-      
+
       // Get recommendations
       const recommendations = await getPersonalizedRecommendations(preferences, allProperties);
       res.json({ recommendations });
@@ -430,13 +446,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Generate chatbot response
   app.post("/api/ai/chat", async (req, res) => {
     try {
       const { query, context } = req.body;
       console.log("[express] Generating chatbot response for query:", query);
-      
+
       const response = await generateChatbotResponse(query, context);
       res.json({ response });
     } catch (error) {
@@ -447,20 +463,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Explain legal term in contract
   app.post("/api/ai/explain-term", async (req, res) => {
     try {
       const { contractText, term } = req.body;
-      
+
       if (!contractText || !term) {
         return res.status(400).json({ 
           message: "Both contractText and term are required" 
         });
       }
-      
+
       console.log(`[express] Explaining legal term: "${term}"`);
-      
+
       const explanation = await explainLegalTerm(contractText, term);
       res.json(explanation);
     } catch (error) {
@@ -471,39 +487,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // AI Property Style Search
   app.post("/api/ai/property-style-search", async (req, res) => {
     try {
       const searchQuery: PropertySearchQuery = req.body;
-      
+
       console.log("[express] Performing AI property style search");
-      
+
       if (!searchQuery.stylePreferences) {
         return res.status(400).json({ 
           message: "Style preferences are required for AI property search" 
         });
       }
-      
+
       // Analyze inspiration images if provided
       if (searchQuery.inspirationImages && searchQuery.inspirationImages.length > 0) {
         console.log(`[express] Analyzing ${searchQuery.inspirationImages.length} inspiration images`);
-        
+
         // For multiple images, generate a consolidated style profile
         const styleProfile = await generateStyleProfile(
           searchQuery.inspirationImages,
           searchQuery.stylePreferences.style,
           searchQuery.stylePreferences.features
         );
-        
+
         console.log("[express] Generated style profile:", styleProfile);
       }
-      
+
       // Find matching properties based on style and other requirements
       const matchingProperties = await findMatchingProperties(searchQuery);
-      
+
       console.log(`[express] Found ${matchingProperties.length} matching properties`);
-      
+
       res.json({ 
         matchCount: matchingProperties.length,
         properties: matchingProperties 
@@ -516,23 +532,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Smart AI-powered property matching recommendations
   app.post("/api/recommendations", async (req, res) => {
     try {
       const { preferences } = req.body;
       console.log("[express] Generating smart property recommendations based on user preferences");
-      
+
       if (!preferences) {
         return res.status(400).json({ 
           message: "User preferences are required for property recommendations" 
         });
       }
-      
+
       const recommendedProperties = await generatePropertyRecommendations(preferences);
-      
+
       console.log(`[express] Generated ${recommendedProperties.length} AI-powered property recommendations`);
-      
+
       res.json({ 
         count: recommendedProperties.length,
         properties: recommendedProperties 
@@ -545,7 +561,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Analyze Style from Inspiration Image
   app.post("/api/ai/analyze-style", upload.single('image'), async (req, res) => {
     try {
@@ -553,15 +569,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!file) {
         return res.status(400).json({ message: "No image file uploaded" });
       }
-      
+
       console.log("[express] Analyzing style from inspiration image:", file.originalname);
-      
+
       // Convert buffer to base64
       const imageBase64 = file.buffer.toString('base64');
-      
+
       // Analyze the image style
       const styleAnalysis = await analyzeStyleFromImage(`data:${file.mimetype};base64,${imageBase64}`);
-      
+
       res.json(styleAnalysis);
     } catch (error) {
       console.error("[express] Error analyzing style from image:", error);
@@ -573,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Document AI OCR Integration Routes -----
-  
+
   // Process document with OCR
   app.post("/api/ocr/process", upload.single('document'), async (req, res) => {
     try {
@@ -581,26 +597,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!file) {
         return res.status(400).json({ message: "No document file uploaded" });
       }
-      
+
       console.log("[express] Processing document:", file.originalname, file.mimetype);
-      
+
       // Default processor ID - you would get this from Google Cloud Console
       // This is a placeholder - user needs to provide their actual processor ID
       const processorId = req.body.processorId || process.env.DOCUMENT_AI_PROCESSOR_ID;
-      
+
       if (!processorId) {
         return res.status(400).json({ 
           message: "Document AI processor ID is required. Please provide it in the request or set DOCUMENT_AI_PROCESSOR_ID environment variable." 
         });
       }
-      
+
       // Process the document with Document AI
       const result = await processDocument(
         file.buffer,
         file.mimetype,
         processorId
       );
-      
+
       res.json(result);
     } catch (error) {
       console.error("[express] Error processing document with OCR:", error);
@@ -610,7 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Parse property document (listings, contracts, etc.)
   app.post("/api/ocr/property-document", upload.single('document'), async (req, res) => {
     try {
@@ -618,25 +634,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!file) {
         return res.status(400).json({ message: "No document file uploaded" });
       }
-      
+
       console.log("[express] Processing property document:", file.originalname);
-      
+
       // Default processor ID - you would get this from Google Cloud Console
       const processorId = req.body.processorId || process.env.DOCUMENT_AI_PROCESSOR_ID;
-      
+
       if (!processorId) {
         return res.status(400).json({ 
           message: "Document AI processor ID is required" 
         });
       }
-      
+
       // Parse the property document
       const propertyInfo = await parsePropertyDocument(
         file.buffer,
         file.mimetype,
         processorId
       );
-      
+
       res.json(propertyInfo);
     } catch (error) {
       console.error("[express] Error parsing property document:", error);
@@ -648,13 +664,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Service Experts Routes -----
-  
-  // Get all service experts
-  app.get("/api/service-experts", async (_req, res) => {
+
+  // Combined service experts endpoint with optional service filter
+  app.get("/api/service-experts/:service?", async (req, res) => {
     try {
-      const providers = await storage.getServiceExperts();
-      console.log(`[express] Fetched ${providers.length} service experts`);
-      res.json(providers);
+      const service = req.params.service;
+      const experts = service ? 
+        await storage.getServiceExpertsByService(service) :
+        await storage.getServiceExperts();
+
+      console.log(`[express] Fetched ${experts.length} service experts${service ? ` for ${service}` : ''}`);
+      res.json(experts);
     } catch (error) {
       console.error("[express] Error fetching service experts:", error);
       res.status(500).json({ 
@@ -663,74 +683,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
-  // Get a specific service expert by ID
-  app.get("/api/service-experts/:id", async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const expert = await storage.getServiceExpert(id);
-      
-      if (!expert) {
-        return res.status(404).json({ message: "Service expert not found" });
-      }
-      
-      console.log(`[express] Fetched service expert: ${expert.name}`);
-      res.json(expert);
-    } catch (error) {
-      console.error("[express] Error fetching service expert:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch service expert",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
-  // Get service experts by service offered
-  app.get("/api/service-experts/service/:service", async (req, res) => {
-    try {
-      const service = req.params.service;
-      const experts = await storage.getServiceExpertsByService(service);
-      
-      console.log(`[express] Fetched ${experts.length} service experts offering ${service}`);
-      res.json(experts);
-    } catch (error) {
-      console.error(`[express] Error fetching service experts by service ${req.params.service}:`, error);
-      res.status(500).json({ 
-        message: "Failed to fetch service experts by service",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
-  // Create a new service expert
-  app.post("/api/service-experts", async (req, res) => {
-    try {
-      const data = insertServiceExpertSchema.parse(req.body);
-      const expert = await storage.createServiceExpert(data);
-      
-      console.log(`[express] Created new service expert: ${expert.name}`);
-      res.status(201).json(expert);
-    } catch (error) {
-      console.error("[express] Error creating service expert:", error);
-      res.status(400).json({ 
-        message: "Invalid service expert data",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
-  
+
   // Update a service expert
   app.patch("/api/service-experts/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);
       const updates = req.body;
-      
+
       const updatedExpert = await storage.updateServiceExpert(id, updates);
-      
+
       if (!updatedExpert) {
         return res.status(404).json({ message: "Service expert not found" });
       }
-      
+
       console.log(`[express] Updated service expert: ${updatedExpert.name}`);
       res.json(updatedExpert);
     } catch (error) {
@@ -741,17 +706,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Delete a service expert
   app.delete("/api/service-experts/:id", async (req, res) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteServiceExpert(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Service expert not found" });
       }
-      
+
       console.log(`[express] Deleted service expert with ID: ${id}`);
       res.status(204).end();
     } catch (error) {
@@ -764,21 +729,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Google Places API Integration Routes -----
-  
+
   // Geocode an address to coordinates - returns lat,lng string
   app.get("/api/places/geocode", async (req, res) => {
     try {
       const address = req.query.address as string;
-      
+
       if (!address) {
         return res.status(400).json({ 
           message: "Address parameter is required" 
         });
       }
-      
+
       console.log(`[express] Geocoding address: "${address}"`);
       const coordinates = await geocodeAddress(address);
-      
+
       if (coordinates) {
         console.log(`[express] Successfully geocoded to: ${coordinates}`);
         res.json({ coordinates, success: true });
@@ -798,11 +763,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Check if Google Places API key is configured
   // First version of the places status endpoint was removed to avoid duplication
   // The enhanced version that actually tests the API is kept below
-  
+
   // Search for places using Google Places API
   app.get("/api/places/search", async (req, res) => {
     try {
@@ -810,22 +775,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const location = req.query.location as string;
       const radius = parseInt(req.query.radius as string) || 10000;
       const category = req.query.category as string;
-      
+
       if (!query || !location) {
         return res.status(400).json({ 
           message: "Query and location parameters are required" 
         });
       }
-      
+
       console.log(`[express] Searching for places with query: ${query}, location: ${location}, radius: ${radius}, category: ${category || 'any'}`);
-      
+
       const places = await searchNearbyPlaces({
         query,
         location,
         radius,
         category
       });
-      
+
       console.log(`[express] Found ${places.length} places matching search criteria`);
       res.json(places);
     } catch (error) {
@@ -836,20 +801,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Get a photo URL for a place
   app.get("/api/places/photo/:photoReference", async (req, res) => {
     try {
       const photoReference = req.params.photoReference;
       const maxWidth = parseInt(req.query.maxWidth as string) || 400;
-      
+
       console.log(`[express] Getting photo URL for reference: ${photoReference}`);
       const photoUrl = getPlacePhotoUrl(photoReference, maxWidth);
-      
+
       if (!photoUrl) {
         return res.status(404).json({ message: "Photo not found" });
       }
-      
+
       res.json({ photoUrl });
     } catch (error) {
       console.error("Error getting place photo URL:", error);
@@ -859,19 +824,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Search service experts from Google Places based on service type
   app.get("/api/places/service-experts/:serviceType", async (req, res) => {
     try {
       const serviceType = req.params.serviceType;
       const location = req.query.location as string || "37.7749,-122.4194"; // Default to San Francisco
       const radius = parseInt(req.query.radius as string) || 10000;
-      
+
       console.log(`[express] Searching for ${serviceType} service experts near ${location}`);
-      
+
       // Map service types to appropriate Google Places search terms
       let searchQuery = serviceType;
-      
+
       switch(serviceType.toLowerCase()) {
         case "mortgage_broker":
           searchQuery = "mortgage broker real estate";
@@ -894,15 +859,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         default:
           searchQuery = `${serviceType.replace(/_/g, ' ')} real estate`;
       }
-      
+
       const places = await searchNearbyPlaces({
         query: searchQuery,
         location,
         radius
       });
-      
+
       console.log(`[express] Found ${places.length} service experts of type: ${serviceType}`);
-      
+
       res.json(places);
     } catch (error) {
       console.error(`[express] Error searching for service experts of type ${req.params.serviceType}:`, error);
@@ -918,27 +883,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       const hasApiKey = !!apiKey;
-      
+
       console.log("[express] Checking Google Places API status");
       console.log("[express] API key present:", hasApiKey);
-      
+
       if (hasApiKey) {
         console.log("[express] API key first 4 chars:", apiKey!.substring(0, 4) + "...");
-        
+
         // Make a test API call to verify the API key works
         try {
           // Default location: San Francisco City Hall
           const testLocation = "37.7793,-122.4193";
           const testRadius = 1000;
           const testQuery = "cafe";
-          
+
           console.log("[express] Making test API call to Google Places API");
           const testResult = await searchNearbyPlaces({
             query: testQuery,
             location: testLocation,
             radius: testRadius
           });
-          
+
           // Check the specific error that might be in the response
           // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
           if (Array.isArray(testResult)) {
@@ -981,14 +946,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/places/:placeId", async (req, res) => {
     try {
       const placeId = req.params.placeId;
-      
+
       console.log(`[express] Fetching details for place ID: ${placeId}`);
       const placeDetails = await getPlaceDetails(placeId);
-      
+
       if (!placeDetails) {
         return res.status(404).json({ message: "Place not found" });
       }
-      
+
       res.json(placeDetails);
     } catch (error) {
       console.error("Error fetching place details:", error);
@@ -1001,8 +966,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    console.error("Unhandled error:", err);
-    res.status(500).json({ message: "Internal server error" });
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal server error";
+
+    // Only log 500 errors since they indicate server issues
+    if (status >= 500) {
+      console.error(`[express] Server error (${status}):`, err);
+    }
+
+    res.status(status).json({ 
+      status,
+      message,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Service Bundles Routes
@@ -1114,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Marketplace Routes -----
-  
+
   // Get all service bundles
   app.get("/api/marketplace/bundles", async (_req, res) => {
     try {
@@ -1134,14 +1110,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = Number(req.params.id);
       const bundle = await storage.getServiceBundle(id);
-      
+
       if (!bundle) {
         return res.status(404).json({ message: "Service bundle not found" });
       }
-      
+
       // Get services in the bundle
       const services = await storage.getServicesInBundle(id);
-      
+
       res.json({
         ...bundle,
         services
@@ -1159,12 +1135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/marketplace/services", async (req, res) => {
     try {
       const type = req.query.type ? String(req.query.type) : undefined;
-      
+
       // If type is provided, filter by type
       const services = type
         ? await storage.getServiceOfferingsByType(type)
         : await storage.getServiceOfferings();
-      
+
       res.json(services);
     } catch (error) {
       console.error("[express] Error fetching service offerings:", error);
@@ -1180,11 +1156,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = Number(req.params.id);
       const service = await storage.getServiceOffering(id);
-      
+
       if (!service) {
         return res.status(404).json({ message: "Service offering not found" });
       }
-      
+
       res.json(service);
     } catch (error) {
       console.error(`[express] Error fetching service offering ${req.params.id}:`, error);
@@ -1230,13 +1206,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chatbot", async (req, res) => {
     try {
       const { query, chatHistory } = req.body;
-      
+
       if (!query) {
         return res.status(400).json({ message: "Query is required" });
       }
-      
+
       console.log(`[express] Processing chatbot query: "${query}"`);
-      
+
       const response = await processRealEstateQuery(query, chatHistory || []);
       res.json(response);
     } catch (error) {
@@ -1249,30 +1225,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ----- Property Map Visualization and Market Trends Routes -----
-  
+
   // Get properties with geo data for map visualization
   app.get("/api/properties-geo", async (req, res) => {
     try {
       console.log("[express] Fetching properties with geo data for map visualization");
-      
+
       // Get properties with geo coordinates from storage
       const propertiesWithGeo = await storage.getPropertiesWithGeo();
-      
+
       // If includeIDX query parameter is true, also fetch and include IDX listings with geo data
       const includeIDX = req.query.includeIDX === "true";
       let idxListings: any[] = [];
-      
+
       if (includeIDX && process.env.IDX_BROKER_API_KEY) {
         try {
           console.log("[express] Including IDX listings in geo data");
           const idxResponse = await fetchIdxListings({});
-          
+
           // Geocode the IDX listings (in a real implementation, these would already have coordinates)
           idxListings = idxResponse.listings.map((listing, index) => {
             // Generate some random coordinates near San Francisco for demo purposes
             const latitude = 37.7749 + (Math.random() - 0.5) * 0.1;
             const longitude = -122.4194 + (Math.random() - 0.5) * 0.1;
-            
+
             return {
               listingId: listing.listingId || `idx-${index}`,
               address: listing.address,
@@ -1295,10 +1271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("[express] Error fetching IDX listings for map:", idxError);
         }
       }
-      
+
       // Combine properties
       const allProperties = [...propertiesWithGeo, ...idxListings];
-      
+
       res.json({
         listings: allProperties,
         totalCount: allProperties.length,
@@ -1312,40 +1288,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Get market trends data
   app.get("/api/market-trends", async (req, res) => {
     try {
       console.log("[express] Fetching market trends data");
-      
+
       // Get filter parameters
       const year = req.query.year ? Number(req.query.year) : undefined;
       const neighborhood = req.query.neighborhood ? String(req.query.neighborhood) : undefined;
       const propertyType = req.query.propertyType ? String(req.query.propertyType) : undefined;
-      
+
       let trendsData;
-      
+
       // Apply filters if provided
       if (year) {
         trendsData = await storage.getMarketTrendsByYear(year);
       } else {
         trendsData = await storage.getMarketTrendData();
       }
-      
+
       // Filter by neighborhood if provided
       if (neighborhood) {
         trendsData = trendsData.filter(trend => 
           trend.neighborhood === neighborhood || trend.neighborhood === undefined
         );
       }
-      
+
       // Filter by property type if provided
       if (propertyType) {
         trendsData = trendsData.filter(trend => 
           trend.propertyType === propertyType || trend.propertyType === undefined
         );
       }
-      
+
       res.json(trendsData);
     } catch (error) {
       console.error("[express] Error fetching market trends:", error);
@@ -1355,41 +1331,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Get neighborhood statistics
   app.get("/api/neighborhoods", async (req, res) => {
     try {
       console.log("[express] Fetching neighborhood statistics");
-      
+
       // Get all market trend data
       const trendsData = await storage.getMarketTrendData();
-      
+
       // Get unique neighborhoods
       const neighborhoods = Array.from(new Set(
         trendsData.map(trend => trend.neighborhood).filter(Boolean)
       ));
-      
+
       // Calculate stats for each neighborhood
       const stats = neighborhoods.map(neighborhood => {
         // Filter data for this neighborhood
         const neighborhoodData = trendsData.filter(trend => trend.neighborhood === neighborhood);
-        
+
         // Get most recent data point
         const latestData = neighborhoodData.sort((a, b) => {
           // Sort by year and quarter (descending)
           if (a.year !== b.year) return b.year - a.year;
           return b.quarter - a.quarter;
         })[0];
-        
+
         // Calculate averages
         const averagePrice = Math.round(
           neighborhoodData.reduce((sum, trend) => sum + trend.averagePrice, 0) / neighborhoodData.length
         );
-        
+
         const averageDaysOnMarket = Math.round(
           neighborhoodData.reduce((sum, trend) => sum + trend.daysOnMarket, 0) / neighborhoodData.length
         );
-        
+
         return {
           name: neighborhood,
           averagePrice,
@@ -1399,7 +1375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           salesVolume: latestData.salesVolume
         };
       });
-      
+
       res.json(stats);
     } catch (error) {
       console.error("[express] Error fetching neighborhood statistics:", error);
@@ -1409,23 +1385,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // AI property recommendations endpoint based on user preferences
   app.post("/api/ai-property-recommendations", async (req, res) => {
     try {
       const userPreferences = req.body;
-      
+
       if (!userPreferences) {
         return res.status(400).json({ error: "User preferences are required" });
       }
-      
+
       console.log("[express] Generating AI property recommendations based on user preferences");
-      
+
       // Generate recommendations
       const recommendedProperties = await generatePropertyRecommendations(userPreferences);
-      
+
       console.log(`[express] Found ${recommendedProperties.length} recommended properties`);
-      
+
       res.json(recommendedProperties);
     } catch (error) {
       console.error("AI property recommendations error:", error);
@@ -1447,7 +1423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post("/api/create-payment-intent", async (req, res) => {
       try {
         const { amount, serviceIds, metadata } = req.body;
-        
+
         // Validate amount - must be a number and at least 0.5 for Stripe
         if (!amount || typeof amount !== 'number' || isNaN(amount) || amount < 0.5) {
           return res.status(400).json({ 
@@ -1457,9 +1433,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         console.log(`[express] Creating payment intent for amount: $${amount.toFixed(2)}`);
-        
+
         let enhancedMetadata = metadata || {};
-        
+
         // If service IDs are provided, retrieve service details and include in metadata
         if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
           try {
@@ -1479,21 +1455,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               })
             );
-            
+
             const validServices = services.filter(s => s !== null);
             enhancedMetadata = {
               ...enhancedMetadata,
               services: JSON.stringify(validServices),
               serviceCount: validServices.length
             };
-            
+
             console.log(`[express] Payment for ${validServices.length} services: ${validServices.map(s => s.name).join(', ')}`);
           } catch (err) {
             console.error('[express] Error retrieving service details:', err);
             // Continue with payment intent creation even if service details couldn't be retrieved
           }
         }
-        
+
         try {
           // Create a payment intent
           const paymentIntent = await stripe.paymentIntents.create({
@@ -1504,15 +1480,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               enabled: true,
             },
           });
-          
+
           console.log(`[express] Payment intent created: ${paymentIntent.id}`);
-          
+
           res.json({
             clientSecret: paymentIntent.client_secret,
           });
         } catch (stripeError) {
           console.error('[express] Stripe API error:', stripeError);
-          
+
           // Handle specific Stripe errors
           if (stripeError.type === 'StripeCardError') {
             return res.status(400).json({ 
@@ -1544,12 +1520,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Webhook to handle Stripe events
     app.post("/api/stripe-webhook", async (req, res) => {
       const sig = req.headers['stripe-signature'];
-      
+
       // In a production app, we'd implement proper signature verification
       // with a webhook secret, but we're skipping that for this demo
       try {
         const event = req.body;
-        
+
         // Handle different event types
         switch (event.type) {
           case 'payment_intent.succeeded':
@@ -1557,17 +1533,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`[express] Payment succeeded: ${paymentIntent.id}`);
             // Here we would update our database, send confirmation emails, etc.
             break;
-            
+
           case 'payment_intent.payment_failed':
             const failedPayment = event.data.object;
             console.log(`[express] Payment failed: ${failedPayment.id}`);
             // Here we would handle failed payments
             break;
-            
+
           default:
             console.log(`[express] Unhandled Stripe event: ${event.type}`);
         }
-        
+
         res.sendStatus(200);
       } catch (error) {
         console.error('[express] Error handling webhook:', error);
@@ -1579,7 +1555,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize chat service
   const wss = initializeChat(httpServer);
   console.log('[express] WebSocket server initialized for chat');
-  
+
   // Chat conversation routes
   app.post("/api/chat/conversations", async (req, res) => {
     try {
@@ -1591,11 +1567,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid conversation data" });
     }
   });
-  
+
   app.get("/api/chat/conversations", async (req, res) => {
     try {
       const userId = req.query.userId ? Number(req.query.userId) : undefined;
-      
+
       if (userId) {
         const conversations = await storage.getChatConversationsByUserId(userId);
         res.json(conversations);
@@ -1608,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching conversations" });
     }
   });
-  
+
   app.get("/api/chat/conversations/:id", async (req, res) => {
     try {
       const conversation = await storage.getChatConversation(Number(req.params.id));
@@ -1621,7 +1597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching conversation" });
     }
   });
-  
+
   app.post("/api/chat/participants", async (req, res) => {
     try {
       const data = insertChatParticipantSchema.parse(req.body);
@@ -1632,24 +1608,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid participant data" });
     }
   });
-  
+
   app.delete("/api/chat/participants/:conversationId/:userId", async (req, res) => {
     try {
       const conversationId = Number(req.params.conversationId);
       const userId = Number(req.params.userId);
-      
+
       const removed = await storage.removeChatParticipant(conversationId, userId);
       if (!removed) {
         return res.status(404).json({ message: "Participant not found" });
       }
-      
+
       res.status(204).send();
     } catch (error) {
       console.error('[express] Error removing chat participant:', error);
       res.status(500).json({ message: "Error removing participant" });
     }
   });
-  
+
   app.get("/api/chat/messages/:conversationId", async (req, res) => {
     try {
       const conversationId = Number(req.params.conversationId);
@@ -1660,12 +1636,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching messages" });
     }
   });
-  
+
   app.post("/api/chat/read/:conversationId/:userId", async (req, res) => {
     try {
       const conversationId = Number(req.params.conversationId);
       const userId = Number(req.params.userId);
-      
+
       await storage.markChatMessagesAsRead(conversationId, userId);
       res.status(204).send();
     } catch (error) {
@@ -1673,7 +1649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error marking messages as read" });
     }
   });
-  
+
   // Appointment routes
   app.post("/api/appointments", async (req, res) => {
     try {
@@ -1682,7 +1658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         date: new Date(req.body.date)
       };
-      
+
       const appointment = await storage.createAppointment(appointmentData);
       res.status(201).json(appointment);
     } catch (error) {
@@ -1690,13 +1666,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Invalid appointment data" });
     }
   });
-  
+
   app.get("/api/appointments", async (req, res) => {
     try {
       const userId = req.query.userId ? Number(req.query.userId) : undefined;
       const expertId = req.query.expertId ? Number(req.query.expertId) : undefined;
       const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
-      
+
       if (userId) {
         const appointments = await storage.getAppointmentsByUser(userId);
         res.json(appointments);
@@ -1714,7 +1690,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching appointments" });
     }
   });
-  
+
   app.get("/api/appointments/:id", async (req, res) => {
     try {
       const appointment = await storage.getAppointment(Number(req.params.id));
@@ -1727,28 +1703,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching appointment" });
     }
   });
-  
+
   app.patch("/api/appointments/:id/status", async (req, res) => {
     try {
       const { status } = req.body;
       if (!status) {
         return res.status(400).json({ message: "Status is required" });
       }
-      
+
       const appointment = await storage.updateAppointmentStatus(Number(req.params.id), status);
       if (!appointment) {
         return res.status(404).json({ message: "Appointment not found" });
       }
-      
+
       res.json(appointment);
     } catch (error) {
       console.error('[express] Error updating appointment status:', error);
       res.status(500).json({ message: "Error updating appointment status" });
     }
   });
-  
+
   // Register custom video serving routes
   registerVideoRoutes(app);
-  
+
   return httpServer;
 }

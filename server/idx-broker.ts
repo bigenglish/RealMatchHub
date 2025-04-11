@@ -124,15 +124,10 @@ export async function fetchIdxListings({
     try {
       console.log('Fetching listings from IDX Broker API - trying multiple endpoints and formats');
       
-      // Different endpoints to try
+      // Primary endpoints for property data
       const possibleEndpoints = [
-        'https://api.idxbroker.com/clients/featured',
         'https://api.idxbroker.com/clients/properties',
-        'https://api.idxbroker.com/clients/listingids',
-        'https://api.idxbroker.com/mls/propertylist',
-        'https://api.idxbroker.com/mls/searchfields',
-        'https://api.idxbroker.com/mls/cities',
-        'https://api.idxbroker.com/mls/results'
+        'https://api.idxbroker.com/mls/propertylist'
       ];
       
       // Different header combinations to try

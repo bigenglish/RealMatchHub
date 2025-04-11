@@ -116,16 +116,16 @@ export default function AIChatbot() {
     <>
       {/* Chat Bubble */}
       {showBubble && !isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 animate-bounce">
-          <div className="bg-white text-black p-3 rounded-lg shadow-lg mb-2 max-w-xs">
+        <div className="fixed bottom-6 right-6 z-50 animate-bounce">
+          <div className="bg-white text-black p-2 rounded-lg shadow-lg mb-2 max-w-[200px] text-sm">
             Need help with your real estate search?
           </div>
           <Button
             onClick={() => setIsOpen(true)}
             size="icon"
-            className="h-14 w-14 rounded-full bg-olive-600 hover:bg-olive-700 shadow-lg"
+            className="h-12 w-12 rounded-full bg-olive-600 hover:bg-olive-700 shadow-lg"
           >
-            <MessageSquare className="h-6 w-6" />
+            <MessageSquare className="h-5 w-5" />
           </Button>
         </div>
       )}

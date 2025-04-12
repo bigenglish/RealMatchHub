@@ -464,52 +464,54 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       {step === 3 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
-            {preferences.intent === "buying" && "Where are you looking to buy?"}
-            {preferences.intent === "selling" && "Tell us about your property"}
-            {preferences.intent === "both" && "Tell us more about your real estate plans"}
+            Tell us about your design preferences
           </h3>
+          <p className="text-center text-muted-foreground mb-8">
+            Help us understand your style to find properties that match your taste
+          </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="location" className="font-semibold">
-                  {preferences.intent === "selling" ? "Property Address" : "Location"}
-                </Label>
-                <div className="relative">
-                  <Autosuggest
-                    suggestions={locationSuggestions}
-                    onSuggestionsFetchRequested={({ value }) => setLocationSuggestions(getSuggestions(value))}
-                    onSuggestionsClearRequested={() => setLocationSuggestions([])}
-                    onSuggestionSelected={onLocationSuggestionSelected}
-                    getSuggestionValue={getSuggestionValue}
-                    renderSuggestion={renderSuggestion}
-                    inputProps={inputProps}
-                    theme={{
-                      container: 'relative',
-                      input: 'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                      suggestionsContainer: 'absolute w-full z-10 mt-1 bg-background rounded-md shadow-lg',
-                      suggestionsList: 'max-h-72 overflow-auto py-1 text-sm',
-                      suggestion: 'px-2 py-1',
-                      suggestionHighlighted: 'bg-muted',
-                    }}
-                  />
-                  <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <Label className="font-semibold">Architectural Style</Label>
+                <Select 
+                  value={preferences.architecturalStyle || undefined}
+                  onValueChange={(value) => setPreferences({...preferences, architecturalStyle: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select architectural style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="modern">Modern/Contemporary</SelectItem>
+                    <SelectItem value="traditional">Traditional</SelectItem>
+                    <SelectItem value="craftsman">Craftsman</SelectItem>
+                    <SelectItem value="mediterranean">Mediterranean</SelectItem>
+                    <SelectItem value="colonial">Colonial</SelectItem>
+                    <SelectItem value="farmhouse">Modern Farmhouse</SelectItem>
+                    <SelectItem value="ranch">Ranch</SelectItem>
+                    <SelectItem value="victorian">Victorian</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="property-type" className="font-semibold">Property Type</Label>
+                <Label className="font-semibold">Interior Style</Label>
                 <Select 
-                  value={preferences.propertyType || undefined} 
-                  onValueChange={handlePropertyTypeChange}
+                  value={preferences.interiorStyle || undefined}
+                  onValueChange={(value) => setPreferences({...preferences, interiorStyle: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select property type" />
+                    <SelectValue placeholder="Select interior style" />
                   </SelectTrigger>
                   <SelectContent>
-                    {propertyTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
+                    <SelectItem value="minimalist">Minimalist</SelectItem>
+                    <SelectItem value="contemporary">Contemporary</SelectItem>
+                    <SelectItem value="traditional">Traditional</SelectItem>
+                    <SelectItem value="rustic">Rustic</SelectItem>
+                    <SelectItem value="industrial">Industrial</SelectItem>
+                    <SelectItem value="coastal">Coastal</SelectItem>
+                    <SelectItem value="bohemian">Bohemian</SelectItem>
+                    <SelectItem value="scandinavian">Scandinavian</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -517,44 +519,56 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="timeline" className="font-semibold">When are you planning to {preferences.intent === "buying" ? "buy" : 
-                preferences.intent === "selling" ? "sell" : "move"}?</Label>
-                <Select 
-                  value={preferences.timeframe || "3-6months"} 
-                  onValueChange={handleTimelineChange as any}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select timeframe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timelineOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="h-4 w-4" />
-                          {option.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="font-semibold">Must-Have Design Features</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'open-concept', label: 'Open Concept' },
+                    { id: 'high-ceilings', label: 'High Ceilings' },
+                    { id: 'natural-light', label: 'Natural Light' },
+                    { id: 'modern-kitchen', label: 'Modern Kitchen' },
+                    { id: 'hardwood-floors', label: 'Hardwood Floors' },
+                    { id: 'large-windows', label: 'Large Windows' },
+                    { id: 'outdoor-space', label: 'Outdoor Living' },
+                    { id: 'smart-home', label: 'Smart Home' }
+                  ].map(feature => (
+                    <div key={feature.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={feature.id}
+                        checked={preferences.designFeatures?.includes(feature.id)}
+                        onCheckedChange={(checked) => {
+                          const current = preferences.designFeatures || [];
+                          const updated = checked 
+                            ? [...current, feature.id]
+                            : current.filter(id => id !== feature.id);
+                          setPreferences({...preferences, designFeatures: updated});
+                        }}
+                      />
+                      <label 
+                        htmlFor={feature.id}
+                        className="text-sm font-medium leading-none cursor-pointer"
+                      >
+                        {feature.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="bedrooms" className="font-semibold">Bedrooms</Label>
+                <Label className="font-semibold">Color Preferences</Label>
                 <Select 
-                  value={preferences.bedrooms?.toString() || "0"} 
-                  onValueChange={(val) => setPreferences({ ...preferences, bedrooms: parseInt(val) })}
+                  value={preferences.colorScheme || undefined}
+                  onValueChange={(value) => setPreferences({...preferences, colorScheme: value})}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Any" />
+                    <SelectValue placeholder="Select color scheme" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Any</SelectItem>
-                    <SelectItem value="1">1+</SelectItem>
-                    <SelectItem value="2">2+</SelectItem>
-                    <SelectItem value="3">3+</SelectItem>
-                    <SelectItem value="4">4+</SelectItem>
-                    <SelectItem value="5">5+</SelectItem>
+                    <SelectItem value="neutral">Neutral & Earth Tones</SelectItem>
+                    <SelectItem value="warm">Warm & Cozy</SelectItem>
+                    <SelectItem value="cool">Cool & Calm</SelectItem>
+                    <SelectItem value="bright">Bright & Bold</SelectItem>
+                    <SelectItem value="monochrome">Monochromatic</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

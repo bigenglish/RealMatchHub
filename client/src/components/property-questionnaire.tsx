@@ -487,14 +487,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.jpg' },
-                    { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.jpg' },
-                    { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.jpg' },
-                    { value: 'mediterranean', label: 'Mediterranean', img: '/images/styles/architectural/mediterranean.jpg' },
-                    { value: 'colonial', label: 'Colonial', img: '/images/styles/architectural/colonial.jpg' },
-                    { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.jpg' },
-                    { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.jpg' },
-                    { value: 'victorian', label: 'Victorian', img: '/images/styles/architectural/victorian.jpg' }
+                    { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.svg' },
+                    { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.svg' },
+                    { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.svg' },
+                    { value: 'mediterranean', label: 'Mediterranean', img: '/images/styles/architectural/mediterranean.svg' },
+                    { value: 'colonial', label: 'Colonial', img: '/images/styles/architectural/colonial.svg' },
+                    { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.svg' },
+                    { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.svg' },
+                    { value: 'victorian', label: 'Victorian', img: '/images/styles/architectural/victorian.svg' }
                   ].map(style => (
                     <div
                       key={style.value}
@@ -528,14 +528,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Interior Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { value: 'minimalist', label: 'Minimalist', img: '/images/styles/interior/minimalist.jpg' },
-                    { value: 'contemporary', label: 'Contemporary', img: '/images/styles/interior/contemporary.jpg' },
-                    { value: 'traditional', label: 'Traditional', img: '/images/styles/interior/traditional.jpg' },
-                    { value: 'rustic', label: 'Rustic', img: '/images/styles/interior/rustic.jpg' },
-                    { value: 'industrial', label: 'Industrial', img: '/images/styles/interior/industrial.jpg' },
-                    { value: 'coastal', label: 'Coastal', img: '/images/styles/interior/coastal.jpg' },
-                    { value: 'bohemian', label: 'Bohemian', img: '/images/styles/interior/bohemian.jpg' },
-                    { value: 'scandinavian', label: 'Scandinavian', img: '/images/styles/interior/scandinavian.jpg' }
+                    { value: 'minimalist', label: 'Minimalist', img: '/images/styles/interior/minimalist.svg' },
+                    { value: 'contemporary', label: 'Contemporary', img: '/images/styles/interior/contemporary.svg' },
+                    { value: 'traditional', label: 'Traditional', img: '/images/styles/interior/traditional.svg' },
+                    { value: 'rustic', label: 'Rustic', img: '/images/styles/interior/rustic.svg' },
+                    { value: 'industrial', label: 'Industrial', img: '/images/styles/interior/industrial.svg' },
+                    { value: 'coastal', label: 'Coastal', img: '/images/styles/interior/coastal.svg' },
+                    { value: 'bohemian', label: 'Bohemian', img: '/images/styles/interior/bohemian.svg' },
+                    { value: 'scandinavian', label: 'Scandinavian', img: '/images/styles/interior/scandinavian.svg' }
                   ].map(style => (
                     <div
                       key={style.value}

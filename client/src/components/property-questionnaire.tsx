@@ -36,6 +36,8 @@ export interface UserPreferences {
   timeframe?: TimelineOption;
   inspirationPhotos?: string[]; // Base64 encoded image data
   inspirationUrls?: string[]; // URLs to inspiration listings
+  architecturalStyle?: string;
+  interiorStyle?: string;
 }
 
 interface PropertyQuestionnaireProps {

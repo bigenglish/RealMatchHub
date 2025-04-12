@@ -277,7 +277,7 @@ export default function HomePage() {
                   <SelectTrigger id="property-type-select" className="w-full">
                     <SelectValue placeholder="Select property type" />
                   </SelectTrigger>
-                  <SelectContent position="popper">
+                  <SelectContent>
                     <SelectItem value="house">House</SelectItem>
                     <SelectItem value="apartment">Apartment</SelectItem>
                     <SelectItem value="condo">Condo</SelectItem>

@@ -477,10 +477,10 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.jpg' },
-                    { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.jpg' },
-                    { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.jpg' },
-                    { value: 'mediterranean', label: 'Mediterranean', img: '/images/styles/architectural/mediterranean.jpg' },
+                    { value: 'modern', label: 'Modern/Contemporary', img: './images/styles/architectural/modern.jpg' },
+                    { value: 'traditional', label: 'Traditional', img: './images/styles/architectural/traditional.jpg' },
+                    { value: 'craftsman', label: 'Craftsman', img: './images/styles/architectural/craftsman.jpg' },
+                    { value: 'mediterranean', label: 'Mediterranean', img: './images/styles/architectural/mediterranean.jpg' },
                     { value: 'colonial', label: 'Colonial', img: '/images/styles/architectural/colonial.jpg' },
                     { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.jpg' },
                     { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.jpg' },

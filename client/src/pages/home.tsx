@@ -272,10 +272,9 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
                 <Select 
                   defaultValue="house"
-                  onValueChange={(value) => console.log("Property type changed:", value)}
                 >
-                  <SelectTrigger id="property-type-select" className="w-full">
-                    <SelectValue placeholder="Select property type" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue defaultValue="house">House</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="house">House</SelectItem>
@@ -292,12 +291,11 @@ export default function HomePage() {
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Select 
                     defaultValue="3-6months"
-                    onValueChange={(value) => console.log("Timeline changed:", value)}
                   >
-                    <SelectTrigger id="timeline-select" className="pl-10 w-full">
-                      <SelectValue placeholder="Select timeline" />
+                    <SelectTrigger className="pl-10 w-full">
+                      <SelectValue defaultValue="3-6months">3-6 months</SelectValue>
                     </SelectTrigger>
-                    <SelectContent position="popper">
+                    <SelectContent>
                       <SelectItem value="asap">ASAP (ready to move)</SelectItem>
                       <SelectItem value="1-3months">1-3 months</SelectItem>
                       <SelectItem value="3-6months">3-6 months</SelectItem>

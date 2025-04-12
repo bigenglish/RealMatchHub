@@ -487,10 +487,10 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { value: 'modern', label: 'Modern/Contemporary', img: './images/styles/architectural/modern.jpg' },
-                    { value: 'traditional', label: 'Traditional', img: './images/styles/architectural/traditional.jpg' },
-                    { value: 'craftsman', label: 'Craftsman', img: './images/styles/architectural/craftsman.jpg' },
-                    { value: 'mediterranean', label: 'Mediterranean', img: './images/styles/architectural/mediterranean.jpg' },
+                    { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.jpg' },
+                    { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.jpg' },
+                    { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.jpg' },
+                    { value: 'mediterranean', label: 'Mediterranean', img: '/images/styles/architectural/mediterranean.jpg' },
                     { value: 'colonial', label: 'Colonial', img: '/images/styles/architectural/colonial.jpg' },
                     { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.jpg' },
                     { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.jpg' },
@@ -850,6 +850,30 @@ function LifestageCard({ icon, title, selected, onClick }: LifestageCardProps) {
 
 function formatLifestage(stage: UserLifestage): string {
   const map: Record<UserLifestage, string> = {
+    // Buying-related
+    "down-payment": "Down Payment Amount",
+    "need-mortgage": "Need Mortgage Financing",
+    "pre-approve": "Pre-Approve for a Loan Today",
+    "insurance-quotes": "Interest in Home Insurance quotes",
+    "renovation-plans": "Future Renovation Plans",
+    
+    // Selling-related
+    "property-type": "Property Type",
+    "property-size": "Size (SF)",
+    "bedrooms": "Number of Bedrooms",
+    "bathrooms": "Number of Bathrooms",
+    "property-media": "Property Photos/Videos",
+    "property-features": "Property Features/Amenities",
+    "property-location": "Property Address/Location",
+    "timeframe": "Specific Timeframe",
+    "sell-urgency": "Urgency to Sell",
+    "relocating": "Relocating",
+    "size-change": "Upgrading/Downsizing",
+    "financial-reasons": "Financial Reasons",
+    "moving-services": "Need help with moving services",
+    "buy-after-sell": "Looking to buy after selling",
+    
+    // Other lifestage options
     "flexible-move": "Flexible on move timing",
     "job-received": "Have a W-2 job",
     "live-alone": "Live alone",

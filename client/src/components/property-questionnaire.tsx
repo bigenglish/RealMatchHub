@@ -18,7 +18,9 @@ export type UserIntent = "buying" | "selling" | "both" | undefined;
 export type UserLifestage = "down-payment" | "need-mortgage" | "pre-approve" | "insurance-quotes" | "renovation-plans" |
                            "property-type" | "property-size" | "bedrooms" | "bathrooms" | "property-media" | "property-features" |
                            "property-location" | "timeframe" | "sell-urgency" | "relocating" | "size-change" | "financial-reasons" |
-                           "moving-services" | "buy-after-sell";
+                           "moving-services" | "buy-after-sell" | "flexible-move" | "job-received" | "live-alone" | "own-home" |
+                           "have-children" | "life-change" | "flexible-downpayment" | "sold-property" | "self-employed" | 
+                           "small-business" | "life-questions";
 export type TimelineOption = "asap" | "1-3months" | "3-6months" | "6-12months";
 
 export interface UserPreferences {
@@ -38,6 +40,8 @@ export interface UserPreferences {
   inspirationUrls?: string[]; // URLs to inspiration listings
   architecturalStyle?: string;
   interiorStyle?: string;
+  designFeatures?: string[]; // Additional design features/preferences
+  colorScheme?: string; // Color preferences
 }
 
 interface PropertyQuestionnaireProps {
@@ -62,6 +66,10 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     timeframe: "3-6months",
     inspirationPhotos: [],
     inspirationUrls: [],
+    architecturalStyle: "",
+    interiorStyle: "",
+    designFeatures: [],
+    colorScheme: "",
   });
   
   // Ref for file input

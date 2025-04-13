@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Filter, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox"; // Assuming this component exists
 
 export interface SearchFiltersProps {
   onFilterChange: (filters: SearchFilterValues) => void;
@@ -17,8 +18,8 @@ export interface SearchFilterValues {
   propertyType?: string;
   minPrice?: number;
   maxPrice?: number;
-  minBeds?: number;
-  minBaths?: number;
+  beds?: string[];
+  baths?: string[];
 }
 
 export default function SearchFilters({ onFilterChange, className = "" }: SearchFiltersProps) {
@@ -27,8 +28,8 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
     propertyType: "any",
     minPrice: undefined,
     maxPrice: undefined,
-    minBeds: undefined,
-    minBaths: undefined,
+    beds: [],
+    baths: [],
   });
 
   const [price, setPrice] = useState<[number, number]>([0, 1000000]);
@@ -63,8 +64,8 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
       propertyType: "any",
       minPrice: undefined,
       maxPrice: undefined,
-      minBeds: undefined,
-      minBaths: undefined,
+      beds: [],
+      baths: [],
     };
     setFilters(emptyFilters);
     setPrice([0, 1000000]);
@@ -126,46 +127,49 @@ export default function SearchFilters({ onFilterChange, className = "" }: Search
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="beds">Beds</Label>
-          <Select
-            value={filters.minBeds?.toString() || "any"}
-            onValueChange={(value) =>
-              handleSelectChange("minBeds", value === "any" ? undefined : parseInt(value))
-            }
-          >
-            <SelectTrigger id="beds">
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="1">1+</SelectItem>
-              <SelectItem value="2">2+</SelectItem>
-              <SelectItem value="3">3+</SelectItem>
-              <SelectItem value="4">4+</SelectItem>
-              <SelectItem value="5">5+</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label>Bedrooms</Label>
+          <div className="space-y-2">
+            {["1", "2", "3", "4", "5+"].map((num) => (
+              <div key={`bed-${num}`} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`bed-${num}`}
+                  checked={filters.beds?.includes(num)}
+                  onCheckedChange={(checked) => {
+                    setFilters(prev => ({
+                      ...prev,
+                      beds: checked
+                        ? [...(prev.beds || []), num]
+                        : (prev.beds || []).filter(b => b !== num)
+                    }));
+                  }}
+                />
+                <Label htmlFor={`bed-${num}`}>{num} Bedrooms</Label>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="baths">Baths</Label>
-          <Select
-            value={filters.minBaths?.toString() || "any"}
-            onValueChange={(value) =>
-              handleSelectChange("minBaths", value === "any" ? undefined : parseInt(value))
-            }
-          >
-            <SelectTrigger id="baths">
-              <SelectValue placeholder="Any" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="1">1+</SelectItem>
-              <SelectItem value="2">2+</SelectItem>
-              <SelectItem value="3">3+</SelectItem>
-              <SelectItem value="4">4+</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label>Bathrooms</Label>
+          <div className="space-y-2">
+            {["1", "2", "3", "4+"].map((num) => (
+              <div key={`bath-${num}`} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`bath-${num}`}
+                  checked={filters.baths?.includes(num)}
+                  onCheckedChange={(checked) => {
+                    setFilters(prev => ({
+                      ...prev,
+                      baths: checked
+                        ? [...(prev.baths || []), num]
+                        : (prev.baths || []).filter(b => b !== num)
+                    }));
+                  }}
+                />
+                <Label htmlFor={`bath-${num}`}>{num} Bathrooms</Label>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -124,23 +124,25 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   const totalSteps = 5; // Increased steps to add inspiration photos step
   const progress = Math.round((step / totalSteps) * 100);
   
-  const handleIntentSelect = (intent: UserIntent) => {
-    setPreferences({ ...preferences, intent });
+  const handleIntentSelect = useCallback((intent: UserIntent) => {
+    setPreferences(prev => ({ ...prev, intent }));
     setStep(2);
-  };
+  }, []);
   
-  const handleLifestageSelect = (lifestage: UserLifestage) => {
-    const current = preferences.lifestage || [];
-    const updated = current.includes(lifestage)
-      ? current.filter(item => item !== lifestage)
-      : [...current, lifestage];
-    
-    setPreferences({ ...preferences, lifestage: updated });
-  };
+  const handleLifestageSelect = useCallback((lifestage: UserLifestage) => {
+    setPreferences(prev => {
+      const current = prev.lifestage || [];
+      const updated = current.includes(lifestage)
+        ? current.filter(item => item !== lifestage)
+        : [...current, lifestage];
+      
+      return { ...prev, lifestage: updated };
+    });
+  }, []);
   
-  const isLifestageSelected = (lifestage: UserLifestage) => {
+  const isLifestageSelected = useCallback((lifestage: UserLifestage) => {
     return preferences.lifestage?.includes(lifestage) || false;
-  };
+  }, [preferences.lifestage]);
   
   // Handle location suggestions
   const getSuggestions = (value: string) => {
@@ -486,7 +488,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-4">
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
+                  {useMemo(() => [
                     { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.svg' },
                     { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.svg' },
                     { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.svg' },
@@ -495,7 +497,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                     { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.svg' },
                     { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.svg' },
                     { value: 'victorian', label: 'Victorian', img: '/images/styles/architectural/victorian.svg' }
-                  ].map(style => (
+                  ], []).map(style => (
                     <div
                       key={style.value}
                       className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
@@ -527,7 +529,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-4 mt-8">
                 <Label className="font-semibold">Interior Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
+                  {useMemo(() => [
                     { value: 'minimalist', label: 'Minimalist', img: '/images/styles/interior/minimalist.svg' },
                     { value: 'contemporary', label: 'Contemporary', img: '/images/styles/interior/contemporary.svg' },
                     { value: 'traditional', label: 'Traditional', img: '/images/styles/interior/traditional.svg' },
@@ -536,7 +538,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                     { value: 'coastal', label: 'Coastal', img: '/images/styles/interior/coastal.svg' },
                     { value: 'bohemian', label: 'Bohemian', img: '/images/styles/interior/bohemian.svg' },
                     { value: 'scandinavian', label: 'Scandinavian', img: '/images/styles/interior/scandinavian.svg' }
-                  ].map(style => (
+                  ], []).map(style => (
                     <div
                       key={style.value}
                       className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
@@ -570,7 +572,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-2">
                 <Label className="font-semibold">Must-Have Design Features</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {[
+                  {useMemo(() => [
                     { id: 'open-concept', label: 'Open Concept' },
                     { id: 'high-ceilings', label: 'High Ceilings' },
                     { id: 'natural-light', label: 'Natural Light' },
@@ -579,7 +581,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                     { id: 'large-windows', label: 'Large Windows' },
                     { id: 'outdoor-space', label: 'Outdoor Living' },
                     { id: 'smart-home', label: 'Smart Home' }
-                  ].map(feature => (
+                  ], []).map(feature => (
                     <div key={feature.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={feature.id}

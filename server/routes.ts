@@ -47,7 +47,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/places/autocomplete', async (req, res) => {
   const query = req.query.query as string;
   const types = req.query.types as string;
-  
+
   if (!query) {
     return res.status(400).json({ error: 'Query parameter is required' });
   }
@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       radius: 50000,
       category: types
     });
-    
+
     const addresses = suggestions.map(place => place.vicinity || place.name);
     res.json(addresses);
   } catch (error) {
@@ -1750,6 +1750,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register custom video serving routes
   registerVideoRoutes(app);
+
+  app.listen(5000, '0.0.0.0', () => {
+    console.log('Server listening on port 5000');
+  });
 
   return httpServer;
 }

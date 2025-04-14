@@ -6,7 +6,8 @@ import {
   Check, Home, Building, ChevronsRight, CalendarDays, MapPin, Search, 
   Camera, Upload, Image, X, Wallet, Calculator, Shield, Key, Ruler,
   Bed, Bath, CheckSquare, Clock, MoveVertical, TrendingUp, DollarSign,
-  Package, Calendar, SplitSquareVertical
+  Package, Calendar, SplitSquareVertical, Square, Hammer, Palmtree, 
+  Mountain, Landmark, Sofa, Armchair, Factory, Waves, Leaf, Sparkles
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -489,36 +490,38 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {useMemo(() => [
-                    { value: 'modern', label: 'Modern/Contemporary', img: '/images/styles/architectural/modern.svg' },
-                    { value: 'traditional', label: 'Traditional', img: '/images/styles/architectural/traditional.svg' },
-                    { value: 'craftsman', label: 'Craftsman', img: '/images/styles/architectural/craftsman.svg' },
-                    { value: 'mediterranean', label: 'Mediterranean', img: '/images/styles/architectural/mediterranean.svg' },
-                    { value: 'colonial', label: 'Colonial', img: '/images/styles/architectural/colonial.svg' },
-                    { value: 'farmhouse', label: 'Modern Farmhouse', img: '/images/styles/architectural/farmhouse.svg' },
-                    { value: 'ranch', label: 'Ranch', img: '/images/styles/architectural/ranch.svg' },
-                    { value: 'victorian', label: 'Victorian', img: '/images/styles/architectural/victorian.svg' }
+                    { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
+                    { value: 'traditional', label: 'Traditional', icon: 'home' },
+                    { value: 'craftsman', label: 'Craftsman', icon: 'workshop' },
+                    { value: 'mediterranean', label: 'Mediterranean', icon: 'palmtree' },
+                    { value: 'colonial', label: 'Colonial', icon: 'columns' },
+                    { value: 'farmhouse', label: 'Modern Farmhouse', icon: 'barn' },
+                    { value: 'ranch', label: 'Ranch', icon: 'ranch' },
+                    { value: 'victorian', label: 'Victorian', icon: 'landmark' }
                   ], []).map(style => (
                     <div
                       key={style.value}
-                      className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
                         preferences.architecturalStyle === style.value 
-                          ? 'border-primary ring-2 ring-primary ring-opacity-50' 
-                          : 'border-transparent hover:border-gray-300'
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => setPreferences({...preferences, architecturalStyle: style.value})}
                     >
-                      <img 
-                        src={style.img} 
-                        alt={style.label}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 text-white text-sm font-medium">
-                        {style.label}
+                      <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                        {style.icon === 'square' && <Square className="h-5 w-5" />}
+                        {style.icon === 'home' && <Home className="h-5 w-5" />}
+                        {style.icon === 'workshop' && <Hammer className="h-5 w-5" />}
+                        {style.icon === 'palmtree' && <Palmtree className="h-5 w-5" />}
+                        {style.icon === 'columns' && <Building className="h-5 w-5" />}
+                        {style.icon === 'barn' && <Home className="h-5 w-5" />}
+                        {style.icon === 'ranch' && <Mountain className="h-5 w-5" />}
+                        {style.icon === 'landmark' && <Landmark className="h-5 w-5" />}
                       </div>
+                      <div className="text-sm font-medium text-center">{style.label}</div>
                       {preferences.architecturalStyle === style.value && (
                         <div className="absolute top-2 right-2">
-                          <Check className="h-5 w-5 text-primary bg-white rounded-full" />
+                          <Check className="h-5 w-5 text-primary" />
                         </div>
                       )}
                     </div>
@@ -530,36 +533,38 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <Label className="font-semibold">Interior Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {useMemo(() => [
-                    { value: 'minimalist', label: 'Minimalist', img: '/images/styles/interior/minimalist.svg' },
-                    { value: 'contemporary', label: 'Contemporary', img: '/images/styles/interior/contemporary.svg' },
-                    { value: 'traditional', label: 'Traditional', img: '/images/styles/interior/traditional.svg' },
-                    { value: 'rustic', label: 'Rustic', img: '/images/styles/interior/rustic.svg' },
-                    { value: 'industrial', label: 'Industrial', img: '/images/styles/interior/industrial.svg' },
-                    { value: 'coastal', label: 'Coastal', img: '/images/styles/interior/coastal.svg' },
-                    { value: 'bohemian', label: 'Bohemian', img: '/images/styles/interior/bohemian.svg' },
-                    { value: 'scandinavian', label: 'Scandinavian', img: '/images/styles/interior/scandinavian.svg' }
+                    { value: 'minimalist', label: 'Minimalist', icon: 'square' },
+                    { value: 'contemporary', label: 'Contemporary', icon: 'sparkles' },
+                    { value: 'traditional', label: 'Traditional', icon: 'sofa' },
+                    { value: 'rustic', label: 'Rustic', icon: 'wood' },
+                    { value: 'industrial', label: 'Industrial', icon: 'factory' },
+                    { value: 'coastal', label: 'Coastal', icon: 'waves' },
+                    { value: 'bohemian', label: 'Bohemian', icon: 'leaf' },
+                    { value: 'scandinavian', label: 'Scandinavian', icon: 'armchair' }
                   ], []).map(style => (
                     <div
                       key={style.value}
-                      className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
                         preferences.interiorStyle === style.value 
-                          ? 'border-primary ring-2 ring-primary ring-opacity-50' 
-                          : 'border-transparent hover:border-gray-300'
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => setPreferences({...preferences, interiorStyle: style.value})}
                     >
-                      <img 
-                        src={style.img} 
-                        alt={style.label}
-                        className="w-full aspect-[4/3] object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-2 left-2 right-2 text-white text-sm font-medium">
-                        {style.label}
+                      <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                        {style.icon === 'square' && <Square className="h-5 w-5" />}
+                        {style.icon === 'sparkles' && <Sparkles className="h-5 w-5" />}
+                        {style.icon === 'sofa' && <Sofa className="h-5 w-5" />}
+                        {style.icon === 'wood' && <Home className="h-5 w-5" />}
+                        {style.icon === 'factory' && <Factory className="h-5 w-5" />}
+                        {style.icon === 'waves' && <Waves className="h-5 w-5" />}
+                        {style.icon === 'leaf' && <Leaf className="h-5 w-5" />}
+                        {style.icon === 'armchair' && <Armchair className="h-5 w-5" />}
                       </div>
+                      <div className="text-sm font-medium text-center">{style.label}</div>
                       {preferences.interiorStyle === style.value && (
                         <div className="absolute top-2 right-2">
-                          <Check className="h-5 w-5 text-primary bg-white rounded-full" />
+                          <Check className="h-5 w-5 text-primary" />
                         </div>
                       )}
                     </div>

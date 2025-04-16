@@ -309,13 +309,42 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {preferences.intent === "buying" ? (
               <>
-                <LifestageCard 
-                  icon={<Wallet className="h-6 w-6" />}
-                  title="Down Payment Amount"
-                  value="down-payment"
-                  selected={isLifestageSelected("down-payment")}
-                  onClick={() => handleLifestageSelect("down-payment")}
-                />
+                <div className="space-y-4">
+                  <LifestageCard 
+                    icon={<Wallet className="h-6 w-6" />}
+                    title="Down Payment Amount"
+                    value="down-payment"
+                    selected={isLifestageSelected("down-payment")}
+                    onClick={() => handleLifestageSelect("down-payment")}
+                  />
+                  {isLifestageSelected("down-payment") && (
+                    <div className="ml-8 p-4 bg-gray-50 rounded-lg space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label>Down Payment Amount</Label>
+                          <span className="text-sm text-muted-foreground">
+                            ${(preferences.budget?.min || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <Slider
+                          defaultValue={[20000]}
+                          min={0}
+                          max={500000}
+                          step={5000}
+                          value={[preferences.budget?.min || 0]}
+                          onValueChange={([value]) => setPreferences(prev => ({
+                            ...prev,
+                            budget: { ...prev.budget, min: value }
+                          }))}
+                          className="my-4"
+                        />
+                        <div className="text-sm text-muted-foreground">
+                          Adjust your down payment amount
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="space-y-4">
                   <LifestageCard 

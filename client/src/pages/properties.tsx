@@ -296,6 +296,16 @@ export default function PropertiesPage() {
                   <Link href={`/property/${property.id}`} className="w-full sm:w-auto">
                     <Button variant="outline" size="sm" className="w-full sm:w-auto">View Details</Button>
                   </Link>
+                  <Link href={`/property/${property.id}`} className="w-full sm:w-auto">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-1 w-full sm:w-auto bg-gradient-to-r from-violet-500 to-purple-700 hover:from-violet-600 hover:to-purple-800 text-white"
+                    >
+                      <Video className="h-4 w-4" />
+                      Virtual Tour
+                    </Button>
+                  </Link>
                   <Button 
                     onClick={() => handleOpenServiceSelection(property)}
                     variant="default" 

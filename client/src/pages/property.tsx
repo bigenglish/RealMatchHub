@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import type { Property } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, ChevronDown, Video3d } from "lucide-react";
+import { MapPin, Calendar, ChevronDown, Video } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -114,6 +114,18 @@ export default function PropertyPage() {
           </div>
         </div>
 
+        {/* Virtual Tour Button */}
+        <div className="mt-4">
+          <Button 
+            onClick={() => setShowVirtualTour(true)}
+            variant="outline" 
+            className="w-full bg-gradient-to-r from-violet-500 to-purple-700 hover:from-violet-600 hover:to-purple-800 text-white"
+          >
+            <Video className="mr-2 h-5 w-5" />
+            Take Virtual Tour
+          </Button>
+        </div>
+
         <div className="grid grid-cols-3 gap-2 mt-4">
           <Button variant="default" className="w-full">
             Check Availability
@@ -125,6 +137,18 @@ export default function PropertyPage() {
             Share Home
           </Button>
         </div>
+        
+        {/* Virtual Tour Dialog */}
+        <Dialog open={showVirtualTour} onOpenChange={setShowVirtualTour}>
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
+            <VirtualTour 
+              propertyId={Number(id)}
+              propertyImages={property.images || [defaultImage]}
+              videoUrl={virtualTourVideoUrl}
+              onClose={() => setShowVirtualTour(false)}
+            />
+          </DialogContent>
+        </Dialog>
 
         <Accordion type="single" collapsible className="mt-6">
           <AccordionItem value="open-houses">

@@ -250,6 +250,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { value: 'ranch', label: 'Ranch', icon: 'ranch' },
     { value: 'victorian', label: 'Victorian', icon: 'landmark' }
   ], []);
+  
+  const interiorStyles = useMemo(() => [
+    { value: 'minimalist', label: 'Minimalist', icon: 'square' },
+    { value: 'contemporary', label: 'Contemporary', icon: 'sparkles' },
+    { value: 'traditional', label: 'Traditional', icon: 'sofa' },
+    { value: 'rustic', label: 'Rustic', icon: 'wood' },
+    { value: 'industrial', label: 'Industrial', icon: 'factory' },
+    { value: 'coastal', label: 'Coastal', icon: 'waves' },
+    { value: 'bohemian', label: 'Bohemian', icon: 'leaf' },
+    { value: 'scandinavian', label: 'Scandinavian', icon: 'armchair' }
+  ], []);
 
   const handleNextStep = () => {
     if (step < totalSteps) {
@@ -358,7 +369,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                           value={[preferences.budget?.min || 0]}
                           onValueChange={([value]) => setPreferences(prev => ({
                             ...prev,
-                            budget: { ...prev.budget, min: value }
+                            budget: { min: value, max: prev.budget?.max || 750000 }
                           }))}
                           className="my-4"
                         />
@@ -673,16 +684,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-4">
                 <Label className="font-semibold">Architectural Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {useMemo(() => [
-                    { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
-                    { value: 'traditional', label: 'Traditional', icon: 'home' },
-                    { value: 'craftsman', label: 'Craftsman', icon: 'workshop' },
-                    { value: 'mediterranean', label: 'Mediterranean', icon: 'palmtree' },
-                    { value: 'colonial', label: 'Colonial', icon: 'columns' },
-                    { value: 'farmhouse', label: 'Modern Farmhouse', icon: 'barn' },
-                    { value: 'ranch', label: 'Ranch', icon: 'ranch' },
-                    { value: 'victorian', label: 'Victorian', icon: 'landmark' }
-                  ], []).map(style => (
+                  {architecturalStyles.map(style => (
                     <div
                       key={style.value}
                       className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
@@ -716,16 +718,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-4 mt-8">
                 <Label className="font-semibold">Interior Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {useMemo(() => [
-                    { value: 'minimalist', label: 'Minimalist', icon: 'square' },
-                    { value: 'contemporary', label: 'Contemporary', icon: 'sparkles' },
-                    { value: 'traditional', label: 'Traditional', icon: 'sofa' },
-                    { value: 'rustic', label: 'Rustic', icon: 'wood' },
-                    { value: 'industrial', label: 'Industrial', icon: 'factory' },
-                    { value: 'coastal', label: 'Coastal', icon: 'waves' },
-                    { value: 'bohemian', label: 'Bohemian', icon: 'leaf' },
-                    { value: 'scandinavian', label: 'Scandinavian', icon: 'armchair' }
-                  ], []).map(style => (
+                  {interiorStyles.map(style => (
                     <div
                       key={style.value}
                       className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${

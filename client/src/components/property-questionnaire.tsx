@@ -239,6 +239,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { id: 'outdoor-space', label: 'Outdoor Living' },
     { id: 'smart-home', label: 'Smart Home' }
   ], []);
+  
+  const architecturalStyles = useMemo(() => [
+    { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
+    { value: 'traditional', label: 'Traditional', icon: 'home' },
+    { value: 'craftsman', label: 'Craftsman', icon: 'workshop' },
+    { value: 'mediterranean', label: 'Mediterranean', icon: 'palmtree' },
+    { value: 'colonial', label: 'Colonial', icon: 'columns' },
+    { value: 'farmhouse', label: 'Modern Farmhouse', icon: 'barn' },
+    { value: 'ranch', label: 'Ranch', icon: 'ranch' },
+    { value: 'victorian', label: 'Victorian', icon: 'landmark' }
+  ], []);
 
   const handleNextStep = () => {
     if (step < totalSteps) {

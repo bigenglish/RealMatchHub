@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Building, Users, Zap } from 'lucide-react';
+import { CreditCard, Building, Users, Zap, Video } from 'lucide-react';
 
 // Interface for IDX Broker listings
 interface IdxListing {

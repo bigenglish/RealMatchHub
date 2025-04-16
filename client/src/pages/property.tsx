@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import type { Property } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Calendar, ChevronDown } from "lucide-react";
+import { MapPin, Calendar, ChevronDown, Video3d } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -12,6 +12,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Bed, Bath, Move, Image } from "lucide-react";
+import VirtualTour from "@/components/virtual-tour";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 
 export default function PropertyPage() {
@@ -19,7 +21,10 @@ export default function PropertyPage() {
   const { data: property, isLoading } = useQuery<Property>({
     queryKey: ["/api/properties", id],
   });
+  const [showVirtualTour, setShowVirtualTour] = useState(false);
 
+  // For demo, we'll use a sample video URL
+  const virtualTourVideoUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
   const defaultImage = "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
 
   if (isLoading) {

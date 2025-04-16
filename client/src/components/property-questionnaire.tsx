@@ -32,6 +32,8 @@ export interface UserPreferences {
     min: number;
     max: number;
   };
+  insuranceOptions?: string[];
+  renovationPlans?: string[];
   location?: string;
   propertyType?: string[];
   bedrooms?: number[];
@@ -472,21 +474,163 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   )}
                 </div>
 
-                <LifestageCard 
-                  icon={<Shield className="h-6 w-6" />}
-                  title="Interest in Home Insurance quotes"
-                  value="insurance-quotes"
-                  selected={isLifestageSelected("insurance-quotes")}
-                  onClick={() => handleLifestageSelect("insurance-quotes")}
-                />
+                <div className="space-y-4">
+                  <LifestageCard 
+                    icon={<Shield className="h-6 w-6" />}
+                    title="Interest in Home Insurance quotes"
+                    value="insurance-quotes"
+                    selected={isLifestageSelected("insurance-quotes")}
+                    onClick={() => handleLifestageSelect("insurance-quotes")}
+                  />
+                  {isLifestageSelected("insurance-quotes") && (
+                    <div className="ml-8 p-4 bg-gray-50 rounded-lg space-y-4">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="basic-coverage"
+                            checked={preferences.insuranceOptions?.includes("basic-coverage")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.insuranceOptions || [];
+                              const updated = checked 
+                                ? [...current, "basic-coverage"]
+                                : current.filter(id => id !== "basic-coverage");
+                              setPreferences({...preferences, insuranceOptions: updated});
+                            }}
+                          />
+                          <label className="text-sm">Basic Coverage (Property & Liability)</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="extended-coverage"
+                            checked={preferences.insuranceOptions?.includes("extended-coverage")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.insuranceOptions || [];
+                              const updated = checked 
+                                ? [...current, "extended-coverage"]
+                                : current.filter(id => id !== "extended-coverage");
+                              setPreferences({...preferences, insuranceOptions: updated});
+                            }}
+                          />
+                          <label className="text-sm">Extended Coverage (Natural Disasters)</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="contents-coverage"
+                            checked={preferences.insuranceOptions?.includes("contents-coverage")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.insuranceOptions || [];
+                              const updated = checked 
+                                ? [...current, "contents-coverage"]
+                                : current.filter(id => id !== "contents-coverage");
+                              setPreferences({...preferences, insuranceOptions: updated});
+                            }}
+                          />
+                          <label className="text-sm">Contents Coverage</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="bundled-insurance"
+                            checked={preferences.insuranceOptions?.includes("bundled-insurance")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.insuranceOptions || [];
+                              const updated = checked 
+                                ? [...current, "bundled-insurance"]
+                                : current.filter(id => id !== "bundled-insurance");
+                              setPreferences({...preferences, insuranceOptions: updated});
+                            }}
+                          />
+                          <label className="text-sm">Bundle with Auto/Life Insurance</label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-                <LifestageCard 
-                  icon={<Key className="h-6 w-6" />}
-                  title="Future Renovation Plans"
-                  value="renovation-plans"
-                  selected={isLifestageSelected("renovation-plans")}
-                  onClick={() => handleLifestageSelect("renovation-plans")}
-                />
+                <div className="space-y-4">
+                  <LifestageCard 
+                    icon={<Key className="h-6 w-6" />}
+                    title="Future Renovation Plans"
+                    value="renovation-plans"
+                    selected={isLifestageSelected("renovation-plans")}
+                    onClick={() => handleLifestageSelect("renovation-plans")}
+                  />
+                  {isLifestageSelected("renovation-plans") && (
+                    <div className="ml-8 p-4 bg-gray-50 rounded-lg space-y-4">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="kitchen-remodel"
+                            checked={preferences.renovationPlans?.includes("kitchen-remodel")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.renovationPlans || [];
+                              const updated = checked 
+                                ? [...current, "kitchen-remodel"]
+                                : current.filter(id => id !== "kitchen-remodel");
+                              setPreferences({...preferences, renovationPlans: updated});
+                            }}
+                          />
+                          <label className="text-sm">Kitchen Remodel</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="bathroom-update"
+                            checked={preferences.renovationPlans?.includes("bathroom-update")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.renovationPlans || [];
+                              const updated = checked 
+                                ? [...current, "bathroom-update"]
+                                : current.filter(id => id !== "bathroom-update");
+                              setPreferences({...preferences, renovationPlans: updated});
+                            }}
+                          />
+                          <label className="text-sm">Bathroom Updates</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="finish-basement"
+                            checked={preferences.renovationPlans?.includes("finish-basement")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.renovationPlans || [];
+                              const updated = checked 
+                                ? [...current, "finish-basement"]
+                                : current.filter(id => id !== "finish-basement");
+                              setPreferences({...preferences, renovationPlans: updated});
+                            }}
+                          />
+                          <label className="text-sm">Finish Basement</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="add-bedroom"
+                            checked={preferences.renovationPlans?.includes("add-bedroom")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.renovationPlans || [];
+                              const updated = checked 
+                                ? [...current, "add-bedroom"]
+                                : current.filter(id => id !== "add-bedroom");
+                              setPreferences({...preferences, renovationPlans: updated});
+                            }}
+                          />
+                          <label className="text-sm">Add Bedroom/Bath</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="outdoor-living"
+                            checked={preferences.renovationPlans?.includes("outdoor-living")}
+                            onCheckedChange={(checked) => {
+                              const current = preferences.renovationPlans || [];
+                              const updated = checked 
+                                ? [...current, "outdoor-living"]
+                                : current.filter(id => id !== "outdoor-living");
+                              setPreferences({...preferences, renovationPlans: updated});
+                            }}
+                          />
+                          <label className="text-sm">Outdoor Living Space</label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>

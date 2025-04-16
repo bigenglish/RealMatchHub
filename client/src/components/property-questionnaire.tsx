@@ -987,69 +987,171 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             <div className="space-y-4">
               <div className="space-y-4">
                 <Label className="font-semibold">Architectural Style</Label>
+                <p className="text-sm text-muted-foreground mb-4">Select all styles that interest you</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {useMemo(() => [
-                    { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
-                    { value: 'traditional', label: 'Traditional', icon: 'home' },
-                    { value: 'craftsman', label: 'Craftsman', icon: 'workshop' },
-                    { value: 'mediterranean', label: 'Mediterranean', icon: 'palmtree' },
-                    { value: 'colonial', label: 'Colonial', icon: 'columns' },
-                    { value: 'farmhouse', label: 'Modern Farmhouse', icon: 'barn' },
-                    { value: 'ranch', label: 'Ranch', icon: 'ranch' },
-                    { value: 'victorian', label: 'Victorian', icon: 'landmark' }
+                    { 
+                      value: 'modern', 
+                      label: 'Modern/Contemporary', 
+                      icon: 'square',
+                      description: 'Clean lines, minimal decoration, large windows, open floor plans'
+                    },
+                    { 
+                      value: 'traditional', 
+                      label: 'Traditional', 
+                      icon: 'home',
+                      description: 'Classic design elements, symmetrical facades, familiar comfort'
+                    },
+                    { 
+                      value: 'craftsman', 
+                      label: 'Craftsman', 
+                      icon: 'workshop',
+                      description: 'Natural materials, exposed beams, built-in cabinetry, front porch'
+                    },
+                    { 
+                      value: 'mediterranean', 
+                      label: 'Mediterranean', 
+                      icon: 'palmtree',
+                      description: 'Stucco walls, red tile roofs, arched windows, outdoor living'
+                    },
+                    { 
+                      value: 'colonial', 
+                      label: 'Colonial', 
+                      icon: 'columns',
+                      description: 'Symmetrical design, central entry, formal rooms, multi-story'
+                    },
+                    { 
+                      value: 'farmhouse', 
+                      label: 'Modern Farmhouse', 
+                      icon: 'barn',
+                      description: 'Mix of rustic and modern, metal roofs, wrap-around porch'
+                    },
+                    { 
+                      value: 'ranch', 
+                      label: 'Ranch', 
+                      icon: 'ranch',
+                      description: 'Single-story, open concept, attached garage, indoor-outdoor flow'
+                    },
+                    { 
+                      value: 'victorian', 
+                      label: 'Victorian', 
+                      icon: 'landmark',
+                      description: 'Ornate details, steep roof, decorative trim, multiple stories'
+                    }
                   ], []).map(style => (
-                    <div
-                      key={style.value}
-                      className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
-                        preferences.architecturalStyle === style.value 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setPreferences({...preferences, architecturalStyle: style.value})}
-                    >
-                      <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
-                        {style.icon === 'square' && <Square className="h-5 w-5" />}
-                        {style.icon === 'home' && <Home className="h-5 w-5" />}
-                        {style.icon === 'workshop' && <Hammer className="h-5 w-5" />}
-                        {style.icon === 'palmtree' && <Palmtree className="h-5 w-5" />}
-                        {style.icon === 'columns' && <Building className="h-5 w-5" />}
-                        {style.icon === 'barn' && <Home className="h-5 w-5" />}
-                        {style.icon === 'ranch' && <Mountain className="h-5 w-5" />}
-                        {style.icon === 'landmark' && <Landmark className="h-5 w-5" />}
-                      </div>
-                      <div className="text-sm font-medium text-center">{style.label}</div>
-                      {preferences.architecturalStyle === style.value && (
-                        <div className="absolute top-2 right-2">
-                          <Check className="h-5 w-5 text-primary" />
+                    <Tooltip key={style.value} delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all relative ${
+                            preferences.architecturalStyles?.includes(style.value)
+                              ? 'border-primary bg-primary/10' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            const current = preferences.architecturalStyles || [];
+                            const updated = current.includes(style.value)
+                              ? current.filter(s => s !== style.value)
+                              : [...current, style.value];
+                            setPreferences({...preferences, architecturalStyles: updated});
+                          }}
+                        >
+                          <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                            {style.icon === 'square' && <Square className="h-5 w-5" />}
+                            {style.icon === 'home' && <Home className="h-5 w-5" />}
+                            {style.icon === 'workshop' && <Hammer className="h-5 w-5" />}
+                            {style.icon === 'palmtree' && <Palmtree className="h-5 w-5" />}
+                            {style.icon === 'columns' && <Building className="h-5 w-5" />}
+                            {style.icon === 'barn' && <Home className="h-5 w-5" />}
+                            {style.icon === 'ranch' && <Mountain className="h-5 w-5" />}
+                            {style.icon === 'landmark' && <Landmark className="h-5 w-5" />}
+                          </div>
+                          <div className="text-sm font-medium text-center">{style.label}</div>
+                          {preferences.architecturalStyles?.includes(style.value) && (
+                            <div className="absolute top-2 right-2">
+                              <Check className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[200px] text-center">
+                        {style.description}
+                      </TooltipContent>
+                    </Tooltip>
                   ))}
                 </div>
               </div>
 
               <div className="space-y-4 mt-8">
                 <Label className="font-semibold">Interior Style</Label>
+                <p className="text-sm text-muted-foreground mb-4">Select all styles that inspire you</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {useMemo(() => [
-                    { value: 'minimalist', label: 'Minimalist', icon: 'square' },
-                    { value: 'contemporary', label: 'Contemporary', icon: 'sparkles' },
-                    { value: 'traditional', label: 'Traditional', icon: 'sofa' },
-                    { value: 'rustic', label: 'Rustic', icon: 'wood' },
-                    { value: 'industrial', label: 'Industrial', icon: 'factory' },
-                    { value: 'coastal', label: 'Coastal', icon: 'waves' },
-                    { value: 'bohemian', label: 'Bohemian', icon: 'leaf' },
-                    { value: 'scandinavian', label: 'Scandinavian', icon: 'armchair' }
+                    { 
+                      value: 'minimalist', 
+                      label: 'Minimalist', 
+                      icon: 'square',
+                      description: 'Clean spaces, neutral colors, essential furnishings only'
+                    },
+                    { 
+                      value: 'contemporary', 
+                      label: 'Contemporary', 
+                      icon: 'sparkles',
+                      description: 'Current trends, smooth lines, artistic elements'
+                    },
+                    { 
+                      value: 'traditional', 
+                      label: 'Traditional', 
+                      icon: 'sofa',
+                      description: 'Classic furniture, rich colors, symmetrical arrangements'
+                    },
+                    { 
+                      value: 'rustic', 
+                      label: 'Rustic', 
+                      icon: 'wood',
+                      description: 'Natural materials, wooden beams, cozy and warm'
+                    },
+                    { 
+                      value: 'industrial', 
+                      label: 'Industrial', 
+                      icon: 'factory',
+                      description: 'Exposed brick, metal fixtures, open ductwork'
+                    },
+                    { 
+                      value: 'coastal', 
+                      label: 'Coastal', 
+                      icon: 'waves',
+                      description: 'Light colors, natural light, beach-inspired decor'
+                    },
+                    { 
+                      value: 'bohemian', 
+                      label: 'Bohemian', 
+                      icon: 'leaf',
+                      description: 'Mixed patterns, layered textiles, eclectic decor'
+                    },
+                    { 
+                      value: 'scandinavian', 
+                      label: 'Scandinavian', 
+                      icon: 'armchair',
+                      description: 'Light woods, minimal decor, functional design'
+                    }
                   ], []).map(style => (
-                    <div
-                      key={style.value}
-                      className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
-                        preferences.interiorStyle === style.value 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      onClick={() => setPreferences({...preferences, interiorStyle: style.value})}
-                    >
+                    <Tooltip key={style.value} delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <div
+                          key={style.value}
+                          className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
+                            preferences.interiorStyles?.includes(style.value)
+                              ? 'border-primary bg-primary/10' 
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            const current = preferences.interiorStyles || [];
+                            const updated = current.includes(style.value)
+                              ? current.filter(s => s !== style.value)
+                              : [...current, style.value];
+                            setPreferences({...preferences, interiorStyles: updated});
+                          }}
+                        >
                       <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
                         {style.icon === 'square' && <Square className="h-5 w-5" />}
                         {style.icon === 'sparkles' && <Sparkles className="h-5 w-5" />}

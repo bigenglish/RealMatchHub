@@ -33,11 +33,13 @@ export interface UserPreferences {
     max: number;
   };
   location?: string;
-  propertyType?: string;
-  bedrooms?: number;
-  bathrooms?: number;
-  mustHaveFeatures?: string[];
-  timeframe?: TimelineOption;
+  propertyType?: string[];
+  bedrooms?: number[];
+  bathrooms?: number[];
+  features?: string[];
+  timelines?: TimelineOption[];
+  sellReasons?: string[];
+  movingServices?: string[];
   inspirationPhotos?: string[]; // Base64 encoded image data
   inspirationUrls?: string[]; // URLs to inspiration listings
   architecturalStyle?: string;
@@ -61,11 +63,13 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       max: 750000,
     },
     location: "",
-    propertyType: "",
-    bedrooms: 0,
-    bathrooms: 0,
-    mustHaveFeatures: [],
-    timeframe: "3-6months",
+    propertyType: [],
+    bedrooms: [],
+    bathrooms: [],
+    features: [],
+    timelines: [],
+    sellReasons: [],
+    movingServices: [],
     inspirationPhotos: [],
     inspirationUrls: [],
     architecturalStyle: "",
@@ -108,21 +112,67 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
   // Property types for dropdown
   const propertyTypes = [
-    "Single Family Home",
-    "Condo",
-    "Townhouse",
-    "Multi-Family",
-    "Land",
-    "Apartment"
+    {id: 'single-family', label: "Single Family Home"},
+    {id: 'condo', label: "Condo"},
+    {id: 'townhouse', label: "Townhouse"},
+    {id: 'multi-family', label: "Multi-Family"},
+    {id: 'land', label: "Land"},
+    {id: 'apartment', label: "Apartment"}
+  ];
+
+  // Bedroom options
+  const bedroomOptions = [
+    { id: 1, label: "1 Bedroom" },
+    { id: 2, label: "2 Bedrooms" },
+    { id: 3, label: "3 Bedrooms" },
+    { id: 4, label: "4 Bedrooms" },
+    { id: 5, label: "5+ Bedrooms" }
+  ];
+
+  // Bathroom options
+  const bathroomOptions = [
+    { id: 1, label: "1 Bathroom" },
+    { id: 2, label: "2 Bathrooms" },
+    { id: 3, label: "3 Bathrooms" },
+    { id: 4, label: "4+ Bathrooms" }
+  ];
+
+  // Property features
+  const propertyFeatures = [
+    { id: 'pool', label: "Pool" },
+    { id: 'garage', label: "Garage" },
+    { id: 'yard', label: "Yard" },
+    { id: 'balcony', label: "Balcony" },
+    { id: 'fireplace', label: "Fireplace" },
+    { id: 'updated-kitchen', label: "Updated Kitchen" },
+    { id: 'updated-bathrooms', label: "Updated Bathrooms" }
   ];
 
   // Timeline options mapping
   const timelineOptions = [
-    { value: "asap", label: "ASAP (ready to move)" },
-    { value: "1-3months", label: "1-3 months (begin making offers)" },
-    { value: "3-6months", label: "3-6 months (start my search)" },
-    { value: "6-12months", label: "6-12 months (early in the process)" }
+    { id: 'asap', label: "ASAP (ready to move)" },
+    { id: '1-3months', label: "1-3 months (begin making offers)" },
+    { id: '3-6months', label: "3-6 months (start my search)" },
+    { id: '6-12months', label: "6-12 months (early in the process)" }
   ];
+
+  // Urgency reasons
+  const urgencyReasons = [
+    { id: 'relocating', label: "Relocating" },
+    { id: 'new-job', label: "New Job" },
+    { id: 'financial', label: "Financial Reasons" },
+    { id: 'upgrade', label: "Upgrading/Downsizing" },
+    { id: 'other', label: "Other" }
+  ];
+
+  // Moving services
+  const movingServices = [
+    { id: 'packing', label: "Packing Services" },
+    { id: 'loading', label: "Loading/Unloading" },
+    { id: 'transport', label: "Transportation" },
+    { id: 'cleaning', label: "Cleaning Services" }
+  ];
+
 
   const totalSteps = 5; // Increased steps to add inspiration photos step
   const progress = Math.round((step / totalSteps) * 100);
@@ -204,17 +254,27 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
-    const reader = new FileReader();
+    const filePromises = Array.from(files).map(file => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && typeof event.target.result === 'string') {
+            resolve(event.target.result);
+          } else {
+            reject("Failed to read file");
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
 
-    reader.onload = (event) => {
-      if (event.target && typeof event.target.result === 'string') {
-        const newPhotos = [...(preferences.inspirationPhotos || []), event.target.result];
+    Promise.all(filePromises)
+      .then(photos => {
+        const newPhotos = [...(preferences.inspirationPhotos || []), ...photos];
         setPreferences({ ...preferences, inspirationPhotos: newPhotos });
-      }
-    };
-
-    reader.readAsDataURL(file);
+      })
+      .catch(error => console.error("Error uploading images:", error));
 
     // Reset the input value so the same file can be selected again
     if (fileInputRef.current) {
@@ -238,6 +298,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { id: 'large-windows', label: 'Large Windows' },
     { id: 'outdoor-space', label: 'Outdoor Living' },
     { id: 'smart-home', label: 'Smart Home' }
+  ], []);
+
+  const architecturalStyles = useMemo(() => [
+    { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
+    { value: 'traditional', label: 'Traditional', icon: 'home' },
+    { value: 'craftsman', label: 'Craftsman', icon: 'workshop' },
+    { value: 'mediterranean', label: 'Mediterranean', icon: 'palmtree' },
+    { value: 'colonial', label: 'Colonial', icon: 'columns' },
+    { value: 'farmhouse', label: 'Modern Farmhouse', icon: 'barn' },
+    { value: 'ranch', label: 'Ranch', icon: 'ranch' },
+    { value: 'victorian', label: 'Victorian', icon: 'landmark' }
   ], []);
 
   const handleNextStep = () => {
@@ -419,117 +490,205 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               </>
             ) : (
               <>
-                <LifestageCard 
-                  icon={<Home className="h-6 w-6" />}
-                  title="Property Type"
-                  value="property-type"
-                  selected={isLifestageSelected("property-type")}
-                  onClick={() => handleLifestageSelect("property-type")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Property Type</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {propertyTypes.map(type => (
+                      <div key={type.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={type.id}
+                          checked={preferences.propertyType?.includes(type.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.propertyType || [];
+                            const updated = checked 
+                              ? [...current, type.id]
+                              : current.filter(id => id !== type.id);
+                            setPreferences({...preferences, propertyType: updated});
+                          }}
+                        />
+                        <label htmlFor={type.id} className="text-sm cursor-pointer">
+                          {type.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Ruler className="h-6 w-6" />}
-                  title="Size (SF)"
-                  value="property-size"
-                  selected={isLifestageSelected("property-size")}
-                  onClick={() => handleLifestageSelect("property-size")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Bedrooms</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {bedroomOptions.map(option => (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`bed-${option.id}`}
+                          checked={preferences.bedrooms?.includes(option.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.bedrooms || [];
+                            const updated = checked 
+                              ? [...current, option.id]
+                              : current.filter(id => id !== option.id);
+                            setPreferences({...preferences, bedrooms: updated});
+                          }}
+                        />
+                        <label htmlFor={`bed-${option.id}`} className="text-sm cursor-pointer">
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Bed className="h-6 w-6" />}
-                  title="Number of Bedrooms"
-                  value="bedrooms"
-                  selected={isLifestageSelected("bedrooms")}
-                  onClick={() => handleLifestageSelect("bedrooms")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Bathrooms</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {bathroomOptions.map(option => (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`bath-${option.id}`}
+                          checked={preferences.bathrooms?.includes(option.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.bathrooms || [];
+                            const updated = checked 
+                              ? [...current, option.id]
+                              : current.filter(id => id !== option.id);
+                            setPreferences({...preferences, bathrooms: updated});
+                          }}
+                        />
+                        <label htmlFor={`bath-${option.id}`} className="text-sm cursor-pointer">
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Bath className="h-6 w-6" />}
-                  title="Number of Bathrooms"
-                  value="bathrooms"
-                  selected={isLifestageSelected("bathrooms")}
-                  onClick={() => handleLifestageSelect("bathrooms")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Property Features</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {propertyFeatures.map(feature => (
+                      <div key={feature.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`feature-${feature.id}`}
+                          checked={preferences.features?.includes(feature.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.features || [];
+                            const updated = checked 
+                              ? [...current, feature.id]
+                              : current.filter(id => id !== feature.id);
+                            setPreferences({...preferences, features: updated});
+                          }}
+                        />
+                        <label htmlFor={`feature-${feature.id}`} className="text-sm cursor-pointer">
+                          {feature.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Camera className="h-6 w-6" />}
-                  title="Property Photos/Videos"
-                  value="property-media"
-                  selected={isLifestageSelected("property-media")}
-                  onClick={() => handleLifestageSelect("property-media")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Timeline</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {timelineOptions.map(option => (
+                      <div key={option.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`timeline-${option.id}`}
+                          checked={preferences.timelines?.includes(option.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.timelines || [];
+                            const updated = checked 
+                              ? [...current, option.id]
+                              : current.filter(id => id !== option.id);
+                            setPreferences({...preferences, timelines: updated});
+                          }}
+                        />
+                        <label htmlFor={`timeline-${option.id}`} className="text-sm cursor-pointer">
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<CheckSquare className="h-6 w-6" />}
-                  title="Property Features/Amenities"
-                  value="property-features"
-                  selected={isLifestageSelected("property-features")}
-                  onClick={() => handleLifestageSelect("property-features")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Reason for Selling</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {urgencyReasons.map(reason => (
+                      <div key={reason.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`reason-${reason.id}`}
+                          checked={preferences.sellReasons?.includes(reason.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.sellReasons || [];
+                            const updated = checked 
+                              ? [...current, reason.id]
+                              : current.filter(id => id !== reason.id);
+                            setPreferences({...preferences, sellReasons: updated});
+                          }}
+                        />
+                        <label htmlFor={`reason-${reason.id}`} className="text-sm cursor-pointer">
+                          {reason.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<MapPin className="h-6 w-6" />}
-                  title="Property Address/Location"
-                  value="property-location"
-                  selected={isLifestageSelected("property-location")}
-                  onClick={() => handleLifestageSelect("property-location")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Moving Services Needed</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {movingServices.map(service => (
+                      <div key={service.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`service-${service.id}`}
+                          checked={preferences.movingServices?.includes(service.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.movingServices || [];
+                            const updated = checked 
+                              ? [...current, service.id]
+                              : current.filter(id => id !== service.id);
+                            setPreferences({...preferences, movingServices: updated});
+                          }}
+                        />
+                        <label htmlFor={`service-${service.id}`} className="text-sm cursor-pointer">
+                          {service.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Calendar className="h-6 w-6" />}
-                  title="Specific Timeframe"
-                  value="timeframe"
-                  selected={isLifestageSelected("timeframe")}
-                  onClick={() => handleLifestageSelect("timeframe")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Property Media</Label>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      <Camera className="h-4 w-4 mr-2" />
+                      Upload Photos/Videos
+                    </Button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*,video/*"
+                      multiple
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+                </div>
 
-                <LifestageCard 
-                  icon={<Clock className="h-6 w-6" />}
-                  title="Urgency to Sell"
-                  value="sell-urgency"
-                  selected={isLifestageSelected("sell-urgency")}
-                  onClick={() => handleLifestageSelect("sell-urgency")}
-                />
-
-                <LifestageCard 
-                  icon={<MoveVertical className="h-6 w-6" />}
-                  title="Relocating"
-                  value="relocating"
-                  selected={isLifestageSelected("relocating")}
-                  onClick={() => handleLifestageSelect("relocating")}
-                />
-
-                <LifestageCard 
-                  icon={<TrendingUp className="h-6 w-6" />}
-                  title="Upgrading/Downsizing"
-                  value="size-change"
-                  selected={isLifestageSelected("size-change")}
-                  onClick={() => handleLifestageSelect("size-change")}
-                />
-
-                <LifestageCard 
-                  icon={<DollarSign className="h-6 w-6" />}
-                  title="Financial Reasons"
-                  value="financial-reasons"
-                  selected={isLifestageSelected("financial-reasons")}
-                  onClick={() => handleLifestageSelect("financial-reasons")}
-                />
-
-                <LifestageCard 
-                  icon={<Package className="h-6 w-6" />}
-                  title="Need help with moving services"
-                  value="moving-services"
-                  selected={isLifestageSelected("moving-services")}
-                  onClick={() => handleLifestageSelect("moving-services")}
-                />
-
-                <LifestageCard 
-                  icon={<Building className="h-6 w-6" />}
-                  title="Looking to buy after selling"
-                  value="buy-after-sell"
-                  selected={isLifestageSelected("buy-after-sell")}
-                  onClick={() => handleLifestageSelect("buy-after-sell")}
-                />
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Property Location</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      placeholder="Enter property address"
+                      value={preferences.location || ''}
+                      onChange={(e) => setPreferences({...preferences, location: e.target.value})}
+                    />
+                    <Button variant="outline">
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -765,7 +924,8 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       />
                       <label 
                         htmlFor={feature.id}
-                        className="text-sm font-medium leading-none cursor-pointer">
+                        className="text-sm font-medium leading-none cursor-pointer"
+                      >
                         {feature.label}
                       </label>
                     </div>
@@ -933,7 +1093,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Property type: </span>
-                  <span>{preferences.propertyType}</span>
+                  <span>{preferences.propertyType.map((type, index) => (
+                    <span key={index}>
+                      {propertyTypes.find(p => p.id === type)?.label || type}
+                      {index < preferences.propertyType.length - 1 ? ", " : ""}
+                    </span>
+                  ))}</span>
                 </div>
               )}
 
@@ -942,7 +1107,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <Check className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Timeline: </span>
                   <span>
-                    {timelineOptions.find(option => option.value === preferences.timeframe)?.label || preferences.timeframe}
+                    {timelineOptions.find(option => option.id === preferences.timelines?.[0])?.label || preferences.timeframe}
                   </span>
                 </div>
               )}

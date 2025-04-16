@@ -32,6 +32,11 @@ export interface UserPreferences {
     min: number;
     max: number;
   };
+  selectedLocations?: string[];
+  lifestylePreferences?: string[];
+  hasCommute?: boolean;
+  commuteTime?: string;
+  commuteMode?: string;
   insuranceOptions?: string[];
   renovationPlans?: string[];
   location?: string;
@@ -1236,6 +1241,160 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       )}
 
       {step === 4 && (
+  <div className="space-y-6">
+    <h3 className="text-xl font-semibold text-center">Where do you envision your next home?</h3>
+    <p className="text-center text-muted-foreground">Let's find the perfect neighborhood for your lifestyle</p>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Location Preferences */}
+      <div className="space-y-4">
+        <Label className="font-semibold">Desired Location(s)</Label>
+        <div className="flex items-center space-x-2">
+          <Autosuggest
+            suggestions={locationSuggestions}
+            onSuggestionsFetchRequested={({ value }) => {
+              getSuggestions(value)
+            }}
+            onSuggestionsClearRequested={() => {
+              setLocationSuggestions([]);
+            }}
+            getSuggestionValue={getSuggestionValue}
+            renderSuggestion={renderSuggestion}
+            inputProps={locationInputProps}
+            onSuggestionSelected={onLocationSuggestionSelected}
+          />
+          <Button variant="outline">
+            <MapPin className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        {preferences.selectedLocations && preferences.selectedLocations.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {preferences.selectedLocations.map((location, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                {location}
+                <X className="h-3 w-3 cursor-pointer" onClick={() => {
+                  const updated = preferences.selectedLocations?.filter((_, i) => i !== index);
+                  setPreferences({...preferences, selectedLocations: updated});
+                }} />
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Lifestyle Preferences */}
+      <div className="space-y-4">
+        <Label className="font-semibold">Lifestyle Preferences</Label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[
+            { id: 'parks', label: 'Parks & Green Spaces', icon: <Leaf className="h-4 w-4" /> },
+            { id: 'schools', label: 'Good Schools', icon: <GraduationCap className="h-4 w-4" /> },
+            { id: 'walkable', label: 'Walkability', icon: <Footprints className="h-4 w-4" /> },
+            { id: 'transit', label: 'Public Transit', icon: <Bus className="h-4 w-4" /> },
+            { id: 'nightlife', label: 'Nightlife', icon: <Music className="h-4 w-4" /> },
+            { id: 'family', label: 'Family-Friendly', icon: <Users className="h-4 w-4" /> },
+            { id: 'quiet', label: 'Quiet/Suburban', icon: <Home className="h-4 w-4" /> },
+            { id: 'amenities', label: 'Close to Amenities', icon: <Store className="h-4 w-4" /> },
+            { id: 'pets', label: 'Pet-Friendly', icon: <PawPrint className="h-4 w-4" /> },
+          ].map(pref => (
+            <div
+              key={pref.id}
+              className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                preferences.lifestylePreferences?.includes(pref.id)
+                  ? 'border-primary bg-primary/10'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => {
+                const current = preferences.lifestylePreferences || [];
+                const updated = current.includes(pref.id)
+                  ? current.filter(id => id !== pref.id)
+                  : [...current, pref.id];
+                setPreferences({...preferences, lifestylePreferences: updated});
+              }}
+            >
+              <div className="mb-2">{pref.icon}</div>
+              <span className="text-xs text-center">{pref.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Commute Preferences */}
+      <div className="col-span-1 md:col-span-2 space-y-4">
+        <Label className="font-semibold">Commute Preferences</Label>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={preferences.hasCommute || false}
+              onCheckedChange={(checked) => setPreferences({...preferences, hasCommute: checked})}
+            />
+            <Label>I commute to work</Label>
+          </div>
+
+          {preferences.hasCommute && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
+              <div className="space-y-2">
+                <Label>Preferred commute time</Label>
+                <Select 
+                  value={preferences.commuteTime}
+                  onValueChange={(value) => setPreferences({...preferences, commuteTime: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select preferred time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">Under 15 minutes</SelectItem>
+                    <SelectItem value="30">15-30 minutes</SelectItem>
+                    <SelectItem value="45">30-45 minutes</SelectItem>
+                    <SelectItem value="60">45-60 minutes</SelectItem>
+                    <SelectItem value="60+">Over 60 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preferred transportation</Label>
+                <div className="flex gap-2">
+                  {[
+                    { id: 'car', icon: <Car className="h-4 w-4" />, label: 'Car' },
+                    { id: 'transit', icon: <Bus className="h-4 w-4" />, label: 'Transit' },
+                    { id: 'bike', icon: <Bike className="h-4 w-4" />, label: 'Bike' },
+                    { id: 'walk', icon: <Walk className="h-4 w-4" />, label: 'Walk' },
+                  ].map(mode => (
+                    <Button
+                      key={mode.id}
+                      variant={preferences.commuteMode === mode.id ? 'default' : 'outline'}
+                      className="flex-1"
+                      onClick={() => setPreferences({...preferences, commuteMode: mode.id})}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        {mode.icon}
+                        <span className="text-xs">{mode.label}</span>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-center gap-4 pt-4">
+      <Button variant="outline" onClick={() => setStep(step - 1)}>
+        Go Back
+      </Button>
+      <Button onClick={handleNextStep}>
+        Continue
+        <ChevronsRight className="ml-2 h-4 w-4" />
+      </Button>
+    </div>
+  </div>
+)}
+
+{step === 5 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
             {preferences.intent === "buying" && "Share your style inspiration"}

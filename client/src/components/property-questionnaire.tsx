@@ -229,6 +229,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     setPreferences({ ...preferences, inspirationPhotos: photos });
   };
 
+  const features = useMemo(() => [
+    { id: 'open-concept', label: 'Open Concept' },
+    { id: 'high-ceilings', label: 'High Ceilings' },
+    { id: 'natural-light', label: 'Natural Light' },
+    { id: 'modern-kitchen', label: 'Modern Kitchen' },
+    { id: 'hardwood-floors', label: 'Hardwood Floors' },
+    { id: 'large-windows', label: 'Large Windows' },
+    { id: 'outdoor-space', label: 'Outdoor Living' },
+    { id: 'smart-home', label: 'Smart Home' }
+  ], []);
+
   const handleNextStep = () => {
     if (step < totalSteps) {
       setStep(step + 1);
@@ -236,8 +247,6 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       onComplete(preferences);
     }
   };
-
-  const features = useMemo(() => [
                     { id: 'open-concept', label: 'Open Concept' },
                     { id: 'high-ceilings', label: 'High Ceilings' },
                     { id: 'natural-light', label: 'Natural Light' },

@@ -76,6 +76,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
   // Ref for file input
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [urlInput, setUrlInput] = useState(''); // State for URL input
 
   // Location search states for autosuggest
   const [locationValue, setLocationValue] = useState("");
@@ -540,6 +541,111 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             Help us understand your style to find properties that match your taste
           </p>
 
+          {/* Image Upload Section */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <h4 className="font-medium mb-2">Upload Inspiration Images</h4>
+              <p className="text-sm text-muted-foreground">
+                Share photos of homes and interiors you love to help our AI understand your style
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 w-full max-w-xl hover:border-primary cursor-pointer transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Upload className="h-8 w-8 text-gray-400" />
+                  <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                  <p className="text-xs text-muted-foreground">JPG, PNG or WEBP (max 5MB)</p>
+                </div>
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+
+              {preferences.inspirationPhotos && preferences.inspirationPhotos.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-xl">
+                  {preferences.inspirationPhotos.map((photo, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={photo}
+                        alt={`Inspiration ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        onClick={() => removeInspirationPhoto(index)}
+                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-4 w-4 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col items-center gap-2 mt-6">
+              <label className="font-medium">Add Inspiration URLs</label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Share links to properties or design inspiration you love
+              </p>
+              <div className="flex gap-2 w-full max-w-xl">
+                <Input
+                  type="url"
+                  placeholder="https://example.com/inspiration"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && urlInput) {
+                      const urls = [...(preferences.inspirationUrls || []), urlInput];
+                      setPreferences({ ...preferences, inspirationUrls: urls });
+                      setUrlInput('');
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={() => {
+                    if (urlInput) {
+                      const urls = [...(preferences.inspirationUrls || []), urlInput];
+                      setPreferences({ ...preferences, inspirationUrls: urls });
+                      setUrlInput('');
+                    }
+                  }}
+                >
+                  Add
+                </Button>
+              </div>
+
+              {preferences.inspirationUrls && preferences.inspirationUrls.length > 0 && (
+                <div className="w-full max-w-xl space-y-2 mt-2">
+                  {preferences.inspirationUrls.map((url, index) => (
+                    <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
+                      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm truncate hover:text-primary">
+                        {url}
+                      </a>
+                      <button
+                        onClick={() => {
+                          const urls = preferences.inspirationUrls?.filter((_, i) => i !== index);
+                          setPreferences({ ...preferences, inspirationUrls: urls });
+                        }}
+                        className="p-1 hover:bg-background rounded"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-4">
@@ -629,7 +735,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 mt-8">
               <div className="space-y-2">
                 <Label className="font-semibold">Must-Have Design Features</Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -660,7 +766,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                         className="text-sm font-medium leading-none cursor-pointer"
                       >
                         {feature.label}
-                      </label>
+                      </</label>
                     </div>
                   ))}
                 </div>

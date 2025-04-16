@@ -237,6 +237,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     }
   };
 
+  const features = useMemo(() => [
+                    { id: 'open-concept', label: 'Open Concept' },
+                    { id: 'high-ceilings', label: 'High Ceilings' },
+                    { id: 'natural-light', label: 'Natural Light' },
+                    { id: 'modern-kitchen', label: 'Modern Kitchen' },
+                    { id: 'hardwood-floors', label: 'Hardwood Floors' },
+                    { id: 'large-windows', label: 'Large Windows' },
+                    { id: 'outdoor-space', label: 'Outdoor Living' },
+                    { id: 'smart-home', label: 'Smart Home' }
+                  ], []);
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="space-y-2">
@@ -739,16 +750,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <div className="space-y-2">
                 <Label className="font-semibold">Must-Have Design Features</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {useMemo(() => [
-                    { id: 'open-concept', label: 'Open Concept' },
-                    { id: 'high-ceilings', label: 'High Ceilings' },
-                    { id: 'natural-light', label: 'Natural Light' },
-                    { id: 'modern-kitchen', label: 'Modern Kitchen' },
-                    { id: 'hardwood-floors', label: 'Hardwood Floors' },
-                    { id: 'large-windows', label: 'Large Windows' },
-                    { id: 'outdoor-space', label: 'Outdoor Living' },
-                    { id: 'smart-home', label: 'Smart Home' }
-                  ], []).map(feature => (
+                  {features.map(feature => (
                     <div key={feature.id} className="flex items-center space-x-2">
                       <Checkbox 
                         id={feature.id}
@@ -766,7 +768,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                         className="text-sm font-medium leading-none cursor-pointer"
                       >
                         {feature.label}
-                      </</label>
+                      </label>
                     </div>
                   ))}
                 </div>

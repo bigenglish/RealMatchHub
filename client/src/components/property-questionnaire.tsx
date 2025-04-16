@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 import { 
   Check, Home, Building, ChevronsRight, CalendarDays, MapPin, Search, 
   Camera, Upload, Image, X, Wallet, Calculator, Shield, Key, Ruler,

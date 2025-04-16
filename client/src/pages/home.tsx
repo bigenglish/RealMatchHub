@@ -286,14 +286,31 @@ export default function HomePage() {
               </div>
 
               <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
+                <div className="relative">
+                  <Home className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Select>
+                    <SelectTrigger className="pl-10 w-full">
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="condo">Condo</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="land">Land</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Select 
-                    defaultValue="3-6months"
-                  >
+                  <Select>
                     <SelectTrigger className="pl-10 w-full">
-                      <SelectValue defaultValue="3-6months">3-6 months</SelectValue>
+                      <SelectValue placeholder="Select timeline" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="asap">ASAP (ready to move)</SelectItem>

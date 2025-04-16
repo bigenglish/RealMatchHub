@@ -231,12 +231,27 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   );
 
   // Input props for autosuggest
-  const inputProps = {
+  const locationInputProps = {
     placeholder: preferences.intent === "selling" ? "Enter your property address" : "Where are you looking to buy?",
     value: locationValue,
-    onChange: (_: React.FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
+    onChange: async (_: React.FormEvent<HTMLElement>, { newValue }: { newValue: string }) => {
       setLocationValue(newValue);
       setPreferences({ ...preferences, location: newValue });
+
+      // Fetch address suggestions when user types
+      if (newValue.length > 2) {
+        try {
+          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(newValue)}&type=address`);
+          if (response.ok) {
+            const suggestions = await response.json();
+            setLocationSuggestions(suggestions);
+          }
+        } catch (error) {
+          console.error('Error fetching address suggestions:', error);
+        }
+      } else {
+        setLocationSuggestions([]);
+      }
     },
     className: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
   };
@@ -780,7 +795,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Moving Services Needed</Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid gridcols-2 gap-2">
                     {movingServices.map(service => (
                       <div key={service.id} className="flex items-center space-x-2">
                         <Checkbox 
@@ -823,10 +838,18 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Location</Label>
                   <div className="flex items-center space-x-2">
-                    <Input
-                      placeholder="Enter property address"
-                      value={preferences.location || ''}
-                      onChange={(e) => setPreferences({...preferences, location: e.target.value})}
+                    <Autosuggest
+                      suggestions={locationSuggestions}
+                      onSuggestionsFetchRequested={({ value }) => {
+                        getSuggestions(value)
+                      }}
+                      onSuggestionsClearRequested={() => {
+                        setLocationSuggestions([]);
+                      }}
+                      getSuggestionValue={getSuggestionValue}
+                      renderSuggestion={renderSuggestion}
+                      inputProps={locationInputProps}
+                      onSuggestionSelected={onLocationSuggestionSelected}
                     />
                     <Button variant="outline">
                       <MapPin className="h-4 w-4" />

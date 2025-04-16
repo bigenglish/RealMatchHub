@@ -72,14 +72,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     designFeatures: [],
     colorScheme: "",
   });
-  
+
   // Ref for file input
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Location search states for autosuggest
   const [locationValue, setLocationValue] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
-  
+
   // Popular cities for suggestions
   const popularCities = [
     "San Francisco, CA", 
@@ -103,7 +103,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     "Las Vegas, NV",
     "Atlanta, GA"
   ];
-  
+
   // Property types for dropdown
   const propertyTypes = [
     "Single Family Home",
@@ -113,7 +113,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     "Land",
     "Apartment"
   ];
-  
+
   // Timeline options mapping
   const timelineOptions = [
     { value: "asap", label: "ASAP (ready to move)" },
@@ -121,51 +121,51 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { value: "3-6months", label: "3-6 months (start my search)" },
     { value: "6-12months", label: "6-12 months (early in the process)" }
   ];
-  
+
   const totalSteps = 5; // Increased steps to add inspiration photos step
   const progress = Math.round((step / totalSteps) * 100);
-  
+
   const handleIntentSelect = useCallback((intent: UserIntent) => {
     setPreferences(prev => ({ ...prev, intent }));
     setStep(2);
   }, []);
-  
+
   const handleLifestageSelect = useCallback((lifestage: UserLifestage) => {
     setPreferences(prev => {
       const current = prev.lifestage || [];
       const updated = current.includes(lifestage)
         ? current.filter(item => item !== lifestage)
         : [...current, lifestage];
-      
+
       return { ...prev, lifestage: updated };
     });
   }, []);
-  
+
   const isLifestageSelected = useCallback((lifestage: UserLifestage) => {
     return preferences.lifestage?.includes(lifestage) || false;
   }, [preferences.lifestage]);
-  
+
   // Handle location suggestions
   const getSuggestions = (value: string) => {
     const inputValue = value.trim().toLowerCase();
     const inputLength = inputValue.length;
-    
+
     return inputLength === 0 
       ? [] 
       : popularCities.filter(city => 
           city.toLowerCase().includes(inputValue)
         );
   };
-  
+
   // When suggestion is selected
   const onLocationSuggestionSelected = (event: React.FormEvent<HTMLElement>, { suggestion }: { suggestion: string }) => {
     setLocationValue(suggestion);
     setPreferences({ ...preferences, location: suggestion });
   };
-  
+
   // Get suggestion value
   const getSuggestionValue = (suggestion: string) => suggestion;
-  
+
   // Render suggestion
   const renderSuggestion = (suggestion: string) => (
     <div className="p-2 hover:bg-muted cursor-pointer">
@@ -175,7 +175,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       </div>
     </div>
   );
-  
+
   // Input props for autosuggest
   const inputProps = {
     placeholder: preferences.intent === "selling" ? "Enter your property address" : "Where are you looking to buy?",
@@ -186,17 +186,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     },
     className: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
   };
-  
+
   // Handle property type change
   const handlePropertyTypeChange = (value: string) => {
     setPreferences({ ...preferences, propertyType: value });
   };
-  
+
   // Handle timeline selection
   const handleTimelineChange = (value: TimelineOption) => {
     setPreferences({ ...preferences, timeframe: value });
   };
-  
+
   // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -204,29 +204,29 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
     const file = files[0];
     const reader = new FileReader();
-    
+
     reader.onload = (event) => {
       if (event.target && typeof event.target.result === 'string') {
         const newPhotos = [...(preferences.inspirationPhotos || []), event.target.result];
         setPreferences({ ...preferences, inspirationPhotos: newPhotos });
       }
     };
-    
+
     reader.readAsDataURL(file);
-    
+
     // Reset the input value so the same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
-  
+
   // Remove inspiration photo
   const removeInspirationPhoto = (index: number) => {
     const photos = [...(preferences.inspirationPhotos || [])];
     photos.splice(index, 1);
     setPreferences({ ...preferences, inspirationPhotos: photos });
   };
-  
+
   const handleNextStep = () => {
     if (step < totalSteps) {
       setStep(step + 1);
@@ -234,7 +234,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       onComplete(preferences);
     }
   };
-  
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="space-y-2">
@@ -248,7 +248,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </p>
         </div>
       </div>
-      
+
       {step === 1 && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-center">What are you looking to do?</h3>
@@ -267,7 +267,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </p>
               </div>
             </Card>
-            
+
             <Card 
               className={`p-6 cursor-pointer hover:border-primary hover:shadow-md transition-all ${
                 preferences.intent === "selling" ? "bg-primary/10 border-primary" : ""
@@ -282,7 +282,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </p>
               </div>
             </Card>
-            
+
             <Card 
               className={`p-6 cursor-pointer hover:border-primary hover:shadow-md transition-all ${
                 preferences.intent === "both" ? "bg-primary/10 border-primary" : ""
@@ -300,12 +300,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </div>
         </div>
       )}
-      
+
       {step === 2 && (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-center">Tell us about your situation</h3>
           <p className="text-center text-muted-foreground">Select all that apply to you</p>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {preferences.intent === "buying" ? (
               <>
@@ -316,23 +316,49 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("down-payment")}
                   onClick={() => handleLifestageSelect("down-payment")}
                 />
-                
-                <LifestageCard 
-                  icon={<Building className="h-6 w-6" />}
-                  title="Need Mortgage Financing"
-                  value="need-mortgage"
-                  selected={isLifestageSelected("need-mortgage")}
-                  onClick={() => handleLifestageSelect("need-mortgage")}
-                />
-                
-                <LifestageCard 
-                  icon={<Calculator className="h-6 w-6" />}
-                  title="Pre-Approve for a Loan Today"
-                  value="pre-approve"
-                  selected={isLifestageSelected("pre-approve")}
-                  onClick={() => handleLifestageSelect("pre-approve")}
-                />
-                
+
+                <div className="space-y-4">
+                  <LifestageCard 
+                    icon={<Calculator className="h-6 w-6" />}
+                    title="Need Mortgage Financing"
+                    value="need-mortgage"
+                    selected={isLifestageSelected("need-mortgage")}
+                    onClick={() => handleLifestageSelect("need-mortgage")}
+                  />
+                  {isLifestageSelected("need-mortgage") && (
+                    <div className="ml-8 p-4 bg-gray-50 rounded-lg space-y-2">
+                      <h4 className="font-medium text-sm">Available Options:</h4>
+                      <ul className="text-sm space-y-2">
+                        <li>• Conventional Loans (3-20% down)</li>
+                        <li>• FHA Loans (3.5% down)</li>
+                        <li>• VA Loans (0% down for veterans)</li>
+                        <li>• Jumbo Loans (10-20% down)</li>
+                        <li>• First-Time Homebuyer Programs</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <LifestageCard 
+                    icon={<Building className="h-6 w-6" />}
+                    title="Pre-Approve for a Loan Today"
+                    value="pre-approve"
+                    selected={isLifestageSelected("pre-approve")}
+                    onClick={() => handleLifestageSelect("pre-approve")}
+                  />
+                  {isLifestageSelected("pre-approve") && (
+                    <div className="ml-8 p-4 bg-gray-50 rounded-lg space-y-2">
+                      <h4 className="font-medium text-sm">Quick Pre-Approval Process:</h4>
+                      <ul className="text-sm space-y-2">
+                        <li>• Fast online application</li>
+                        <li>• Soft credit check</li>
+                        <li>• Multiple lender comparison</li>
+                        <li>• Custom rate quotes</li>
+                        <li>• Pre-approval letter in 24hrs</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
                 <LifestageCard 
                   icon={<Shield className="h-6 w-6" />}
                   title="Interest in Home Insurance quotes"
@@ -340,7 +366,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("insurance-quotes")}
                   onClick={() => handleLifestageSelect("insurance-quotes")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Key className="h-6 w-6" />}
                   title="Future Renovation Plans"
@@ -358,7 +384,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("property-type")}
                   onClick={() => handleLifestageSelect("property-type")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Ruler className="h-6 w-6" />}
                   title="Size (SF)"
@@ -366,7 +392,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("property-size")}
                   onClick={() => handleLifestageSelect("property-size")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Bed className="h-6 w-6" />}
                   title="Number of Bedrooms"
@@ -374,7 +400,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("bedrooms")}
                   onClick={() => handleLifestageSelect("bedrooms")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Bath className="h-6 w-6" />}
                   title="Number of Bathrooms"
@@ -382,7 +408,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("bathrooms")}
                   onClick={() => handleLifestageSelect("bathrooms")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Camera className="h-6 w-6" />}
                   title="Property Photos/Videos"
@@ -390,7 +416,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("property-media")}
                   onClick={() => handleLifestageSelect("property-media")}
                 />
-                
+
                 <LifestageCard 
                   icon={<CheckSquare className="h-6 w-6" />}
                   title="Property Features/Amenities"
@@ -398,7 +424,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("property-features")}
                   onClick={() => handleLifestageSelect("property-features")}
                 />
-                
+
                 <LifestageCard 
                   icon={<MapPin className="h-6 w-6" />}
                   title="Property Address/Location"
@@ -406,7 +432,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("property-location")}
                   onClick={() => handleLifestageSelect("property-location")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Calendar className="h-6 w-6" />}
                   title="Specific Timeframe"
@@ -414,7 +440,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("timeframe")}
                   onClick={() => handleLifestageSelect("timeframe")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Clock className="h-6 w-6" />}
                   title="Urgency to Sell"
@@ -422,7 +448,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("sell-urgency")}
                   onClick={() => handleLifestageSelect("sell-urgency")}
                 />
-                
+
                 <LifestageCard 
                   icon={<MoveVertical className="h-6 w-6" />}
                   title="Relocating"
@@ -430,7 +456,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("relocating")}
                   onClick={() => handleLifestageSelect("relocating")}
                 />
-                
+
                 <LifestageCard 
                   icon={<TrendingUp className="h-6 w-6" />}
                   title="Upgrading/Downsizing"
@@ -438,7 +464,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("size-change")}
                   onClick={() => handleLifestageSelect("size-change")}
                 />
-                
+
                 <LifestageCard 
                   icon={<DollarSign className="h-6 w-6" />}
                   title="Financial Reasons"
@@ -446,7 +472,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("financial-reasons")}
                   onClick={() => handleLifestageSelect("financial-reasons")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Package className="h-6 w-6" />}
                   title="Need help with moving services"
@@ -454,7 +480,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   selected={isLifestageSelected("moving-services")}
                   onClick={() => handleLifestageSelect("moving-services")}
                 />
-                
+
                 <LifestageCard 
                   icon={<Building className="h-6 w-6" />}
                   title="Looking to buy after selling"
@@ -465,7 +491,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               </>
             )}
           </div>
-          
+
           <div className="flex justify-center pt-4">
             <Button onClick={handleNextStep}>
               Continue
@@ -474,7 +500,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </div>
         </div>
       )}
-      
+
       {step === 3 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
@@ -483,7 +509,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           <p className="text-center text-muted-foreground mb-8">
             Help us understand your style to find properties that match your taste
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-4">
@@ -528,7 +554,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   ))}
                 </div>
               </div>
-              
+
               <div className="space-y-4 mt-8">
                 <Label className="font-semibold">Interior Style</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -572,7 +598,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="font-semibold">Must-Have Design Features</Label>
@@ -609,7 +635,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   ))}
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="font-semibold">Color Preferences</Label>
                 <Select 
@@ -630,7 +656,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-center gap-4 pt-4">
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Go Back
@@ -642,7 +668,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </div>
         </div>
       )}
-      
+
       {step === 4 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
@@ -655,7 +681,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             {preferences.intent === "selling" && "Upload photos of your property to help us assess its style and features."}
             {preferences.intent === "both" && "Upload photos of homes you love to help our AI find properties that match your style."}
           </p>
-          
+
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Upload Button */}
@@ -675,7 +701,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   onChange={handleImageUpload}
                 />
               </div>
-              
+
               {/* Uploaded Images */}
               {(preferences.inspirationPhotos || []).map((img, index) => (
                 <div key={index} className="relative group h-48 rounded-lg overflow-hidden border border-gray-200">
@@ -700,14 +726,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </div>
               ))}
             </div>
-            
+
             <div className="text-center text-sm text-muted-foreground">
               {preferences.intent === "buying" && "Upload photos of homes, interiors, or architectural styles you love."}
               {preferences.intent === "selling" && "Upload photos of your property's exterior and interior spaces."}
               {preferences.intent === "both" && "Upload photos of homes, interiors, or architectural styles you love."}
             </div>
           </div>
-          
+
           <div className="flex justify-center gap-4 pt-4">
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Go Back
@@ -719,7 +745,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </div>
         </div>
       )}
-      
+
       {step === 5 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">Ready to find your perfect match!</h3>
@@ -728,7 +754,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             {preferences.intent === "selling" && "We've prepared specialized services to help you sell your property."}
             {preferences.intent === "both" && "We've prepared a comprehensive plan to help you both sell and buy."}
           </p>
-          
+
           <div className="bg-muted p-6 rounded-lg">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -740,7 +766,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   {preferences.intent === "both" && "Buy and sell properties"}
                 </span>
               </div>
-              
+
               {preferences.lifestage && preferences.lifestage.length > 0 && (
                 <div className="flex items-start gap-2">
                   <Check className="h-5 w-5 text-primary" />
@@ -757,7 +783,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   </div>
                 </div>
               )}
-              
+
               {preferences.location && (
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
@@ -765,7 +791,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <span>{preferences.location}</span>
                 </div>
               )}
-              
+
               {preferences.propertyType && (
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
@@ -773,7 +799,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <span>{preferences.propertyType}</span>
                 </div>
               )}
-              
+
               {preferences.timeframe && (
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
@@ -783,7 +809,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   </span>
                 </div>
               )}
-              
+
               {preferences.inspirationPhotos && preferences.inspirationPhotos.length > 0 && (
                 <div className="flex flex-col gap-2 mt-4">
                   <div className="flex items-center gap-2">
@@ -806,7 +832,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               )}
             </div>
           </div>
-          
+
           <div className="flex justify-center gap-4 pt-4">
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Go Back
@@ -818,7 +844,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
           </div>
         </div>
       )}
-      
+
       <div className="text-center">
         <Button variant="ghost" onClick={onSkip}>
           Skip and continue to all properties
@@ -863,7 +889,7 @@ function formatLifestage(stage: UserLifestage): string {
     "pre-approve": "Pre-Approve for a Loan Today",
     "insurance-quotes": "Interest in Home Insurance quotes",
     "renovation-plans": "Future Renovation Plans",
-    
+
     // Selling-related
     "property-type": "Property Type",
     "property-size": "Size (SF)",
@@ -879,7 +905,7 @@ function formatLifestage(stage: UserLifestage): string {
     "financial-reasons": "Financial Reasons",
     "moving-services": "Need help with moving services",
     "buy-after-sell": "Looking to buy after selling",
-    
+
     // Other lifestage options
     "flexible-move": "Flexible on move timing",
     "job-received": "Have a W-2 job",
@@ -893,6 +919,6 @@ function formatLifestage(stage: UserLifestage): string {
     "small-business": "Small business owner",
     "life-questions": "Have life situation questions"
   };
-  
+
   return map[stage] || stage;
 }

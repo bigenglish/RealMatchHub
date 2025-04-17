@@ -535,11 +535,19 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   };
 
   const handleResumeProgress = () => {
-    const savedStep = localStorage.getItem('questionnaire_step');
-    const savedPreferences = localStorage.getItem('questionnaire_preferences');
-    if (savedStep && savedPreferences) {
-      setStep(parseInt(savedStep));
-      setPreferences(JSON.parse(savedPreferences));
+    try {
+      const savedStep = localStorage.getItem('questionnaire_step');
+      const savedPreferences = localStorage.getItem('questionnaire_preferences');
+      if (savedStep && savedPreferences) {
+        const parsedStep = parseInt(savedStep);
+        const parsedPreferences = JSON.parse(savedPreferences);
+        if (!isNaN(parsedStep) && parsedStep > 0 && parsedStep <= totalSteps) {
+          setStep(parsedStep);
+          setPreferences(parsedPreferences);
+        }
+      }
+    } catch (error) {
+      console.error('Error resuming progress:', error);
     }
   };
 
@@ -2067,6 +2075,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             variant="outline" 
             size="sm"
             onClick={handleResumeProgress}
+            className="hover:bg-primary/10"
           >
             Resume Progress
           </Button>

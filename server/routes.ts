@@ -31,6 +31,8 @@ import {
 } from "@shared/chat-schema"; // Import chat schemas
 import Stripe from "stripe"; // Import Stripe
 import { registerVideoRoutes } from "./video-static"; // Import video routes handler
+import visionRoutes from "./routes/vision-routes"; // Import vision routes
+import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);

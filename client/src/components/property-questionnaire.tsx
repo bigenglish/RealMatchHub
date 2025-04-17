@@ -66,26 +66,27 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const saved = localStorage.getItem('questionnaire_preferences');
     return saved ? JSON.parse(saved) : {
-    intent: undefined,
-    lifestage: [],
-    budget: {
-      min: 200000,
-      max: 750000,
-    },
-    location: "",
-    propertyType: [],
-    bedrooms: [],
-    bathrooms: [],
-    features: [],
-    timelines: [],
-    sellReasons: [],
-    movingServices: [],
-    inspirationPhotos: [],
-    inspirationUrls: [],
-    architecturalStyle: [],
-    interiorStyle: [],
-    designFeatures: [],
-    colorScheme: "",
+      intent: undefined,
+      lifestage: [],
+      budget: {
+        min: 200000,
+        max: 750000,
+      },
+      location: "",
+      propertyType: [],
+      bedrooms: [],
+      bathrooms: [],
+      features: [],
+      timelines: [],
+      sellReasons: [],
+      movingServices: [],
+      inspirationPhotos: [],
+      inspirationUrls: [],
+      architecturalStyle: [],
+      interiorStyle: [],
+      designFeatures: [],
+      colorScheme: "",
+    };
   });
 
   // Ref for file input

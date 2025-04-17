@@ -49,6 +49,9 @@ export default function Navbar() {
             <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Demo
             </Link>
+            <Link href="/fast-online-application" className="text-sm font-medium bg-green-100 text-olive-700 px-3 py-1 rounded-full hover:bg-green-200 whitespace-nowrap">
+              Fast Application
+            </Link>
             <Link href="/get-started">
               <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
                 GET STARTED
@@ -94,6 +97,9 @@ export default function Navbar() {
             </Link>
             <Link href="/demo" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Demo
+            </Link>
+            <Link href="/fast-online-application" className="block px-2 py-2 bg-green-100 text-olive-700 hover:bg-green-200 rounded">
+              Fast Application
             </Link>
             <Link href="/get-started" className="block">
               <Button className="w-full bg-olive-600 hover:bg-olive-700 text-white">

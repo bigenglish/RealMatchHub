@@ -13,6 +13,7 @@ import ContractTerms from "@/pages/contract-terms";
 import ServiceExperts from "@/pages/service-experts";
 import Marketplace from "@/pages/marketplace";
 import Appointments from "@/pages/appointments";
+import FastOnlineApplication from "@/pages/fast-online-application";
 import Navbar from "@/components/navbar";
 
 // Placeholder components for new pages
@@ -39,6 +40,7 @@ function Router() {
           <Route path="/service-experts" component={ServiceExperts} />
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/appointments" component={Appointments} />
+          <Route path="/fast-online-application" component={FastOnlineApplication} />
           <Route path="/resources" component={Resources} />
           <Route path="/demo" component={Demo} />
           <Route path="/get-started" component={GetStarted} />

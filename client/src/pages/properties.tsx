@@ -240,6 +240,24 @@ export default function PropertiesPage() {
 
       {/* IDX Status Banner */}
       <IdxStatus className="mt-4" />
+      
+      {/* Fast Online Application Promo Banner */}
+      <Card className="mt-4 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+        <CardContent className="flex flex-col md:flex-row items-center justify-between p-6">
+          <div className="space-y-2 mb-4 md:mb-0">
+            <h3 className="text-xl font-bold text-green-800">Get Pre-Approved Fast</h3>
+            <p className="text-green-700">
+              Complete our AI-powered mortgage pre-approval application in minutes.
+              Upload your documents securely and get instant feedback.
+            </p>
+          </div>
+          <Link href="/fast-online-application">
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              Start Fast Application
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
 
       {/* IDX Broker Widget - Simplified as main content */}
       <Card className="mt-8">

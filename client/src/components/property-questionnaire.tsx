@@ -60,9 +60,9 @@ export interface UserPreferences {
   colorScheme?: string; // Color preferences
   propertyCondition?: "excellent" | "good" | "fair" | "needs-work"; // Added property condition
   yearBuilt?: string; // Added year built
-  propertyFeatures?: string[]; // Added property features
-  recentRenovations?: string; // Added recent renovations
-  propertyMedia?: string[]; //Added property media
+  propertyFeatures?: string[]; // Added initial value
+  recentRenovations?: string; // Added initial value
+  propertyMedia?: string[]; //Added initial value
   sellReason?: string;
   sellingTimeline?: string;
   desiredPrice?: string;
@@ -547,13 +547,22 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     <div className="space-y-4">
       <div className="flex flex-col gap-4">
         <div>
-          <Label>Down Payment Amount</Label>
-          <Input
-            type="number"
-            value={preferences.downPayment || ''}
-            onChange={(e) => setPreferences({...preferences, downPayment: parseFloat(e.target.value)})}
-            placeholder="Enter down payment amount"
-          />
+          <Label>Down Payment Amount: ${preferences.downPayment?.toLocaleString() || '0'}</Label>
+          <div className="mt-6 px-2">
+            <Slider
+              defaultValue={[preferences.downPayment || 0]}
+              min={0}
+              max={500000}
+              step={5000}
+              value={[preferences.downPayment || 0]}
+              onValueChange={([value]) => setPreferences({...preferences, downPayment: value})}
+              className="my-4"
+            />
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>$0</span>
+              <span>$500,000</span>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -817,7 +826,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                           <Checkbox 
                             id="bundled-insurance"
                             checked={preferences.insuranceOptions?.includes("bundled-insurance")}
-                            onCheckedChange={(checked) => {
+                            onCheckedChange={(checked) =>{
                               const current = preferences.insuranceOptions || [];
                               const updated = checked 
                                 ? [...current, "bundled-insurance"]
@@ -1631,7 +1640,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               </div>
 
               <div className="space-y-4 mt-8">
-                <div className="space-y-2">
+                <div className="space-y2">
                   <Label className="font-semibold">Must-Have Design Features</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {features.map(feature => (

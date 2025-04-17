@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from "react";
+import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,7 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import Autosuggest from "react-autosuggest";
-import {Tooltip, TooltipTrigger, TooltipContent} from '@radix-ui/react-tooltip'
+import {Tooltip, TooltipTrigger, TooltipContent} from '@radix-ui/react-tooltip';
+import { Badge } from "@/components/ui/badge";
+import { analyzeImageUpload, analyzeImageUrl } from "./vision-api-client";
 
 export type UserIntent = "buying" | "selling" | "both" | undefined;
 export type UserLifestage = "down-payment" | "need-mortgage" | "pre-approve" | "insurance-quotes" | "renovation-plans" |
@@ -275,7 +277,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     setPreferences({ ...preferences, timeframe: value });
   };
 
-  // Handle image upload
+  // Handle image upload with Vision API analysis
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -296,9 +298,70 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     });
 
     Promise.all(filePromises)
-      .then(photos => {
+      .then(async (photos) => {
+        // Update the photos in the state
         const newPhotos = [...(preferences.inspirationPhotos || []), ...photos];
-        setPreferences({ ...preferences, inspirationPhotos: newPhotos });
+        setPreferences(prev => ({ ...prev, inspirationPhotos: newPhotos }));
+        
+        // Analyze each photo with Vision API
+        try {
+          // Only analyze the newly added photos
+          const analysisPromises = photos.map(photo => analyzeImageUpload(photo));
+          const analysisResults = await Promise.all(analysisPromises);
+          
+          // Extract and combine styles, features from all photos
+          let allArchStyles: string[] = [...(preferences.architecturalStyle || [])];
+          let allInteriorStyles: string[] = [...(preferences.interiorStyle || [])];
+          let allDesignFeatures: string[] = [...(preferences.designFeatures || [])];
+          let colorSchemes: string[] = [];
+          
+          // Process each analysis result
+          analysisResults.forEach(result => {
+            if (result.architecturalStyle) {
+              allArchStyles = [...allArchStyles, ...result.architecturalStyle];
+            }
+            
+            if (result.interiorStyle) {
+              allInteriorStyles = [...allInteriorStyles, ...result.interiorStyle];
+            }
+            
+            if (result.designFeatures) {
+              allDesignFeatures = [...allDesignFeatures, ...result.designFeatures];
+            }
+            
+            if (result.colorScheme) {
+              colorSchemes.push(result.colorScheme);
+            }
+          });
+          
+          // Remove duplicates and update preferences
+          const uniqueArchStyles = [...new Set(allArchStyles)];
+          const uniqueInteriorStyles = [...new Set(allInteriorStyles)];
+          const uniqueDesignFeatures = [...new Set(allDesignFeatures)];
+          
+          // Use the most recent color scheme if available
+          const latestColorScheme = colorSchemes.length > 0 
+            ? colorSchemes[colorSchemes.length - 1] 
+            : preferences.colorScheme;
+          
+          // Update preferences with the analysis results
+          setPreferences(prev => ({
+            ...prev,
+            architecturalStyle: uniqueArchStyles,
+            interiorStyle: uniqueInteriorStyles,
+            designFeatures: uniqueDesignFeatures,
+            colorScheme: latestColorScheme
+          }));
+          
+          console.log("Vision API analysis complete", { 
+            architecturalStyle: uniqueArchStyles,
+            interiorStyle: uniqueInteriorStyles,
+            designFeatures: uniqueDesignFeatures,
+            colorScheme: latestColorScheme
+          });
+        } catch (error) {
+          console.error("Error analyzing images with Vision API:", error);
+        }
       })
       .catch(error => console.error("Error uploading images:", error));
 
@@ -313,6 +376,61 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     const photos = [...(preferences.inspirationPhotos || [])];
     photos.splice(index, 1);
     setPreferences({ ...preferences, inspirationPhotos: photos });
+  };
+  
+  // Handle URL image analysis
+  const handleUrlAnalysis = async (url: string) => {
+    if (!url) return;
+    
+    // Add URL to preferences
+    const urls = [...(preferences.inspirationUrls || []), url];
+    setPreferences(prev => ({ ...prev, inspirationUrls: urls }));
+    setUrlInput('');
+    
+    // Analyze the URL with Vision API
+    try {
+      const analysis = await analyzeImageUrl(url);
+      
+      // Extract styles and features
+      let updatedArchStyles = [...(preferences.architecturalStyle || [])];
+      let updatedInteriorStyles = [...(preferences.interiorStyle || [])];
+      let updatedDesignFeatures = [...(preferences.designFeatures || [])];
+      
+      if (analysis.architecturalStyle) {
+        updatedArchStyles = [...updatedArchStyles, ...analysis.architecturalStyle];
+      }
+      
+      if (analysis.interiorStyle) {
+        updatedInteriorStyles = [...updatedInteriorStyles, ...analysis.interiorStyle];
+      }
+      
+      if (analysis.designFeatures) {
+        updatedDesignFeatures = [...updatedDesignFeatures, ...analysis.designFeatures];
+      }
+      
+      // Remove duplicates
+      const uniqueArchStyles = [...new Set(updatedArchStyles)];
+      const uniqueInteriorStyles = [...new Set(updatedInteriorStyles)];
+      const uniqueDesignFeatures = [...new Set(updatedDesignFeatures)];
+      
+      // Update preferences with analysis results
+      setPreferences(prev => ({
+        ...prev,
+        architecturalStyle: uniqueArchStyles,
+        interiorStyle: uniqueInteriorStyles,
+        designFeatures: uniqueDesignFeatures,
+        colorScheme: analysis.colorScheme || prev.colorScheme
+      }));
+      
+      console.log("URL image analysis complete:", {
+        architecturalStyle: uniqueArchStyles,
+        interiorStyle: uniqueInteriorStyles,
+        designFeatures: uniqueDesignFeatures,
+        colorScheme: analysis.colorScheme
+      });
+    } catch (error) {
+      console.error("Error analyzing URL image:", error);
+    }
   };
 
   const features = useMemo(() => [

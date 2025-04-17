@@ -1753,6 +1753,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register custom video serving routes
   registerVideoRoutes(app);
 
+  // Initialize Vision API and register vision routes
+  try {
+    await initializeVisionClient();
+    app.use("/api/vision", visionRoutes);
+    console.log("[express] Google Vision API routes registered");
+  } catch (error) {
+    console.error("[express] Failed to initialize Google Vision API:", error);
+  }
+
   app.listen(5000, '0.0.0.0', () => {
     console.log('Server listening on port 5000');
   });

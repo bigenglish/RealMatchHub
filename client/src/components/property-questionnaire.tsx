@@ -444,6 +444,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { id: 'smart-home', label: 'Smart Home' }
   ], []);
 
+  // Define architectural styles
   const architecturalStyles = useMemo(() => [
     { value: 'modern', label: 'Modern/Contemporary', icon: 'square' },
     { value: 'traditional', label: 'Traditional', icon: 'home' },
@@ -1180,16 +1181,16 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       <TooltipTrigger asChild>
                         <div
                           className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all relative ${
-                            preferences.architecturalStyles?.includes(style.value)
+                            preferences.architecturalStyle?.includes(style.value)
                               ? 'border-primary bg-primary/10' 
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                           onClick={() => {
-                            const current = preferences.architecturalStyles || [];
+                            const current = preferences.architecturalStyle || [];
                             const updated = current.includes(style.value)
-                              ? current.filter(s => s !== style.value)
+                              ? current.filter((s: string) => s !== style.value)
                               : [...current, style.value];
-                            setPreferences({...preferences, architecturalStyles: updated});
+                            setPreferences({...preferences, architecturalStyle: updated});
                           }}
                         >
                           <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
@@ -1203,7 +1204,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                             {style.icon === 'landmark' && <Landmark className="h-5 w-5" />}
                           </div>
                           <div className="text-sm font-medium text-center">{style.label}</div>
-                          {preferences.architecturalStyles?.includes(style.value) && (
+                          {preferences.architecturalStyle?.includes(style.value) && (
                             <div className="absolute top-2 right-2">
                               <Check className="h-5 w-5 text-primary" />
                             </div>
@@ -1277,16 +1278,16 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                         <div
                           key={style.value}
                           className={`cursor-pointer rounded-lg p-4 h-24 flex flex-col items-center justify-center border-2 transition-all ${
-                            preferences.interiorStyles?.includes(style.value)
+                            preferences.interiorStyle?.includes(style.value)
                               ? 'border-primary bg-primary/10' 
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                           onClick={() => {
-                            const current = preferences.interiorStyles || [];
+                            const current = preferences.interiorStyle || [];
                             const updated = current.includes(style.value)
-                              ? current.filter(s => s !== style.value)
+                              ? current.filter((s: string) => s !== style.value)
                               : [...current, style.value];
-                            setPreferences({...preferences, interiorStyles: updated});
+                            setPreferences({...preferences, interiorStyle: updated});
                           }}
                         >
                           <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
@@ -1300,7 +1301,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                             {style.icon === 'armchair' && <Armchair className="h-5 w-5" />}
                           </div>
                           <div className="text-sm font-medium text-center">{style.label}</div>
-                          {preferences.interiorStyle === style.value && (
+                          {preferences.interiorStyle?.includes(style.value) && (
                             <div className="absolute top-2 right-2">
                               <Check className="h-5 w-5 text-primary" />
                             </div>

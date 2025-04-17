@@ -162,7 +162,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   ];
 
   // Timeline options mapping
-  const timelineOptions = [
+  interface TimelineOptionItem {
+    id: TimelineOption;
+    label: string;
+  }
+  
+  const timelineOptions: TimelineOptionItem[] = [
     { id: 'asap', label: "ASAP (ready to move)" },
     { id: '1-3months', label: "1-3 months (begin making offers)" },
     { id: '3-6months', label: "3-6 months (start my search)" },
@@ -912,11 +917,11 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       <div key={option.id} className="flex items-center space-x-2">
                         <Checkbox 
                           id={`timeline-${option.id}`}
-                          checked={preferences.timelines?.includes(option.id as TimelineOption)}
+                          checked={preferences.timelines?.includes(option.id)}
                           onCheckedChange={(checked) => {
                             const current = preferences.timelines || [];
                             const updated = checked 
-                              ? [...current, option.id as TimelineOption]
+                              ? [...current, option.id]
                               : current.filter(id => id !== option.id);
                             setPreferences({...preferences, timelines: updated});
                           }}
@@ -1681,14 +1686,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </div>
               )}
 
-              {preferences.propertyType && (
+              {preferences.propertyType && preferences.propertyType.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Property type: </span>
                   <span>{preferences.propertyType.map((type, index) => (
                     <span key={index}>
                       {propertyTypes.find(p => p.id === type)?.label || type}
-                      {index < preferences.propertyType.length - 1 ? ", " : ""}
+                      {index < (preferences.propertyType?.length || 0) - 1 ? ", " : ""}
                     </span>
                   ))}</span>
                 </div>
@@ -1699,7 +1704,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <Check className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Timeline: </span>
                   <span>
-                    {timelineOptions.find(option => option.id === preferences.timelines[0])?.label}
+                    {timelineOptions.find(option => option.id === preferences.timelines?.[0])?.label || "Not specified"}
                   </span>
                 </div>
               )}

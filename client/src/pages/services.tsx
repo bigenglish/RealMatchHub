@@ -295,6 +295,25 @@ export default function Services() {
         </div>
       </div>
 
+      {/* Fast Online Application Promo Banner */}
+      <Card className="mb-8 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+        <CardContent className="flex flex-col md:flex-row items-center justify-between p-6">
+          <div className="space-y-2 mb-4 md:mb-0">
+            <h3 className="text-xl font-bold text-green-800">Streamlined Mortgage Application</h3>
+            <p className="text-green-700">
+              Our AI-powered Fast Online Application streamlines the mortgage process by automatically 
+              extracting data from your documents for instant pre-approval.
+            </p>
+          </div>
+          <Button 
+            className="bg-green-600 hover:bg-green-700 text-white"
+            onClick={() => window.location.href = '/fast-online-application'}
+          >
+            Apply Now
+          </Button>
+        </CardContent>
+      </Card>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
         <TabsList className="mb-4">
           <TabsTrigger value="all">All Services</TabsTrigger>

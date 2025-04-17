@@ -57,6 +57,18 @@ export interface UserPreferences {
   propertyFeatures?: string[]; // Added property features
   recentRenovations?: string; // Added recent renovations
   propertyMedia?: string[]; //Added property media
+  sellReason?: string;
+  sellingTimeline?: string;
+  desiredPrice?: string;
+  hasAgent?: boolean;
+  agentName?: string;
+  sellingPreferences?: string[];
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  contactMethod?: 'email' | 'phone';
+  privacyAgreed?: boolean;
 }
 
 interface PropertyQuestionnaireProps {
@@ -99,6 +111,18 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       propertyFeatures: [], // Added initial value
       recentRenovations: '', // Added initial value
       propertyMedia: [], //Added initial value
+      sellReason: '',
+      sellingTimeline: '',
+      desiredPrice: '',
+      hasAgent: false,
+      agentName: '',
+      sellingPreferences: [],
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      contactMethod: 'email',
+      privacyAgreed: false
     };
   });
 
@@ -787,7 +811,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                                 : current.filter(id => id !== "finish-basement");
                               setPreferences({...preferences, renovationPlans: updated});
                             }}
-                          />
+/>
                           <label className="text-sm">Finish Basement</label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -980,6 +1004,114 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   />
                 </div>
 
+                {/* Selling Goals */}
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Reason for Selling</Label>
+                  <Select value={preferences.sellReason} onValueChange={(value) => setPreferences({...preferences, sellReason: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="relocating">Relocating</SelectItem>
+                      <SelectItem value="downsizing">Downsizing</SelectItem>
+                      <SelectItem value="upsizing">Upsizing</SelectItem>
+                      <SelectItem value="financial">Financial Reasons</SelectItem>
+                      <SelectItem value="investment">Investment Property</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Desired Selling Timeline</Label>
+                  <Select value={preferences.sellingTimeline} onValueChange={(value) => setPreferences({...preferences, sellingTimeline: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select timeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asap">ASAP (ready to list)</SelectItem>
+                      <SelectItem value="1-3months">Within 1-3 months</SelectItem>
+                      <SelectItem value="3-6months">Within 3-6 months</SelectItem>
+                      <SelectItem value="6-plus">6+ months</SelectItem>
+                      <SelectItem value="not-sure">Not sure yet (just exploring)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Desired List Price (Optional)</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">$</span>
+                    <Input 
+                      type="number" 
+                      placeholder="Enter amount"
+                      value={preferences.desiredPrice || ''}
+                      onChange={(e) => setPreferences({...preferences, desiredPrice: e.target.value})}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">This is just an initial estimate. We'll provide an AI valuation and expert consultation.</p>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Are you currently working with a real estate agent?</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        id="agent-yes"
+                        checked={preferences.hasAgent === true}
+                        onChange={() => setPreferences({...preferences, hasAgent: true})}
+                        className="h-4 w-4"
+                      />
+                      <label htmlFor="agent-yes">Yes</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        id="agent-no"
+                        checked={preferences.hasAgent === false}
+                        onChange={() => setPreferences({...preferences, hasAgent: false})}
+                        className="h-4 w-4"
+                      />
+                      <label htmlFor="agent-no">No</label>
+                    </div>
+                  </div>
+                  {preferences.hasAgent && (
+                    <Input
+                      placeholder="Agent's name (optional)"
+                      value={preferences.agentName || ''}
+                      onChange={(e) => setPreferences({...preferences, agentName: e.target.value})}
+                    />
+                  )}
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">What's most important to you in the selling process?</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { id: 'highest-price', label: 'Getting the highest price' },
+                      { id: 'quick-sale', label: 'Selling quickly' },
+                      { id: 'minimal-hassle', label: 'Minimal hassle' },
+                      { id: 'expert-guidance', label: 'Expert guidance' }
+                    ].map(pref => (
+                      <div key={pref.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={pref.id}
+                          checked={preferences.sellingPreferences?.includes(pref.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.sellingPreferences || [];
+                            const updated = checked 
+                              ? [...current, pref.id]
+                              : current.filter(id => id !== pref.id);
+                            setPreferences({...preferences, sellingPreferences: updated});
+                          }}
+                        />
+                        <label htmlFor={pref.id} className="text-sm">{pref.label}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Property Media */}
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Media</Label>
@@ -1041,6 +1173,72 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                     <Button variant="outline">
                       <MapPin className="h-4 w-4" />
                     </Button>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Contact Information</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      placeholder="First Name"
+                      value={preferences.firstName || ''}
+                      onChange={(e) => setPreferences({...preferences, firstName: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Last Name"
+                      value={preferences.lastName || ''}
+                      onChange={(e) => setPreferences({...preferences, lastName: e.target.value})}
+                    />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Email Address"
+                    value={preferences.email || ''}
+                    onChange={(e) => setPreferences({...preferences, email: e.target.value})}
+                  />
+                  <Input
+                    type="tel"
+                    placeholder="Phone Number (Optional)"
+                    value={preferences.phone || ''}
+                    onChange={(e) => setPreferences({...preferences, phone: e.target.value})}
+                  />
+
+                  <div className="space-y-2">
+                    <Label className="font-medium">Preferred Method of Contact</Label>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="contact-email"
+                          checked={preferences.contactMethod === 'email'}
+                          onChange={() => setPreferences({...preferences, contactMethod: 'email'})}
+                          className="h-4 w-4"
+                        />
+                        <label htmlFor="contact-email">Email</label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="contact-phone"
+                          checked={preferences.contactMethod === 'phone'}
+                          onChange={() => setPreferences({...preferences, contactMethod: 'phone'})}
+                          className="h-4 w-4"
+                        />
+                        <label htmlFor="contact-phone">Phone</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="privacy-policy"
+                      checked={preferences.privacyAgreed}
+                      onCheckedChange={(checked) => setPreferences({...preferences, privacyAgreed: checked})}
+                    />
+                    <label htmlFor="privacy-policy" className="text-sm">
+                      I agree to the Privacy Policy and Terms of Service
+                    </label>
                   </div>
                 </div>
               </>

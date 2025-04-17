@@ -1086,18 +1086,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   onChange={(e) => setUrlInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && urlInput) {
-                      const urls = [...(preferences.inspirationUrls || []), urlInput];
-                      setPreferences({ ...preferences, inspirationUrls: urls });
-                      setUrlInput('');
+                      handleUrlAnalysis(urlInput);
                     }
                   }}
                 />
                 <Button 
                   onClick={() => {
                     if (urlInput) {
-                      const urls = [...(preferences.inspirationUrls || []), urlInput];
-                      setPreferences({ ...preferences, inspirationUrls: urls });
-                      setUrlInput('');
+                      handleUrlAnalysis(urlInput);
                     }
                   }}
                 >

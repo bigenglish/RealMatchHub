@@ -158,12 +158,12 @@ export function extractArchitecturalStyles(visionResult: any) {
   const labels = visionResult?.labelAnnotations || [];
   
   // Get all label descriptions
-  const labelTexts = labels.map(label => label.description.toLowerCase());
+  const labelTexts = labels.map((label: { description: string }) => label.description.toLowerCase());
   
   // Check each label against architectural style keywords
   for (const [style, keywords] of Object.entries(architecturalStyleKeywords)) {
     for (const keyword of keywords) {
-      if (labelTexts.some(label => label.includes(keyword))) {
+      if (labelTexts.some((label: string) => label.includes(keyword))) {
         if (!styles.includes(style)) {
           styles.push(style);
         }
@@ -185,12 +185,12 @@ export function extractInteriorStyles(visionResult: any) {
   const labels = visionResult?.labelAnnotations || [];
   
   // Get all label descriptions
-  const labelTexts = labels.map(label => label.description.toLowerCase());
+  const labelTexts = labels.map((label: { description: string }) => label.description.toLowerCase());
   
   // Check each label against interior style keywords
   for (const [style, keywords] of Object.entries(interiorStyleKeywords)) {
     for (const keyword of keywords) {
-      if (labelTexts.some(label => label.includes(keyword))) {
+      if (labelTexts.some((label: string) => label.includes(keyword))) {
         if (!styles.includes(style)) {
           styles.push(style);
         }
@@ -273,7 +273,7 @@ export function extractDesignFeatures(visionResult: any) {
   // Check each label against design feature keywords
   for (const [feature, keywords] of Object.entries(designFeatureKeywords)) {
     for (const keyword of keywords) {
-      if (labelTexts.some(label => label.includes(keyword))) {
+      if (labelTexts.some((label: string) => label.includes(keyword))) {
         if (!features.includes(feature)) {
           features.push(feature);
         }

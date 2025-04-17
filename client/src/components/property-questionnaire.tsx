@@ -1364,12 +1364,128 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
       {step === 5 && (
         <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-center">Ready to find your perfect match!</h3>
+          <h3 className="text-xl font-semibold text-center">Review Your Preferences</h3>
           <p className="text-center text-muted-foreground">
-            {preferences.intent === "buying" && "We've prepared specialized property recommendations based on your needs."}
-            {preferences.intent === "selling" && "We've prepared specialized services to help you sell your property."}
-            {preferences.intent === "both" && "We've prepared a comprehensive plan to help you both sell and buy."}
+            Let's make sure we have everything right before finding your perfect matches.
           </p>
+
+          <div className="bg-muted/50 rounded-lg p-6 space-y-6">
+            {/* Intent & Basic Info */}
+            <div className="space-y-2">
+              <h4 className="font-semibold">Looking to:</h4>
+              <div className="bg-background rounded p-3 flex items-center gap-2">
+                {preferences.intent === "buying" && <Home className="h-5 w-5 text-primary" />}
+                {preferences.intent === "selling" && <Building className="h-5 w-5 text-primary" />}
+                {preferences.intent === "both" && <SplitSquareVertical className="h-5 w-5 text-primary" />}
+                <span className="capitalize">{preferences.intent}</span>
+              </div>
+            </div>
+
+            {/* Location */}
+            {preferences.location && (
+              <div className="space-y-2">
+                <h4 className="font-semibold">Desired Location:</h4>
+                <div className="bg-background rounded p-3 flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  <span>{preferences.location}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Financial Info - For Buyers */}
+            {(preferences.intent === "buying" || preferences.intent === "both") && (
+              <div className="space-y-2">
+                <h4 className="font-semibold">Financial Details:</h4>
+                <div className="bg-background rounded p-3 space-y-2">
+                  {preferences.budget && (
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      <span>Down Payment: ${preferences.budget.min.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {isLifestageSelected("need-mortgage") && (
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-5 w-5 text-primary" />
+                      <span>Interested in Mortgage Financing</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Design Preferences */}
+            <div className="space-y-4">
+              <h4 className="font-semibold">Style Preferences:</h4>
+              
+              {/* Architectural Styles */}
+              {preferences.architecturalStyle && preferences.architecturalStyle.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Architectural Styles</label>
+                  <div className="flex flex-wrap gap-2">
+                    {preferences.architecturalStyle.map(style => (
+                      <Badge key={style} variant="secondary" className="flex items-center gap-1">
+                        <Square className="h-3 w-3" />
+                        {style.charAt(0).toUpperCase() + style.slice(1)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Interior Styles */}
+              {preferences.interiorStyle && preferences.interiorStyle.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Interior Styles</label>
+                  <div className="flex flex-wrap gap-2">
+                    {preferences.interiorStyle.map(style => (
+                      <Badge key={style} variant="secondary" className="flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        {style.charAt(0).toUpperCase() + style.slice(1)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Timeline */}
+            {preferences.timeframe && (
+              <div className="space-y-2">
+                <h4 className="font-semibold">Timeline:</h4>
+                <div className="bg-background rounded p-3 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span>{preferences.timeframe}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Inspiration Photos */}
+            {preferences.inspirationPhotos && preferences.inspirationPhotos.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold">Style Inspiration:</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {preferences.inspirationPhotos.map((photo, index) => (
+                    <img 
+                      key={index}
+                      src={photo}
+                      alt={`Inspiration ${index + 1}`}
+                      className="w-full h-20 object-cover rounded"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center gap-4 pt-4">
+            <Button variant="outline" onClick={() => setStep(step - 1)}>
+              Refine Preferences
+            </Button>
+            <Button onClick={() => onComplete(preferences)} className="bg-primary">
+              Show My Matches
+              <ChevronsRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
 
           <div className="bg-muted p-6 rounded-lg">
             <div className="space-y-3">

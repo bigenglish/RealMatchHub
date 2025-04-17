@@ -1211,7 +1211,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                           />
                           <button
                             onClick={() => {
-                              const updatedMedia = [...preferences.propertyMedia];
+                              const updatedMedia = [...(preferences.propertyMedia || [])];
                               updatedMedia.splice(index, 1);
                               setPreferences({...preferences, propertyMedia: updatedMedia});
                             }}
@@ -1304,8 +1304,8 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   <div className="flex items-center space-x-2">
                     <Checkbox 
                       id="privacy-policy"
-                      checked={preferences.privacyAgreed}
-                      onCheckedChange={(checked) => setPreferences({...preferences, privacyAgreed: checked})}
+                      checked={preferences.privacyAgreed || false}
+                      onCheckedChange={(checked) => setPreferences({...preferences, privacyAgreed: checked === true})}
                     />
                     <label htmlFor="privacy-policy" className="text-sm">
                       I agree to the Privacy Policy and Terms of Service

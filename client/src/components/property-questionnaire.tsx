@@ -75,6 +75,8 @@ export interface UserPreferences {
   phone?: string;
   contactMethod?: 'email' | 'phone';
   privacyAgreed?: boolean;
+  downPayment?: number; // Added downPayment
+  financingOptions?: string[]; // Added financingOptions
 }
 
 interface PropertyQuestionnaireProps {
@@ -128,7 +130,9 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       email: '',
       phone: '',
       contactMethod: 'email',
-      privacyAgreed: false
+      privacyAgreed: false,
+      downPayment: 0, // Added initial value
+      financingOptions: [] // Added initial value
     };
   });
 
@@ -539,6 +543,69 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     }
   };
 
+  const MortgageSection = () => (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4">
+        <div>
+          <Label>Down Payment Amount</Label>
+          <Input
+            type="number"
+            value={preferences.downPayment || ''}
+            onChange={(e) => setPreferences({...preferences, downPayment: parseFloat(e.target.value)})}
+            placeholder="Enter down payment amount"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Financing Options</Label>
+          <div className="grid gap-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                checked={preferences.financingOptions?.includes('conventional')}
+                onCheckedChange={(checked) => {
+                  const current = preferences.financingOptions || [];
+                  const updated = checked 
+                    ? [...current, 'conventional']
+                    : current.filter(opt => opt !== 'conventional');
+                  setPreferences({...preferences, financingOptions: updated});
+                }}
+              />
+              <label>Conventional Loans (3-20% down)</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                checked={preferences.financingOptions?.includes('fha')}
+                onCheckedChange={(checked) => {
+                  const current = preferences.financingOptions || [];
+                  const updated = checked 
+                    ? [...current, 'fha']
+                    : current.filter(opt => opt !== 'fha');
+                  setPreferences({...preferences, financingOptions: updated});
+                }}
+              />
+              <label>FHA Loans (3.5% down)</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                checked={preferences.financingOptions?.includes('va')}
+                onCheckedChange={(checked) => {
+                  const current = preferences.financingOptions || [];
+                  const updated = checked 
+                    ? [...current, 'va']
+                    : current.filter(opt => opt !== 'va');
+                  setPreferences({...preferences, financingOptions: updated});
+                }}
+              />
+              <label>VA Loans (0% down for veterans)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+);
+
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
       <div className="space-y-2">
@@ -817,7 +884,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                                 : current.filter(id => id !== "finish-basement");
                               setPreferences({...preferences, renovationPlans: updated});
                             }}
-/>
+                          />
                           <label className="text-sm">Finish Basement</label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1261,6 +1328,10 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       )}
 
       {step === 3 && (
+        <MortgageSection />
+      )}
+
+      {step === 4 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
             Tell us about your design preferences
@@ -1671,7 +1742,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
         </div>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
             {preferences.intent === "buying" && "Share your style inspiration"}
@@ -1742,208 +1813,6 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             </Button>
             <Button onClick={handleNextStep}>
               {(preferences.inspirationPhotos || []).length > 0 ? "Continue" : "Skip this step"}
-              <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {step === 4 && preferences.intent === "selling" && (
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-center">Marketing and Showing Preferences</h3>
-          <p className="text-center text-muted-foreground">
-            Help us understand how you'd like to market and show your property
-          </p>
-
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Open House Preferences */}
-              <div className="space-y-4">
-                <Label className="font-medium">Open House Preferences</Label>
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { id: 'weekends', label: 'Weekend open houses' },
-                    { id: 'weekdays', label: 'Weekday open houses' },
-                    { id: 'virtual', label: 'Virtual open houses' },
-                    { id: 'by-appointment', label: 'By appointment only' }
-                  ].map(pref => (
-                    <div key={pref.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={pref.id}
-                        checked={preferences.showingPreferences?.includes(pref.id)}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.showingPreferences || [];
-                          const updated = checked 
-                            ? [...current, pref.id]
-                            : current.filter(id => id !== pref.id);
-                          setPreferences({...preferences, showingPreferences: updated});
-                        }}
-                      />
-                      <label htmlFor={pref.id} className="text-sm">{pref.label}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Marketing Preferences */}
-              <div className="space-y-4">
-                <Label className="font-medium">Marketing Preferences</Label>
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { id: 'social-media', label: 'Social media marketing' },
-                    { id: 'print-ads', label: 'Print advertising' },
-                    { id: 'email-marketing', label: 'Email marketing campaigns' },
-                    { id: 'video-tours', label: 'Professional video tours' },
-                    { id: '3d-tours', label: '3D virtual tours' }
-                  ].map(pref => (
-                    <div key={pref.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={pref.id}
-                        checked={preferences.marketingPreferences?.includes(pref.id)}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.marketingPreferences || [];
-                          const updated = checked 
-                            ? [...current, pref.id]
-                            : current.filter(id => id !== pref.id);
-                          setPreferences({...preferences, marketingPreferences: updated});
-                        }}
-                      />
-                      <label htmlFor={pref.id} className="text-sm">{pref.label}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Professional Services */}
-            <div className="space-y-4">
-              <Label className="font-medium">Professional Services Interest</Label>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { id: 'photography', label: 'Professional Photography' },
-                  { id: 'staging', label: 'Home Staging' },
-                  { id: 'cleaning', label: 'Professional Cleaning' },
-                  { id: 'repairs', label: 'Minor Repairs' },
-                  { id: 'landscaping', label: 'Landscaping' },
-                  { id: 'painting', label: 'Painting' }
-                ].map(service => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={service.id}
-                      checked={preferences.professionalServices?.includes(service.id)}
-                      onCheckedChange={(checked) => {
-                        const current = preferences.professionalServices || [];
-                        const updated = checked 
-                          ? [...current, service.id]
-                          : current.filter(id => id !== service.id);
-                        setPreferences({...preferences, professionalServices: updated});
-                      }}
-                    />
-                    <label htmlFor={service.id} className="text-sm">{service.label}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-4 pt-4">
-            <Button variant="outline" onClick={() => setStep(step - 1)}>
-              Go Back
-            </Button>
-            <Button onClick={handleNextStep}>
-              Continue
-              <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {step === 5 && preferences.intent === "selling" && (
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-center">Additional Property Details</h3>
-          <p className="text-center text-muted-foreground">
-            Help potential buyers better understand your property
-          </p>
-
-          <div className="space-y-6">
-            {/* Utilities and Systems */}
-            <div className="space-y-4">
-              <Label className="font-medium">Utilities and Systems</Label>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { id: 'central-ac', label: 'Central AC' },
-                  { id: 'gas-heat', label: 'Gas Heat' },
-                  { id: 'electric-heat', label: 'Electric Heat' },
-                  { id: 'solar-panels', label: 'Solar Panels' },
-                  { id: 'water-heater', label: 'New Water Heater' },
-                  { id: 'smart-thermostat', label: 'Smart Thermostat' }
-                ].map(utility => (
-                  <div key={utility.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={utility.id}
-                      checked={preferences.utilities?.includes(utility.id)}
-                      onCheckedChange={(checked) => {
-                        const current = preferences.utilities || [];
-                        const updated = checked 
-                          ? [...current, utility.id]
-                          : current.filter(id => id !== utility.id);
-                        setPreferences({...preferences, utilities: updated});
-                      }}
-                    />
-                    <label htmlFor={utility.id} className="text-sm">{utility.label}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Community Features */}
-            <div className="space-y-4">
-              <Label className="font-medium">Community Features</Label>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { id: 'pool-access', label: 'Community Pool' },
-                  { id: 'gym-access', label: 'Fitness Center' },
-                  { id: 'security', label: 'Gated Community' },
-                  { id: 'tennis', label: 'Tennis Courts' },
-                  { id: 'clubhouse', label: 'Clubhouse' },
-                  { id: 'walking-trails', label: 'Walking Trails' }
-                ].map(feature => (
-                  <div key={feature.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={feature.id}
-                      checked={preferences.communityFeatures?.includes(feature.id)}
-                      onCheckedChange={(checked) => {
-                        const current = preferences.communityFeatures || [];
-                        const updated = checked 
-                          ? [...current, feature.id]
-                          : current.filter(id => id !== feature.id);
-                        setPreferences({...preferences, communityFeatures: updated});
-                      }}
-                    />
-                    <label htmlFor={feature.id} className="text-sm">{feature.label}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Special Considerations */}
-            <div className="space-y-4">
-              <Label className="font-medium">Special Considerations</Label>
-              <Textarea 
-                placeholder="Any special details about the property that potential buyers should know? (HOA rules, upcoming assessments, etc.)"
-                value={preferences.specialConsiderations || ''}
-                onChange={(e) => setPreferences({...preferences, specialConsiderations: e.target.value})}
-                className="h-24"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-4 pt-4">
-            <Button variant="outline" onClick={() => setStep(step - 1)}>
-              Go Back
-            </Button>
-            <Button onClick={handleNextStep}>
-              Continue
               <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>
           </div>

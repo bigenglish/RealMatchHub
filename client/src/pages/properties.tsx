@@ -94,14 +94,14 @@ export default function PropertiesPage() {
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],
   });
-  
+
   const [activeTab, setActiveTab] = useState<"all" | "your" | "idx">("idx");
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(true); // Show questionnaire by default
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
-  
+
   // Service selection state
   const [showServiceSelection, setShowServiceSelection] = useState(false);
   const [showCostSummary, setShowCostSummary] = useState(false);
@@ -114,7 +114,7 @@ export default function PropertiesPage() {
   // Prepare the property data
   const yourProperties = data?.yourProperties || [];
   const idxListings = data?.idxListings?.map(convertIdxToProperty) || [];
-  
+
   // Debug logging for more detailed info
   useEffect(() => {
     if (data) {
@@ -122,30 +122,30 @@ export default function PropertiesPage() {
       console.log("Returning unfiltered IDX properties:", idxListings.length);
     }
   }, [data, idxListings, activeTab, isFiltered]);
-  
+
   // Handle search filters (simplified but kept for reference)
   const handleFilter = (filters: any) => {
     // Just logging filters for debugging purposes
     console.log("Filters received:", filters);
   };
-  
+
   // Handle the completion of the questionnaire
   const handleQuestionnaireComplete = (preferences: UserPreferences) => {
     setUserPreferences(preferences);
     setShowQuestionnaire(false);
   };
-  
+
   // Handle skipping the questionnaire
   const handleSkipQuestionnaire = () => {
     setShowQuestionnaire(false);
   };
-  
+
   // Handle opening service selection dialog for a specific property
   const handleOpenServiceSelection = (property: Property) => {
     setSelectedProperty(property);
     setShowServiceSelection(true);
   };
-  
+
   // Handle service selection completion
   const handleServiceSelectionComplete = (services: ServiceOffering[], totalAmount: number) => {
     setSelectedServices(services);
@@ -154,24 +154,24 @@ export default function PropertiesPage() {
     setShowCostSummary(true);
     setShowQuestionnaire(true); // Show questionnaire after service selection
   };
-  
+
   // Handle service selection cancellation
   const handleServiceSelectionCancel = () => {
     setShowServiceSelection(false);
   };
-  
+
   // Handle going back from cost summary to service selection
   const handleCostSummaryBack = () => {
     setShowCostSummary(false);
     setShowServiceSelection(true);
   };
-  
+
   // Handle payment initiation from cost summary
   const handlePayNow = () => {
     setShowCostSummary(false);
     setShowPayment(true);
   };
-  
+
   // Handle payment success
   const handlePaymentSuccess = () => {
     setShowPayment(false);
@@ -181,7 +181,7 @@ export default function PropertiesPage() {
       variant: "default",
     });
   };
-  
+
   // Handle payment cancellation
   const handlePaymentCancel = () => {
     setShowPayment(false);
@@ -204,7 +204,7 @@ export default function PropertiesPage() {
       </div>
     );
   }
-  
+
   // Show questionnaire for both buyers and sellers
   if (showQuestionnaire) {
     return (
@@ -237,10 +237,10 @@ export default function PropertiesPage() {
           </Link>
         </div>
       </div>
-      
+
       {/* IDX Status Banner */}
       <IdxStatus className="mt-4" />
-      
+
       {/* IDX Broker Widget - Simplified as main content */}
       <Card className="mt-8">
         <CardHeader>
@@ -255,7 +255,7 @@ export default function PropertiesPage() {
           />
         </CardContent>
       </Card>
-      
+
       {/* Featured Properties Section */}
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-6">Featured Properties</h2>
@@ -317,7 +317,7 @@ export default function PropertiesPage() {
           ))}
         </div>
       </div>
-      
+
       {/* Service Selection Dialog */}
       <Dialog open={showServiceSelection} onOpenChange={setShowServiceSelection}>
         <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
@@ -338,7 +338,7 @@ export default function PropertiesPage() {
           />
         </DialogContent>
       </Dialog>
-      
+
       {/* Cost Summary Dialog */}
       <Dialog open={showCostSummary} onOpenChange={setShowCostSummary}>
         <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-y-auto">
@@ -357,7 +357,7 @@ export default function PropertiesPage() {
           />
         </DialogContent>
       </Dialog>
-      
+
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
         <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
@@ -365,7 +365,7 @@ export default function PropertiesPage() {
           <DialogDescription>
             Please enter your payment details to complete the transaction.
           </DialogDescription>
-          
+
           <PaymentProcessor
             services={selectedServices}
             totalAmount={totalCost}

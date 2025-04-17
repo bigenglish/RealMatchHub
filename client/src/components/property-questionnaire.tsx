@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea"; // Added import for Textarea
 import Autosuggest from "react-autosuggest";
 import {Tooltip, TooltipTrigger, TooltipContent} from '@radix-ui/react-tooltip';
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,11 @@ export interface UserPreferences {
   interiorStyle?: string[];
   designFeatures?: string[]; // Additional design features/preferences
   colorScheme?: string; // Color preferences
+  propertyCondition?: "excellent" | "good" | "fair" | "needs-work"; // Added property condition
+  yearBuilt?: string; // Added year built
+  propertyFeatures?: string[]; // Added property features
+  recentRenovations?: string; // Added recent renovations
+  propertyMedia?: string[]; //Added property media
 }
 
 interface PropertyQuestionnaireProps {
@@ -64,7 +70,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     const saved = localStorage.getItem('questionnaire_step');
     return saved ? parseInt(saved) : 1;
   });
-  
+
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const saved = localStorage.getItem('questionnaire_preferences');
     return saved ? JSON.parse(saved) : {
@@ -88,6 +94,11 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       interiorStyle: [],
       designFeatures: [],
       colorScheme: "",
+      propertyCondition: undefined, // Added initial value
+      yearBuilt: '', // Added initial value
+      propertyFeatures: [], // Added initial value
+      recentRenovations: '', // Added initial value
+      propertyMedia: [], //Added initial value
     };
   });
 
@@ -166,7 +177,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     id: TimelineOption;
     label: string;
   }
-  
+
   const timelineOptions: TimelineOptionItem[] = [
     { id: 'asap', label: "ASAP (ready to move)" },
     { id: '1-3months', label: "1-3 months (begin making offers)" },
@@ -318,48 +329,48 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
         // Update the photos in the state
         const newPhotos = [...(preferences.inspirationPhotos || []), ...photos];
         setPreferences(prev => ({ ...prev, inspirationPhotos: newPhotos }));
-        
+
         // Analyze each photo with Vision API
         try {
           // Only analyze the newly added photos
           const analysisPromises = photos.map(photo => analyzeImageUpload(photo));
           const analysisResults = await Promise.all(analysisPromises);
-          
+
           // Extract and combine styles, features from all photos
           let allArchStyles: string[] = [...(preferences.architecturalStyle || [])];
           let allInteriorStyles: string[] = [...(preferences.interiorStyle || [])];
           let allDesignFeatures: string[] = [...(preferences.designFeatures || [])];
           let colorSchemes: string[] = [];
-          
+
           // Process each analysis result
           analysisResults.forEach(result => {
             if (result.architecturalStyle) {
               allArchStyles = [...allArchStyles, ...result.architecturalStyle];
             }
-            
+
             if (result.interiorStyle) {
               allInteriorStyles = [...allInteriorStyles, ...result.interiorStyle];
             }
-            
+
             if (result.designFeatures) {
               allDesignFeatures = [...allDesignFeatures, ...result.designFeatures];
             }
-            
+
             if (result.colorScheme) {
               colorSchemes.push(result.colorScheme);
             }
           });
-          
+
           // Remove duplicates and update preferences
           const uniqueArchStyles = [...new Set(allArchStyles)];
           const uniqueInteriorStyles = [...new Set(allInteriorStyles)];
           const uniqueDesignFeatures = [...new Set(allDesignFeatures)];
-          
+
           // Use the most recent color scheme if available
           const latestColorScheme = colorSchemes.length > 0 
             ? colorSchemes[colorSchemes.length - 1] 
             : preferences.colorScheme;
-          
+
           // Update preferences with the analysis results
           setPreferences(prev => ({
             ...prev,
@@ -368,7 +379,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             designFeatures: uniqueDesignFeatures,
             colorScheme: latestColorScheme
           }));
-          
+
           console.log("Vision API analysis complete", { 
             architecturalStyle: uniqueArchStyles,
             interiorStyle: uniqueInteriorStyles,
@@ -393,42 +404,42 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     photos.splice(index, 1);
     setPreferences({ ...preferences, inspirationPhotos: photos });
   };
-  
+
   // Handle URL image analysis
   const handleUrlAnalysis = async (url: string) => {
     if (!url) return;
-    
+
     // Add URL to preferences
     const urls = [...(preferences.inspirationUrls || []), url];
     setPreferences(prev => ({ ...prev, inspirationUrls: urls }));
     setUrlInput('');
-    
+
     // Analyze the URL with Vision API
     try {
       const analysis = await analyzeImageUrl(url);
-      
+
       // Extract styles and features
       let updatedArchStyles = [...(preferences.architecturalStyle || [])];
       let updatedInteriorStyles = [...(preferences.interiorStyle || [])];
       let updatedDesignFeatures = [...(preferences.designFeatures || [])];
-      
+
       if (analysis.architecturalStyle) {
         updatedArchStyles = [...updatedArchStyles, ...analysis.architecturalStyle];
       }
-      
+
       if (analysis.interiorStyle) {
         updatedInteriorStyles = [...updatedInteriorStyles, ...analysis.interiorStyle];
       }
-      
+
       if (analysis.designFeatures) {
         updatedDesignFeatures = [...updatedDesignFeatures, ...analysis.designFeatures];
       }
-      
+
       // Remove duplicates
       const uniqueArchStyles = [...new Set(updatedArchStyles)];
       const uniqueInteriorStyles = [...new Set(updatedInteriorStyles)];
       const uniqueDesignFeatures = [...new Set(updatedDesignFeatures)];
-      
+
       // Update preferences with analysis results
       setPreferences(prev => ({
         ...prev,
@@ -437,7 +448,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
         designFeatures: uniqueDesignFeatures,
         colorScheme: analysis.colorScheme || prev.colorScheme
       }));
-      
+
       console.log("URL image analysis complete:", {
         architecturalStyle: uniqueArchStyles,
         interiorStyle: uniqueInteriorStyles,
@@ -816,141 +827,26 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <>
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Type</Label>
-                  <Select 
-                    value={preferences.propertyType?.[0] || ""}
-                    onValueChange={(value) => setPreferences({...preferences, propertyType: [value]})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select property type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="house">House</SelectItem>
-                      <SelectItem value="condo">Condo</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                      <SelectItem value="land">Land</SelectItem>
-                      <SelectItem value="multi-family">Multi-Family</SelectItem>
-                      <SelectItem value="apartment">Apartment</SelectItem>
-                      <SelectItem value="commercial">Commercial</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="col-span-2 md:col-span-1 space-y-2">
-                  <Label className="font-medium">Number of Bedrooms</Label>
-                  <Select 
-                    value={preferences.bedrooms?.[0]?.toString() || ""}
-                    onValueChange={(value) => setPreferences({...preferences, bedrooms: [parseInt(value)]})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bedrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1,2,3,4,5,6,7,8].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Bedroom' : 'Bedrooms'}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="col-span-2 md:col-span-1 space-y-2">
-                  <Label className="font-medium">Number of Bathrooms</Label>
-                  <Select
-                    value={preferences.bathrooms?.[0]?.toString() || ""}
-                    onValueChange={(value) => setPreferences({...preferences, bathrooms: [parseInt(value)]})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bathrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1,1.5,2,2.5,3,3.5,4,4.5,5].map(num => (
-                        <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Bathroom' : 'Bathrooms'}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="col-span-2 space-y-2">
-                  <Label className="font-medium">Property Address</Label>
-                  <div className="flex items-center space-x-2">
-                    <Autosuggest
-                      suggestions={locationSuggestions}
-                      onSuggestionsFetchRequested={({ value }) => {
-                        getSuggestions(value)
-                      }}
-                      onSuggestionsClearRequested={() => {
-                        setLocationSuggestions([]);
-                      }}
-                      getSuggestionValue={getSuggestionValue}
-                      renderSuggestion={renderSuggestion}
-                      inputProps={locationInputProps}
-                      onSuggestionSelected={onLocationSuggestionSelected}
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    {propertyTypes.map(type => (
+                      <div key={type.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={type.id}
+                          checked={preferences.propertyType?.includes(type.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.propertyType || [];
+                            const updated = checked 
+                              ? [...current, type.id]
+                              : current.filter(id => id !== type.id);
+                            setPreferences({...preferences, propertyType: updated});
+                          }}
+                        />
+                        <label htmlFor={type.id} className="text-sm cursor-pointer">
+                          {type.label}
+                        </label>
+                      </div>
+                    ))}
                   </div>
-                </div>
-
-                <div className="col-span-2 md:col-span-1 space-y-2">
-                  <Label className="font-medium">Square Footage (Approximate)</Label>
-                  <Input 
-                    type="number" 
-                    placeholder="Enter square footage"
-                    value={preferences.squareFeet || ''}
-                    onChange={(e) => setPreferences({...preferences, squareFeet: e.target.value})}
-                  />
-                </div>
-
-                <div className="col-span-2 md:col-span-1 space-y-2">
-                  <Label className="font-medium">Lot Size (if applicable)</Label>
-                  <div className="flex space-x-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter lot size"
-                      value={preferences.lotSize || ''}
-                      onChange={(e) => setPreferences({...preferences, lotSize: e.target.value})}
-                    />
-                    <Select 
-                      value={preferences.lotSizeUnit || 'sqft'}
-                      onValueChange={(value) => setPreferences({...preferences, lotSizeUnit: value})}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sqft">sq ft</SelectItem>
-                        <SelectItem value="acres">acres</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Reason for Selling</Label>
-                  <RadioGroup 
-                    value={preferences.sellReasons?.[0] || ''}
-                    onValueChange={(value) => setPreferences({...preferences, sellReasons: [value]})}>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="relocating" id="relocating" />
-                        <Label htmlFor="relocating">Relocating</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="downsizing" id="downsizing" />
-                        <Label htmlFor="downsizing">Downsizing</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="upsizing" id="upsizing" />
-                        <Label htmlFor="upsizing">Upsizing</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="financial" id="financial" />
-                        <Label htmlFor="financial">Financial Reasons</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="investment" id="investment" />
-                        <Label htmlFor="investment">Investment Property</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other" />
-                        <Label htmlFor="other">Other</Label>
-                      </div>
-                    </div>
-                  </RadioGroup>
                 </div>
 
                 <div className="col-span-2 space-y-4">
@@ -1001,23 +897,72 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   </div>
                 </div>
 
+                {/* Property Condition */}
                 <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Property Features</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {propertyFeatures.map(feature => (
+                  <Label className="font-medium">Property Condition</Label>
+                  <Select 
+                    value={preferences.propertyCondition}
+                    onValueChange={(value) => setPreferences({...preferences, propertyCondition: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                      <SelectItem value="needs-work">Needs Work</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Year Built */}
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Year Built (Optional)</Label>
+                  <Input 
+                    type="number"
+                    placeholder="Enter year built"
+                    value={preferences.yearBuilt || ''}
+                    onChange={(e) => setPreferences({...preferences, yearBuilt: e.target.value})}
+                    min="1800"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+
+                {/* Key Features */}
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Key Features</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[
+                      { id: 'updated-kitchen', label: 'Updated Kitchen' },
+                      { id: 'updated-bathrooms', label: 'Updated Bathrooms' },
+                      { id: 'hardwood-floors', label: 'Hardwood Floors' },
+                      { id: 'large-yard', label: 'Large Yard' },
+                      { id: 'garage', label: 'Garage' },
+                      { id: 'covered-parking', label: 'Covered Parking' },
+                      { id: 'city-view', label: 'City View' },
+                      { id: 'mountain-view', label: 'Mountain View' },
+                      { id: 'ocean-view', label: 'Ocean View' },
+                      { id: 'pool', label: 'Pool' },
+                      { id: 'fireplace', label: 'Fireplace' },
+                      { id: 'balcony', label: 'Balcony' },
+                      { id: 'patio', label: 'Patio' },
+                      { id: 'central-ac', label: 'Central AC/Heat' },
+                      { id: 'smart-home', label: 'Smart Home Features' }
+                    ].map(feature => (
                       <div key={feature.id} className="flex items-center space-x-2">
                         <Checkbox 
-                          id={`feature-${feature.id}`}
-                          checked={preferences.features?.includes(feature.id)}
+                          id={feature.id}
+                          checked={preferences.propertyFeatures?.includes(feature.id)}
                           onCheckedChange={(checked) => {
-                            const current = preferences.features || [];
+                            const current = preferences.propertyFeatures || [];
                             const updated = checked 
                               ? [...current, feature.id]
                               : current.filter(id => id !== feature.id);
-                            setPreferences({...preferences, features: updated});
+                            setPreferences({...preferences, propertyFeatures: updated});
                           }}
                         />
-                        <label htmlFor={`feature-${feature.id}`} className="text-sm cursor-pointer">
+                        <label htmlFor={feature.id} className="text-sm cursor-pointer">
                           {feature.label}
                         </label>
                       </div>
@@ -1025,164 +970,17 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                   </div>
                 </div>
 
+                {/* Recent Renovations */}
                 <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Desired Selling Timeline</Label>
-                  <RadioGroup 
-                    value={preferences.timelines?.[0] || ''}
-                    onValueChange={(value) => setPreferences({...preferences, timelines: [value]})}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="asap" id="asap" />
-                        <Label htmlFor="asap">ASAP (ready to list)</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="1-3months" id="1-3months" />
-                        <Label htmlFor="1-3months">Within 1-3 months</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="3-6months" id="3-6months" />
-                        <Label htmlFor="3-6months">Within 3-6 months</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="6plus" id="6plus" />
-                        <Label htmlFor="6plus">6+ months</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="exploring" id="exploring" />
-                        <Label htmlFor="exploring">Not sure yet (just exploring)</Label>
-                      </div>
-                    </div>
-                  </RadioGroup>
+                  <Label className="font-medium">Recent Renovations (Optional)</Label>
+                  <Textarea 
+                    placeholder="Briefly describe any recent renovations"
+                    value={preferences.recentRenovations || ''}
+                    onChange={(e) => setPreferences({...preferences, recentRenovations: e.target.value})}
+                  />
                 </div>
 
-                <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Current Agent Status</Label>
-                  <RadioGroup 
-                    value={preferences.hasAgent ? 'yes' : 'no'}
-                    onValueChange={(value) => setPreferences({...preferences, hasAgent: value === 'yes'})}>
-                    <div className="flex space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="agent-yes" />
-                        <Label htmlFor="agent-yes">Currently working with an agent</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="agent-no" />
-                        <Label htmlFor="agent-no">Not working with an agent</Label>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">What's Most Important to You?</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="highest-price"
-                        checked={preferences.sellingPriorities?.includes('highest-price')}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.sellingPriorities || [];
-                          const updated = checked 
-                            ? [...current, 'highest-price']
-                            : current.filter(id => id !== 'highest-price');
-                          setPreferences({...preferences, sellingPriorities: updated});
-                        }}
-                      />
-                      <Label htmlFor="highest-price">Getting the highest price</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="quick-sale"
-                        checked={preferences.sellingPriorities?.includes('quick-sale')}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.sellingPriorities || [];
-                          const updated = checked 
-                            ? [...current, 'quick-sale']
-                            : current.filter(id => id !== 'quick-sale');
-                          setPreferences({...preferences, sellingPriorities: updated});
-                        }}
-                      />
-                      <Label htmlFor="quick-sale">Selling quickly</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="minimal-hassle"
-                        checked={preferences.sellingPriorities?.includes('minimal-hassle')}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.sellingPriorities || [];
-                          const updated = checked 
-                            ? [...current, 'minimal-hassle']
-                            : current.filter(id => id !== 'minimal-hassle');
-                          setPreferences({...preferences, sellingPriorities: updated});
-                        }}
-                      />
-                      <Label htmlFor="minimal-hassle">Minimal hassle</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="expert-guidance"
-                        checked={preferences.sellingPriorities?.includes('expert-guidance')}
-                        onCheckedChange={(checked) => {
-                          const current = preferences.sellingPriorities || [];
-                          const updated = checked 
-                            ? [...current, 'expert-guidance']
-                            : current.filter(id => id !== 'expert-guidance');
-                          setPreferences({...preferences, sellingPriorities: updated});
-                        }}
-                      />
-                      <Label htmlFor="expert-guidance">Expert guidance</Label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Reason for Selling</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {urgencyReasons.map(reason => (
-                      <div key={reason.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`reason-${reason.id}`}
-                          checked={preferences.sellReasons?.includes(reason.id)}
-                          onCheckedChange={(checked) => {
-                            const current = preferences.sellReasons || [];
-                            const updated = checked 
-                              ? [...current, reason.id]
-                              : current.filter(id => id !== reason.id);
-                            setPreferences({...preferences, sellReasons: updated});
-                          }}
-                        />
-                        <label htmlFor={`reason-${reason.id}`} className="text-sm cursor-pointer">
-                          {reason.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Moving Services Needed</Label>
-                  <div className="grid gridcols-2 gap-2">
-                    {movingServices.map(service => (
-                      <div key={service.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`service-${service.id}`}
-                          checked={preferences.movingServices?.includes(service.id)}
-                          onCheckedChange={(checked) => {
-                            const current = preferences.movingServices || [];
-                            const updated = checked 
-                              ? [...current, service.id]
-                              : current.filter(id => id !== service.id);
-                            setPreferences({...preferences, movingServices: updated});
-                          }}
-                        />
-                        <label htmlFor={`service-${service.id}`} className="text-sm cursor-pointer">
-                          {service.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+                {/* Property Media */}
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Media</Label>
                   <div className="flex items-center space-x-2">
@@ -1199,6 +997,29 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       onChange={handleImageUpload}
                     />
                   </div>
+                  {preferences.propertyMedia && preferences.propertyMedia.length > 0 && (
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                      {preferences.propertyMedia.map((media, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={media}
+                            alt={`Property ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={() => {
+                              const updatedMedia = [...preferences.propertyMedia];
+                              updatedMedia.splice(index, 1);
+                              setPreferences({...preferences, propertyMedia: updatedMedia});
+                            }}
+                            className="absolute top-2 right-2 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-span-2 space-y-4">
@@ -1777,7 +1598,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             {/* Design Preferences */}
             <div className="space-y-4">
               <h4 className="font-semibold">Style Preferences:</h4>
-              
+
               {/* Architectural Styles */}
               {preferences.architecturalStyle && preferences.architecturalStyle.length > 0 && (
                 <div className="space-y-2">
@@ -1844,7 +1665,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             <Button variant="outline" onClick={() => setStep(step - 1)}>
               Refine Preferences
             </Button>
-            <Button onClick={() => onComplete(preferences)} className="bg-primary">
+            <Button onClick={() => onComplete(preferences)}>
               Show My Matches
               <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>

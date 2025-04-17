@@ -816,26 +816,141 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
               <>
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Type</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {propertyTypes.map(type => (
-                      <div key={type.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={type.id}
-                          checked={preferences.propertyType?.includes(type.id)}
-                          onCheckedChange={(checked) => {
-                            const current = preferences.propertyType || [];
-                            const updated = checked 
-                              ? [...current, type.id]
-                              : current.filter(id => id !== type.id);
-                            setPreferences({...preferences, propertyType: updated});
-                          }}
-                        />
-                        <label htmlFor={type.id} className="text-sm cursor-pointer">
-                          {type.label}
-                        </label>
-                      </div>
-                    ))}
+                  <Select 
+                    value={preferences.propertyType?.[0] || ""}
+                    onValueChange={(value) => setPreferences({...preferences, propertyType: [value]})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select property type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="condo">Condo</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                      <SelectItem value="land">Land</SelectItem>
+                      <SelectItem value="multi-family">Multi-Family</SelectItem>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-2 md:col-span-1 space-y-2">
+                  <Label className="font-medium">Number of Bedrooms</Label>
+                  <Select 
+                    value={preferences.bedrooms?.[0]?.toString() || ""}
+                    onValueChange={(value) => setPreferences({...preferences, bedrooms: [parseInt(value)]})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bedrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5,6,7,8].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Bedroom' : 'Bedrooms'}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-2 md:col-span-1 space-y-2">
+                  <Label className="font-medium">Number of Bathrooms</Label>
+                  <Select
+                    value={preferences.bathrooms?.[0]?.toString() || ""}
+                    onValueChange={(value) => setPreferences({...preferences, bathrooms: [parseInt(value)]})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bathrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,1.5,2,2.5,3,3.5,4,4.5,5].map(num => (
+                        <SelectItem key={num} value={num.toString()}>{num} {num === 1 ? 'Bathroom' : 'Bathrooms'}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="col-span-2 space-y-2">
+                  <Label className="font-medium">Property Address</Label>
+                  <div className="flex items-center space-x-2">
+                    <Autosuggest
+                      suggestions={locationSuggestions}
+                      onSuggestionsFetchRequested={({ value }) => {
+                        getSuggestions(value)
+                      }}
+                      onSuggestionsClearRequested={() => {
+                        setLocationSuggestions([]);
+                      }}
+                      getSuggestionValue={getSuggestionValue}
+                      renderSuggestion={renderSuggestion}
+                      inputProps={locationInputProps}
+                      onSuggestionSelected={onLocationSuggestionSelected}
+                    />
                   </div>
+                </div>
+
+                <div className="col-span-2 md:col-span-1 space-y-2">
+                  <Label className="font-medium">Square Footage (Approximate)</Label>
+                  <Input 
+                    type="number" 
+                    placeholder="Enter square footage"
+                    value={preferences.squareFeet || ''}
+                    onChange={(e) => setPreferences({...preferences, squareFeet: e.target.value})}
+                  />
+                </div>
+
+                <div className="col-span-2 md:col-span-1 space-y-2">
+                  <Label className="font-medium">Lot Size (if applicable)</Label>
+                  <div className="flex space-x-2">
+                    <Input 
+                      type="number" 
+                      placeholder="Enter lot size"
+                      value={preferences.lotSize || ''}
+                      onChange={(e) => setPreferences({...preferences, lotSize: e.target.value})}
+                    />
+                    <Select 
+                      value={preferences.lotSizeUnit || 'sqft'}
+                      onValueChange={(value) => setPreferences({...preferences, lotSizeUnit: value})}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sqft">sq ft</SelectItem>
+                        <SelectItem value="acres">acres</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Reason for Selling</Label>
+                  <RadioGroup 
+                    value={preferences.sellReasons?.[0] || ''}
+                    onValueChange={(value) => setPreferences({...preferences, sellReasons: [value]})}>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="relocating" id="relocating" />
+                        <Label htmlFor="relocating">Relocating</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="downsizing" id="downsizing" />
+                        <Label htmlFor="downsizing">Downsizing</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="upsizing" id="upsizing" />
+                        <Label htmlFor="upsizing">Upsizing</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="financial" id="financial" />
+                        <Label htmlFor="financial">Financial Reasons</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="investment" id="investment" />
+                        <Label htmlFor="investment">Investment Property</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="other" id="other" />
+                        <Label htmlFor="other">Other</Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
                 </div>
 
                 <div className="col-span-2 space-y-4">
@@ -911,26 +1026,112 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </div>
 
                 <div className="col-span-2 space-y-4">
-                  <Label className="font-medium">Timeline</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {timelineOptions.map(option => (
-                      <div key={option.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`timeline-${option.id}`}
-                          checked={preferences.timelines?.includes(option.id)}
-                          onCheckedChange={(checked) => {
-                            const current = preferences.timelines || [];
-                            const updated = checked 
-                              ? [...current, option.id]
-                              : current.filter(id => id !== option.id);
-                            setPreferences({...preferences, timelines: updated});
-                          }}
-                        />
-                        <label htmlFor={`timeline-${option.id}`} className="text-sm cursor-pointer">
-                          {option.label}
-                        </label>
+                  <Label className="font-medium">Desired Selling Timeline</Label>
+                  <RadioGroup 
+                    value={preferences.timelines?.[0] || ''}
+                    onValueChange={(value) => setPreferences({...preferences, timelines: [value]})}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="asap" id="asap" />
+                        <Label htmlFor="asap">ASAP (ready to list)</Label>
                       </div>
-                    ))}
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1-3months" id="1-3months" />
+                        <Label htmlFor="1-3months">Within 1-3 months</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="3-6months" id="3-6months" />
+                        <Label htmlFor="3-6months">Within 3-6 months</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="6plus" id="6plus" />
+                        <Label htmlFor="6plus">6+ months</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="exploring" id="exploring" />
+                        <Label htmlFor="exploring">Not sure yet (just exploring)</Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">Current Agent Status</Label>
+                  <RadioGroup 
+                    value={preferences.hasAgent ? 'yes' : 'no'}
+                    onValueChange={(value) => setPreferences({...preferences, hasAgent: value === 'yes'})}>
+                    <div className="flex space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="agent-yes" />
+                        <Label htmlFor="agent-yes">Currently working with an agent</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="agent-no" />
+                        <Label htmlFor="agent-no">Not working with an agent</Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="col-span-2 space-y-4">
+                  <Label className="font-medium">What's Most Important to You?</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="highest-price"
+                        checked={preferences.sellingPriorities?.includes('highest-price')}
+                        onCheckedChange={(checked) => {
+                          const current = preferences.sellingPriorities || [];
+                          const updated = checked 
+                            ? [...current, 'highest-price']
+                            : current.filter(id => id !== 'highest-price');
+                          setPreferences({...preferences, sellingPriorities: updated});
+                        }}
+                      />
+                      <Label htmlFor="highest-price">Getting the highest price</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="quick-sale"
+                        checked={preferences.sellingPriorities?.includes('quick-sale')}
+                        onCheckedChange={(checked) => {
+                          const current = preferences.sellingPriorities || [];
+                          const updated = checked 
+                            ? [...current, 'quick-sale']
+                            : current.filter(id => id !== 'quick-sale');
+                          setPreferences({...preferences, sellingPriorities: updated});
+                        }}
+                      />
+                      <Label htmlFor="quick-sale">Selling quickly</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="minimal-hassle"
+                        checked={preferences.sellingPriorities?.includes('minimal-hassle')}
+                        onCheckedChange={(checked) => {
+                          const current = preferences.sellingPriorities || [];
+                          const updated = checked 
+                            ? [...current, 'minimal-hassle']
+                            : current.filter(id => id !== 'minimal-hassle');
+                          setPreferences({...preferences, sellingPriorities: updated});
+                        }}
+                      />
+                      <Label htmlFor="minimal-hassle">Minimal hassle</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="expert-guidance"
+                        checked={preferences.sellingPriorities?.includes('expert-guidance')}
+                        onCheckedChange={(checked) => {
+                          const current = preferences.sellingPriorities || [];
+                          const updated = checked 
+                            ? [...current, 'expert-guidance']
+                            : current.filter(id => id !== 'expert-guidance');
+                          setPreferences({...preferences, sellingPriorities: updated});
+                        }}
+                      />
+                      <Label htmlFor="expert-guidance">Expert guidance</Label>
+                    </div>
                   </div>
                 </div>
 

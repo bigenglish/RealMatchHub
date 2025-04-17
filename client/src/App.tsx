@@ -14,6 +14,7 @@ import ServiceExperts from "@/pages/service-experts";
 import Marketplace from "@/pages/marketplace";
 import Appointments from "@/pages/appointments";
 import FastOnlineApplication from "@/pages/fast-online-application";
+import BuyerFlow from "@/pages/buyer-flow";
 import Navbar from "@/components/navbar";
 
 // Placeholder components for new pages

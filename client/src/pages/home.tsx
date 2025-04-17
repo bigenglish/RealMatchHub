@@ -306,9 +306,9 @@ export default function HomePage() {
               </div>
 
               <div className="flex items-end">
-                <Link href="/properties">
+                <Link href={searchType === 'Buy' ? "/buyer-flow" : "/properties"}>
                   <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
-                    Browse Properties
+                    {searchType === 'Buy' ? 'Get Started' : 'Browse Properties'}
                   </Button>
                 </Link>
               </div>

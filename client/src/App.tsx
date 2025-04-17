@@ -42,6 +42,7 @@ function Router() {
           <Route path="/marketplace" component={Marketplace} />
           <Route path="/appointments" component={Appointments} />
           <Route path="/fast-online-application" component={FastOnlineApplication} />
+          <Route path="/buyer-flow" component={BuyerFlow} />
           <Route path="/resources" component={Resources} />
           <Route path="/demo" component={Demo} />
           <Route path="/get-started" component={GetStarted} />

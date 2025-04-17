@@ -205,21 +205,8 @@ export default function PropertiesPage() {
     );
   }
   
-  // Show the questionnaire if it hasn't been completed or skipped
-  if (showQuestionnaire) {
-    return (
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="text-3xl font-bold">Find Your Dream Property</h1>
-        </div>
-        
-        <PropertyQuestionnaire 
-          onComplete={handleQuestionnaireComplete} 
-          onSkip={handleSkipQuestionnaire}
-        />
-      </div>
-    );
-  }
+  // Skip questionnaire for buyers - only show it for sellers
+  // The seller flow will handle the questionnaire in a different component
 
   return (
     <div className="space-y-8">

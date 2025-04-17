@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import Autosuggest from "react-autosuggest";
+import {Tooltip, TooltipTrigger, TooltipContent} from '@radix-ui/react-tooltip'
 
 export type UserIntent = "buying" | "selling" | "both" | undefined;
 export type UserLifestage = "down-payment" | "need-mortgage" | "pre-approve" | "insurance-quotes" | "renovation-plans" |
@@ -32,11 +33,6 @@ export interface UserPreferences {
     min: number;
     max: number;
   };
-  selectedLocations?: string[];
-  lifestylePreferences?: string[];
-  hasCommute?: boolean;
-  commuteTime?: string;
-  commuteMode?: string;
   insuranceOptions?: string[];
   renovationPlans?: string[];
   location?: string;
@@ -49,8 +45,8 @@ export interface UserPreferences {
   movingServices?: string[];
   inspirationPhotos?: string[]; // Base64 encoded image data
   inspirationUrls?: string[]; // URLs to inspiration listings
-  architecturalStyle?: string;
-  interiorStyle?: string;
+  architecturalStyle?: string[];
+  interiorStyle?: string[];
   designFeatures?: string[]; // Additional design features/preferences
   colorScheme?: string; // Color preferences
 }
@@ -79,8 +75,8 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     movingServices: [],
     inspirationPhotos: [],
     inspirationUrls: [],
-    architecturalStyle: "",
-    interiorStyle: "",
+    architecturalStyle: [],
+    interiorStyle: [],
     designFeatures: [],
     colorScheme: "",
   });
@@ -1022,26 +1018,22 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                     { 
                       value: 'colonial', 
                       label: 'Colonial', 
-                      icon: 'columns',
-                      description: 'Symmetrical design, central entry, formal rooms, multi-story'
+                      icon: 'columns'
                     },
                     { 
                       value: 'farmhouse', 
                       label: 'Modern Farmhouse', 
-                      icon: 'barn',
-                      description: 'Mix of rustic and modern, metal roofs, wrap-around porch'
+                      icon: 'barn'
                     },
                     { 
                       value: 'ranch', 
                       label: 'Ranch', 
-                      icon: 'ranch',
-                      description: 'Single-story, open concept, attached garage, indoor-outdoor flow'
+                      icon: 'ranch'
                     },
                     { 
                       value: 'victorian', 
                       label: 'Victorian', 
-                      icon: 'landmark',
-                      description: 'Ornate details, steep roof, decorative trim, multiple stories'
+                      icon: 'landmark'
                     }
                   ], []).map(style => (
                     <Tooltip key={style.value} delayDuration={300}>
@@ -1157,24 +1149,77 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                             setPreferences({...preferences, interiorStyles: updated});
                           }}
                         >
-                      <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
-                        {style.icon === 'square' && <Square className="h-5 w-5" />}
-                        {style.icon === 'sparkles' && <Sparkles className="h-5 w-5" />}
-                        {style.icon === 'sofa' && <Sofa className="h-5 w-5" />}
-                        {style.icon === 'wood' && <Home className="h-5 w-5" />}
-                        {style.icon === 'factory' && <Factory className="h-5 w-5" />}
-                        {style.icon === 'waves' && <Waves className="h-5 w-5" />}
-                        {style.icon === 'leaf' && <Leaf className="h-5 w-5" />}
-                        {style.icon === 'armchair' && <Armchair className="h-5 w-5" />}
-                      </div>
-                      <div className="text-sm font-medium text-center">{style.label}</div>
-                      {preferences.interiorStyle === style.value && (
-                        <div className="absolute top-2 right-2">
-                          <Check className="h-5 w-5 text-primary" />
+                          <div className="w-10 h-10 mb-2 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                            {style.icon === 'square' && <Square className="h-5 w-5" />}
+                            {style.icon === 'sparkles' && <Sparkles className="h-5 w-5" />}
+                            {style.icon === 'sofa' && <Sofa className="h-5 w-5" />}
+                            {style.icon === 'wood' && <Home className="h-5 w-5" />}
+                            {style.icon === 'factory' && <Factory className="h-5 w-5" />}
+                            {style.icon === 'waves' && <Waves className="h-5 w-5" />}
+                            {style.icon === 'leaf' && <Leaf className="h-5 w-5" />}
+                            {style.icon === 'armchair' && <Armchair className="h-5 w-5" />}
+                          </div>
+                          <div className="text-sm font-medium text-center">{style.label}</div>
+                          {preferences.interiorStyle === style.value && (
+                            <div className="absolute top-2 right-2">
+                              <Check className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[200px] text-center">
+                        {style.description}
+                      </TooltipContent>
+                    </Tooltip>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-4 mt-8">
+                <div className="space-y-2">
+                  <Label className="font-semibold">Must-Have Design Features</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {features.map(feature => (
+                      <div key={feature.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={feature.id}
+                          checked={preferences.designFeatures?.includes(feature.id)}
+                          onCheckedChange={(checked) => {
+                            const current = preferences.designFeatures || [];
+                            const updated = checked 
+                              ? [...current, feature.id]
+                              : current.filter(id => id !== feature.id);
+                            setPreferences({...preferences, designFeatures: updated});
+                          }}
+                        />
+                        <label 
+                          htmlFor={feature.id}
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          {feature.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-semibold">Color Preferences</Label>
+                  <Select 
+                    value={preferences.colorScheme || undefined}
+                    onValueChange={(value) => setPreferences({...preferences, colorScheme: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select color scheme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="neutral">Neutral & Earth Tones</SelectItem>
+                      <SelectItem value="warm">Warm & Cozy</SelectItem>
+                      <SelectItem value="cool">Cool & Calm</SelectItem>
+                      <SelectItem value="bright">Bright & Bold</SelectItem>
+                      <SelectItem value="monochrome">Monochromatic</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -1241,160 +1286,6 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       )}
 
       {step === 4 && (
-  <div className="space-y-6">
-    <h3 className="text-xl font-semibold text-center">Where do you envision your next home?</h3>
-    <p className="text-center text-muted-foreground">Let's find the perfect neighborhood for your lifestyle</p>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Location Preferences */}
-      <div className="space-y-4">
-        <Label className="font-semibold">Desired Location(s)</Label>
-        <div className="flex items-center space-x-2">
-          <Autosuggest
-            suggestions={locationSuggestions}
-            onSuggestionsFetchRequested={({ value }) => {
-              getSuggestions(value)
-            }}
-            onSuggestionsClearRequested={() => {
-              setLocationSuggestions([]);
-            }}
-            getSuggestionValue={getSuggestionValue}
-            renderSuggestion={renderSuggestion}
-            inputProps={locationInputProps}
-            onSuggestionSelected={onLocationSuggestionSelected}
-          />
-          <Button variant="outline">
-            <MapPin className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {preferences.selectedLocations && preferences.selectedLocations.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {preferences.selectedLocations.map((location, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {location}
-                <X className="h-3 w-3 cursor-pointer" onClick={() => {
-                  const updated = preferences.selectedLocations?.filter((_, i) => i !== index);
-                  setPreferences({...preferences, selectedLocations: updated});
-                }} />
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Lifestyle Preferences */}
-      <div className="space-y-4">
-        <Label className="font-semibold">Lifestyle Preferences</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[
-            { id: 'parks', label: 'Parks & Green Spaces', icon: <Leaf className="h-4 w-4" /> },
-            { id: 'schools', label: 'Good Schools', icon: <GraduationCap className="h-4 w-4" /> },
-            { id: 'walkable', label: 'Walkability', icon: <Footprints className="h-4 w-4" /> },
-            { id: 'transit', label: 'Public Transit', icon: <Bus className="h-4 w-4" /> },
-            { id: 'nightlife', label: 'Nightlife', icon: <Music className="h-4 w-4" /> },
-            { id: 'family', label: 'Family-Friendly', icon: <Users className="h-4 w-4" /> },
-            { id: 'quiet', label: 'Quiet/Suburban', icon: <Home className="h-4 w-4" /> },
-            { id: 'amenities', label: 'Close to Amenities', icon: <Store className="h-4 w-4" /> },
-            { id: 'pets', label: 'Pet-Friendly', icon: <PawPrint className="h-4 w-4" /> },
-          ].map(pref => (
-            <div
-              key={pref.id}
-              className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                preferences.lifestylePreferences?.includes(pref.id)
-                  ? 'border-primary bg-primary/10'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => {
-                const current = preferences.lifestylePreferences || [];
-                const updated = current.includes(pref.id)
-                  ? current.filter(id => id !== pref.id)
-                  : [...current, pref.id];
-                setPreferences({...preferences, lifestylePreferences: updated});
-              }}
-            >
-              <div className="mb-2">{pref.icon}</div>
-              <span className="text-xs text-center">{pref.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Commute Preferences */}
-      <div className="col-span-1 md:col-span-2 space-y-4">
-        <Label className="font-semibold">Commute Preferences</Label>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              checked={preferences.hasCommute || false}
-              onCheckedChange={(checked) => setPreferences({...preferences, hasCommute: checked})}
-            />
-            <Label>I commute to work</Label>
-          </div>
-
-          {preferences.hasCommute && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
-              <div className="space-y-2">
-                <Label>Preferred commute time</Label>
-                <Select 
-                  value={preferences.commuteTime}
-                  onValueChange={(value) => setPreferences({...preferences, commuteTime: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select preferred time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">Under 15 minutes</SelectItem>
-                    <SelectItem value="30">15-30 minutes</SelectItem>
-                    <SelectItem value="45">30-45 minutes</SelectItem>
-                    <SelectItem value="60">45-60 minutes</SelectItem>
-                    <SelectItem value="60+">Over 60 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Preferred transportation</Label>
-                <div className="flex gap-2">
-                  {[
-                    { id: 'car', icon: <Car className="h-4 w-4" />, label: 'Car' },
-                    { id: 'transit', icon: <Bus className="h-4 w-4" />, label: 'Transit' },
-                    { id: 'bike', icon: <Bike className="h-4 w-4" />, label: 'Bike' },
-                    { id: 'walk', icon: <Walk className="h-4 w-4" />, label: 'Walk' },
-                  ].map(mode => (
-                    <Button
-                      key={mode.id}
-                      variant={preferences.commuteMode === mode.id ? 'default' : 'outline'}
-                      className="flex-1"
-                      onClick={() => setPreferences({...preferences, commuteMode: mode.id})}
-                    >
-                      <div className="flex flex-col items-center gap-1">
-                        {mode.icon}
-                        <span className="text-xs">{mode.label}</span>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-
-    <div className="flex justify-center gap-4 pt-4">
-      <Button variant="outline" onClick={() => setStep(step - 1)}>
-        Go Back
-      </Button>
-      <Button onClick={handleNextStep}>
-        Continue
-        <ChevronsRight className="ml-2 h-4 w-4" />
-      </Button>
-    </div>
-  </div>
-)}
-
-{step === 5 && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
             {preferences.intent === "buying" && "Share your style inspiration"}

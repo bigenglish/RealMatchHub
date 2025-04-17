@@ -32,7 +32,9 @@ import {
 import Stripe from "stripe"; // Import Stripe
 import { registerVideoRoutes } from "./video-static"; // Import video routes handler
 import visionRoutes from "./routes/vision-routes"; // Import vision routes
+import documentRoutes from "./routes/document-routes"; // Import document routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
+import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1757,6 +1759,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     await initializeVisionClient();
     app.use("/api/vision", visionRoutes);
+    
+    // Initialize Document AI processor and register document routes
+    console.log("[express] Initializing Document AI processor");
+    const documentProcessorInitialized = await initDocumentProcessor();
+    if (documentProcessorInitialized) {
+      console.log("[express] Document AI processor initialized successfully");
+      app.use("/api/documents", documentRoutes);
+      console.log("[express] Document routes registered");
+    } else {
+      console.error("[express] Failed to initialize Document AI processor, document routes will not be available");
+    }
     console.log("[express] Google Vision API routes registered");
   } catch (error) {
     console.error("[express] Failed to initialize Google Vision API:", error);

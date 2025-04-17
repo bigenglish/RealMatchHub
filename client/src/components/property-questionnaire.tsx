@@ -269,12 +269,23 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
   // Handle property type change
   const handlePropertyTypeChange = (value: string) => {
-    setPreferences({ ...preferences, propertyType: value });
+    const currentTypes = preferences.propertyType || [];
+    if (currentTypes.includes(value)) {
+      setPreferences({ 
+        ...preferences, 
+        propertyType: currentTypes.filter(type => type !== value)
+      });
+    } else {
+      setPreferences({ 
+        ...preferences, 
+        propertyType: [...currentTypes, value]
+      });
+    }
   };
 
   // Handle timeline selection
   const handleTimelineChange = (value: TimelineOption) => {
-    setPreferences({ ...preferences, timeframe: value });
+    setPreferences({ ...preferences, timelines: [value] });
   };
 
   // Handle image upload with Vision API analysis
@@ -581,7 +592,10 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                           value={[preferences.budget?.min || 0]}
                           onValueChange={([value]) => setPreferences(prev => ({
                             ...prev,
-                            budget: { ...prev.budget, min: value }
+                            budget: { 
+                              min: value, 
+                              max: prev.budget?.max || 500000 
+                            }
                           }))}
                           className="my-4"
                         />
@@ -898,11 +912,11 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                       <div key={option.id} className="flex items-center space-x-2">
                         <Checkbox 
                           id={`timeline-${option.id}`}
-                          checked={preferences.timelines?.includes(option.id)}
+                          checked={preferences.timelines?.includes(option.id as TimelineOption)}
                           onCheckedChange={(checked) => {
                             const current = preferences.timelines || [];
                             const updated = checked 
-                              ? [...current, option.id]
+                              ? [...current, option.id as TimelineOption]
                               : current.filter(id => id !== option.id);
                             setPreferences({...preferences, timelines: updated});
                           }}

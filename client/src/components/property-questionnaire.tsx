@@ -57,8 +57,15 @@ interface PropertyQuestionnaireProps {
 }
 
 export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQuestionnaireProps) {
-  const [step, setStep] = useState(1);
-  const [preferences, setPreferences] = useState<UserPreferences>({
+  // Load saved progress on initial render
+  const [step, setStep] = useState(() => {
+    const saved = localStorage.getItem('questionnaire_step');
+    return saved ? parseInt(saved) : 1;
+  });
+  
+  const [preferences, setPreferences] = useState<UserPreferences>(() => {
+    const saved = localStorage.getItem('questionnaire_preferences');
+    return saved ? JSON.parse(saved) : {
     intent: undefined,
     lifestage: [],
     budget: {
@@ -329,16 +336,34 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
     { value: 'victorian', label: 'Victorian', icon: 'landmark' }
   ], []);
 
+  // Save progress whenever step or preferences change
+  useEffect(() => {
+    localStorage.setItem('questionnaire_step', step.toString());
+    localStorage.setItem('questionnaire_preferences', JSON.stringify(preferences));
+  }, [step, preferences]);
+
   const handleNextStep = () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
+      // Clear saved progress when completing the questionnaire
+      localStorage.removeItem('questionnaire_step');
+      localStorage.removeItem('questionnaire_preferences');
       onComplete(preferences);
     }
   };
 
+  const handleResumeProgress = () => {
+    const savedStep = localStorage.getItem('questionnaire_step');
+    const savedPreferences = localStorage.getItem('questionnaire_preferences');
+    if (savedStep && savedPreferences) {
+      setStep(parseInt(savedStep));
+      setPreferences(JSON.parse(savedPreferences));
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-center">
           Tell us about you — we'll recommend the right solution.
@@ -1582,10 +1607,29 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
         </div>
       )}
 
-      <div className="text-center">
+      <div className="text-center space-y-2">
         <Button variant="ghost" onClick={onSkip}>
           Skip and continue to all properties
         </Button>
+        <div className="flex justify-center gap-2 flex-wrap">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              localStorage.setItem('questionnaire_step', step.toString());
+              localStorage.setItem('questionnaire_preferences', JSON.stringify(preferences));
+            }}
+          >
+            Save Progress
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleResumeProgress}
+          >
+            Resume Progress
+          </Button>
+        </div>
       </div>
     </div>
   );

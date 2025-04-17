@@ -1,0 +1,53 @@
+Page 2 of Seller Flow: Tell us about your situation (Revised)
+
+Title: Tell us about your selling situation.
+Key Information to Collect:
+Property Type: (Dropdown or radio buttons) - House, Condo, Townhouse, Land, Multi-Family, Apartment, Commercial, Other.
+Number of Bedrooms: (Dropdown or number input).
+Number of Bathrooms: (Dropdown or number input).
+Reason for Selling: (Dropdown or radio buttons) - Relocating, Downsizing, Upsizing, Financial Reasons, Investment Property, Other.
+Desired Selling Timeline: (Dropdown or radio buttons) - ASAP (ready to list), Within 1-3 months, Within 3-6 months, 6+ months, Not sure yet (just exploring).
+Are you currently working with a real estate agent? (Radio buttons - Yes/No).
+What is most important to you in the selling process? (Checkboxes - e.g., Getting the highest price, Selling quickly, Minimal hassle, Expert guidance).
+Moving Services Needed? (Checkboxes) - Packing Services, Loading/Unloading, Transportation, Cleaning Services.
+Property Address: (Free text input with potential Google Maps Autocomplete).
+Square Footage (Approximate): (Number input).
+Lot Size (if applicable): (Number input with units - acres, sq ft).
+Now, let's define the next three pages (Pages 3-5) building upon this revised Page 2:
+
+Page 3 of Seller Flow: Property Details & Features
+
+Title: Tell us more about your property.
+Key Information to Collect:
+Condition of Property: (Dropdown or radio buttons - Excellent, Good, Fair, Needs Work).
+Year Built (Optional): (Number input).
+Key Features (Checkboxes): - Updated Kitchen, Updated Bathrooms, Hardwood Floors, Large Yard, Garage, Parking (covered/uncovered), View (city, mountain, ocean, etc.), Pool, Fireplace, Balcony, Patio, Central AC/Heat, Smart Home Features, Recent Renovations (specify briefly), Other unique features.
+Upload Photos/Videos (Optional): Allow sellers to upload initial media of their property.
+Purpose: Gather more specific details about the property's condition and key selling points, along with initial visual information.
+Page 4 of Seller Flow: Desired Price & Services
+
+Title: What are your pricing expectations and service needs?
+Key Information to Collect:
+Desired List Price (Optional): (Number input - with a clear note about AI/expert valuation).
+Do you require assistance with any of the following? (Checkboxes):
+Home Staging
+Professional Photography/Videography
+Repairs/Improvements before listing
+Legal Assistance
+Mortgage Payoff Assistance
+Would you like to learn more about our different selling plans? (Yes/No radio buttons). If Yes, perhaps a brief overview or a link to the pricing page.
+Purpose: Understand the seller's initial price expectations and identify any additional services they might require or be interested in.
+Page 5 of Seller Flow: Contact & Next Steps
+
+Title: Let's finalize your details and next steps.
+Key Information to Collect:
+Your Name: (If not already collected).
+Your Email Address: (If not already collected).
+Your Phone Number: (Optional).
+Preferred Method of Contact: (Radio buttons - Email, Phone).
+What would you like to do next? (Clear calls to action):
+"Get a Free AI Property Valuation" (Primary button).
+"Schedule a Consultation with a Local Real Estate Expert" (Secondary button).
+"Learn More About Our Selling Process" (Link or button).
+Privacy Policy Agreement (Checkbox).
+Purpose: Confirm contact information and guide the seller towards the next logical actions within the platform.

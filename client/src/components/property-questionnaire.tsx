@@ -603,8 +603,6 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       </div>
     </div>
   );
-);
-
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
@@ -998,8 +996,8 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 <div className="col-span-2 space-y-4">
                   <Label className="font-medium">Property Condition</Label>
                   <Select 
-                    value={preferences.propertyCondition}
-                    onValueChange={(value) => setPreferences({...preferences, propertyCondition: value})}
+                    value={preferences.propertyCondition || ""}
+                    onValueChange={(value: "excellent" | "good" | "fair" | "needs-work") => setPreferences({...preferences, propertyCondition: value})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select condition" />

@@ -269,11 +269,11 @@ export default function HomePage() {
               </div>
 
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">What</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
                 <Select 
                   defaultValue="house"
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full text-gray-900">
                     <SelectValue defaultValue="house">House</SelectValue>
                   </SelectTrigger>
                   <SelectContent>

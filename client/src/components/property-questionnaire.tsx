@@ -2057,9 +2057,11 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
       )}
 
       <div className="text-center space-y-2">
-        <Button variant="ghost" onClick={onSkip}>
-          Skip and continue to all properties
-        </Button>
+        {onSkip && (
+          <Button variant="ghost" onClick={onSkip}>
+            Skip and continue to all properties
+          </Button>
+        )}
         <div className="flex justify-center gap-2 flex-wrap">
           <Button 
             variant="outline" 

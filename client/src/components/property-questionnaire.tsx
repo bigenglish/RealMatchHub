@@ -1590,12 +1590,14 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
             </div>
 
             {/* Timeline */}
-            {preferences.timeframe && (
+            {preferences.timelines && preferences.timelines.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-semibold">Timeline:</h4>
                 <div className="bg-background rounded p-3 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-primary" />
-                  <span>{preferences.timeframe}</span>
+                  <span>
+                    {timelineOptions.find(option => option.id === preferences.timelines?.[0])?.label}
+                  </span>
                 </div>
               </div>
             )}
@@ -1678,12 +1680,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
                 </div>
               )}
 
-              {preferences.timeframe && (
+              {preferences.timelines && preferences.timelines.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-primary" />
                   <span className="font-semibold">Timeline: </span>
                   <span>
-                    {timelineOptions.find(option => option.id === preferences.timelines?.[0])?.label || preferences.timeframe}
+                    {timelineOptions.find(option => option.id === preferences.timelines[0])?.label}
                   </span>
                 </div>
               )}

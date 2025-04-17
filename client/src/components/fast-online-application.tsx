@@ -198,54 +198,135 @@ export function FastOnlineApplication() {
   const renderDocumentCard = (documentType: string, label: string, description: string) => {
     const uploadStatus = documentUploads[documentType]?.status;
     
+    // Document type specific information
+    const getDocumentInfo = () => {
+      switch(documentType) {
+        case 'paystub':
+          return {
+            icon: <FileText className="h-10 w-10 p-2 bg-blue-100 text-blue-600 rounded-full" />,
+            fields: ['Employer Name', 'Employee Name', 'Pay Period', 'Gross Pay', 'Net Pay'],
+            examples: 'Examples: Regular paycheck stub, Direct deposit receipt',
+            tips: 'Make sure the stub shows your full name, employer name, and pay amount clearly.'
+          };
+        case 'bank_statement':
+          return {
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 p-2 bg-green-100 text-green-600 rounded-full" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4" /><path d="M10 2v4" /><path d="M14 2v4" /><path d="M10 22v-4" /><path d="M14 22v-4" /><path d="M18 12H2" /><path d="M2 9v6" /></svg>,
+            fields: ['Account Number', 'Account Holder', 'Bank Name', 'Statement Period', 'Ending Balance'],
+            examples: 'Examples: Checking account statement, Savings account statement',
+            tips: 'Include statements from the last 2-3 months that show regular income deposits.'
+          };
+        case 'tax_return':
+          return {
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 p-2 bg-amber-100 text-amber-600 rounded-full" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></svg>,
+            fields: ['Taxpayer Name', 'Tax Year', 'Adjusted Gross Income', 'Total Taxable Income'],
+            examples: 'Examples: Form 1040, Form 1040-EZ, Form 1040-A',
+            tips: 'Include all pages of your most recent tax return filing.'
+          };
+        case 'w2':
+          return {
+            icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 p-2 bg-purple-100 text-purple-600 rounded-full" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 12H4" /><path d="M20 12H16" /><rect width="16" height="16" x="4" y="4" rx="2" /><path d="M12 4v16" /></svg>,
+            fields: ['Employer Name', 'Employee Name', 'Tax Year', 'Wages', 'Federal Income Tax Withheld'],
+            examples: 'Examples: IRS W-2 Wage and Tax Statement',
+            tips: 'Make sure your W-2 has your Social Security Number and is for the most recent tax year.'
+          };
+        default:
+          return {
+            icon: <FileText className="h-10 w-10 p-2 bg-gray-100 text-gray-600 rounded-full" />,
+            fields: ['Various Fields'],
+            examples: 'Upload a clear, complete document',
+            tips: 'Make sure all text is clearly visible and the document is complete.'
+          };
+      }
+    };
+    
+    const docInfo = getDocumentInfo();
+    
     return (
-      <Card className="mb-4">
+      <Card className={`mb-4 ${uploadStatus === 'success' ? 'border-green-500 bg-green-50' : ''}`}>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <FileText className="mr-2 h-5 w-5" />
-            {label}
-            {uploadStatus === 'success' && <CheckCircle className="ml-2 h-5 w-5 text-green-500" />}
-            {uploadStatus === 'error' && <AlertCircle className="ml-2 h-5 w-5 text-red-500" />}
-            {uploadStatus === 'processing' && <Clock className="ml-2 h-5 w-5 text-amber-500" />}
-          </CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <div className="flex items-start gap-4">
+            {docInfo.icon}
+            <div>
+              <CardTitle className="flex items-center">
+                {label}
+                {uploadStatus === 'success' && <CheckCircle className="ml-2 h-5 w-5 text-green-500" />}
+                {uploadStatus === 'error' && <AlertCircle className="ml-2 h-5 w-5 text-red-500" />}
+                {uploadStatus === 'processing' && <Clock className="ml-2 h-5 w-5 text-amber-500" />}
+              </CardTitle>
+              <CardDescription>{description}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {uploadStatus === 'success' ? (
-            <div className="space-y-2">
-              <div className="flex items-center text-sm text-green-600">
+            <div className="space-y-3">
+              <div className="flex items-center text-sm text-green-600 bg-green-50 p-2 rounded-md">
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Successfully processed {documentUploads[documentType].file}
+                <span className="font-medium">Successfully processed:</span> {documentUploads[documentType].file}
               </div>
               {documentUploads[documentType].data && (
-                <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                  <strong>Extracted Information:</strong>
-                  <ul className="list-disc pl-5 mt-1">
+                <div className="mt-3 p-4 bg-white border rounded-md text-sm shadow-sm">
+                  <h4 className="font-semibold mb-2 text-slate-700">AI-Extracted Information:</h4>
+                  <ul className="space-y-1 text-slate-600">
                     {Object.entries(documentUploads[documentType].data).map(([key, value]) => (
-                      <li key={key}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}: {String(value)}</li>
+                      <li key={key} className="flex justify-between border-b border-dashed border-slate-200 pb-1 last:border-0">
+                        <span className="font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</span> 
+                        <span>{String(value)}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
               )}
             </div>
           ) : uploadStatus === 'error' ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>
-                {documentUploads[documentType].error || 'Failed to process document'}
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-4">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error Processing Document</AlertTitle>
+                <AlertDescription>
+                  {documentUploads[documentType].error || 'Failed to process document. Please try uploading again.'}
+                </AlertDescription>
+              </Alert>
+              
+              <div className="mt-2">
+                <Input 
+                  type="file" 
+                  accept=".pdf,.jpg,.jpeg,.png" 
+                  disabled={isUploading}
+                  onChange={(e) => handleDocumentUpload(e, documentType)} 
+                />
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
-              <Input 
-                type="file" 
-                accept=".pdf,.jpg,.jpeg,.png" 
-                disabled={isUploading}
-                onChange={(e) => handleDocumentUpload(e, documentType)} 
-              />
-              <div className="text-sm text-muted-foreground">
-                Upload PDF, JPG or PNG files. Maximum size 10MB.
+              <div className="bg-slate-50 p-3 rounded-md border border-slate-200 text-sm">
+                <h4 className="font-medium mb-1">Our AI will extract these fields:</h4>
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {docInfo.fields.map(field => (
+                    <Badge key={field} variant="outline" className="bg-white">{field}</Badge>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-slate-500">{docInfo.examples}</p>
+              </div>
+              
+              <div className="border-2 border-dashed border-slate-200 rounded-md p-6 text-center hover:border-primary transition-colors">
+                <Input 
+                  id={`file-upload-${documentType}`}
+                  type="file" 
+                  accept=".pdf,.jpg,.jpeg,.png" 
+                  disabled={isUploading}
+                  onChange={(e) => handleDocumentUpload(e, documentType)} 
+                  className="hidden"
+                />
+                <label htmlFor={`file-upload-${documentType}`} className="cursor-pointer">
+                  <Upload className="h-8 w-8 mx-auto text-slate-400" />
+                  <p className="mt-2 font-medium">Drag and drop or click to upload</p>
+                  <p className="text-sm text-slate-500 mt-1">PDF, JPG or PNG files (max. 10MB)</p>
+                </label>
+              </div>
+              
+              <div className="bg-blue-50 p-3 rounded-md border border-blue-100 text-sm text-blue-700">
+                <strong>Tip:</strong> {docInfo.tips}
               </div>
             </div>
           )}
@@ -253,7 +334,7 @@ export function FastOnlineApplication() {
           {isUploading && documentUploads[documentType]?.file && !uploadStatus && (
             <div className="mt-4">
               <div className="flex justify-between text-sm mb-1">
-                <span>Uploading {documentUploads[documentType].file}...</span>
+                <span>Processing {documentUploads[documentType].file}...</span>
                 <span>{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
@@ -272,6 +353,32 @@ export function FastOnlineApplication() {
         Our AI-powered system will analyze your documents instantly.
       </p>
       
+      {/* Process Steps */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="w-full flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'application' ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
+              1
+            </div>
+            <p className="mt-2 text-sm">Information</p>
+          </div>
+          <div className="flex-grow h-0.5 bg-gray-200"></div>
+          <div className="w-full flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'documents' ? 'bg-green-600 text-white' : applicationSubmitted ? 'bg-gray-200' : 'bg-gray-100 text-gray-400'}`}>
+              2
+            </div>
+            <p className="mt-2 text-sm">Documents</p>
+          </div>
+          <div className="flex-grow h-0.5 bg-gray-200"></div>
+          <div className="w-full flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeTab === 'confirmation' ? 'bg-green-600 text-white' : (applicationSubmitted && allDocumentsUploaded()) ? 'bg-gray-200' : 'bg-gray-100 text-gray-400'}`}>
+              3
+            </div>
+            <p className="mt-2 text-sm">Confirmation</p>
+          </div>
+        </div>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="application">Personal Information</TabsTrigger>

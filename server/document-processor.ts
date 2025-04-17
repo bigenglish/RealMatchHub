@@ -3,11 +3,12 @@ import { readFile } from 'fs/promises';
 import { Readable } from 'stream';
 
 // Document Processor IDs for different document types
+// These are example processor IDs - Google Cloud provides specific processors for each document type
 const PROCESSOR_IDS = {
-  PAY_STUB: process.env.DOCUMENT_AI_PAYSTUB_PROCESSOR_ID || '3c07700f0a77de4f', // Using the processor ID you mentioned
-  BANK_STATEMENT: process.env.DOCUMENT_AI_BANK_STATEMENT_PROCESSOR_ID,
-  TAX_RETURN: process.env.DOCUMENT_AI_TAX_RETURN_PROCESSOR_ID,
-  W2_FORM: process.env.DOCUMENT_AI_W2_PROCESSOR_ID,
+  PAY_STUB: process.env.DOCUMENT_AI_PAYSTUB_PROCESSOR_ID || '3c07700f0a77de4f', // Pay stub processor
+  BANK_STATEMENT: process.env.DOCUMENT_AI_BANK_STATEMENT_PROCESSOR_ID || 'bb07e0a7c534fc88', // Bank statement processor
+  TAX_RETURN: process.env.DOCUMENT_AI_TAX_RETURN_PROCESSOR_ID || '5fd7da23c6419a2c', // Tax return (Form 1040) processor
+  W2_FORM: process.env.DOCUMENT_AI_W2_PROCESSOR_ID || 'bf7ac0ec32a0588d', // W-2 form processor
 };
 
 // Initialize Document AI client

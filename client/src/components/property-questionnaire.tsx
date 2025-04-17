@@ -237,7 +237,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
   ];
 
 
-  const totalSteps = 7; // Increased steps to add additional seller flow pages
+  const totalSteps = preferences.intent === "buying" ? 5 : 7; // 5 steps for buyers, 7 for sellers
   const progress = Math.round((step / totalSteps) * 100);
 
   const handleIntentSelect = useCallback((intent: UserIntent) => {
@@ -525,7 +525,12 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
 
   const handleNextStep = () => {
     if (step < totalSteps) {
-      setStep(step + 1);
+      // Skip seller-specific steps for buyers
+      if (preferences.intent === "buying" && step === 3) {
+        setStep(5);
+      } else {
+        setStep(step + 1);
+      }
     } else {
       // Clear saved progress when completing the questionnaire
       localStorage.removeItem('questionnaire_step');
@@ -1346,7 +1351,7 @@ export default function PropertyQuestionnaire({ onComplete, onSkip }: PropertyQu
         <MortgageSection />
       )}
 
-      {step === 4 && (
+      {step === 4 && preferences.intent === "buying" && (
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-center">
             Tell us about your design preferences

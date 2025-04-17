@@ -205,8 +205,17 @@ export default function PropertiesPage() {
     );
   }
   
-  // Skip questionnaire for buyers - only show it for sellers
-  // The seller flow will handle the questionnaire in a different component
+  // Show questionnaire for both buyers and sellers
+  if (showQuestionnaire) {
+    return (
+      <div className="container mx-auto px-4">
+        <PropertyQuestionnaire
+          onComplete={handleQuestionnaireComplete}
+          onSkip={handleSkipQuestionnaire}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

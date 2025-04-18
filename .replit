@@ -10,20 +10,8 @@ deploymentTarget = "cloudrun"
 run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
-localPort = 3333
+localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
-
-[[ports]]
-localPort = 9999
-externalPort = 3000
-
-[[ports]]
-localPort = 12345
-externalPort = 3001
 
 [workflows]
 runButton = "Start Dev Server"

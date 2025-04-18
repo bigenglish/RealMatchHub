@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 import { Check, ChevronsRight, Home, Landmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,7 +48,7 @@ export default function BuyerWorkflow({
 
   // Handler for loan pre-approval
   const handleLoanPreApproval = () => {
-    // Navigate to Fast Online Application
+    // Navigate to Fast Online Application using wouter's setLocation from the parent component
     window.location.href = '/fast-online-application';
   };
 
@@ -82,14 +81,14 @@ export default function BuyerWorkflow({
                         <div className="flex justify-between text-sm">
                           <span>Down Payment: ${downPaymentAmount.toLocaleString()}</span>
                         </div>
-                        <Slider
-                          defaultValue={[downPaymentAmount]}
+                        <input
+                          type="range"
                           min={0}
                           max={500000}
                           step={5000}
-                          value={[downPaymentAmount]}
-                          onValueChange={([value]) => setDownPaymentAmount(value)}
-                          className="my-4"
+                          value={downPaymentAmount}
+                          onChange={(e) => setDownPaymentAmount(Number(e.target.value))}
+                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer my-4"
                         />
                         <div className="flex justify-between text-xs text-gray-500">
                           <span>$0</span>

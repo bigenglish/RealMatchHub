@@ -1,0 +1,63 @@
+Key Items Missed for Buyers (and where they could be):
+
+Mortgage Pre-Approval Assistance: This is a critical early step for serious buyers. Could be a feature in the FREE tier (linking to resources or partners) or a more integrated tool in the BASIC tier.
+Home Inspection Coordination: Streamlining the often stressful inspection process would be valuable. Could be a BASIC tier feature.
+Closing Assistance/Guidance: Similar to the document review, providing support through the closing process would be beneficial. Could be a BASIC tier enhancement.
+Property Viewing Scheduling Tool: While mentioned in the FREE tier, a more robust and integrated scheduling tool could be highlighted.
+Equivalent Layout for "Sellers":
+
+Here's a potential layout for seller service tiers, mirroring the structure and aiming for equivalent value:
+
+FREE
+
+AI-powered property valuation estimate: Get an initial understanding of your home's worth.
+Listing creation tools with AI-powered description suggestions: Easily create compelling property listings.
+Basic listing syndication to major online portals: Reach a broad audience of potential buyers.
+Communication tools for managing inquiries from interested buyers: Stay connected with potential leads.
+BASIC (As low as $1,500)
+
+All "Free" features.
+Expert consultation on optimal listing price and marketing strategy.
+Market analysis reports (comparable listings, sales trends in your area).
+Guidance on preparing your home for showings (staging tips).
+Scheduling tools for managing showings and open houses.
+Document management for offers and counter-offers.
+Negotiation support and guidance with Realty.AI tools and expert advice (email/chat).
+2 expert sign-offs (detailed notes on offers and negotiations).
+PREMIUM (As low as $2,500)
+
+All "Basic" features.
+Professional photography and virtual tour creation.
+Targeted marketing campaigns to reach qualified buyers.
+Open house coordination and management.
+Offer evaluation and comparison tools.
+Dedicated expert support throughout the entire selling process (phone/video).
+Assistance with closing paperwork and logistics.
+Preferred vendor network for repairs and staging.
+4 expert sign-offs (detailed notes on pricing, marketing, offers, and closing).
+Equivalent Layout for "Renters":
+
+Here's a potential layout for renter service tiers:
+
+FREE
+
+AI-powered rental property search & alerts based on your criteria.
+Direct communication tools with listing agents/landlords.
+Save favorite properties and track their availability.
+Basic application form and submission tools.
+BASIC (As low as $50)
+
+All "Free" features.
+Personalized assistance from a rental expert (email/chat) to refine your search.
+Neighborhood guides and insights relevant to your preferences.
+Lease agreement review (AI-powered with expert clarification).
+Guidance on preparing a strong rental application.
+Assistance with scheduling property viewings.
+PREMIUM (As low as $100)
+
+All "Basic" features.
+Dedicated rental concierge to proactively find suitable properties for you.
+Virtual tours of shortlisted properties.
+Assistance with negotiating lease terms.
+Background check and application fee reimbursement (up to a certain limit).
+Move-in checklist and support.

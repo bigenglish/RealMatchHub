@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Check, ChevronsRight, Home, Landmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

@@ -120,11 +120,15 @@ export const serviceRequests = pgTable("service_requests", {
   serviceExpertId: integer("service_expert_id").notNull().references(() => serviceExperts.id),
   serviceType: text("service_type").notNull(),
   requestDate: timestamp("request_date").defaultNow().notNull(),
-  needByDate: timestamp("need_by_date"),
+  preferredDate: timestamp("preferred_date"),
+  preferredTime: text("preferred_time"),
+  propertyZipCode: text("property_zip_code"),
   status: text("status").notNull().default("pending"),
   notes: text("notes"),
   propertyId: integer("property_id").references(() => properties.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  userNotified: boolean("user_notified").default(false),
+  providerNotified: boolean("provider_notified").default(false),
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({ id: true });

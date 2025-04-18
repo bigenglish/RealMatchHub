@@ -1,34 +1,10 @@
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Check, X, Clock, Calendar, MapPin, User, FileText, AlertCircle 
-} from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { Calendar, Clock, MapPin, CheckCircle, User, Phone, Mail, FileText } from 'lucide-react';
 
 type ServiceRequestDetails = {
   id: number;
@@ -57,239 +33,239 @@ export default function ServiceProviderResponse({
   serviceRequestId,
   providerId,
   onAccept,
-  onDecline,
+  onDecline
 }: ServiceProviderResponseProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [responseNote, setResponseNote] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [action, setAction] = useState<'accept' | 'decline' | null>(null);
-
-  // Fetch service request details
-  const { data: requestDetails, isLoading, error } = useQuery({
-    queryKey: ['/api/service-requests', serviceRequestId],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/service-requests/${serviceRequestId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch service request details');
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [requestDetails, setRequestDetails] = useState<ServiceRequestDetails | null>(null);
+  
+  useEffect(() => {
+    async function fetchRequestDetails() {
+      try {
+        const response = await apiRequest('GET', `/api/service-requests/${serviceRequestId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch service request details');
+        }
+        
+        const data = await response.json();
+        setRequestDetails(data);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to load request details',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
       }
-      return response.json();
-    },
-  });
-
-  const handleResponse = async (accepted: boolean) => {
-    setIsSubmitting(true);
+    }
+    
+    fetchRequestDetails();
+  }, [serviceRequestId, toast]);
+  
+  const handleAction = async (action: 'accepted' | 'declined') => {
+    setActionLoading(true);
     try {
-      const response = await apiRequest('POST', `/api/service-requests/${serviceRequestId}/response`, {
-        providerId,
-        accepted,
-        responseNote,
+      const response = await apiRequest('PATCH', `/api/service-requests/${serviceRequestId}/status`, {
+        status: action,
+        notes: action === 'accepted' 
+          ? 'Request accepted. The service provider will contact you soon.' 
+          : 'Request declined. Please choose another service provider.'
       });
-
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit response');
+        throw new Error(`Failed to ${action === 'accepted' ? 'accept' : 'decline'} request`);
       }
-
+      
       toast({
-        title: accepted ? 'Request Accepted' : 'Request Declined',
-        description: accepted 
-          ? 'You have accepted this service request. The client has been notified.' 
+        title: action === 'accepted' ? 'Request Accepted' : 'Request Declined',
+        description: action === 'accepted' 
+          ? 'You have accepted this service request. The client will be notified.' 
           : 'You have declined this service request.',
       });
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/service-requests'] });
       
-      if (accepted && onAccept) {
+      if (action === 'accepted' && onAccept) {
         onAccept();
-      } else if (!accepted && onDecline) {
+      } else if (action === 'declined' && onDecline) {
         onDecline();
       }
-      
-      setOpenDialog(false);
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'An error occurred',
-        variant: 'destructive',
+        description: error instanceof Error ? error.message : 'Failed to process your action',
+        variant: 'destructive'
       });
     } finally {
-      setIsSubmitting(false);
+      setActionLoading(false);
     }
   };
-
-  if (isLoading) {
+  
+  if (loading) {
     return (
-      <div className="flex items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600"></div>
-      </div>
-    );
-  }
-
-  if (error || !requestDetails) {
-    return (
-      <Card className="w-full border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-700">Error</CardTitle>
-          <CardDescription className="text-red-600">
-            Failed to load service request details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center text-red-600">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <p>{error instanceof Error ? error.message : 'An error occurred'}</p>
+      <Card className="w-full max-w-lg mx-auto">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center h-40">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
         </CardContent>
       </Card>
     );
   }
-
+  
+  if (!requestDetails) {
+    return (
+      <Card className="w-full max-w-lg mx-auto">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center h-40 text-center">
+            <p className="text-gray-500">Service request not found or has been removed.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const details: ServiceRequestDetails = requestDetails;
-  const preferredDate = details.preferredDate ? new Date(details.preferredDate) : null;
-
+  const statusColors = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    accepted: 'bg-green-100 text-green-800',
+    declined: 'bg-red-100 text-red-800',
+    completed: 'bg-blue-100 text-blue-800',
+    cancelled: 'bg-gray-100 text-gray-800'
+  };
+  
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-2">
+    <Card className="w-full max-w-lg mx-auto shadow-lg">
+      <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-xl font-bold text-gray-900">
-              Service Request: {details.serviceType}
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold">{details.serviceType} Request</CardTitle>
             <CardDescription>
-              <span className="font-medium">Request Date: </span>
-              {new Date(details.requestDate).toLocaleDateString()}
+              Request #{details.id} - Received on {new Date(details.requestDate).toLocaleDateString()}
             </CardDescription>
           </div>
-          <Badge 
-            className={`
-              ${details.status === 'pending' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' : ''}
-              ${details.status === 'accepted' ? 'bg-green-100 text-green-800 hover:bg-green-100' : ''}
-              ${details.status === 'declined' ? 'bg-red-100 text-red-800 hover:bg-red-100' : ''}
-              ${details.status === 'completed' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : ''}
-              ${details.status === 'cancelled' ? 'bg-gray-100 text-gray-800 hover:bg-gray-100' : ''}
-            `}
-          >
+          <Badge className={statusColors[details.status]}>
             {details.status.charAt(0).toUpperCase() + details.status.slice(1)}
           </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className="pt-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-olive-600" />
-              <div>
-                <p className="text-sm text-gray-500">Preferred Date</p>
-                <p className="font-medium">
-                  {preferredDate ? format(preferredDate, 'MMMM d, yyyy') : 'Not specified'}
+      <CardContent className="space-y-5">
+        {/* Client Information Section (if available) */}
+        {(details.userName || details.userEmail || details.userPhone) && (
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold flex items-center text-gray-800">
+              <User className="h-5 w-5 mr-2 text-primary" /> Client Information
+            </h3>
+            <div className="pl-7 space-y-1">
+              {details.userName && <p className="text-gray-700"><span className="font-medium">Name:</span> {details.userName}</p>}
+              {details.userEmail && (
+                <p className="text-gray-700 flex items-center">
+                  <Mail className="h-4 w-4 mr-1 text-gray-500" /> 
+                  <a href={`mailto:${details.userEmail}`} className="text-primary underline">
+                    {details.userEmail}
+                  </a>
                 </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-olive-600" />
-              <div>
-                <p className="text-sm text-gray-500">Preferred Time</p>
-                <p className="font-medium">{details.preferredTime || 'Not specified'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5 text-olive-600" />
-              <div>
-                <p className="text-sm text-gray-500">Location</p>
-                <p className="font-medium">ZIP Code: {details.propertyZipCode}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-olive-600" />
-              <div>
-                <p className="text-sm text-gray-500">Client</p>
-                <p className="font-medium">{details.userName || 'Client #' + details.userId}</p>
-              </div>
+              )}
+              {details.userPhone && (
+                <p className="text-gray-700 flex items-center">
+                  <Phone className="h-4 w-4 mr-1 text-gray-500" /> 
+                  <a href={`tel:${details.userPhone}`} className="text-primary underline">
+                    {details.userPhone}
+                  </a>
+                </p>
+              )}
             </div>
           </div>
-
-          {details.notes && (
-            <div className="pt-2">
-              <div className="flex items-start space-x-2">
-                <FileText className="h-5 w-5 text-olive-600 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">Special Instructions</p>
-                  <p className="font-medium">{details.notes}</p>
-                </div>
-              </div>
-            </div>
-          )}
+        )}
+        
+        {/* Schedule Information */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold flex items-center text-gray-800">
+            <Calendar className="h-5 w-5 mr-2 text-primary" /> Schedule
+          </h3>
+          <div className="pl-7 space-y-1">
+            <p className="text-gray-700 flex items-center">
+              <Calendar className="h-4 w-4 mr-1 text-gray-500" /> 
+              {new Date(details.preferredDate).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })}
+            </p>
+            <p className="text-gray-700 flex items-center">
+              <Clock className="h-4 w-4 mr-1 text-gray-500" /> 
+              {details.preferredTime}
+            </p>
+          </div>
         </div>
-      </CardContent>
-
-      {details.status === 'pending' && (
-        <CardFooter className="flex flex-col space-y-4">
-          <Textarea 
-            placeholder="Add a note to the client (optional)"
-            value={responseNote}
-            onChange={(e) => setResponseNote(e.target.value)}
-            className="w-full"
-          />
-          
-          <div className="flex space-x-3 w-full">
-            <Button
-              variant="outline"
-              className="flex-1 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
-              onClick={() => {
-                setAction('decline');
-                setOpenDialog(true);
-              }}
-              disabled={isSubmitting}
-            >
-              <X className="w-4 h-4 mr-2" /> Decline
-            </Button>
-            
-            <Button
-              className="flex-1 bg-olive-600 hover:bg-olive-700 text-white"
-              onClick={() => {
-                setAction('accept');
-                setOpenDialog(true);
-              }}
-              disabled={isSubmitting}
-            >
-              <Check className="w-4 h-4 mr-2" /> Accept
-            </Button>
+        
+        {/* Location Information */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold flex items-center text-gray-800">
+            <MapPin className="h-5 w-5 mr-2 text-primary" /> Location
+          </h3>
+          <div className="pl-7">
+            <p className="text-gray-700">
+              Property ZIP Code: <span className="font-medium">{details.propertyZipCode}</span>
+            </p>
           </div>
-        </CardFooter>
-      )}
-
-      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {action === 'accept' ? 'Accept Service Request?' : 'Decline Service Request?'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {action === 'accept' 
-                ? 'By accepting this request, you are committing to provide the service at the specified time. The client will be notified of your acceptance.'
-                : 'Are you sure you want to decline this service request? This action cannot be undone.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => handleResponse(action === 'accept')}
-              className={action === 'accept' ? 'bg-olive-600 hover:bg-olive-700' : 'bg-red-600 hover:bg-red-700'}
+        </div>
+        
+        {/* Notes Section */}
+        {details.notes && (
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold flex items-center text-gray-800">
+              <FileText className="h-5 w-5 mr-2 text-primary" /> Notes
+            </h3>
+            <div className="pl-7 bg-gray-50 p-3 rounded-md">
+              <p className="text-gray-700">{details.notes}</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+      
+      <CardFooter className="flex gap-3 pt-2 pb-6">
+        {details.status === 'pending' && (
+          <>
+            <Button 
+              onClick={() => handleAction('accepted')} 
+              disabled={actionLoading} 
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
-              {action === 'accept' ? 'Accept' : 'Decline'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {actionLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                  Processing
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-2" /> Accept Request
+                </div>
+              )}
+            </Button>
+            <Button 
+              onClick={() => handleAction('declined')} 
+              disabled={actionLoading} 
+              variant="outline" 
+              className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+            >
+              Decline
+            </Button>
+          </>
+        )}
+        
+        {details.status === 'accepted' && (
+          <Button 
+            onClick={() => handleAction('completed')} 
+            disabled={actionLoading} 
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+          >
+            {actionLoading ? 'Processing...' : 'Mark as Completed'}
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
 }

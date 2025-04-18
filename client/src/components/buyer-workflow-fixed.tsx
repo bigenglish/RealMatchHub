@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application';
+export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
 interface BuyerWorkflowProps {
   currentStep: Step;
@@ -253,12 +253,68 @@ export default function BuyerWorkflow({
             <h2 className="text-xl font-semibold">View Available Properties</h2>
             <p className="text-gray-500">Browse properties that match your criteria</p>
 
+            <div className="flex flex-col space-y-4">
+              <Button 
+                className="w-full"
+                onClick={onComplete}
+              >
+                Browse All Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full border-primary text-primary"
+                onClick={() => onStepChange('service')}
+              >
+                Request Professional Services <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+        
+      case 'service':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Request Professional Services</h2>
+            <p className="text-gray-500">Connect with real estate professionals who can help with your home buying journey</p>
+            
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <h3 className="font-medium mb-2">Available Services:</h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Real Estate Agents to guide your property search</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Home Inspectors to evaluate properties</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Mortgage Lenders to finance your purchase</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Insurance Agents to protect your investment</span>
+                </li>
+              </ul>
+            </div>
+            
             <Button 
               className="w-full"
-              onClick={onComplete}
+              onClick={() => window.location.href = '/request-service?type=buyer'}
             >
-              Browse All Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              Connect with a Professional <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>
+            
+            <div className="text-center mt-2">
+              <button
+                onClick={onComplete}
+                className="text-gray-500 text-sm hover:underline"
+              >
+                Skip and continue to properties
+              </button>
+            </div>
           </div>
         );
 

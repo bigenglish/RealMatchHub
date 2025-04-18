@@ -64,7 +64,7 @@ export default function ServiceProviderResponse({
     fetchRequestDetails();
   }, [serviceRequestId, toast]);
   
-  const handleAction = async (action: 'accepted' | 'declined') => {
+  const handleAction = async (action: 'accepted' | 'declined' | 'completed') => {
     setActionLoading(true);
     try {
       const response = await apiRequest('PATCH', `/api/service-requests/${serviceRequestId}/status`, {
@@ -75,14 +75,34 @@ export default function ServiceProviderResponse({
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to ${action === 'accepted' ? 'accept' : 'decline'} request`);
+        throw new Error(`Failed to ${
+          action === 'accepted' ? 'accept' : 
+          action === 'declined' ? 'decline' : 
+          'complete'
+        } request`);
+      }
+      
+      let title = '';
+      let description = '';
+      
+      switch (action) {
+        case 'accepted':
+          title = 'Request Accepted';
+          description = 'You have accepted this service request. The client will be notified.';
+          break;
+        case 'declined':
+          title = 'Request Declined';
+          description = 'You have declined this service request.';
+          break;
+        case 'completed':
+          title = 'Request Completed';
+          description = 'You have marked this service request as completed.';
+          break;
       }
       
       toast({
-        title: action === 'accepted' ? 'Request Accepted' : 'Request Declined',
-        description: action === 'accepted' 
-          ? 'You have accepted this service request. The client will be notified.' 
-          : 'You have declined this service request.',
+        title,
+        description,
       });
       
       if (action === 'accepted' && onAccept) {

@@ -361,6 +361,15 @@ export default function BuyerWorkflow({
             </div>
             <p className="mt-2 text-xs text-center">Properties</p>
           </div>
+          
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'service' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              5
+            </div>
+            <p className="mt-2 text-xs text-center">Services</p>
+          </div>
         </div>
       </div>
 

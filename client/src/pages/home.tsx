@@ -36,94 +36,88 @@ export default function HomePage() {
   const [isVideoMuted, setIsVideoMuted] = useState(true);
 
   // Video initialization for all videos
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    // Direct approach for video initialization
     const initializeVideo = () => {
-      const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement;
-      const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement;
+      const previewVideo = document.getElementById('previewVideo') as HTMLVideoElement | null;
+      const heroVideo = document.getElementById('heroVideo') as HTMLVideoElement | null;
 
-      // Helper function to properly initialize a video
-      const setupVideo = (video: HTMLVideoElement, src: string, initiallyMuted = true) => {
-        if (!video) return;
+      const setupVideo = (video: HTMLVideoElement | null, src: string, initiallyMuted = true) => {
+        if (!video) {
+          console.error("Video element not found!");
+          return;
+        }
 
-        // Set video properties
-        video.muted = initiallyMuted; // Hero video will have audio enabled
+        video.muted = initiallyMuted;
         video.playsInline = true;
         video.loop = true;
 
-        // Set source directly on the video element if provided
         if (src) {
           video.src = src;
           video.load();
         }
 
-        // Play the video with retry mechanism
         const attemptPlay = () => {
           video.play()
             .then(() => {
               console.log(`Video playing successfully`);
             })
             .catch(error => {
-              console.log(`Failed to play video, retrying: ${error.message}`);
-              // Retry after a short delay
-              setTimeout(attemptPlay, 300);
+              console.error(`Failed to play video: ${error.message}`);
+              // Retry after a short delay, but limit attempts
+              if (videoAttempts < 3) {
+                setTimeout(attemptPlay, 1000);
+                setVideoAttempts(videoAttempts + 1);
+              } else {
+                console.error("Max retry attempts reached. Video failed to play.");
+              }
             });
         };
 
-        // Start attempting to play
         attemptPlay();
       };
 
-      // Set up the preview video if it exists
       if (previewVideo) {
         setupVideo(previewVideo, '/hero-video.mp4');
       }
 
-      // Set up the hero video if it exists - muted for autoplay
       if (heroVideo) {
-        // Directly set the source and play
         heroVideo.muted = true;
         heroVideo.loop = true;
         heroVideo.playsInline = true;
-
-        // Set source directly 
         heroVideo.src = '/hero-video.mp4';
-
-        // Load and play
         heroVideo.load();
-        heroVideo.play().catch(e => console.error("Hero video play failed:", e));
 
-        // Set the initial state to muted
-        setIsVideoMuted(true);
+        //This will only play after the user interacts with the page
+        const handleUserInteraction = () => {
+          if (heroVideo) {
+            heroVideo.play().catch(e => console.error("Hero video play failed:", e));
+          }
+        };
+        document.addEventListener('click', handleUserInteraction, { once: true });
+        document.addEventListener('touchstart', handleUserInteraction, { once: true });
+
+        return () => {
+          document.removeEventListener('click', handleUserInteraction);
+          document.removeEventListener('touchstart', handleUserInteraction);
+        };
       }
-
-      // Add interaction handler to ensure videos play on user interaction
-      const handleUserInteraction = () => {
-        if (previewVideo) {
-          previewVideo.play().catch(e => console.log("Preview video play failed:", e));
-        }
-        if (heroVideo) {
-          heroVideo.play().catch(e => console.log("Hero video play failed:", e));
-        }
-      };
-
-      // Add event listeners for user interaction
-      document.addEventListener('click', handleUserInteraction, { once: true });
-      document.addEventListener('touchstart', handleUserInteraction, { once: true });
-
-      return () => {
-        document.removeEventListener('click', handleUserInteraction);
-        document.removeEventListener('touchstart', handleUserInteraction);
-      };
     };
 
-    // Initialize videos with a small delay to ensure DOM is ready
     const initTimer = setTimeout(initializeVideo, 500);
 
-    return () => {
-      clearTimeout(initTimer);
-    };
-  }, []);
+    return () => clearTimeout(initTimer);
+  }, [videoAttempts]);
+
+  useEffect(() => {
+    if (videoRef.current && containerRef.current) {
+      videoRef.current.play().catch(err => {
+        console.error("Video autoplay prevented:", err);
+      });
+    }
+  }, [containerRef, videoRef]);
 
   return (
     <div>
@@ -146,12 +140,13 @@ export default function HomePage() {
 
           {/* Video now takes full width - made to match search box width */}
           <div className="w-full max-w-4xl mx-auto">
-            <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]">
+            <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]" ref={containerRef}>
               {/* Direct Video Element - Now even wider and taller */}
               <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
                 <video
                   id="heroVideo"
                   className="absolute inset-0 w-full h-full object-cover"
+                  ref={videoRef}
                   autoPlay
                   muted
                   loop
@@ -170,7 +165,7 @@ export default function HomePage() {
                 <button 
                   className="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-4 z-10 transition-all shadow-lg"
                   onClick={() => {
-                    const video = document.getElementById('heroVideo') as HTMLVideoElement;
+                    const video = document.getElementById('heroVideo') as HTMLVideoElement | null;
                     if (video) {
                       // Toggle mute state
                       const newMutedState = !video.muted;
@@ -625,7 +620,7 @@ export default function HomePage() {
                   <div className="flex justify-center mb-6">
                     {/* Icons representing different experts */}
                     <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
-                      <Users className="h-8 w-8" />
+                      <Users className="h-8 w8" />
                     </div>
                     <div className="w-16 h-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Building className="h-8 w-8" />

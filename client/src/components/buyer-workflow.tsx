@@ -1,3 +1,11 @@
+
+import { 
+  Home, Check, ChevronsRight, Landmark,
+  RulerSquare, Bed, Bath, ImageIcon,
+  CheckSquare, MapPin, Calendar, Clock,
+  Truck, ArrowUpDown, DollarSign, Upload
+} from 'lucide-react';
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -60,6 +68,116 @@ export default function BuyerWorkflow({
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Tell us about your situation</h2>
             <p className="text-gray-500">Select all that apply to you</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Home className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Property Type</p>
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <RulerSquare className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Size (SF)</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Bed className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Number of Bedrooms</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Bath className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Number of Bathrooms</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <ImageIcon className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Property Photos/Videos</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <CheckSquare className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Property Features/Amenities</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Property Address/Location</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Specific Timeline</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Urgency to Sell</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <Truck className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Relocating</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <ArrowUpDown className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Upgrading/Downsizing</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 hover:border-primary cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1">
+                    <p className="font-medium">Financial Reasons</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className={`cursor-pointer border-2 ${selection === 'down_payment' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
@@ -258,6 +376,24 @@ export default function BuyerWorkflow({
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
             <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
+
+            <div className="space-y-4">
+              <div className="mb-6">
+                <Label className="block text-sm font-medium mb-2">Upload Inspiration Images</Label>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG or WEBP (max 5MB)</p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <Label className="block text-sm font-medium mb-2">Add Inspiration URLs</Label>
+                <div className="flex gap-2">
+                  <Input placeholder="Share links to properties or design inspiration you love" />
+                  <Button variant="secondary">Add</Button>
+                </div>
+              </div>
 
             <div className="space-y-8">
               <div>

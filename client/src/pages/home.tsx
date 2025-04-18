@@ -285,7 +285,7 @@ export default function HomePage() {
                 </Select>
               </div>
 
-              
+
 
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
@@ -478,45 +478,40 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-green-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Expert virtual guidance on offers and due diligence.</h4>
+                  <h4 className="text-lg font-semibold mb-2">Enhanced Support with Expert Guidance</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>All "Free" features.</span>
+                    <span>Everything in the Free tier, plus enhanced features</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Craft competitive offers and navigate negotiations with Realty.AI tools and guidance.</span>
+                    <span>AI-powered offer crafting with real-time market insights</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Market analysis reports (comparable sales data) and pricing strategies.</span>
+                    <span>Comprehensive market analysis with pricing and timing strategies</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Offer negotiation guidance (email/chat support) with a real estate expert.</span>
+                    <span>Expert negotiation support via email/chat with fast response times</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>
-                      <Link href="/documents" className="text-olive-600 hover:underline">
-                        Document review
-                      </Link>
-                      , digital signing and AI assistant to simplify and explain all terms and conditions.
-                    </span>
+                    <span>Smart document review with AI-powered term explanation</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Neighborhood insights.</span>
+                    <span>Deep neighborhood insights and property history analysis</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Due Diligence Checklist & Support (guidance through the due diligence process).</span>
+                    <span>Streamlined due diligence process with expert guidance</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>2 expert sign offs (detailed notes).</span>
+                    <span>Two expert reviews with detailed analysis and recommendations</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -635,7 +630,7 @@ export default function HomePage() {
                     <div className="w-16 h-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Building className="h-8 w-8" />
                     </div>
-                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                    <<div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Briefcase className="h-8 w-8" />
                     </div>
                   </div>

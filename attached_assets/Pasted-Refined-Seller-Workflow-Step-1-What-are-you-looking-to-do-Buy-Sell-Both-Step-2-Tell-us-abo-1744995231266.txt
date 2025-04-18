@@ -1,0 +1,48 @@
+Refined Seller Workflow:
+
+Step 1: What are you looking to do? (Buy, Sell, Both)
+
+Step 2: Tell us about your situation. (Grid of options: Property Type, Size, Bedrooms, Bathrooms, Photos/Videos, Features/Amenities, Location, Timeframe, Urgency, Relocating, Financial Reasons, Moving Services, Buying After Selling)
+
+Step 3: Select Your Selling Services:
+
+Title: Enhance Your Sale with These Services
+Layout: Present a clear list of services with:
+Service Name: (e.g., Professional Photography, Staging Consultation, Property Video Tour, 3D Virtual Tour, Listing Analytics, Market Analysis, Expert Consulting, Connect with Professionals)
+Brief Description: Explain the benefit of each service and where it fits in the selling process (e.g., "High-quality photos attract more buyers and showcase your property's best features during online browsing.").
+Visual Icon: A relevant icon for each service.
+Price (if applicable): Clearly display the cost or range.
+Selection Control: Checkboxes or toggles to allow users to select the services they want.
+Button: "Next: Describe Your Property"
+Step 4: Create Your Property Profile (Wizard):
+
+Title: Showcase Your Property
+Multi-Step Wizard:
+Step 4.1: Confirm Basic Details: Display and allow editing of information selected in Step 2 (Property Type, Size, Bedrooms, Bathrooms, Location).
+Step 4.2: Highlight Features & Amenities (Visual Selection): Use icons and labels for interior and exterior features (as described previously). Allow multi-selection.
+Step 4.3: Upload Photos & Videos: Easy upload with preview and caption options.
+Step 4.4: Write Your Property Description: Prominent text area with optional AI-powered suggestions based on selected features and location (using your AI capabilities).
+Navigation: "Previous," "Next," "Save Progress."
+Button: "Next: Set Your Price & Strategy"
+Step 5: Set Your Price & Selling Strategy:
+
+Title: Let's Determine Your Price & Plan
+AI-Powered Comps:
+Display a summary of comparable properties (address, sale price, size, days on market, key features), dynamically updated based on the information provided in Steps 2 and 4 (especially location and property type/features).
+Present visually (table or list).
+Price Slider: Allow the user to set their desired listing price within a range suggested by the AI comps. Highlight the AI's recommended price.
+Urgency to Sell: Dropdown with options (Very Urgent, Moderately Urgent, Not Urgent, Flexible).
+Reason for Selling: Dropdown (Relocating, Downsizing, etc. - from Step 2).
+Market Insights (Dynamic): Based on the property details (from Steps 2 & 4) and the selected price (from the slider), provide real-time insights:
+Likelihood to Sell (e.g., High, Medium, Low).
+Estimated Time to Sell (e.g., 30-60 days, 60-90 days, 90+ days).
+Considerations: Briefly highlight factors influencing the market for similar properties in their area.
+Button: "Review & Publish"
+Step 6: Review & Publish Your Listing:
+
+Title: Review & Publish Your Property
+Comprehensive summary of all entered information.
+Edit options for each section.
+Terms and Conditions with a confirmation checkbox.
+Primary Button: "Publish Your Listing"
+Secondary Button: "Save as Draft"

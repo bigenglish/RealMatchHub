@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState, useCallback, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import ServiceRequestForm from "./service-request-form";
 import {
   Check, Home, Building, ChevronsRight, CalendarDays, MapPin,
   Camera, Upload, Image, X, Wallet, Calculator, Shield, Key, Ruler,
@@ -1040,9 +1041,9 @@ export default function SellerWorkflow({
               </Button>
               <Button 
                 disabled={!sellerInfo.termsAccepted}
-                onClick={onComplete}
+                onClick={handleNextStep}
               >
-                Publish Your Listing
+                Continue to Expert Connection
               </Button>
             </div>
           </div>

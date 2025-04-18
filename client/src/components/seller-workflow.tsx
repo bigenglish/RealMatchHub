@@ -1049,9 +1049,48 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
+      
+      {currentStep === 'service-request' && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Connect with Real Estate Experts</CardTitle>
+              <CardDescription>
+                Request consultations with professionals to help with your property sale
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {sellerInfo.location && (
+                  <div className="mb-4 p-4 bg-blue-50 rounded-md border border-blue-100 text-blue-800">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <p>Local experts will be matched based on your property location: <span className="font-medium">{sellerInfo.location}</span></p>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-4">
+                  <ServiceRequestForm 
+                    userType="seller"
+                    defaultZipCode={sellerInfo.location ? sellerInfo.location.split(' ').pop() : ''}
+                    onSuccess={onComplete}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handlePreviousStep}>
+              Back to Review
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Define steps array for reference in the component
-const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];
+const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];

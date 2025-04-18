@@ -1775,9 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.error("[express] Failed to initialize Google Vision API:", error);
   }
 
-  app.listen(5000, '0.0.0.0', () => {
-    console.log('Server listening on port 5000');
-  });
+  // Server is started in server/index.ts - removed duplicate listen call
 
   return httpServer;
 }

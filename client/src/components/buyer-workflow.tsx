@@ -1,18 +1,16 @@
 
-import { 
-  Home, Check, ChevronsRight, Landmark,
-  RulerSquare, Bed, Bath, ImageIcon,
-  CheckSquare, MapPin, Calendar, Clock,
-  Truck, ArrowUpDown, DollarSign, Upload
-} from 'lucide-react';
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Check, ChevronsRight, Home, Landmark } from 'lucide-react';
+import { 
+  Home, Check, ChevronsRight, Landmark,
+  Bed, Bath, ImageIcon, Square,
+  CheckSquare, MapPin, Calendar, Clock,
+  Truck, ArrowUpDown, DollarSign, Upload
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export type Step = 'situation' | 'financing' | 'properties' | 'application';
@@ -81,7 +79,7 @@ export default function BuyerWorkflow({
               
               <Card className="p-4 hover:border-primary cursor-pointer">
                 <div className="flex items-center gap-3">
-                  <RulerSquare className="h-5 w-5 text-gray-600" />
+                  <Square className="h-5 w-5 text-gray-600" />
                   <div className="flex-1">
                     <p className="font-medium">Size (SF)</p>
                   </div>
@@ -394,6 +392,7 @@ export default function BuyerWorkflow({
                   <Button variant="secondary">Add</Button>
                 </div>
               </div>
+            </div>
 
             <div className="space-y-8">
               <div>

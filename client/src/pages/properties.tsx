@@ -92,9 +92,8 @@ interface ServiceOffering extends BaseServiceOffering {
 
 export default function PropertiesPage() {
   const [location] = useLocation();
-  const params = location.split('?')[1] || '';
-  const urlParams = new URLSearchParams(params);
-  const mode = urlParams.get('mode');
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
+  const mode = searchParams.get('mode');
   
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],

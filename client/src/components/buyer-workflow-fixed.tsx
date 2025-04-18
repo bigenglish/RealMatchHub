@@ -32,7 +32,11 @@ export default function BuyerWorkflow({
   setNeedsMortgage
 }: BuyerWorkflowProps) {
   const { toast } = useToast();
-  const [selection, setSelection] = useState<string | null>(null);
+  const [selection, setSelection] = useState<{
+    type?: string | null;
+    architecturalStyles?: string[];
+    interiorStyles?: string[];
+  } | null>(null);
 
   // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,26 +279,43 @@ export default function BuyerWorkflow({
 
             {/* Architectural Style */}
             <div className="space-y-4">
-              <Label className="text-lg font-medium">Architectural Style</Label>
+              <Label className="text-lg font-medium">Architectural Style (Select all that apply)</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Modern/Contemporary', icon: Square },
-                  { label: 'Traditional', icon: Home },
-                  { label: 'Craftsman', icon: Home },
-                  { label: 'Mediterranean', icon: Home },
-                  { label: 'Colonial', icon: Landmark },
-                  { label: 'Modern Farmhouse', icon: Home },
-                  { label: 'Ranch', icon: Home },
-                  { label: 'Victorian', icon: Landmark }
+                  { id: 'modern', label: 'Modern/Contemporary', icon: Square },
+                  { id: 'traditional', label: 'Traditional', icon: Home },
+                  { id: 'craftsman', label: 'Craftsman', icon: Home },
+                  { id: 'mediterranean', label: 'Mediterranean', icon: Home },
+                  { id: 'colonial', label: 'Colonial', icon: Landmark },
+                  { id: 'farmhouse', label: 'Modern Farmhouse', icon: Home },
+                  { id: 'ranch', label: 'Ranch', icon: Home },
+                  { id: 'victorian', label: 'Victorian', icon: Landmark }
                 ].map((style) => (
                   <div
-                    key={style.label}
-                    className="border-2 rounded-lg p-4 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                    key={style.id}
+                    onClick={() => {
+                      const current = selection?.architecturalStyles || [];
+                      const newStyles = current.includes(style.id)
+                        ? current.filter(id => id !== style.id)
+                        : [...current, style.id];
+                      setSelection(prev => ({
+                        ...prev,
+                        architecturalStyles: newStyles
+                      }));
+                    }}
+                    className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                      selection?.architecturalStyles?.includes(style.id)
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:border-primary hover:bg-primary/5'
+                    }`}
                   >
                     <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
                       {<style.icon className="h-6 w-6 text-primary" />}
                     </div>
                     <p className="text-sm font-medium">{style.label}</p>
+                    {selection?.architecturalStyles?.includes(style.id) && (
+                      <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -302,26 +323,43 @@ export default function BuyerWorkflow({
 
             {/* Interior Style */}
             <div className="space-y-4">
-              <Label className="text-lg font-medium">Interior Style</Label>
+              <Label className="text-lg font-medium">Interior Style (Select all that apply)</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Minimalist', icon: Square },
-                  { label: 'Contemporary', icon: Bed },
-                  { label: 'Traditional', icon: Home },
-                  { label: 'Rustic', icon: Home },
-                  { label: 'Industrial', icon: Square },
-                  { label: 'Coastal', icon: Home },
-                  { label: 'Bohemian', icon: ImageIcon },
-                  { label: 'Scandinavian', icon: Square }
+                  { id: 'minimalist', label: 'Minimalist', icon: Square },
+                  { id: 'contemporary', label: 'Contemporary', icon: Bed },
+                  { id: 'traditional', label: 'Traditional', icon: Home },
+                  { id: 'rustic', label: 'Rustic', icon: Home },
+                  { id: 'industrial', label: 'Industrial', icon: Square },
+                  { id: 'coastal', label: 'Coastal', icon: Home },
+                  { id: 'bohemian', label: 'Bohemian', icon: ImageIcon },
+                  { id: 'scandinavian', label: 'Scandinavian', icon: Square }
                 ].map((style) => (
                   <div
-                    key={style.label}
-                    className="border-2 rounded-lg p-4 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                    key={style.id}
+                    onClick={() => {
+                      const current = selection?.interiorStyles || [];
+                      const newStyles = current.includes(style.id)
+                        ? current.filter(id => id !== style.id)
+                        : [...current, style.id];
+                      setSelection(prev => ({
+                        ...prev,
+                        interiorStyles: newStyles
+                      }));
+                    }}
+                    className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                      selection?.interiorStyles?.includes(style.id)
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:border-primary hover:bg-primary/5'
+                    }`}
                   >
                     <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
                       {<style.icon className="h-6 w-6 text-primary" />}
                     </div>
                     <p className="text-sm font-medium">{style.label}</p>
+                    {selection?.interiorStyles?.includes(style.id) && (
+                      <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                    )}
                   </div>
                 ))}
               </div>

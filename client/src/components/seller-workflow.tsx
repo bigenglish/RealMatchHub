@@ -19,7 +19,7 @@ import {
   PanelLeft, LayoutGrid, FileInput, Users
 } from 'lucide-react';
 
-export type SellerStep = 'intent' | 'situation' | 'services' | 'property-profile' | 'price-strategy' | 'review';
+export type SellerStep = 'intent' | 'situation' | 'services' | 'property-profile' | 'price-strategy' | 'review' | 'service-request';
 
 interface SellerWorkflowProps {
   currentStep: SellerStep;
@@ -91,7 +91,7 @@ export default function SellerWorkflow({
   
   // Calculate progress based on current step
   const getProgress = useCallback(() => {
-    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];
+    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
     return Math.round(((currentIndex + 1) / steps.length) * 100);
   }, [currentStep]);
@@ -236,7 +236,7 @@ export default function SellerWorkflow({
   
   // Handle move to next step
   const handleNextStep = () => {
-    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];
+    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
     
     if (currentIndex < steps.length - 1) {
@@ -248,7 +248,7 @@ export default function SellerWorkflow({
   
   // Handle move to previous step
   const handlePreviousStep = () => {
-    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];
+    const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
     
     if (currentIndex > 0) {
@@ -274,11 +274,12 @@ export default function SellerWorkflow({
           {currentStep === 'property-profile' && "Showcase Your Property"}
           {currentStep === 'price-strategy' && "Let's Determine Your Price & Plan"}
           {currentStep === 'review' && "Review & Publish Your Listing"}
+          {currentStep === 'service-request' && "Connect with Service Experts"}
         </h2>
         <div className="space-y-1">
           <Progress value={getProgress()} className="h-2" />
           <p className="text-sm text-muted-foreground text-center">
-            Step {['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'].indexOf(currentStep) + 1} of 6
+            Step {['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'].indexOf(currentStep) + 1} of 7
           </p>
         </div>
       </div>

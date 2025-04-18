@@ -256,15 +256,77 @@ export default function BuyerWorkflow({
       case 'properties':
         return (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">View Available Properties</h2>
-            <p className="text-gray-500">Browse properties that match your criteria</p>
-            
-            <Button 
-              className="w-full"
-              onClick={onComplete}
-            >
-              Browse All Properties <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
+            <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
+            <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
+
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Architectural Style</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    ['Modern/Contemporary', 'home'],
+                    ['Traditional', 'home'],
+                    ['Craftsman', 'tool'],
+                    ['Mediterranean', 'palm-tree'],
+                    ['Colonial', 'columns'],
+                    ['Modern Farmhouse', 'barn'],
+                    ['Ranch', 'home'],
+                    ['Victorian', 'home']
+                  ].map(([style, icon]) => (
+                    <Card 
+                      key={style}
+                      className="cursor-pointer hover:border-primary transition-colors"
+                    >
+                      <CardContent className="flex items-center justify-center p-4 text-center">
+                        <div>
+                          <div className="mx-auto w-10 h-10 flex items-center justify-center mb-2">
+                            <Home className="w-6 h-6 text-gray-600" />
+                          </div>
+                          <div className="text-sm font-medium">{style}</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-4">Interior Style</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    'Minimalist',
+                    'Contemporary',
+                    'Traditional',
+                    'Rustic',
+                    'Industrial',
+                    'Coastal',
+                    'Bohemian',
+                    'Scandinavian'
+                  ].map((style) => (
+                    <Card 
+                      key={style}
+                      className="cursor-pointer hover:border-primary transition-colors"
+                    >
+                      <CardContent className="flex items-center justify-center p-4 text-center">
+                        <div>
+                          <div className="mx-auto w-10 h-10 flex items-center justify-center mb-2">
+                            <Home className="w-6 h-6 text-gray-600" />
+                          </div>
+                          <div className="text-sm font-medium">{style}</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              <Button 
+                className="w-full"
+                onClick={onComplete}
+              >
+                Browse Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         );
       

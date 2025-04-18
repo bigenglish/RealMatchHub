@@ -62,17 +62,41 @@ export default function BuyerWorkflow({
             <p className="text-gray-500">Select all that apply to you</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className={`cursor-pointer border-2 ${selection === 'down_payment' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
-                onClick={() => setSelection('down_payment')}>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`rounded-full flex items-center justify-center w-10 h-10 ${selection === 'down_payment' ? 'bg-primary text-white' : 'bg-gray-100'}`}>
-                    <Home className="h-5 w-5" />
+              <Card className={`cursor-pointer border-2 ${selection === 'down_payment' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3" onClick={() => setSelection('down_payment')}>
+                    <div className={`rounded-full flex items-center justify-center w-10 h-10 ${selection === 'down_payment' ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+                      <Home className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Down Payment Amount</p>
+                      <p className="text-sm text-gray-500">I have money saved for a down payment</p>
+                    </div>
+                    {selection === 'down_payment' && <Check className="ml-auto text-primary h-5 w-5" />}
                   </div>
-                  <div>
-                    <p className="font-medium">Down Payment Amount</p>
-                    <p className="text-sm text-gray-500">I have money saved for a down payment</p>
-                  </div>
-                  {selection === 'down_payment' && <Check className="ml-auto text-primary h-5 w-5" />}
+                  
+                  {selection === 'down_payment' && (
+                    <div className="mt-4 px-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Down Payment: ${downPaymentAmount.toLocaleString()}</span>
+                        </div>
+                        <Slider
+                          defaultValue={[downPaymentAmount]}
+                          min={0}
+                          max={500000}
+                          step={5000}
+                          value={[downPaymentAmount]}
+                          onValueChange={([value]) => setDownPaymentAmount(value)}
+                          className="my-4"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>$0</span>
+                          <span>$500,000</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               

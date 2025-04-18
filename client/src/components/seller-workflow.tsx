@@ -76,7 +76,7 @@ export default function SellerWorkflow({
   currentStep,
   onStepChange,
   onComplete
-}: SellerWorkflowProps) {
+}: SellerWorkflowProps): JSX.Element {
   const [sellerInfo, setSellerInfo] = useState<SellerInfo>({
     intent: 'sell',
     selectedServices: [],
@@ -122,7 +122,7 @@ export default function SellerWorkflow({
     { 
       id: 'photography', 
       name: 'Professional Photography', 
-      description: 'High-quality photos attract more buyers and showcase your property's best features during online browsing.', 
+      description: 'High-quality photos attract more buyers and showcase your property\'s best features during online browsing.', 
       icon: <Camera className="h-5 w-5" />, 
       price: 299 
     },
@@ -278,7 +278,7 @@ export default function SellerWorkflow({
         <div className="space-y-1">
           <Progress value={getProgress()} className="h-2" />
           <p className="text-sm text-muted-foreground text-center">
-            Step {steps.indexOf(currentStep) + 1} of {steps.length}
+            Step {['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'].indexOf(currentStep) + 1} of 6
           </p>
         </div>
       </div>
@@ -1051,10 +1051,8 @@ export default function SellerWorkflow({
   );
 }
 
-// Missing 'Users' component
-function Users() {
-  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-}
+// Import missing Users component from lucide-react
+import { Users } from 'lucide-react';
 
 // Define steps array for reference in the component
 const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];

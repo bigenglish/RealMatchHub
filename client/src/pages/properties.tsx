@@ -91,9 +91,17 @@ interface ServiceOffering extends BaseServiceOffering {
 }
 
 export default function PropertiesPage() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const mode = searchParams.get('mode');
+  
+  // Redirect to seller flow if in sell mode
+  useEffect(() => {
+    if (mode === 'sell') {
+      setLocation('/seller-flow/intent');
+      return;
+    }
+  }, [mode, setLocation]);
   
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],
@@ -103,7 +111,7 @@ export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(mode === 'sell' ? true : false); // Show questionnaire by default for sell mode
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false); // No longer show questionnaire by default
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
   // Service selection state

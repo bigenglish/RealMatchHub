@@ -15,6 +15,7 @@ import Marketplace from "@/pages/marketplace";
 import Appointments from "@/pages/appointments";
 import FastOnlineApplication from "@/pages/fast-online-application";
 import BuyerFlow from "@/pages/buyer-flow";
+import SellerFlow from "@/pages/seller-flow";
 import Navbar from "@/components/navbar";
 
 // Placeholder components for new pages
@@ -43,6 +44,7 @@ function Router() {
           <Route path="/appointments" component={Appointments} />
           <Route path="/fast-online-application" component={FastOnlineApplication} />
           <Route path="/buyer-flow" component={BuyerFlow} />
+          <Route path="/seller-flow/:step?" component={SellerFlow} />
           <Route path="/resources" component={Resources} />
           <Route path="/demo" component={Demo} />
           <Route path="/get-started" component={GetStarted} />

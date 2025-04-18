@@ -91,6 +91,10 @@ interface ServiceOffering extends BaseServiceOffering {
 }
 
 export default function PropertiesPage() {
+  const [_, params] = useLocation().split('?');
+  const urlParams = new URLSearchParams(params || '');
+  const mode = urlParams.get('mode');
+  
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
     queryKey: ["/api/properties"],
   });
@@ -99,7 +103,7 @@ export default function PropertiesPage() {
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [filteredIdxListings, setFilteredIdxListings] = useState<Property[]>([]);
   const [isFiltered, setIsFiltered] = useState(false);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(true); // Show questionnaire by default
+  const [showQuestionnaire, setShowQuestionnaire] = useState(mode === 'sell' ? true : false); // Show questionnaire by default for sell mode
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
   // Service selection state

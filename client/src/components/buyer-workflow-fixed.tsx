@@ -240,10 +240,101 @@ export default function BuyerWorkflow({
 
       case 'design':
         return (
-          <div>
-            {/* Add your design preference form here */}
-            <p>Design Preferences Form will go here</p>
-            <Button onClick={() => onStepChange('properties')}>Next</Button>
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
+            <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
+
+            {/* Image Upload Section */}
+            <div className="space-y-4">
+              <Label>Upload Inspiration Images</Label>
+              <div 
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                onClick={() => document.getElementById('imageUpload')?.click()}
+              >
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <p className="mt-2 text-sm text-gray-500">Click to upload or drag and drop</p>
+                <p className="text-xs text-gray-500">JPG, PNG or WEBP (max 5MB)</p>
+                <input 
+                  type="file" 
+                  id="imageUpload" 
+                  className="hidden" 
+                  accept="image/*"
+                  multiple
+                />
+              </div>
+
+              {/* URL Input */}
+              <div className="space-y-2">
+                <Label>Add Inspiration URLs</Label>
+                <div className="flex gap-2">
+                  <Input placeholder="https://example.com/inspiration" />
+                  <Button variant="secondary">Add</Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Architectural Style */}
+            <div className="space-y-4">
+              <Label className="text-lg font-medium">Architectural Style</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Modern/Contemporary', icon: Square },
+                  { label: 'Traditional', icon: Home },
+                  { label: 'Craftsman', icon: Home },
+                  { label: 'Mediterranean', icon: Home },
+                  { label: 'Colonial', icon: Landmark },
+                  { label: 'Modern Farmhouse', icon: Home },
+                  { label: 'Ranch', icon: Home },
+                  { label: 'Victorian', icon: Landmark }
+                ].map((style) => (
+                  <div
+                    key={style.label}
+                    className="border-2 rounded-lg p-4 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                  >
+                    <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                      {<style.icon className="h-6 w-6 text-primary" />}
+                    </div>
+                    <p className="text-sm font-medium">{style.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Interior Style */}
+            <div className="space-y-4">
+              <Label className="text-lg font-medium">Interior Style</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Minimalist', icon: Square },
+                  { label: 'Contemporary', icon: Bed },
+                  { label: 'Traditional', icon: Home },
+                  { label: 'Rustic', icon: Home },
+                  { label: 'Industrial', icon: Square },
+                  { label: 'Coastal', icon: Home },
+                  { label: 'Bohemian', icon: ImageIcon },
+                  { label: 'Scandinavian', icon: Square }
+                ].map((style) => (
+                  <div
+                    key={style.label}
+                    className="border-2 rounded-lg p-4 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                  >
+                    <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                      {<style.icon className="h-6 w-6 text-primary" />}
+                    </div>
+                    <p className="text-sm font-medium">{style.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={() => onStepChange('financing')}>
+                Back
+              </Button>
+              <Button onClick={() => onStepChange('properties')}>
+                Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         );
 

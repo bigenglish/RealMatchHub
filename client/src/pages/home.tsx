@@ -620,12 +620,12 @@ export default function HomePage() {
                   <div className="flex justify-center mb-6">
                     {/* Icons representing different experts */}
                     <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
-                      <Users className="h-8 w8" />
+                      <Users className="h-8 w-8" />
                     </div>
-                    <div className="w-16 h-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Building className="h-8 w-8" />
                     </div>
-                    <<div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
+                    <div className="w-16 h-16 bg-white/20 rounded-full mx-2 flex items-center justify-center">
                       <Briefcase className="h-8 w-8" />
                     </div>
                   </div>

@@ -41,13 +41,15 @@ type ServiceRequestFormProps = {
   propertyId?: number;
   userType: 'buyer' | 'seller';
   defaultZipCode?: string;
+  selectedServices?: string[]; // Added prop for selected services
 };
 
 export default function ServiceRequestForm({ 
   onSuccess, 
   propertyId, 
   userType, 
-  defaultZipCode 
+  defaultZipCode,
+  selectedServices // Use the added prop
 }: ServiceRequestFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +92,7 @@ export default function ServiceRequestForm({
       }
 
       const result = await response.json();
-      
+
       toast({
         title: 'Service Request Submitted',
         description: 'Your request has been sent to matching service providers. You will be notified once a provider accepts.',
@@ -99,7 +101,7 @@ export default function ServiceRequestForm({
       if (onSuccess) {
         onSuccess();
       }
-      
+
     } catch (error) {
       toast({
         title: 'Error',
@@ -146,31 +148,11 @@ export default function ServiceRequestForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {serviceTypes?.map((type: string) => (
+                      {(selectedServices || serviceTypes || []).map((type: string) => (
                         <SelectItem key={type} value={type}>
                           {type}
                         </SelectItem>
-                      )) || (
-                        <>
-                          {userType === 'buyer' ? (
-                            <>
-                              <SelectItem value="Mortgage Lender">Mortgage Lender</SelectItem>
-                              <SelectItem value="Home Inspector">Home Inspector</SelectItem>
-                              <SelectItem value="Real Estate Attorney">Real Estate Attorney</SelectItem>
-                              <SelectItem value="Insurance Agent">Insurance Agent</SelectItem>
-                              <SelectItem value="Real Estate Agent">Real Estate Agent</SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value="Real Estate Agent">Real Estate Agent</SelectItem>
-                              <SelectItem value="Property Appraiser">Property Appraiser</SelectItem>
-                              <SelectItem value="Home Staging">Home Staging</SelectItem>
-                              <SelectItem value="Photography">Photography</SelectItem>
-                              <SelectItem value="Virtual Tour">Virtual Tour</SelectItem>
-                            </>
-                          )}
-                        </>
-                      )}
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

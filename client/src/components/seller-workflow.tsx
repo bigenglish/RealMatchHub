@@ -1075,6 +1075,7 @@ export default function SellerWorkflow({
                     userType="seller"
                     defaultZipCode={sellerInfo.location ? sellerInfo.location.split(' ').pop() : ''}
                     onSuccess={onComplete}
+                    selectedServices={sellerInfo.selectedServices}
                   />
                 </div>
               </div>

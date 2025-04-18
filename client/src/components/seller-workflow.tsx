@@ -505,13 +505,33 @@ export default function SellerWorkflow({
             </CardContent>
           </Card>
           
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={handlePreviousStep}>
-              Previous
-            </Button>
-            <Button onClick={handleNextStep}>
-              Next: Select Services
-            </Button>
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={handlePreviousStep}>
+                Previous
+              </Button>
+              <div className="space-x-3">
+                {(sellerInfo.selectedServices?.length || 0) > 0 && (
+                  <Button 
+                    className="bg-olive-600 hover:bg-olive-700 text-white"
+                    onClick={handleNextStep}
+                  >
+                    Pay for Services (${calculateServiceTotal()})
+                  </Button>
+                )}
+                {(sellerInfo.selectedServices?.length || 0) === 0 && (
+                  <Button onClick={handleNextStep}>
+                    Next: Select Services
+                  </Button>
+                )}
+              </div>
+            </div>
+            {(sellerInfo.selectedServices?.length || 0) > 0 && (
+              <p className="text-sm text-muted-foreground text-center">
+                14-day refund policy: Any unused service fees will be refunded if cancelled within 14 days of purchase. 
+                After 14 days, all charges are final regardless of service usage.
+              </p>
+            )}
           </div>
         </div>
       )}

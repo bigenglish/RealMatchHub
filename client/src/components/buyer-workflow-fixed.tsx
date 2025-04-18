@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export type Step = 'situation' | 'financing' | 'properties' | 'application';
+export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application';
 
 interface BuyerWorkflowProps {
   currentStep: Step;
@@ -53,7 +53,7 @@ export default function BuyerWorkflow({
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Tell us about your situation</h2>
             <p className="text-gray-500">Select one of the options below to continue</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card 
                 className={`cursor-pointer border-2 ${selection === 'down_payment' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
@@ -72,7 +72,7 @@ export default function BuyerWorkflow({
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card 
                 className={`cursor-pointer border-2 ${selection === 'need_mortgage' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
                 onClick={() => setSelection('need_mortgage')}
@@ -91,7 +91,7 @@ export default function BuyerWorkflow({
                 </CardContent>
               </Card>
             </div>
-            
+
             {selection === 'down_payment' && (
               <div className="mt-4 p-4 border rounded-lg">
                 <Label className="block mb-2">Adjust your down payment amount</Label>
@@ -113,7 +113,7 @@ export default function BuyerWorkflow({
                 </div>
               </div>
             )}
-            
+
             <Button 
               className="w-full md:w-auto"
               onClick={() => {
@@ -136,12 +136,12 @@ export default function BuyerWorkflow({
             </Button>
           </div>
         );
-        
+
       case 'financing':
         return needsMortgage ? (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Mortgage Financing Options</h2>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-medium mb-3">Available Options:</h3>
               <ul className="space-y-2 text-sm">
@@ -163,7 +163,7 @@ export default function BuyerWorkflow({
                 </li>
               </ul>
             </div>
-            
+
             <Card className="border-2 border-green-100 bg-green-50">
               <CardContent className="p-4">
                 <h3 className="font-medium text-green-800 mb-2">Quick Pre-Approval Process:</h3>
@@ -183,7 +183,7 @@ export default function BuyerWorkflow({
                 </ul>
               </CardContent>
             </Card>
-            
+
             <div className="flex flex-col md:flex-row gap-3">
               <Button 
                 className="flex-1 bg-green-600 hover:bg-green-700" 
@@ -191,20 +191,20 @@ export default function BuyerWorkflow({
               >
                 Pre-Approve for a Loan Today
               </Button>
-              
+
               <Button 
                 className="flex-1" 
                 variant="outline"
-                onClick={() => onStepChange('properties')}
+                onClick={() => onStepChange('design')}
               >
-                Skip and Continue to Properties
+                Skip and Continue to Design Preferences
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Down Payment Amount</h2>
-            
+
             <div className="space-y-3">
               <Label htmlFor="downPayment">Adjust your down payment amount</Label>
               <div className="relative">
@@ -217,7 +217,7 @@ export default function BuyerWorkflow({
                 />
               </div>
             </div>
-            
+
             <RadioGroup defaultValue="conventional">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="conventional" id="conventional" />
@@ -228,24 +228,31 @@ export default function BuyerWorkflow({
                 <Label htmlFor="partial">I may need additional financing</Label>
               </div>
             </RadioGroup>
-            
-            <div className="pt-4">
-              <Button 
-                className="w-full md:w-auto"
-                onClick={() => onStepChange('properties')}
-              >
-                Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+
+            <Button 
+              className="w-full md:w-auto"
+              onClick={() => onStepChange('design')}
+            >
+              Continue to Design Preferences <ChevronsRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         );
-        
+
+      case 'design':
+        return (
+          <div>
+            {/* Add your design preference form here */}
+            <p>Design Preferences Form will go here</p>
+            <Button onClick={() => onStepChange('properties')}>Next</Button>
+          </div>
+        );
+
       case 'properties':
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">View Available Properties</h2>
             <p className="text-gray-500">Browse properties that match your criteria</p>
-            
+
             <Button 
               className="w-full"
               onClick={onComplete}
@@ -254,7 +261,7 @@ export default function BuyerWorkflow({
             </Button>
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -271,27 +278,36 @@ export default function BuyerWorkflow({
             </div>
             <p className="mt-2 text-xs text-center">Your Situation</p>
           </div>
-          
+
           <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
-          
+
           <div className="flex flex-col items-center">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'financing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
               2
             </div>
             <p className="mt-2 text-xs text-center">Financing</p>
           </div>
-          
+
           <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
-          
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'design' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              3
+            </div>
+            <p className="mt-2 text-xs text-center">Design Preferences</p>
+          </div>
+
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
           <div className="flex flex-col items-center">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'properties' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-              3
+              4
             </div>
             <p className="mt-2 text-xs text-center">Properties</p>
           </div>
         </div>
       </div>
-      
+
       {/* Step content */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         {renderStepContent()}

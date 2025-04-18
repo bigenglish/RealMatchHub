@@ -28,8 +28,11 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-3 lg:space-x-6">
-            <Link href="/properties" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
-              Buy/Sell
+            <Link href="/buyer-flow" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              Buy
+            </Link>
+            <Link href="/seller-flow/intent" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              Sell
             </Link>
             <Link href="/how-it-works" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               How It Works
@@ -74,8 +77,11 @@ export default function Navbar() {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 space-y-4">
-            <Link href="/properties" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Buy/Sell
+            <Link href="/buyer-flow" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
+              Buy
+            </Link>
+            <Link href="/seller-flow/intent" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
+              Sell
             </Link>
             <Link href="/how-it-works" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               How It Works

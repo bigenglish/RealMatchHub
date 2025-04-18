@@ -16,7 +16,7 @@ import {
   Bed, Bath, CheckSquare, Clock, MoveVertical, TrendingUp, DollarSign,
   Package, Calendar, SplitSquareVertical, Square, Hammer, Palmtree,
   Mountain, Landmark, Sofa, Armchair, Factory, Waves, Leaf, Sparkles,
-  PanelLeft, LayoutGrid, FileInput
+  PanelLeft, LayoutGrid, FileInput, Users
 } from 'lucide-react';
 
 export type SellerStep = 'intent' | 'situation' | 'services' | 'property-profile' | 'price-strategy' | 'review';
@@ -1050,9 +1050,6 @@ export default function SellerWorkflow({
     </div>
   );
 }
-
-// Import missing Users component from lucide-react
-import { Users } from 'lucide-react';
 
 // Define steps array for reference in the component
 const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review'];

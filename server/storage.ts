@@ -70,6 +70,8 @@ export interface IStorage {
   getServiceRequestsByExpert(expertId: number): Promise<ServiceRequest[]>;
   createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest>;
   updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined>;
+  updateServiceRequest(id: number, updates: Partial<ServiceRequest>): Promise<ServiceRequest | undefined>;
+  getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]>;
   
   // Chat Conversations
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
@@ -933,6 +935,34 @@ export class MemStorage implements IStorage {
 
     this.serviceRequests.set(id, updatedRequest);
     return updatedRequest;
+  }
+
+  async updateServiceRequest(id: number, updates: Partial<ServiceRequest>): Promise<ServiceRequest | undefined> {
+    const existingRequest = this.serviceRequests.get(id);
+    if (!existingRequest) {
+      return undefined;
+    }
+
+    const updatedRequest: ServiceRequest = {
+      ...existingRequest,
+      ...updates
+    };
+
+    this.serviceRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  async getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]> {
+    // In a real app, you would filter by GPS coordinates, zip code proximity, etc.
+    // For this prototype, we'll just filter by service type and assume all experts work in all zip codes
+    return Array.from(this.serviceExperts.values())
+      .filter(expert => {
+        // Check if exact service type matches
+        if (expert.serviceType === serviceType) return true;
+        
+        // Check if the service type is in the services offered
+        return expert.servicesOffered.includes(serviceType);
+      });
   }
   
   // Properties with geo coordinates for map visualization

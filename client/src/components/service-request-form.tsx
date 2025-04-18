@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { TimeIcon, MapPinIcon, Calendar, Users, Home, Clock } from 'lucide-react';
+import { Clock, MapPin, Calendar, Users, Home } from 'lucide-react';
 
 // Validation schema for service request
 const serviceRequestSchema = z.object({
@@ -185,7 +185,7 @@ export default function ServiceRequestForm({
                 <FormItem>
                   <FormLabel className="text-gray-700 font-medium">Property ZIP Code</FormLabel>
                   <div className="relative">
-                    <MapPinIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <FormControl>
                       <Input 
                         {...field} 

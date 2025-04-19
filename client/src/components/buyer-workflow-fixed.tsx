@@ -49,6 +49,25 @@ export default function BuyerWorkflow({
     window.location.href = '/fast-online-application';
   };
 
+  const handleBack = () => {
+    switch (currentStep) {
+      case 'financing':
+        onStepChange('situation');
+        break;
+      case 'design':
+        onStepChange('financing');
+        break;
+      case 'properties':
+        onStepChange('design');
+        break;
+      case 'service':
+        onStepChange('properties');
+        break;
+      default:
+        break;
+    }
+  };
+
   // Render content based on current step
   const renderStepContent = () => {
     switch (currentStep) {
@@ -189,6 +208,12 @@ export default function BuyerWorkflow({
             </Card>
 
             <div className="flex flex-col md:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+              >
+                Back
+              </Button>
               <Button 
                 className="flex-1 bg-green-600 hover:bg-green-700" 
                 onClick={handleLoanPreApproval}
@@ -233,12 +258,15 @@ export default function BuyerWorkflow({
               </div>
             </RadioGroup>
 
-            <Button 
-              className="w-full md:w-auto"
-              onClick={() => onStepChange('design')}
-            >
-              Continue to Design Preferences <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+              <Button 
+                className="w-full md:w-auto"
+                onClick={() => onStepChange('design')}
+              >
+                Continue to Design Preferences <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         );
 
@@ -366,9 +394,7 @@ export default function BuyerWorkflow({
             </div>
 
             <div className="flex justify-between pt-6">
-              <Button variant="outline" onClick={() => onStepChange('financing')}>
-                Back
-              </Button>
+              <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => onStepChange('properties')}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
@@ -389,7 +415,7 @@ export default function BuyerWorkflow({
               >
                 Browse All Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
-              
+
               <Button 
                 variant="outline" 
                 className="w-full border-primary text-primary"
@@ -398,15 +424,18 @@ export default function BuyerWorkflow({
                 Request Professional Services <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+            </div>
           </div>
         );
-        
+
       case 'service':
         return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Request Professional Services</h2>
             <p className="text-gray-500">Connect with real estate professionals who can help with your home buying journey</p>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 className="font-medium mb-2">Available Services:</h3>
               <ul className="space-y-2 text-sm">
@@ -428,14 +457,14 @@ export default function BuyerWorkflow({
                 </li>
               </ul>
             </div>
-            
+
             <Button 
               className="w-full"
               onClick={() => window.location.href = '/request-service?type=buyer'}
             >
               Connect with a Professional <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>
-            
+
             <div className="text-center mt-2">
               <button
                 onClick={onComplete}
@@ -443,6 +472,9 @@ export default function BuyerWorkflow({
               >
                 Skip and continue to properties
               </button>
+            </div>
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
             </div>
           </div>
         );
@@ -490,7 +522,7 @@ export default function BuyerWorkflow({
             </div>
             <p className="mt-2 text-xs text-center">Properties</p>
           </div>
-          
+
           <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
 
           <div className="flex flex-col items-center">

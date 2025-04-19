@@ -441,20 +441,24 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Find your perfect match with AI-driven property discovery.</h4>
+                  <h4 className="text-lg font-semibold mb-2">Begin your selling journey with essential AI-powered tools.</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>AI-powered property search & alerts.</span>
+                    <span>AI-powered property valuation estimate</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Communicate, schedule and complete necessary paperwork with direct connection to listing agents/sellers.</span>
+                    <span>Listing creation tools with AI-powered description suggestions</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Add inspiration photos, design and visualize your home before moving in.</span>
+                    <span>Basic listing syndication to major online portals</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Communication tools for managing buyer inquiries</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -473,40 +477,36 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-green-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Enhanced Support with Expert Guidance</h4>
+                  <h4 className="text-lg font-semibold mb-2">All "Free" features.</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Everything in the Free tier, plus enhanced features</span>
+                    <span>Expert consultation on optimal listing price and marketing strategy.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>AI-powered offer crafting with real-time market insights</span>
+                    <span>Market analysis reports (comparable listings, sales trends in your area).</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Comprehensive market analysis with pricing and timing strategies</span>
+                    <span>Guidance on preparing your home for showings (staging tips).</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Expert negotiation support via email/chat with fast response times</span>
+                    <span>Scheduling tools for managing showings and open houses.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Smart document review with AI-powered term explanation</span>
+                    <span>Document management for offers and counter-offers.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Deep neighborhood insights and property history analysis</span>
+                    <span>Negotiation support and guidance with Realty.AI tools and expert advice (email/chat).</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Streamlined due diligence process with expert guidance</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Two expert reviews with detailed analysis and recommendations</span>
+                    <span>2 expert sign-offs (detailed notes on offers and negotiations).</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -525,44 +525,40 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Full virtual support from offer to post-closing.</h4>
+                  <h4 className="text-lg font-semibold mb-2">All "Basic" features.</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>All "Basic" features.</span>
+                    <span>Professional photography and virtual tour creation.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Offer Strategy Consultation (phone/video call with a real estate expert).</span>
+                    <span>Targeted marketing campaigns to reach qualified buyers.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>24/7 phone support.</span>
+                    <span>Open house coordination and management.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Inspection/appraisal coordination Expert review (scheduling and vendor recommendations).</span>
+                    <span>Offer evaluation and comparison tools.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Preferred Vendor pricing for repairs.</span>
+                    <span>Dedicated expert support throughout the entire selling process (phone/video).</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Dedicated Buyer Advocate (phone/in-person support throughout the transaction).</span>
+                    <span>Assistance with closing paperwork and logistics.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Closing Coordination (assistance with paperwork and logistics).</span>
+                    <span>Preferred vendor network for repairs and staging.</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Post-Closing Support (referrals to local service providers, utility setup assistance).</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>4 expert sign off (detailed notes, viewing, inspection/staging, contingencies & compliance, negotiation & credits).</span>
+                    <span>4 expert sign-offs (detailed notes on pricing, marketing, offers, and closing).</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -1209,7 +1205,7 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li className="flex items-center">
-                  <span className="w-5 h-5 mr-2 text-gray-600">📞</span>
+                  <span className="w-5 h-5 mr-2 text-gray-600📞</span>
                   <a href="tel:+1234567890" className="text-gray-600 hover:text-olive-600">
                     +1 (234) 567-890
                   </a>

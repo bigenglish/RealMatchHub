@@ -441,24 +441,24 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Begin your selling journey with essential AI-powered tools.</h4>
+                  <h4 className="text-lg font-semibold mb-2">Start your rental journey with smart search tools.</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>AI-powered property valuation estimate</span>
+                    <span>AI-powered rental property search & alerts based on your criteria</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Listing creation tools with AI-powered description suggestions</span>
+                    <span>Direct communication tools with listing agents/landlords</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Basic listing syndication to major online portals</span>
+                    <span>Save favorite properties and track their availability</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Communication tools for managing buyer inquiries</span>
+                    <span>Basic application form and submission tools</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -473,7 +473,7 @@ export default function HomePage() {
             <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
               <div className="bg-olive-600 p-4 text-white text-center">
                 <h3 className="text-3xl font-bold">BASIC</h3>
-                <p className="text-white/90">As low as $1,500</p>
+                <p className="text-white/90">As low as $50</p>
               </div>
               <div className="p-6 bg-green-50 flex-1 flex flex-col">
                 <div className="mb-6">
@@ -482,31 +482,23 @@ export default function HomePage() {
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Expert consultation on optimal listing price and marketing strategy.</span>
+                    <span>Personalized assistance from a rental expert (email/chat) to refine your search</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Market analysis reports (comparable listings, sales trends in your area).</span>
+                    <span>Neighborhood guides and insights relevant to your preferences</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Guidance on preparing your home for showings (staging tips).</span>
+                    <span>Lease agreement review (AI-powered with expert clarification)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Scheduling tools for managing showings and open houses.</span>
+                    <span>Guidance on preparing a strong rental application</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Document management for offers and counter-offers.</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Negotiation support and guidance with Realty.AI tools and expert advice (email/chat).</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>2 expert sign-offs (detailed notes on offers and negotiations).</span>
+                    <span>Assistance with scheduling property viewings</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -521,7 +513,7 @@ export default function HomePage() {
             <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
               <div className="bg-olive-600 p-4 text-white text-center">
                 <h3 className="text-3xl font-bold">PREMIUM</h3>
-                <p className="text-white/90">As low as $2,500</p>
+                <p className="text-white/90">As low as $100</p>
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
@@ -530,35 +522,23 @@ export default function HomePage() {
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Professional photography and virtual tour creation.</span>
+                    <span>Dedicated rental concierge to proactively find suitable properties for you</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Targeted marketing campaigns to reach qualified buyers.</span>
+                    <span>Virtual tours of shortlisted properties</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Open house coordination and management.</span>
+                    <span>Assistance with negotiating lease terms</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Offer evaluation and comparison tools.</span>
+                    <span>Background check and application fee reimbursement (up to a certain limit)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Dedicated expert support throughout the entire selling process (phone/video).</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Assistance with closing paperwork and logistics.</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Preferred vendor network for repairs and staging.</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>4 expert sign-offs (detailed notes on pricing, marketing, offers, and closing).</span>
+                    <span>Move-in checklist and support</span>
                   </li>
                 </ul>
                 <div className="mt-8">

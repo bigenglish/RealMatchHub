@@ -17,6 +17,7 @@ import FastOnlineApplication from "@/pages/fast-online-application";
 import BuyerFlow from "@/pages/buyer-flow";
 import SellerFlow from "@/pages/seller-flow";
 import RequestService from "@/pages/request-service";
+import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
 
 // Placeholder components for new pages
@@ -51,6 +52,7 @@ function Router() {
           <Route path="/get-started" component={GetStarted} />
           <Route path="/how-it-works" component={() => <div className="py-20 text-center"><h1 className="text-3xl font-bold">How It Works</h1><p className="mt-4">Coming soon</p></div>} />
           <Route path="/request-service" component={RequestService} />
+          <Route path="/cma" component={CMAAnalysis} />
           <Route component={NotFound} />
         </Switch>
       </main>

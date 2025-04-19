@@ -1,0 +1,45 @@
+
+{
+  "title": "Property Viewing Checklist",
+  "sections": [
+    {
+      "title": "Property Details",
+      "fields": [
+        "Address",
+        "Price",
+        "Square footage",
+        "Year built",
+        "Overall condition (1-5)"
+      ]
+    },
+    {
+      "title": "Exterior Assessment",
+      "fields": [
+        "Roof condition",
+        "Siding condition",
+        "Windows condition",
+        "Landscaping",
+        "Parking/Garage"
+      ]
+    },
+    {
+      "title": "Interior Assessment",
+      "fields": [
+        "Room layout",
+        "Natural light",
+        "Storage space",
+        "Appliance condition",
+        "Flooring condition"
+      ]
+    },
+    {
+      "title": "Notes",
+      "fields": [
+        "Pros",
+        "Cons",
+        "Questions for follow-up",
+        "Overall impression"
+      ]
+    }
+  ]
+}

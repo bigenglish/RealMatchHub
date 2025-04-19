@@ -1,0 +1,33 @@
+
+{
+  "title": "Questions for Seller/Agent",
+  "categories": [
+    {
+      "title": "Property History",
+      "questions": [
+        "How long has the property been on the market?",
+        "Why are the sellers moving?",
+        "Have there been any major renovations?",
+        "Are there any known issues with the property?"
+      ]
+    },
+    {
+      "title": "Maintenance & Utilities",
+      "questions": [
+        "What are the average utility costs?",
+        "How old are major systems (HVAC, roof, etc.)?",
+        "Are there any HOA fees or restrictions?",
+        "What's included in the sale?"
+      ]
+    },
+    {
+      "title": "Neighborhood",
+      "questions": [
+        "How's the neighborhood?",
+        "Are there any development plans nearby?",
+        "What are the neighbors like?",
+        "Any noise or traffic concerns?"
+      ]
+    }
+  ]
+}

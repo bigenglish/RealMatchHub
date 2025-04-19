@@ -1,0 +1,43 @@
+
+{
+  "title": "Buyer Needs Assessment Checklist",
+  "sections": [
+    {
+      "title": "Location Preferences",
+      "items": [
+        "Preferred neighborhoods",
+        "School district requirements",
+        "Commute time limits",
+        "Proximity to amenities"
+      ]
+    },
+    {
+      "title": "Property Requirements",
+      "items": [
+        "Minimum square footage",
+        "Number of bedrooms",
+        "Number of bathrooms",
+        "Lot size",
+        "Parking requirements"
+      ]
+    },
+    {
+      "title": "Features & Amenities",
+      "items": [
+        "Must-have features",
+        "Nice-to-have features",
+        "Deal breakers",
+        "Style preferences"
+      ]
+    },
+    {
+      "title": "Financial Considerations",
+      "items": [
+        "Maximum purchase price",
+        "Down payment amount",
+        "Monthly payment limit",
+        "Additional costs budget"
+      ]
+    }
+  ]
+}

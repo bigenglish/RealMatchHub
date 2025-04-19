@@ -14,6 +14,7 @@ import {
 import { Bed, Bath, Move, Image } from "lucide-react";
 import VirtualTour from "@/components/virtual-tour";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import BuyerResources from '@/components/buyer-resources'; // Added import
 
 
 export default function PropertyPage() {
@@ -137,7 +138,7 @@ export default function PropertyPage() {
             Share Home
           </Button>
         </div>
-        
+
         {/* Virtual Tour Dialog */}
         <Dialog open={showVirtualTour} onOpenChange={setShowVirtualTour}>
           <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
@@ -229,6 +230,7 @@ export default function PropertyPage() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
+        <BuyerResources /> {/* Added BuyerResources component */}
       </div>
     </div>
   );

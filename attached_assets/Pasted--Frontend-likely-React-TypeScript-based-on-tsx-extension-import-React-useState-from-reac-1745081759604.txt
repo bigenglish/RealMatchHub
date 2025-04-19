@@ -1,0 +1,271 @@
+// Frontend (likely React/TypeScript based on .tsx extension)
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  TextField,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+  Card,
+  CardContent,
+  LinearProgress,
+} from '@mui/material';
+import { MapPinIcon, HomeIcon, ChartBarIcon } from '@heroicons/react/24/outline'; // Example icon library
+
+interface CMAInput {
+  address: string;
+  propertyType: string;
+  bedrooms: number | '';
+  bathrooms: number | '';
+  squareFootage: number | '';
+  // Add more relevant input fields based on your Step 2 "Tell us about your situation"
+}
+
+interface CMAReport {
+  estimatedValue: number;
+  confidenceScore: number;
+  comparables: { address: string; salePrice: number; sqft: number }[];
+  marketInsights: string;
+  priceRecommendation: string;
+}
+
+const CMAGenerate: React.FC = () => {
+  const navigate = useNavigate();
+  const [input, setInput] = useState<CMAInput>({
+    address: '',
+    propertyType: '',
+    bedrooms: '',
+    bathrooms: '',
+    squareFootage: '',
+  });
+  const [report, setReport] = useState<CMAReport | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setInput((prevInput) => ({ ...prevInput, [name]: value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/cma/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to generate CMA report.');
+      } else {
+        const data: CMAReport = await response.json();
+        setReport(data);
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewReport = () => {
+    if (report) {
+      navigate(`/cma/report/${/* Assuming you get an ID in the report */ 'REPORT_ID'}`);
+    }
+  };
+
+  return (
+    <Grid container spacing={3} justifyContent="center" alignItems="center" style={{ padding: '20px' }}>
+      <Grid item xs={12} md={8} lg={6}>
+        <Typography variant="h4" gutterBottom>
+          Get Your Free AI-Powered Property Analysis
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label="Property Address"
+            name="address"
+            value={input.address}
+            onChange={handleChange}
+            margin="normal"
+            required
+          />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="property-type-label">Property Type</InputLabel>
+            <Select
+              labelId="property-type-label"
+              id="propertyType"
+              name="propertyType"
+              value={input.propertyType}
+              onChange={handleChange}
+              label="Property Type"
+            >
+              <MenuItem value="house">House</MenuItem>
+              <MenuItem value="condo">Condo</MenuItem>
+              <MenuItem value="townhouse">Townhouse</MenuItem>
+              {/* Add more property types */}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="Bedrooms"
+            name="bedrooms"
+            value={input.bedrooms}
+            onChange={handleChange}
+            type="number"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Bathrooms"
+            name="bathrooms"
+            value={input.bathrooms}
+            onChange={handleChange}
+            type="number"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Square Footage"
+            name="squareFootage"
+            value={input.squareFootage}
+            onChange={handleChange}
+            type="number"
+            margin="normal"
+          />
+          {/* Add more input fields based on your requirements */}
+          <Button type="submit" variant="contained" color="primary" size="large" style={{ marginTop: '20px' }} disabled={loading}>
+            {loading ? <LinearProgress /> : 'Get Your Property Analysis'}
+          </Button>
+          {error && (
+            <Typography color="error" style={{ marginTop: '10px' }}>
+              {error}
+            </Typography>
+          )}
+        </form>
+
+        {report && (
+          <Card style={{ marginTop: '30px' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Your Property Analysis
+              </Typography>
+              <Typography variant="subtitle1">
+                Estimated Value: ${report.estimatedValue} (Confidence: {report.confidenceScore.toFixed(2)})
+              </Typography>
+              <Typography variant="body2" paragraph>
+                Market Insights: {report.marketInsights}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                Price Recommendation: {report.priceRecommendation}
+              </Typography>
+              <Typography variant="h6" style={{ marginTop: '15px' }}>
+                Comparable Properties
+              </Typography>
+              {report.comparables.map((comp) => (
+                <div key={comp.address} style={{ marginBottom: '10px', border: '1px solid #eee', padding: '10px' }}>
+                  <Typography>Address: {comp.address}</Typography>
+                  <Typography>Sale Price: ${comp.salePrice}</Typography>
+                  <Typography>Size: {comp.sqft} sqft</Typography>
+                </div>
+              ))}
+              <Button variant="outlined" color="primary" onClick={handleViewReport} style={{ marginTop: '15px' }}>
+                View Full Report
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </Grid>
+    </Grid>
+  );
+};
+
+export default CMAGenerate;
+
+// ---
+
+// Backend (likely Node.js/TypeScript based on .ts extension) - Example routes interacting with the CMA service
+
+import express, { Request, Response } from 'express';
+import { body, validationResult } from 'express-validator';
+import { cmaService } from '../services/cma.service'; // Assuming your CMA service file
+
+const cmaRoutes = express.Router();
+
+// Route to generate a new CMA report
+cmaRoutes.post(
+  '/generate',
+  [
+    body('address').notEmpty().withMessage('Address is required'),
+    body('propertyType').notEmpty().withMessage('Property type is required'),
+    body('bedrooms').optional().isInt({ min: 0 }).withMessage('Bedrooms must be a non-negative integer'),
+    body('bathrooms').optional().isFloat({ min: 0 }).withMessage('Bathrooms must be a non-negative number'),
+    body('squareFootage').optional().isInt({ min: 1 }).withMessage('Square footage must be a positive integer'),
+    // Add validation for other relevant input fields
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const reportData = await cmaService.generateCMA(req.body);
+      res.status(200).json(reportData);
+    } catch (error: any) {
+      console.error('Error generating CMA:', error);
+      res.status(500).json({ message: error.message || 'Failed to generate CMA report.' });
+    }
+  }
+);
+
+// Route to get a specific CMA report
+cmaRoutes.get('/reports/:id', async (req: Request, res: Response) => {
+  const reportId = req.params.id;
+  try {
+    const report = await cmaService.getReport(reportId);
+    if (report) {
+      res.status(200).json(report);
+    } else {
+      res.status(404).json({ message: 'CMA report not found.' });
+    }
+  } catch (error: any) {
+    console.error('Error getting CMA report:', error);
+    res.status(500).json({ message: error.message || 'Failed to retrieve CMA report.' });
+  }
+});
+
+// Implement other routes (/api/cma/reports/:id/comparables, /api/cma/reports/:id/insights, etc.)
+// following a similar pattern, calling the appropriate functions in your cmaService.
+
+export default cmaRoutes;
+
+// ---
+
+// In your main server file (e.g., index.ts or server.ts)
+import express from 'express';
+import cmaRoutes from './routes/cma.routes'; // Assuming the path to your CMA routes
+
+const app = express();
+const port = 5000;
+
+app.use(express.json()); // Middleware to parse JSON request bodies
+
+// Register the CMA routes
+app.use('/api/cma', cmaRoutes);
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});

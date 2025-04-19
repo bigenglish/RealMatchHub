@@ -1185,7 +1185,7 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li className="flex items-center">
-                  <span className="w-5 h-5 mr-2 text-gray-600📞</span>
+                  <span className="w-5 h-5 mr-2 text-gray-600">📞</span>
                   <a href="tel:+1234567890" className="text-gray-600 hover:text-olive-600">
                     +1 (234) 567-890
                   </a>

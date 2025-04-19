@@ -280,3 +280,81 @@ export const requestStatuses = [
   "completed",
   "cancelled"
 ] as const;
+
+// CMA (Comparative Market Analysis) tables
+export const cmaReports = pgTable("cma_reports", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  propertyId: integer("property_id").references(() => properties.id),
+  reportDate: timestamp("report_date").defaultNow().notNull(),
+  zipCode: text("zip_code").notNull(),
+  propertyType: text("property_type").notNull(),
+  bedrooms: integer("bedrooms").notNull(),
+  bathrooms: integer("bathrooms").notNull(),
+  sqft: integer("sqft").notNull(),
+  estimatedValue: integer("estimated_value").notNull(),
+  confidenceScore: real("confidence_score").notNull(), // 0-1 score
+  status: text("status").default("generated").notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  reportUrl: text("report_url"), // URL to PDF report if generated
+  pricingTier: text("pricing_tier").default("basic").notNull(), // basic, premium, etc.
+});
+
+export const cmaComparables = pgTable("cma_comparables", {
+  id: serial("id").primaryKey(),
+  cmaReportId: integer("cma_report_id").notNull().references(() => cmaReports.id),
+  propertyId: integer("property_id").references(() => properties.id),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
+  salePrice: integer("sale_price").notNull(),
+  saleDate: date("sale_date").notNull(),
+  bedrooms: integer("bedrooms").notNull(),
+  bathrooms: integer("bathrooms").notNull(),
+  sqft: integer("sqft").notNull(),
+  pricePerSqft: real("price_per_sqft").notNull(),
+  yearBuilt: integer("year_built"),
+  lotSize: integer("lot_size"),
+  distanceFromSubject: real("distance_from_subject"), // in miles
+  adjustedPrice: integer("adjusted_price"), // after adjustments
+  similarity: real("similarity"), // 0-1 score of how similar to subject
+  imageUrl: text("image_url"),
+});
+
+export const cmaMarketInsights = pgTable("cma_market_insights", {
+  id: serial("id").primaryKey(),
+  cmaReportId: integer("cma_report_id").notNull().references(() => cmaReports.id),
+  insightType: text("insight_type").notNull(), // price_trend, inventory, etc.
+  insightTitle: text("insight_title").notNull(),
+  insightDescription: text("insight_description").notNull(),
+  insightData: jsonb("insight_data"), // JSON data for charts/visualizations
+  importance: integer("importance").default(1), // 1-5 score for sorting
+});
+
+export const cmaPricingAdjustments = pgTable("cma_pricing_adjustments", {
+  id: serial("id").primaryKey(),
+  cmaReportId: integer("cma_report_id").notNull().references(() => cmaReports.id),
+  adjustmentFactor: text("adjustment_factor").notNull(), // "bedroom", "bathroom", "sqft", etc.
+  adjustmentValue: integer("adjustment_value").notNull(), // dollar amount per unit
+  adjustmentDirection: text("adjustment_direction").notNull(), // "positive" or "negative"
+  adjustmentDescription: text("adjustment_description").notNull(),
+});
+
+export const insertCmaReportSchema = createInsertSchema(cmaReports).omit({ 
+  id: true, 
+  reportDate: true, 
+  lastUpdated: true
+});
+export const insertCmaComparableSchema = createInsertSchema(cmaComparables).omit({ id: true });
+export const insertCmaMarketInsightSchema = createInsertSchema(cmaMarketInsights).omit({ id: true });
+export const insertCmaPricingAdjustmentSchema = createInsertSchema(cmaPricingAdjustments).omit({ id: true });
+
+export type CmaReport = typeof cmaReports.$inferSelect;
+export type InsertCmaReport = z.infer<typeof insertCmaReportSchema>;
+export type CmaComparable = typeof cmaComparables.$inferSelect;
+export type InsertCmaComparable = z.infer<typeof insertCmaComparableSchema>;
+export type CmaMarketInsight = typeof cmaMarketInsights.$inferSelect;
+export type InsertCmaMarketInsight = z.infer<typeof insertCmaMarketInsightSchema>;
+export type CmaPricingAdjustment = typeof cmaPricingAdjustments.$inferSelect;
+export type InsertCmaPricingAdjustment = z.infer<typeof insertCmaPricingAdjustmentSchema>;

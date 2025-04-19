@@ -15,6 +15,7 @@
     "@fullcalendar/interaction": "^6.1.17",
     "@fullcalendar/react": "^6.1.17",
     "@fullcalendar/timegrid": "^6.1.17",
+    "@google-cloud/bigquery": "^7.9.4",
     "@google-cloud/documentai": "^9.1.0",
     "@google-cloud/storage": "^7.15.2",
     "@google-cloud/vertexai": "^1.9.3",

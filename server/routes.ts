@@ -1238,6 +1238,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { query, chatHistory } = req.body;
 
+
+
+  // Firebase Admin Key verification endpoint
+  app.get("/api/firebase-status", async (_req, res) => {
+    try {
+      const adminKey = process.env.FIREBASE_ADMIN_KEY;
+      const hasKey = !!adminKey;
+      
+      if (!hasKey) {
+        return res.json({
+          configured: false,
+          message: "Firebase Admin key is not configured"
+        });
+      }
+
+      // Attempt to parse the key to verify it's valid base64
+      try {
+        const decodedKey = Buffer.from(adminKey, 'base64').toString('utf-8');
+        const keyObj = JSON.parse(decodedKey);
+        
+        // Check for required fields in the key
+        const isValid = keyObj.type === 'service_account' && 
+                       keyObj.project_id && 
+                       keyObj.private_key;
+
+        return res.json({
+          configured: true,
+          valid: isValid,
+          projectId: keyObj.project_id,
+          message: isValid ? 
+            "Firebase Admin key is properly configured" : 
+            "Firebase Admin key is invalid"
+        });
+      } catch (parseError) {
+        return res.json({
+          configured: true,
+          valid: false,
+          message: "Firebase Admin key is not properly formatted"
+        });
+      }
+    } catch (error) {
+      console.error("[express] Error checking Firebase Admin key:", error);
+      res.status(500).json({ 
+        configured: false,
+        message: "Error checking Firebase Admin key status"
+      });
+    }
+  });
+
+
       if (!query) {
         return res.status(400).json({ message: "Query is required" });
       }

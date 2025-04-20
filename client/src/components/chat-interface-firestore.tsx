@@ -78,7 +78,7 @@ export default function ChatInterfaceFirestore({
       `Expert Chat with ${userName}`,
       [
         { userId, userType },
-        { userId: 1, userType: ParticipantType.EXPERT } // Assuming ID 1 is our expert
+        { userId: 1, userType: 'expert' as ParticipantTypeValue } // Assuming ID 1 is our expert
       ],
       'support',
       { requestType: 'expert_assistance' }
@@ -99,7 +99,7 @@ export default function ChatInterfaceFirestore({
       `Customer Support for ${userName}`,
       [
         { userId, userType },
-        { userId: 2, userType: ParticipantType.CUSTOMER_SERVICE } // Assuming ID 2 is customer service
+        { userId: 2, userType: 'customer_service' as ParticipantTypeValue } // Assuming ID 2 is customer service
       ],
       'support',
       { requestType: 'customer_support' }
@@ -151,13 +151,13 @@ export default function ChatInterfaceFirestore({
   };
 
   // Render participant avatar based on user type
-  const renderAvatar = (participantType: ParticipantType, name: string) => {
+  const renderAvatar = (participantType: ParticipantTypeValue, name: string) => {
     let initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
     let color = 'bg-primary';
     
-    if (participantType === ParticipantType.EXPERT) {
+    if (participantType === 'expert') {
       color = 'bg-blue-500';
-    } else if (participantType === ParticipantType.CUSTOMER_SERVICE) {
+    } else if (participantType === 'customer_service') {
       color = 'bg-green-500';
     }
     
@@ -218,7 +218,7 @@ export default function ChatInterfaceFirestore({
                     onClick={() => selectConversation(conversation)}
                   >
                     {renderAvatar(
-                      conversation.participants.find(p => p.userId !== userId)?.userType as ParticipantType || ParticipantType.EXPERT,
+                      conversation.participants.find(p => p.userId !== userId)?.userType || 'expert' as ParticipantTypeValue,
                       conversation.title
                     )}
                     <div className="flex-1 min-w-0">

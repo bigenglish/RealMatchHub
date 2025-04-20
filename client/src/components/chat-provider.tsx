@@ -64,7 +64,7 @@ export default function ChatProvider({
     <ChatInterface
       userId={userId}
       userName={userName}
-      userType={participantType}
+      userType={userType}
       expertMode={expertMode}
       onClose={onClose}
       className={className}

@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, User, Users, Phone, Video, Info } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Define these types here since we can't import from server
 enum MessageType {
@@ -92,121 +92,25 @@ export default function ChatInterface({
   const [connected, setConnected] = useState(false);
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
-  // Connect to WebSocket
+  // WebSocket connection is temporarily disabled
   useEffect(() => {
-    // Determine the WebSocket URL
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    console.log('WebSocket connection disabled - authentication flow will be prioritized first');
     
-    // Create WebSocket connection
-    const newSocket = new WebSocket(wsUrl);
+    // Simulating a connected state for UI purposes only
+    setConnected(true);
     
-    // Connection opened
-    newSocket.addEventListener('open', () => {
-      console.log('WebSocket connection established');
-      setConnected(true);
-      
-      // Send authentication message
-      const authMessage = {
-        type: 'auth',
-        userId,
-        userName,
-        userType,
-        conversations: []
-      };
-      
-      newSocket.send(JSON.stringify(authMessage));
+    // No need for mock notification in production
+    /* 
+    toast({
+      title: "WebSocket Connection",
+      description: "WebSocket temporarily disabled during authentication implementation",
     });
+    */
     
-    // Listen for messages
-    newSocket.addEventListener('message', (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
-        
-        // Handle different message types
-        switch (data.type) {
-          case 'system':
-            toast({
-              title: "Chat System",
-              description: data.content,
-            });
-            break;
-            
-          case 'error':
-            toast({
-              title: "Chat Error",
-              description: data.content,
-              variant: "destructive"
-            });
-            break;
-            
-          case 'new_message':
-            if (activeConversation && 
-                data.message.conversationId === activeConversation.id.toString()) {
-              setMessages(prev => [...prev, data.message]);
-              
-              // Mark message as read if in active conversation
-              markMessagesAsRead(activeConversation.id);
-            }
-            
-            // Update conversation list to show new message
-            fetchConversations();
-            break;
-            
-          case 'unread_messages':
-            // Update conversation list to show unread counts
-            fetchConversations();
-            break;
-            
-          case 'user_joined':
-          case 'user_left':
-          case 'messages_read':
-            // Update conversation list and messages
-            if (activeConversation) {
-              fetchMessages(activeConversation.id);
-            }
-            fetchConversations();
-            break;
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    });
-    
-    // Connection closed
-    newSocket.addEventListener('close', () => {
-      console.log('WebSocket connection closed');
-      setConnected(false);
-      
-      // Attempt to reconnect after a delay
-      setTimeout(() => {
-        toast({
-          title: "Chat Disconnected",
-          description: "Attempting to reconnect...",
-        });
-      }, 3000);
-    });
-    
-    // Connection error
-    newSocket.addEventListener('error', (error) => {
-      console.error('WebSocket error:', error);
-      toast({
-        title: "Chat Connection Error",
-        description: "Failed to connect to chat server",
-        variant: "destructive"
-      });
-    });
-    
-    // Save socket instance
-    setSocket(newSocket);
-    
-    // Cleanup function
     return () => {
-      if (newSocket.readyState === WebSocket.OPEN) {
-        newSocket.close();
-      }
+      // Cleanup function - nothing to do for now
     };
   }, [userId, userName, userType]);
   
@@ -313,19 +217,31 @@ export default function ChatInterface({
   
   // Send a message
   const sendMessage = () => {
-    if (!messageInput.trim() || !activeConversation || !socket || socket.readyState !== WebSocket.OPEN) {
+    if (!messageInput.trim() || !activeConversation) {
       return;
     }
     
-    // Create message object
-    const message = {
-      type: 'chat_message',
+    // In non-WebSocket mode, directly update UI with local message
+    const tempMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
       conversationId: activeConversation.id.toString(),
-      content: messageInput
+      senderId: userId,
+      senderName: userName,
+      senderType: userType,
+      content: messageInput,
+      type: MessageType.CHAT,
+      timestamp: new Date().toISOString(),
+      isRead: true
     };
     
-    // Send via WebSocket
-    socket.send(JSON.stringify(message));
+    // Add message to local UI
+    setMessages(prev => [...prev, tempMessage]);
+    
+    // Show a toast notification
+    toast({
+      title: "Message Sent",
+      description: "Note: WebSocket connection is temporarily disabled",
+    });
     
     // Clear input
     setMessageInput('');
@@ -337,13 +253,8 @@ export default function ChatInterface({
     await fetchMessages(conversation.id);
     setActiveTab('chat');
     
-    // Join conversation via WebSocket
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({
-        type: 'join_conversation',
-        conversationId: conversation.id.toString()
-      }));
-    }
+    // WebSocket functionality temporarily disabled during auth implementation
+    console.log('Selected conversation:', conversation.id);
   };
   
   // Fetch conversations on mount

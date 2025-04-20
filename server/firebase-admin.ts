@@ -1,8 +1,8 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
-// Check if Firebase Admin is already initialized
-if (!admin.apps.length) {
-  try {
+// Initialize Firebase Admin if not already initialized
+try {
+  if (!admin.apps || admin.apps.length === 0) {
     // Try to initialize with service account JSON from environment variables
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
       // Parse the JSON credential string from environment variable
@@ -18,15 +18,16 @@ if (!admin.apps.length) {
       console.log('[firebase-admin] Firebase Admin SDK initialized with service account');
     } else {
       // If no service account JSON is provided, try to initialize with application default credentials
+      // or with minimal configuration
       admin.initializeApp({
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'realty-ai-platform',
       });
       
       console.log('[firebase-admin] Firebase Admin SDK initialized with default credentials');
     }
-  } catch (error) {
-    console.error('[firebase-admin] Error initializing Firebase Admin SDK:', error);
   }
+} catch (error) {
+  console.error('[firebase-admin] Error initializing Firebase Admin SDK:', error);
 }
 
 export const auth = admin.auth();

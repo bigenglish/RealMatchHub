@@ -1,78 +1,60 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
-import { onAuthChanged } from '../lib/firebase';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { onAuthChanged, UserData, getCurrentUser } from '../lib/firebase';
 
-// Define the types for the context
 interface AuthContextType {
-  currentUser: User | null;
-  userRole: 'user' | 'vendor' | 'admin' | null;
+  user: UserData | null;
   loading: boolean;
-  setUserRole: (role: 'user' | 'vendor' | 'admin') => void;
+  error: string | null;
 }
 
-// Create the context with a default value
+// Create context with a default empty object
 const AuthContext = createContext<AuthContextType>({
-  currentUser: null,
-  userRole: null,
+  user: null,
   loading: true,
-  setUserRole: () => {},
+  error: null,
 });
 
 // Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Provider component that wraps the app and makes auth object available to any child component
+// Provider component to wrap our app and make auth object available
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'user' | 'vendor' | 'admin' | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Subscribe to auth state changes when the component mounts
   useEffect(() => {
-    const unsubscribe = onAuthChanged((user) => {
-      setCurrentUser(user);
-      
-      // Here you would typically fetch the user's role from your database
-      // For now, we'll default to 'user' when logged in
-      if (user) {
-        // Check if we already have a role stored
-        const storedRole = localStorage.getItem('userRole');
-        if (storedRole && ['user', 'vendor', 'admin'].includes(storedRole)) {
-          setUserRole(storedRole as 'user' | 'vendor' | 'admin');
-        } else {
-          setUserRole('user');
-          localStorage.setItem('userRole', 'user');
-        }
-      } else {
-        setUserRole(null);
-        localStorage.removeItem('userRole');
-      }
-      
+    // Check for existing user in localStorage first
+    const existingUser = getCurrentUser();
+    if (existingUser) {
+      setUser(existingUser);
+      setLoading(false);
+    }
+
+    // Set up the auth state listener
+    const unsubscribe = onAuthChanged((userData) => {
+      setUser(userData);
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
+    // Clean up subscription
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  // Function to update user role
-  const handleSetUserRole = (role: 'user' | 'vendor' | 'admin') => {
-    setUserRole(role);
-    localStorage.setItem('userRole', role);
-    
-    // Here you would typically update the user's role in your database
-  };
-
-  const value: AuthContextType = {
-    currentUser,
-    userRole,
+  // Context value
+  const value = {
+    user,
     loading,
-    setUserRole: handleSetUserRole,
+    error
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

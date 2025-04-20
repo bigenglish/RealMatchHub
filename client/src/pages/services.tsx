@@ -369,7 +369,7 @@ export default function Services() {
       <Dialog open={showChat} onOpenChange={setShowChat}>
         <DialogContent className="max-w-lg p-0 max-h-[80vh] overflow-hidden">
           {activeExpert && (
-            <ChatInterface
+            <ChatProvider
               userId={currentUser.id}
               userName={currentUser.name}
               userType="buyer"

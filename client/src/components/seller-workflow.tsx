@@ -81,6 +81,7 @@ export default function SellerWorkflow({
   onStepChange,
   onComplete
 }: SellerWorkflowProps): JSX.Element {
+  const { toast } = useToast();
   const [sellerInfo, setSellerInfo] = useState<SellerInfo>({
     intent: 'sell',
     selectedServices: [],
@@ -294,8 +295,6 @@ export default function SellerWorkflow({
   ).filter(Boolean) || [];
   const propertyType = sellerInfo.propertyType;
   const location = sellerInfo.location;
-
-  const { toast } = useToast();
 
   const handleGetAiSuggestions = async () => {
     try {

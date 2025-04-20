@@ -19,6 +19,8 @@ import {
   Mountain, Landmark, Sofa, Armchair, Factory, Waves, Leaf, Sparkles,
   PanelLeft, LayoutGrid, FileInput, Users
 } from 'lucide-react';
+import { toast } from "@/components/ui/toast"; // Assuming this is where toast is imported
+
 
 export type SellerStep = 'intent' | 'situation' | 'services' | 'property-profile' | 'price-strategy' | 'review' | 'service-request';
 
@@ -31,7 +33,7 @@ interface SellerWorkflowProps {
 export interface SellerInfo {
   // Step 1: Intent (Buy/Sell/Both)
   intent?: 'buy' | 'sell' | 'both';
-  
+
   // Step 2: Situation
   propertyType?: string;
   propertySize?: string;
@@ -46,10 +48,10 @@ export interface SellerInfo {
   financialReasons?: string;
   needsMovingServices?: boolean;
   buyingAfterSelling?: boolean;
-  
+
   // Step 3: Selling Services
   selectedServices?: string[];
-  
+
   // Step 4: Property Profile
   propertyDetails?: {
     features: string[];
@@ -57,7 +59,7 @@ export interface SellerInfo {
     photos: string[];
     description: string;
   };
-  
+
   // Step 5: Price & Strategy
   listingPrice?: number;
   recommendedPrice?: number;
@@ -68,7 +70,7 @@ export interface SellerInfo {
     estimatedTimeToSell: string;
     considerations: string;
   };
-  
+
   // Step 6: Review & Publish
   termsAccepted?: boolean;
 }
@@ -89,14 +91,16 @@ export default function SellerWorkflow({
       description: ''
     }
   });
-  
+
+  const [propertyDescription, setPropertyDescription] = useState<string>(sellerInfo.propertyDetails?.description || ''); // Added state for description
+
   // Calculate progress based on current step
   const getProgress = useCallback(() => {
     const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
     return Math.round(((currentIndex + 1) / steps.length) * 100);
   }, [currentStep]);
-  
+
   // Property types for selection
   const propertyTypes = useMemo(() => [
     { id: 'single-family', label: "Single Family Home" },
@@ -106,7 +110,7 @@ export default function SellerWorkflow({
     { id: 'land', label: "Land" },
     { id: 'apartment', label: "Apartment" }
   ], []);
-  
+
   // Property features
   const propertyFeatures = useMemo(() => [
     { id: 'pool', label: "Pool", icon: <Waves className="h-4 w-4" /> },
@@ -117,7 +121,7 @@ export default function SellerWorkflow({
     { id: 'updated-kitchen', label: "Updated Kitchen", icon: <Armchair className="h-4 w-4" /> },
     { id: 'updated-bathrooms', label: "Updated Bathrooms", icon: <Bath className="h-4 w-4" /> }
   ], []);
-  
+
   // Services offered
   const availableServices = useMemo(() => [
     { 
@@ -177,7 +181,7 @@ export default function SellerWorkflow({
       price: 99 
     }
   ], []);
-  
+
   // Timeframe options
   const timeframeOptions = useMemo(() => [
     { id: 'immediate', label: "Immediate (within 30 days)" },
@@ -186,7 +190,7 @@ export default function SellerWorkflow({
     { id: '6-12months', label: "6-12 months" },
     { id: 'flexible', label: "Flexible / Not sure yet" }
   ], []);
-  
+
   // Urgency options
   const urgencyOptions = useMemo(() => [
     { id: 'very-urgent', label: "Very Urgent" },
@@ -194,7 +198,7 @@ export default function SellerWorkflow({
     { id: 'not-urgent', label: "Not Urgent" },
     { id: 'flexible', label: "Flexible" }
   ], []);
-  
+
   // Selling reasons
   const sellingReasons = useMemo(() => [
     { id: 'relocating', label: "Relocating" },
@@ -210,7 +214,7 @@ export default function SellerWorkflow({
     setSellerInfo(prev => ({ ...prev, intent }));
     onStepChange('situation');
   };
-  
+
   // Handle service selection (Step 3)
   const handleServiceSelection = (serviceId: string) => {
     setSellerInfo(prev => {
@@ -222,7 +226,7 @@ export default function SellerWorkflow({
       }
     });
   };
-  
+
   // Handle feature selection (Step 2)
   const handleFeatureSelection = (featureId: string) => {
     setSellerInfo(prev => {
@@ -234,29 +238,29 @@ export default function SellerWorkflow({
       }
     });
   };
-  
+
   // Handle move to next step
   const handleNextStep = () => {
     const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
-    
+
     if (currentIndex < steps.length - 1) {
       onStepChange(steps[currentIndex + 1]);
     } else {
       onComplete();
     }
   };
-  
+
   // Handle move to previous step
   const handlePreviousStep = () => {
     const steps: SellerStep[] = ['intent', 'situation', 'services', 'property-profile', 'price-strategy', 'review', 'service-request'];
     const currentIndex = steps.indexOf(currentStep);
-    
+
     if (currentIndex > 0) {
       onStepChange(steps[currentIndex - 1]);
     }
   };
-  
+
   // Calculate total service cost
   const calculateServiceTotal = () => {
     return (sellerInfo.selectedServices || []).reduce((total, serviceId) => {
@@ -264,7 +268,47 @@ export default function SellerWorkflow({
       return total + (service?.price || 0);
     }, 0);
   };
-  
+
+  const selectedFeatures = sellerInfo.features?.map(featureId => propertyFeatures.find(f => f.id === featureId)) || [];
+  const propertyType = sellerInfo.propertyType;
+  const location = sellerInfo.location;
+
+
+  const handleGetAiSuggestions = async () => {
+    try {
+      const features = selectedFeatures.map(f => f.label);
+
+      const response = await fetch("/api/property/description-suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          features,
+          propertyType: propertyType || "property",
+          location: location || "Not specified"
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPropertyDescription(data.suggestion);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get AI suggestions. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error getting AI suggestions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get AI suggestions. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 sm:px-6">
       <div className="space-y-2">
@@ -284,7 +328,7 @@ export default function SellerWorkflow({
           </p>
         </div>
       </div>
-      
+
       {currentStep === 'intent' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -335,7 +379,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'situation' && (
         <div className="space-y-6">
           <Card>
@@ -357,7 +401,7 @@ export default function SellerWorkflow({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="propertySize">Property Size (sq ft)</Label>
                   <Input 
@@ -368,7 +412,7 @@ export default function SellerWorkflow({
                     onChange={(e) => setSellerInfo({...sellerInfo, propertySize: e.target.value})}
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="bedrooms">Bedrooms</Label>
                   <Select 
@@ -385,7 +429,7 @@ export default function SellerWorkflow({
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="bathrooms">Bathrooms</Label>
                   <Select 
@@ -403,7 +447,7 @@ export default function SellerWorkflow({
                   </Select>
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <h4 className="font-medium mb-2">Property Features & Amenities</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -423,7 +467,7 @@ export default function SellerWorkflow({
                   ))}
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <Label htmlFor="location">Location</Label>
                 <Input 
@@ -433,7 +477,7 @@ export default function SellerWorkflow({
                   onChange={(e) => setSellerInfo({...sellerInfo, location: e.target.value})}
                 />
               </div>
-              
+
               <div className="mt-6">
                 <Label htmlFor="timeframe">Selling Timeframe</Label>
                 <Select 
@@ -450,7 +494,7 @@ export default function SellerWorkflow({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="mt-6">
                 <Label htmlFor="urgency">How urgent is your sale?</Label>
                 <Select 
@@ -467,7 +511,7 @@ export default function SellerWorkflow({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="mt-6 space-y-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -479,7 +523,7 @@ export default function SellerWorkflow({
                   />
                   <Label htmlFor="relocating">I'm relocating to a new area</Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="moving-services"
@@ -490,7 +534,7 @@ export default function SellerWorkflow({
                   />
                   <Label htmlFor="moving-services">I need moving services</Label>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="buying-after"
@@ -504,7 +548,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="space-y-4">
             <div className="flex justify-between">
               <Button variant="outline" onClick={handlePreviousStep}>
@@ -535,7 +579,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'services' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -581,7 +625,7 @@ export default function SellerWorkflow({
               </Card>
             ))}
           </div>
-          
+
           {(sellerInfo.selectedServices?.length || 0) > 0 && (
             <Card className="bg-primary/5 border-primary">
               <CardContent className="p-4">
@@ -600,7 +644,7 @@ export default function SellerWorkflow({
               </CardContent>
             </Card>
           )}
-          
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
               Previous
@@ -611,7 +655,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'property-profile' && (
         <div className="space-y-6">
           <Card>
@@ -656,7 +700,7 @@ export default function SellerWorkflow({
               </Button>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Step 2: Highlight Features & Amenities</CardTitle>
@@ -682,7 +726,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Step 3: Upload Photos & Videos</CardTitle>
@@ -701,7 +745,7 @@ export default function SellerWorkflow({
                     </Button>
                   </div>
                 </div>
-                
+
                 {/* Photo previews would go here */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Example previews */}
@@ -717,7 +761,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Step 4: Write Your Property Description</CardTitle>
@@ -727,7 +771,7 @@ export default function SellerWorkflow({
                 <Textarea 
                   placeholder="Describe your property's key features, unique selling points, and what makes it special..."
                   className="min-h-32"
-                  value={sellerInfo.propertyDetails?.description || ''}
+                  value={propertyDescription}
                   onChange={(e) => setSellerInfo({
                     ...sellerInfo, 
                     propertyDetails: {
@@ -736,13 +780,13 @@ export default function SellerWorkflow({
                     }
                   })}
                 />
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleGetAiSuggestions}>
                   Get AI Suggestions
                 </Button>
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
               Previous
@@ -753,7 +797,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'price-strategy' && (
         <div className="space-y-6">
           <Card>
@@ -800,7 +844,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Set Your Listing Price</CardTitle>
@@ -832,7 +876,7 @@ export default function SellerWorkflow({
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="urgency-select">Urgency to Sell</Label>
@@ -850,7 +894,7 @@ export default function SellerWorkflow({
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="reason-select">Reason for Selling</Label>
                     <Select 
@@ -868,7 +912,7 @@ export default function SellerWorkflow({
                     </Select>
                   </div>
                 </div>
-                
+
                 <Card className="bg-muted/10">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-md">Market Insights</CardTitle>
@@ -895,7 +939,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
               Previous
@@ -906,7 +950,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'review' && (
         <div className="space-y-6">
           <Card>
@@ -945,7 +989,7 @@ export default function SellerWorkflow({
                     </Button>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Features & Amenities</h4>
                   <div className="bg-muted/30 p-4 rounded-md">
@@ -969,7 +1013,7 @@ export default function SellerWorkflow({
                     </Button>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Price & Strategy</h4>
                   <div className="bg-muted/30 p-4 rounded-md">
@@ -996,7 +1040,7 @@ export default function SellerWorkflow({
                     </Button>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Selected Services</h4>
                   <div className="bg-muted/30 p-4 rounded-md">
@@ -1029,7 +1073,7 @@ export default function SellerWorkflow({
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-2">
                   <Checkbox 
                     id="terms"
@@ -1050,7 +1094,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
               Previous
@@ -1069,7 +1113,7 @@ export default function SellerWorkflow({
           </div>
         </div>
       )}
-      
+
       {currentStep === 'service-request' && (
         <div className="space-y-6">
           <Card>
@@ -1089,7 +1133,7 @@ export default function SellerWorkflow({
                     </div>
                   </div>
                 )}
-                
+
                 <div className="space-y-4">
                   <ServiceRequestForm 
                     userType="seller"
@@ -1101,7 +1145,7 @@ export default function SellerWorkflow({
               </div>
             </CardContent>
           </Card>
-          
+
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
               Back to Review

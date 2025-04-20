@@ -1235,7 +1235,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Realty.AI Chatbot
-  app.post("/api/chatbot", async (req, res) => {
+  app.post("/api/property/description-suggestions", async (req, res) => {
+  try {
+    const { features, propertyType, location } = req.body;
+    
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
+    const prompt = `Write an engaging property description for a ${propertyType} with the following features:
+    ${features.join(", ")}
+    Location: ${location || "Not specified"}
+    
+    Keep it professional, highlight key features, and make it appealing to potential buyers.
+    Format the response as a single paragraph, approximately 100-150 words.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    
+    res.json({ 
+      suggestion: response.text(),
+      success: true 
+    });
+  } catch (error) {
+    console.error("[express] Error generating description:", error);
+    res.status(500).json({ 
+      error: "Failed to generate description",
+      success: false 
+    });
+  }
+});
+
+app.post("/api/chatbot", async (req, res) => {
     try {
       const { query, chatHistory } = req.body;
 

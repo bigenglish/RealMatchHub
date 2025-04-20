@@ -19,7 +19,7 @@ import {
   Mountain, Landmark, Sofa, Armchair, Factory, Waves, Leaf, Sparkles,
   PanelLeft, LayoutGrid, FileInput, Users
 } from 'lucide-react';
-import { toast } from "@/components/ui/toast"; // Assuming this is where toast is imported
+import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 

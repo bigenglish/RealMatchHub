@@ -20,6 +20,7 @@ import {
   PanelLeft, LayoutGrid, FileInput, Users
 } from 'lucide-react';
 import { toast } from "@/components/ui/toast"; // Assuming this is where toast is imported
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 export type SellerStep = 'intent' | 'situation' | 'services' | 'property-profile' | 'price-strategy' | 'review' | 'service-request';
@@ -227,6 +228,25 @@ export default function SellerWorkflow({
     });
   };
 
+  const selectBundle = (bundleName: string) => {
+    //Implementation to select bundle services here.  This would likely set sellerInfo.selectedServices based on the bundle
+    console.log("Selected bundle:", bundleName);
+    onStepChange('property-profile');
+  };
+
+
+  const toggleService = (serviceId: string) => {
+    setSellerInfo(prev => {
+      const services = prev.selectedServices || [];
+      if (services.includes(serviceId)) {
+        return { ...prev, selectedServices: services.filter(id => id !== serviceId) };
+      } else {
+        return { ...prev, selectedServices: [...services, serviceId] };
+      }
+    });
+  };
+
+
   // Handle feature selection (Step 2)
   const handleFeatureSelection = (featureId: string) => {
     setSellerInfo(prev => {
@@ -315,7 +335,7 @@ export default function SellerWorkflow({
         <h2 className="text-2xl font-bold text-center">
           {currentStep === 'intent' && "What are you looking to do?"}
           {currentStep === 'situation' && "Tell us about your selling situation"}
-          {currentStep === 'services' && "Enhance Your Sale with These Services"}
+          {currentStep === 'services' && "Choose Your Services"}
           {currentStep === 'property-profile' && "Showcase Your Property"}
           {currentStep === 'price-strategy' && "Let's Determine Your Price & Plan"}
           {currentStep === 'review' && "Review & Publish Your Listing"}
@@ -582,68 +602,154 @@ export default function SellerWorkflow({
 
       {currentStep === 'services' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availableServices.map((service) => (
-              <Card key={service.id} className={`border overflow-hidden transition-colors ${
-                sellerInfo.selectedServices?.includes(service.id) ? 'border-primary bg-primary/5' : ''
-              }`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-2 rounded-full text-primary">
-                      {service.icon}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium">{service.name}</h4>
-                        <Badge variant="outline">${service.price}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {service.description}
-                      </p>
-                      <div className="mt-3">
-                        <Button 
-                          variant={sellerInfo.selectedServices?.includes(service.id) ? "destructive" : "secondary"}
-                          size="sm"
-                          onClick={() => handleServiceSelection(service.id)}
-                        >
-                          {sellerInfo.selectedServices?.includes(service.id) ? (
-                            <>
-                              <X className="h-4 w-4 mr-1" />
-                              Remove
-                            </>
-                          ) : (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              Select
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <h2 className="text-2xl font-bold mb-4">Choose Your Services</h2>
+          <p className="text-gray-600 mb-4">Step {steps.indexOf(currentStep) + 1} of 7</p>
 
-          {(sellerInfo.selectedServices?.length || 0) > 0 && (
-            <Card className="bg-primary/5 border-primary">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium">Selected Services</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {sellerInfo.selectedServices?.length} service{(sellerInfo.selectedServices?.length || 0) > 1 ? 's' : ''} selected
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="font-medium text-lg">${calculateServiceTotal()}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Tabs defaultValue="individual" className="mb-8">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+              <TabsTrigger value="bundles">Service Bundles</TabsTrigger>
+              <TabsTrigger value="individual">Individual Services</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="bundles" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="bg-olive-600 text-white">
+                    <CardTitle>BASIC</CardTitle>
+                    <CardDescription className="text-gray-100">As low as $1,500</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Professional Photography</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Listing Analytics</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Basic Market Analysis</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" onClick={() => selectBundle('basic')}>
+                      Choose Basic
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="bg-olive-700 text-white">
+                    <CardTitle>PREMIUM</CardTitle>
+                    <CardDescription className="text-gray-100">As low as $2,500</CardDescription>
+                    <Badge className="absolute top-2 right-2 bg-amber-500">Most Popular</Badge>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>All Basic features</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>3D Virtual Tour</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Staging Consultation</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Expert Consulting</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" variant="default" onClick={() => selectBundle('premium')}>
+                      Choose Premium
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card className="relative overflow-hidden">
+                  <CardHeader className="bg-olive-800 text-white">
+                    <CardTitle>CONCIERGE</CardTitle>
+                    <CardDescription className="text-gray-100">As low as $5,000</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ul className="space-y-3">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>All Premium features</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Dedicated Concierge</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Premium Marketing</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Advanced Analytics</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button className="w-full" onClick={() => selectBundle('concierge')}>
+                      Choose Concierge
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="individual" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {availableServices.map((service) => (
+                  <Card key={service.id} className="overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-8 h-8 rounded-full bg-olive-100 flex items-center justify-center">
+                          {service.icon}
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{service.name}</CardTitle>
+                          <CardDescription>${service.price}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">{service.description}</p>
+                    </CardContent>
+                    <CardFooter className="flex justify-between">
+                      {sellerInfo.selectedServices?.includes(service.id) ? (
+                        <Button 
+                          variant="destructive"
+                          onClick={() => toggleService(service.id)}
+                          className="w-full"
+                        >
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline"
+                          onClick={() => toggleService(service.id)}
+                          className="w-full"
+                        >
+                          Select
+                        </Button>
+                      )}
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>
@@ -678,8 +784,7 @@ export default function SellerWorkflow({
                 </div>
                 <div>
                   <Label>Bedrooms</Label>
-                  <div className="p-2 border rounded-md bg-muted/50">
-                    {sellerInfo.bedrooms || "Not specified"}
+                  <div className="p-2 border rounded-md bg-muted/50">                    {sellerInfo.bedrooms || "Not specified"}
                   </div>
                 </div>
                 <div>

@@ -413,7 +413,6 @@ export default function HomePage() {
             Select the perfect package for your real estate needs with transparent pricing and no hidden fees.
           </p>
 
-          {/* User Type Tabs */}
           <div className="flex justify-center mb-12">
             <div className="inline-flex bg-gray-100 rounded-full p-1">
               {['Buyers', 'Sellers', 'Renters'].map((type) => (
@@ -644,7 +643,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Property Recommendations */}
+          {/*Property Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-16">
             {/* User Profile */}
             <div className="text-center">

@@ -289,14 +289,17 @@ export default function SellerWorkflow({
     }, 0);
   };
 
-  const selectedFeatures = sellerInfo.features?.map(featureId => propertyFeatures.find(f => f.id === featureId)) || [];
+  const selectedFeatures = sellerInfo.features?.map(featureId => 
+    propertyFeatures.find(f => f.id === featureId)
+  ).filter(Boolean) || [];
   const propertyType = sellerInfo.propertyType;
   const location = sellerInfo.location;
 
-
+  const { toast } = useToast();
+  
   const handleGetAiSuggestions = async () => {
     try {
-      const features = selectedFeatures.map(f => f.label);
+      const features = selectedFeatures.map(f => f?.label || "");
 
       const response = await fetch("/api/property/description-suggestions", {
         method: "POST",

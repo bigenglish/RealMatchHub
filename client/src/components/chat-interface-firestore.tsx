@@ -20,8 +20,9 @@ import { Send, User, Users, Phone, Video, Info } from "lucide-react";
 import useFirestoreChat, { 
   ParticipantType, 
   ChatConversation,
-  ChatMessage
-} from "@/hooks/use-firestore-chat";
+  ChatMessage,
+  ParticipantTypeValue
+} from "@/hooks/use-firestore-chat-fixed";
 
 interface ChatInterfaceProps {
   userId: number;

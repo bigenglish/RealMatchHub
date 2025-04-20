@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { Home, Info, Users, Calendar, MessageSquare, CheckCircle, Building, User, CreditCard } from 'lucide-react';
 import AppointmentScheduler, { ServiceExpert } from '@/components/appointment-scheduler';
-import ChatInterface from '@/components/chat-interface';
+import ChatProvider from '@/components/chat-provider';
 import ServiceSelection from '@/components/service-selection';
 import CostSummary from '@/components/cost-summary';
 import PaymentProcessor from '@/components/payment-processor';

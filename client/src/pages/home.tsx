@@ -641,7 +641,7 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h3 classNamefont-bold text-xl mb-2">Smart Matching:</h3>
+                <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
                 <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
               </div>
             </div>
@@ -1210,7 +1210,7 @@ export default function HomePage() {
                   <span className="text-gray-600">
                     123 Real Estate Ave, <br />
                     New York, NY 10001
-                  </</span>
+                  </span>
                 </li>
               </ul>
             </div>

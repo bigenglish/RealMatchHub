@@ -35,6 +35,7 @@ import visionRoutes from "./routes/vision-routes"; // Import vision routes
 import documentRoutes from "./routes/document-routes"; // Import document routes
 import serviceRequestRoutes from "./routes/service-request-routes"; // Import service request routes
 import cmaRoutes from "./routes/cma-routes"; // Import CMA routes
+import authRoutes from "./routes/auth-routes"; // Import auth routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
 
@@ -1831,6 +1832,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Register CMA routes
     app.use("/api/cma", cmaRoutes);
     console.log("[express] CMA routes registered");
+    
+    // Register Auth routes
+    app.use("/api/auth", authRoutes);
+    console.log("[express] Auth routes registered");
   } catch (error) {
     console.error("[express] Failed to initialize Google Vision API:", error);
   }

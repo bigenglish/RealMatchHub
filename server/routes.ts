@@ -22,13 +22,14 @@ import { searchNearbyPlaces, getPlaceDetails, getPlacePhotoUrl, geocodeAddress }
 import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functions
 import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
 import { generatePropertyRecommendations } from "./ai-property-recommendations"; // Import AI property recommendations
-import { initializeChat } from "./chat-service"; // Import chat service
+import { initializeChat } from "./chat-service"; // Import websocket chat service
 import { 
   insertAppointmentSchema, 
   insertChatConversationSchema, 
   insertChatParticipantSchema, 
   insertChatMessageSchema 
 } from "@shared/chat-schema"; // Import chat schemas
+import chatFirestoreRoutes from "./routes/chat-firestore-routes"; // Import Firestore chat routes
 import Stripe from "stripe"; // Import Stripe
 import { registerVideoRoutes } from "./video-static"; // Import video routes handler
 import visionRoutes from "./routes/vision-routes"; // Import vision routes
@@ -1663,12 +1664,16 @@ app.post("/api/chatbot", async (req, res) => {
     });
   }
 
-  // Initialize chat service
+  // Initialize WebSocket chat service (legacy)
   const wss = initializeChat(httpServer);
   console.log('[express] WebSocket server initialized for chat');
 
-  // Chat conversation routes
-  app.post("/api/chat/conversations", async (req, res) => {
+  // Register Firestore chat routes
+  app.use('/api/chat', chatFirestoreRoutes);
+  console.log('[express] Firestore chat routes registered');
+
+  // Legacy Chat conversation routes (will be migrated to Firestore)
+  app.post("/api/legacy-chat/conversations", async (req, res) => {
     try {
       const data = insertChatConversationSchema.parse(req.body);
       const conversation = await storage.createChatConversation(data);

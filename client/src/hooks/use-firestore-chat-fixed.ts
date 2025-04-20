@@ -70,7 +70,7 @@ interface ChatConversation {
 interface UseFirestoreChatProps {
   userId: number;
   userName: string;
-  userType: ParticipantType;
+  userType: ParticipantTypeValue;
 }
 
 export default function useFirestoreChat({
@@ -283,7 +283,5 @@ export default function useFirestoreChat({
 export type {
   ChatMessage,
   ChatConversation,
-  ChatParticipant,
-  ParticipantType,
-  MessageType
+  ChatParticipant
 };

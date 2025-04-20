@@ -81,7 +81,6 @@ export default function SellerWorkflow({
   onStepChange,
   onComplete
 }: SellerWorkflowProps): JSX.Element {
-  const { toast } = useToast();
   const [sellerInfo, setSellerInfo] = useState<SellerInfo>({
     intent: 'sell',
     selectedServices: [],
@@ -95,6 +94,7 @@ export default function SellerWorkflow({
   });
 
   const [propertyDescription, setPropertyDescription] = useState<string>(sellerInfo.propertyDetails?.description || ''); // Added state for description
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   // Calculate progress based on current step
   const getProgress = useCallback(() => {
@@ -296,6 +296,8 @@ export default function SellerWorkflow({
   const propertyType = sellerInfo.propertyType;
   const location = sellerInfo.location;
 
+  const { toast } = useToast();
+
   const handleGetAiSuggestions = async () => {
     try {
       const features = selectedFeatures.map(f => f?.label || "");
@@ -328,6 +330,22 @@ export default function SellerWorkflow({
         description: "Failed to get AI suggestions. Please try again.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      setUploadedFiles(prevFiles => [...prevFiles, ...files]);
+
+      // Update seller info with the new files
+      setSellerInfo(prev => ({
+        ...prev,
+        propertyDetails: {
+          ...prev.propertyDetails!,
+          photos: [...(prev.propertyDetails?.photos || []), ...files.map(file => URL.createObjectURL(file))]
+        }
+      }));
     }
   };
 
@@ -850,8 +868,7 @@ export default function SellerWorkflow({
                     e.preventDefault();
                     e.stopPropagation();
                     const files = Array.from(e.dataTransfer.files);
-                    // Handle files upload
-                    console.log('Files dropped:', files);
+                    handleFileUpload(e as React.ChangeEvent<HTMLInputElement>); // Handle files upload
                   }}
                 >
                   <input
@@ -860,11 +877,7 @@ export default function SellerWorkflow({
                     className="hidden"
                     multiple
                     accept="image/*,video/*"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      // Handle files upload
-                      console.log('Files selected:', files);
-                    }}
+                    onChange={handleFileUpload}
                   />
                   <label htmlFor="property-files" className="cursor-pointer">
                     <div className="flex flex-col items-center">
@@ -882,15 +895,18 @@ export default function SellerWorkflow({
 
                 {/* Photo previews would go here */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Example previews */}
-                  <div className="relative aspect-square bg-muted rounded-md overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-                      <Image className="h-8 w-8" />
+                  {sellerInfo.propertyDetails?.photos.map((photo, index) => (
+                    <div key={index} className="relative aspect-square bg-muted rounded-md overflow-hidden">
+                      <img src={photo} alt={`Property Photo ${index + 1}`} className="object-cover w-full h-full" />
+                      <Button size="sm" variant="destructive" className="absolute top-1 right-1 h-6 w-6 p-0">
+                        <X className="h-4 w-4" onClick={() => {
+                          //Remove photo from sellerInfo.propertyDetails.photos
+                          const updatedPhotos = sellerInfo.propertyDetails?.photos.filter((p, i) => i !== index);
+                          setSellerInfo(prev => ({...prev, propertyDetails: {...prev.propertyDetails, photos: updatedPhotos}}));
+                        }} />
+                      </Button>
                     </div>
-                    <Button size="sm" variant="destructive" className="absolute top-1 right-1 h-6 w-6 p-0">
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

@@ -296,7 +296,7 @@ export default function SellerWorkflow({
   const location = sellerInfo.location;
 
   const { toast } = useToast();
-  
+
   const handleGetAiSuggestions = async () => {
     try {
       const features = selectedFeatures.map(f => f?.label || "");
@@ -841,17 +841,44 @@ export default function SellerWorkflow({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50">
-                  <div className="flex flex-col items-center">
-                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    <h4 className="text-base font-medium">Drop files here or click to upload</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Upload high-quality photos and videos of your property
-                    </p>
-                    <Button variant="secondary" size="sm" className="mt-4">
-                      Select Files
-                    </Button>
-                  </div>
+                <div 
+                  className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/50 hover:border-primary transition-colors"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const files = Array.from(e.dataTransfer.files);
+                    // Handle files upload
+                    console.log('Files dropped:', files);
+                  }}
+                >
+                  <input
+                    type="file"
+                    id="property-files"
+                    className="hidden"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      // Handle files upload
+                      console.log('Files selected:', files);
+                    }}
+                  />
+                  <label htmlFor="property-files" className="cursor-pointer">
+                    <div className="flex flex-col items-center">
+                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                      <h4 className="text-base font-medium">Drop files here or click to upload</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Upload high-quality photos and videos of your property
+                      </p>
+                      <Button variant="secondary" size="sm" className="mt-4">
+                        Select Files
+                      </Button>
+                    </div>
+                  </label>
                 </div>
 
                 {/* Photo previews would go here */}

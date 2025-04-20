@@ -2,9 +2,9 @@ import admin from 'firebase-admin';
 
 // Initialize Firebase Admin if not already initialized
 try {
-  if (!admin.apps || admin.apps.length === 0) {
+  if (!admin.apps.length) {
     // Try to initialize with service account JSON from environment variables
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    if (process.env.FIREBASE_ADMIN_KEY) {
       // Parse the JSON credential string from environment variable
       const serviceAccount = JSON.parse(
         process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON

@@ -10,13 +10,18 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { createAccount, signInWithGoogle, signInWithFacebook } from '@/lib/firebase';
+import { FcGoogle } from 'react-icons/fc';
+import { SiFacebook } from 'react-icons/si';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Form validation schema
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: 'Full name is required' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  password: z.string()
+    .min(6, { message: 'Password must be at least 6 characters' })
+    .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+    .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
   role: z.enum(['user', 'vendor'], { message: 'Please select a role' })
 }).refine(data => data.password === data.confirmPassword, {
@@ -30,6 +35,7 @@ const Register = () => {
   const [location, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { register, loginWithGoogle, loginWithFacebook } = useAuth();
 
   // Initialize form
   const form = useForm<RegisterFormValues>({
@@ -47,17 +53,17 @@ const Register = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
     try {
-      const { user, error } = await createAccount(
+      const { success, error } = await register(
         values.fullName,
         values.email, 
         values.password,
         values.role
       );
       
-      if (user) {
+      if (success) {
         toast({
-          title: 'Success',
-          description: 'Account created successfully!',
+          title: 'Welcome to Realty.AI!',
+          description: 'Your account has been created successfully.',
         });
         setLocation('/'); // Navigate to home page
       } else {
@@ -67,10 +73,10 @@ const Register = () => {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -82,27 +88,27 @@ const Register = () => {
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     setIsLoading(true);
     try {
-      const { user, error } = provider === 'google' 
-        ? await signInWithGoogle() 
-        : await signInWithFacebook();
+      const { success, error } = provider === 'google' 
+        ? await loginWithGoogle() 
+        : await loginWithFacebook();
       
-      if (user) {
+      if (success) {
         toast({
-          title: 'Success',
-          description: 'You have successfully signed in.',
+          title: 'Welcome to Realty.AI',
+          description: 'You have successfully signed in with ' + provider,
         });
         setLocation('/'); // Navigate to home page
       } else {
         toast({
           title: 'Sign In Failed',
-          description: error || 'Failed to sign in. Please try again.',
+          description: error || `Failed to sign in with ${provider}. Please try again.`,
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -178,6 +184,9 @@ const Register = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-gray-500">
+                      Password must be at least 6 characters and include an uppercase letter and a number.
+                    </p>
                   </FormItem>
                 )}
               />
@@ -262,32 +271,37 @@ const Register = () => {
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
-                className="w-full border-blue-300"
+                className="w-full border-gray-200 flex items-center justify-center gap-2"
                 onClick={() => handleSocialLogin('google')}
                 disabled={isLoading}
               >
-                Google
+                <FcGoogle className="h-5 w-5" />
+                <span>Google</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full border-blue-300"
+                className="w-full border-gray-200 flex items-center justify-center gap-2 text-blue-600"
                 onClick={() => handleSocialLogin('facebook')}
                 disabled={isLoading}
               >
-                Facebook
+                <SiFacebook className="h-5 w-5 text-blue-600" />
+                <span>Facebook</span>
               </Button>
             </div>
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-center pt-2 pb-6">
-          <div className="text-sm text-gray-600">
+        <CardFooter className="flex flex-col gap-3 items-center pt-2 pb-6">
+          <div className="text-sm text-gray-600 text-center">
             Already have an account?{' '}
             <Link href="/auth/login">
               <span className="text-blue-600 hover:underline cursor-pointer font-semibold">
                 Sign in
               </span>
             </Link>
+          </div>
+          <div className="text-xs text-gray-500 text-center mt-2">
+            By signing up, you agree to our <Link href="/terms"><span className="underline">Terms of Service</span></Link> and <Link href="/privacy"><span className="underline">Privacy Policy</span></Link>
           </div>
         </CardFooter>
       </Card>

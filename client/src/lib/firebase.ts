@@ -1,11 +1,29 @@
 import axios from 'axios';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser,
+  getIdToken
+} from 'firebase/auth';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, firestore } from './firebase-config';
 
 // Interface for user data
 export interface UserData {
   uid: string;
   email: string | null;
   displayName: string | null;
+  photoURL?: string | null;
   role?: 'user' | 'vendor' | 'admin';
+  phoneNumber?: string | null;
+  createdAt?: number;
+  lastLoginAt?: number;
 }
 
 // Store token in localStorage
@@ -13,15 +31,6 @@ const TOKEN_KEY = 'auth_token';
 const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
 const getToken = () => localStorage.getItem(TOKEN_KEY);
 const removeToken = () => localStorage.removeItem(TOKEN_KEY);
-
-// Store current user in localStorage
-const USER_KEY = 'current_user';
-const setUser = (user: UserData) => localStorage.setItem(USER_KEY, JSON.stringify(user));
-const getUser = (): UserData | null => {
-  const userData = localStorage.getItem(USER_KEY);
-  return userData ? JSON.parse(userData) : null;
-};
-const removeUser = () => localStorage.removeItem(USER_KEY);
 
 // API client with auth header
 const apiClient = axios.create({
@@ -40,179 +49,289 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Helper function to get user role from Firestore
+const getUserRole = async (uid: string): Promise<'user' | 'vendor' | 'admin'> => {
+  try {
+    const userDoc = await getDoc(doc(firestore, 'users', uid));
+    if (userDoc.exists()) {
+      return userDoc.data().role || 'user';
+    }
+    return 'user'; // Default role
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    return 'user'; // Default role
+  }
+};
+
+// Helper function to map Firebase user to our UserData interface
+const mapFirebaseUserToUserData = async (firebaseUser: FirebaseUser): Promise<UserData> => {
+  const role = await getUserRole(firebaseUser.uid);
+  
+  return {
+    uid: firebaseUser.uid,
+    email: firebaseUser.email,
+    displayName: firebaseUser.displayName,
+    photoURL: firebaseUser.photoURL,
+    phoneNumber: firebaseUser.phoneNumber,
+    role,
+    lastLoginAt: Date.now()
+  };
+};
+
 // Email/Password Authentication
 export const signInWithEmail = async (email: string, password: string) => {
   try {
-    // This is a mock since we don't have a direct server endpoint for this
-    // In a real app, you'd use Firebase client SDK to authenticate
-    // and then get a custom token from the server
+    // Sign in with Firebase Auth
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
     
-    // Simulate a successful login for now
-    // This would typically involve:
-    // 1. Client authenticates with Firebase client SDK
-    // 2. Get ID token from Firebase
-    // 3. Send ID token to server to get user details and role
+    // Get user data and role
+    const userData = await mapFirebaseUserToUserData(userCredential.user);
     
-    // For now, we'll just simulate a successful login
-    const mockUser = {
-      uid: `user_${Math.floor(Math.random() * 10000)}`,
-      email,
-      displayName: email.split('@')[0],
-      role: 'user' as const,
-    };
+    // Get ID token for API requests
+    const token = await getIdToken(userCredential.user);
+    setToken(token);
     
-    // Store user and token
-    setUser(mockUser);
-    setToken(`mock_token_${mockUser.uid}`);
+    // Update last login time
+    await updateDoc(doc(firestore, 'users', userData.uid), {
+      lastLoginAt: Date.now()
+    });
     
-    return { user: mockUser, error: null };
+    return { user: userData, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message || 'Login failed' };
+    let errorMessage = 'Login failed';
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      errorMessage = 'Invalid email or password';
+    } else if (error.code === 'auth/too-many-requests') {
+      errorMessage = 'Too many failed login attempts. Please try again later.';
+    }
+    return { user: null, error: errorMessage };
   }
 };
 
 export const createAccount = async (fullName: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
   try {
-    const response = await apiClient.post('/auth/register', {
-      fullName,
-      email,
-      password,
+    // Create user with Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    // Create user document in Firestore
+    await setDoc(doc(firestore, 'users', user.uid), {
+      uid: user.uid,
+      email: user.email,
+      displayName: fullName,
       role,
+      createdAt: Date.now(),
+      lastLoginAt: Date.now()
     });
     
-    if (response.data.success) {
-      const user = response.data.user;
-      
-      // Store user and token
-      setUser(user);
-      // In a real app, you'd get a token from Firebase after authentication
-      setToken(`mock_token_${user.uid}`);
-      
-      return { user, error: null };
-    } else {
-      return { user: null, error: response.data.message || 'Registration failed' };
-    }
+    // Get ID token for API requests
+    const token = await getIdToken(user);
+    setToken(token);
+    
+    // Return user data
+    const userData: UserData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: fullName,
+      role,
+      createdAt: Date.now(),
+      lastLoginAt: Date.now()
+    };
+    
+    return { user: userData, error: null };
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+    let errorMessage = 'Registration failed';
+    
+    if (error.code === 'auth/email-already-in-use') {
+      errorMessage = 'Email already in use. Please sign in or reset your password.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address.';
+    } else if (error.code === 'auth/weak-password') {
+      errorMessage = 'Password is too weak. Please use a stronger password.';
+    }
+    
     return { user: null, error: errorMessage };
   }
 };
 
-// Social Authentication
+// Social Authentication providers
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+
+// Google Authentication
 export const signInWithGoogle = async () => {
   try {
-    // This would need to be implemented with Firebase client SDK
-    // For now, return a mock success
-    const mockUser = {
-      uid: `google_user_${Math.floor(Math.random() * 10000)}`,
-      email: 'google_user@example.com',
-      displayName: 'Google User',
-      role: 'user' as const,
-    };
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
     
-    // Store user and token
-    setUser(mockUser);
-    setToken(`mock_token_${mockUser.uid}`);
+    // Check if user exists in Firestore
+    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
     
-    return { user: mockUser, error: null };
+    if (!userDoc.exists()) {
+      // Create new user document if first time login
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'user', // Default role for social login
+        createdAt: Date.now(),
+        lastLoginAt: Date.now()
+      });
+    } else {
+      // Update last login time
+      await updateDoc(doc(firestore, 'users', user.uid), {
+        lastLoginAt: Date.now()
+      });
+    }
+    
+    // Get user data with role
+    const userData = await mapFirebaseUserToUserData(user);
+    
+    // Get ID token for API requests
+    const token = await getIdToken(user);
+    setToken(token);
+    
+    return { user: userData, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message || 'Google sign-in failed' };
+    let errorMessage = 'Google sign-in failed';
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'Sign-in was cancelled';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMessage = 'Sign-in popup was blocked by your browser';
+    }
+    
+    return { user: null, error: errorMessage };
   }
 };
 
+// Facebook Authentication
 export const signInWithFacebook = async () => {
   try {
-    // This would need to be implemented with Firebase client SDK
-    // For now, return a mock success
-    const mockUser = {
-      uid: `facebook_user_${Math.floor(Math.random() * 10000)}`,
-      email: 'facebook_user@example.com',
-      displayName: 'Facebook User',
-      role: 'user' as const,
-    };
+    const result = await signInWithPopup(auth, facebookProvider);
+    const user = result.user;
     
-    // Store user and token
-    setUser(mockUser);
-    setToken(`mock_token_${mockUser.uid}`);
+    // Check if user exists in Firestore
+    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
     
-    return { user: mockUser, error: null };
+    if (!userDoc.exists()) {
+      // Create new user document if first time login
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'user', // Default role for social login
+        createdAt: Date.now(),
+        lastLoginAt: Date.now()
+      });
+    } else {
+      // Update last login time
+      await updateDoc(doc(firestore, 'users', user.uid), {
+        lastLoginAt: Date.now()
+      });
+    }
+    
+    // Get user data with role
+    const userData = await mapFirebaseUserToUserData(user);
+    
+    // Get ID token for API requests
+    const token = await getIdToken(user);
+    setToken(token);
+    
+    return { user: userData, error: null };
   } catch (error: any) {
-    return { user: null, error: error.message || 'Facebook sign-in failed' };
+    let errorMessage = 'Facebook sign-in failed';
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      errorMessage = 'Sign-in was cancelled';
+    } else if (error.code === 'auth/popup-blocked') {
+      errorMessage = 'Sign-in popup was blocked by your browser';
+    }
+    
+    return { user: null, error: errorMessage };
   }
 };
 
 // Password Reset
 export const resetPassword = async (email: string) => {
   try {
-    // This would need to be implemented with Firebase client SDK
-    // For now, return a mock success
+    await sendPasswordResetEmail(auth, email);
     return { success: true, error: null };
   } catch (error: any) {
-    return { success: false, error: error.message || 'Password reset failed' };
+    let errorMessage = 'Password reset failed';
+    
+    if (error.code === 'auth/user-not-found') {
+      errorMessage = 'No account found with this email';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = 'Invalid email address';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 };
 
 // Sign Out
 export const logout = async () => {
   try {
-    // Clear local storage
+    await signOut(auth);
     removeToken();
-    removeUser();
-    
     return { success: true, error: null };
   } catch (error: any) {
     return { success: false, error: error.message || 'Logout failed' };
   }
 };
 
-// Auth State Observer - similar functionality with local storage
+// Auth State Observer using Firebase Auth
 export const onAuthChanged = (callback: (user: UserData | null) => void) => {
-  // Initial call with current user
-  callback(getUser());
-  
-  // Setup a storage event listener to detect changes in other tabs
-  const handleStorageChange = (event: StorageEvent) => {
-    if (event.key === USER_KEY) {
-      const user = event.newValue ? JSON.parse(event.newValue) : null;
-      callback(user);
+  return onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      try {
+        const userData = await mapFirebaseUserToUserData(firebaseUser);
+        
+        // Update token
+        const token = await getIdToken(firebaseUser);
+        setToken(token);
+        
+        callback(userData);
+      } catch (error) {
+        console.error('Error in auth state change:', error);
+        callback(null);
+      }
+    } else {
+      removeToken();
+      callback(null);
     }
-  };
-  
-  window.addEventListener('storage', handleStorageChange);
-  
-  // Return unsubscribe function
-  return () => {
-    window.removeEventListener('storage', handleStorageChange);
-  };
+  });
 };
 
 // Get current user
-export const getCurrentUser = (): UserData | null => {
-  return getUser();
+export const getCurrentUser = async (): Promise<UserData | null> => {
+  const firebaseUser = auth.currentUser;
+  if (!firebaseUser) return null;
+  
+  try {
+    return await mapFirebaseUserToUserData(firebaseUser);
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
 };
 
 // Update user role
 export const updateUserRole = async (userId: string, role: 'user' | 'vendor' | 'admin') => {
   try {
-    const response = await apiClient.post('/auth/update-role', {
-      userId,
-      role,
-    });
+    // Update role in Firestore
+    await updateDoc(doc(firestore, 'users', userId), { role });
     
-    if (response.data.success) {
-      // Update local user if it's the current user
-      const currentUser = getUser();
-      if (currentUser && currentUser.uid === userId) {
-        currentUser.role = role;
-        setUser(currentUser);
-      }
-      
-      return { success: true, error: null };
-    } else {
-      return { success: false, error: response.data.message || 'Failed to update role' };
+    // If it's the current user, refresh the token to update claims
+    if (auth.currentUser?.uid === userId) {
+      await auth.currentUser.getIdToken(true);
     }
+    
+    return { success: true, error: null };
   } catch (error: any) {
-    const errorMessage = error.response?.data?.message || error.message || 'Failed to update role';
-    return { success: false, error: errorMessage };
+    return { success: false, error: error.message || 'Failed to update role' };
   }
 };

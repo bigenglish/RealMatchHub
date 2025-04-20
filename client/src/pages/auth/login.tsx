@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { signInWithEmail, signInWithGoogle, signInWithFacebook } from '@/lib/firebase';
+import { FcGoogle } from 'react-icons/fc';
+import { SiFacebook } from 'react-icons/si';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Form validation schema
 const loginSchema = z.object({
@@ -23,6 +25,7 @@ const Login = () => {
   const [location, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
 
   // Initialize form
   const form = useForm<LoginFormValues>({
@@ -37,13 +40,13 @@ const Login = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const { user, error } = await signInWithEmail(values.email, values.password);
+      const { success, error } = await login(values.email, values.password);
       
-      if (user) {
+      if (success) {
         // Show success notification
         toast({
-          title: 'Success',
-          description: 'You have successfully logged in.',
+          title: 'Welcome back!',
+          description: 'You have successfully logged in to Realty.AI',
         });
         setLocation('/'); // Navigate to home page
       } else {
@@ -54,11 +57,11 @@ const Login = () => {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       // Show unexpected error notification
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -70,27 +73,27 @@ const Login = () => {
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     setIsLoading(true);
     try {
-      const { user, error } = provider === 'google' 
-        ? await signInWithGoogle() 
-        : await signInWithFacebook();
+      const { success, error } = provider === 'google' 
+        ? await loginWithGoogle() 
+        : await loginWithFacebook();
       
-      if (user) {
+      if (success) {
         toast({
-          title: 'Success',
-          description: 'You have successfully logged in.',
+          title: 'Welcome to Realty.AI',
+          description: 'You have successfully logged in with ' + provider,
         });
         setLocation('/'); // Navigate to home page
       } else {
         toast({
           title: 'Login Failed',
-          description: error || 'Failed to sign in. Please try again.',
+          description: error || `Failed to sign in with ${provider}. Please try again.`,
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -186,32 +189,37 @@ const Login = () => {
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
-                className="w-full border-blue-300"
+                className="w-full border-gray-200 flex items-center justify-center gap-2"
                 onClick={() => handleSocialLogin('google')}
                 disabled={isLoading}
               >
-                Google
+                <FcGoogle className="h-5 w-5" />
+                <span>Google</span>
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full border-blue-300"
+                className="w-full border-gray-200 flex items-center justify-center gap-2 text-blue-600"
                 onClick={() => handleSocialLogin('facebook')}
                 disabled={isLoading}
               >
-                Facebook
+                <SiFacebook className="h-5 w-5 text-blue-600" />
+                <span>Facebook</span>
               </Button>
             </div>
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-center pt-2 pb-6">
-          <div className="text-sm text-gray-600">
+        <CardFooter className="flex flex-col gap-3 items-center pt-2 pb-6">
+          <div className="text-sm text-gray-600 text-center">
             Don't have an account?{' '}
             <Link href="/auth/register">
               <span className="text-blue-600 hover:underline cursor-pointer font-semibold">
                 Create one
               </span>
             </Link>
+          </div>
+          <div className="text-xs text-gray-500 text-center mt-2">
+            By signing in, you agree to our <Link href="/terms"><span className="underline">Terms of Service</span></Link> and <Link href="/privacy"><span className="underline">Privacy Policy</span></Link>
           </div>
         </CardFooter>
       </Card>

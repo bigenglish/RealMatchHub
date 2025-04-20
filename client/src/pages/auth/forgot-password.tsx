@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { resetPassword } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
+import { CheckCircle2 } from 'lucide-react';
 
 // Form validation schema
 const forgotPasswordSchema = z.object({
@@ -21,6 +22,7 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { toast } = useToast();
+  const { forgotPassword } = useAuth();
 
   // Initialize form
   const form = useForm<ForgotPasswordFormValues>({
@@ -34,7 +36,7 @@ const ForgotPassword = () => {
   const onSubmit = async (values: ForgotPasswordFormValues) => {
     setIsLoading(true);
     try {
-      const { success, error } = await resetPassword(values.email);
+      const { success, error } = await forgotPassword(values.email);
       
       if (success) {
         setIsSuccess(true);
@@ -49,10 +51,10 @@ const ForgotPassword = () => {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
+        description: error.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -75,13 +77,14 @@ const ForgotPassword = () => {
         <CardContent className="space-y-6">
           {isSuccess ? (
             <div className="text-center space-y-4">
-              <div className="bg-green-100 text-green-700 p-4 rounded-md">
-                <p className="font-medium">Reset Link Sent!</p>
+              <div className="flex flex-col items-center gap-2 bg-green-50 text-green-700 p-6 rounded-md">
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+                <p className="font-medium text-lg">Reset Link Sent!</p>
                 <p className="text-sm mt-1">
-                  Check your email for instructions to reset your password.
+                  Check your email for instructions to reset your password. The link will expire in 24 hours.
                 </p>
               </div>
-              <Button asChild className="w-full">
+              <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
                 <Link href="/auth/login">
                   Return to Login
                 </Link>

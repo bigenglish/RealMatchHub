@@ -1,4 +1,10 @@
 
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getAnalytics, isSupported } from 'firebase/analytics';
+
 // Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -10,4 +16,25 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-export default firebaseConfig;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase services
+export const auth = getAuth(app);
+export const firestore = getFirestore(app);
+export const storage = getStorage(app);
+
+// Initialize Analytics conditionally (only in browser environments)
+export const initializeAnalytics = async () => {
+  try {
+    if (await isSupported()) {
+      return getAnalytics(app);
+    }
+    return null;
+  } catch (error) {
+    console.error('Firebase Analytics initialization error:', error);
+    return null;
+  }
+};
+
+export default app;

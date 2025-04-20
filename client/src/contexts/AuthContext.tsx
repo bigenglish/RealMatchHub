@@ -1,17 +1,40 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthChanged, UserData, getCurrentUser } from '../lib/firebase';
+import { 
+  onAuthChanged, 
+  signInWithEmail, 
+  signInWithGoogle, 
+  signInWithFacebook, 
+  createAccount, 
+  resetPassword, 
+  logout,
+  UserData, 
+  getCurrentUser 
+} from '../lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
   error: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithFacebook: () => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, role?: 'user' | 'vendor' | 'admin') => Promise<{ success: boolean; error?: string }>;
+  forgotPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<{ success: boolean; error?: string }>;
 }
 
-// Create context with a default empty object
+// Create context with default values
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   error: null,
+  login: async () => ({ success: false, error: 'Not implemented' }),
+  loginWithGoogle: async () => ({ success: false, error: 'Not implemented' }),
+  loginWithFacebook: async () => ({ success: false, error: 'Not implemented' }),
+  register: async () => ({ success: false, error: 'Not implemented' }),
+  forgotPassword: async () => ({ success: false, error: 'Not implemented' }),
+  signOut: async () => ({ success: false, error: 'Not implemented' }),
 });
 
 // Custom hook to use the auth context
@@ -22,14 +45,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing user in localStorage first
-    const existingUser = getCurrentUser();
-    if (existingUser) {
-      setUser(existingUser);
-      setLoading(false);
-    }
+    const initializeAuth = async () => {
+      try {
+        // Check for existing user
+        const existingUser = await getCurrentUser();
+        if (existingUser) {
+          setUser(existingUser);
+        }
+      } catch (err) {
+        console.error('Error initializing auth:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     // Set up the auth state listener
     const unsubscribe = onAuthChanged((userData) => {
@@ -43,11 +76,124 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Login with email and password
+  const login = async (email: string, password: string) => {
+    try {
+      const { user, error } = await signInWithEmail(email, password);
+      if (user) {
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during login';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Login with Google
+  const loginWithGoogle = async () => {
+    try {
+      const { user, error } = await signInWithGoogle();
+      if (user) {
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during Google login';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Login with Facebook
+  const loginWithFacebook = async () => {
+    try {
+      const { user, error } = await signInWithFacebook();
+      if (user) {
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during Facebook login';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Register a new user
+  const register = async (name: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
+    try {
+      const { user, error } = await createAccount(name, email, password, role);
+      if (user) {
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during registration';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Reset password
+  const forgotPassword = async (email: string) => {
+    try {
+      const { success, error } = await resetPassword(email);
+      if (success) {
+        toast({
+          title: 'Password Reset Email Sent',
+          description: 'Check your email for a link to reset your password.',
+        });
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during password reset';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Sign out
+  const signOut = async () => {
+    try {
+      const { success, error } = await logout();
+      if (success) {
+        setUser(null);
+        return { success: true };
+      } else {
+        setError(error);
+        return { success: false, error };
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred during sign out';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // Context value
   const value = {
     user,
     loading,
-    error
+    error,
+    login,
+    loginWithGoogle,
+    loginWithFacebook,
+    register,
+    forgotPassword,
+    signOut
   };
 
   return (

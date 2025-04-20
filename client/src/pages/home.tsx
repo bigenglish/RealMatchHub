@@ -440,24 +440,28 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">Start your rental journey with smart search tools.</h4>
+                  <h4 className="text-lg font-semibold mb-2">List and manage your property for free.</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>AI-powered rental property search & alerts based on your criteria</span>
+                    <span>Create and manage property listings</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Direct communication tools with listing agents/landlords</span>
+                    <span>Upload photos and videos</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Save favorite properties and track their availability</span>
+                    <span>Basic search filters</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Basic application form and submission tools</span>
+                    <span>Connect with local professionals</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Basic customer support</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -476,28 +480,28 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-green-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">All "Free" features.</h4>
+                  <h4 className="text-lg font-semibold mb-2">All "Free" features, plus:</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Personalized assistance from a rental expert (email/chat) to refine your search</span>
+                    <span>Advanced search filters</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Neighborhood guides and insights relevant to your preferences</span>
+                    <span>Listing analytics and insights</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Lease agreement review (AI-powered with expert clarification)</span>
+                    <span>Featured property listing</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Guidance on preparing a strong rental application</span>
+                    <span>Customizable property page</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Assistance with scheduling property viewings</span>
+                    <span>Access to local market reports</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -516,28 +520,40 @@ export default function HomePage() {
               </div>
               <div className="p-6 bg-amber-50 flex-1 flex flex-col">
                 <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">All "Basic" features.</h4>
+                  <h4 className="text-lg font-semibold mb-2">All "Basic" features, plus:</h4>
                 </div>
                 <ul className="space-y-3 flex-1">
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Dedicated rental concierge to proactively find suitable properties for you</span>
+                    <span>Professional photography and staging consultation</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Virtual tours of shortlisted properties</span>
+                    <span>Highlighted property listing</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Assistance with negotiating lease terms</span>
+                    <span>Premium marketing services (social media promotion, email marketing)</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Background check and application fee reimbursement (up to a certain limit)</span>
+                    <span>Access to in-depth market analysis and reports</span>
                   </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Move-in checklist and support</span>
+                    <span>Connect with verified local professionals</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Priority customer support</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Write up Offer & Negotiation</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Handle Negotiations for Repairs and Credits</span>
                   </li>
                 </ul>
                 <div className="mt-8">
@@ -625,7 +641,7 @@ export default function HomePage() {
               </div>
 
               <div>
-                <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
+                <h3 classNamefont-bold text-xl mb-2">Smart Matching:</h3>
                 <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
               </div>
             </div>
@@ -1194,7 +1210,7 @@ export default function HomePage() {
                   <span className="text-gray-600">
                     123 Real Estate Ave, <br />
                     New York, NY 10001
-                  </span>
+                  </</span>
                 </li>
               </ul>
             </div>

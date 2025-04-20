@@ -27,7 +27,7 @@ import useFirestoreChat, {
 interface ChatInterfaceProps {
   userId: number;
   userName: string;
-  userType: ParticipantType;
+  userType: ParticipantTypeValue;
   expertMode?: boolean;
   onClose?: () => void;
   className?: string;

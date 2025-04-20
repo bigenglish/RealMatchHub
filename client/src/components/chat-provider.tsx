@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import ChatInterface from './chat-interface'; // Original WebSocket version
 import ChatInterfaceFirestore from './chat-interface-firestore'; // New Firestore version
-import useFirestoreChat, { ParticipantType } from '@/hooks/use-firestore-chat-fixed';
+import useFirestoreChat, { ParticipantTypeValue } from '@/hooks/use-firestore-chat-fixed';
 
 // Configuration to control which chat implementation to use
 const USE_FIRESTORE = true; // Set to true to use Firestore, false to use WebSockets
@@ -27,13 +27,13 @@ export default function ChatProvider({
   const { toast } = useToast();
   
   // Map string user type to enum value
-  const mapUserType = (type: string) => {
+  const mapUserType = (type: string): ParticipantTypeValue => {
     switch (type.toLowerCase()) {
-      case 'buyer': return ParticipantType.BUYER;
-      case 'seller': return ParticipantType.SELLER;
-      case 'expert': return ParticipantType.EXPERT;
-      case 'customer_service': return ParticipantType.CUSTOMER_SERVICE;
-      default: return ParticipantType.BUYER;
+      case 'buyer': return 'buyer' as ParticipantTypeValue;
+      case 'seller': return 'seller' as ParticipantTypeValue;
+      case 'expert': return 'expert' as ParticipantTypeValue;
+      case 'customer_service': return 'customer_service' as ParticipantTypeValue;
+      default: return 'buyer' as ParticipantTypeValue;
     }
   };
   

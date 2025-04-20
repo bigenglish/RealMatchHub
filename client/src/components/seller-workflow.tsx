@@ -337,13 +337,14 @@ export default function SellerWorkflow({
     if (event.target.files) {
       const files = Array.from(event.target.files);
       setUploadedFiles(prevFiles => [...prevFiles, ...files]);
-
-      // Update seller info with the new files
+      
+      const fileUrls = files.map(file => URL.createObjectURL(file));
+      
       setSellerInfo(prev => ({
         ...prev,
         propertyDetails: {
           ...prev.propertyDetails!,
-          photos: [...(prev.propertyDetails?.photos || []), ...files.map(file => URL.createObjectURL(file))]
+          photos: [...(prev.propertyDetails?.photos || []), ...fileUrls]
         }
       }));
     }

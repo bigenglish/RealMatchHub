@@ -368,14 +368,35 @@ export default function Services() {
       {/* Chat Dialog */}
       <Dialog open={showChat} onOpenChange={setShowChat}>
         <DialogContent className="max-w-lg p-0 max-h-[80vh] overflow-hidden">
-          {activeExpert && (
-            <ChatProvider
-              userId={currentUser.id}
-              userName={currentUser.name}
-              userType="buyer"
-              onClose={handleChatClose}
-            />
-          )}
+          {activeExpert && (() => {
+            try {
+              console.log('Initializing chat with:', {
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userType: 'buyer',
+                expertId: activeExpert.id,
+                expertName: activeExpert.name
+              });
+              
+              return (
+                <ChatProvider
+                  userId={currentUser.id}
+                  userName={currentUser.name}
+                  userType="buyer"
+                  onClose={handleChatClose}
+                />
+              );
+            } catch (error) {
+              console.error('Error rendering ChatProvider:', error);
+              return (
+                <div className="p-4 text-center">
+                  <h3 className="text-lg font-medium mb-2 text-red-500">Chat Connection Error</h3>
+                  <p className="mb-4">There was a problem connecting to the chat service.</p>
+                  <Button onClick={handleChatClose}>Close</Button>
+                </div>
+              );
+            }
+          })()}
         </DialogContent>
       </Dialog>
       

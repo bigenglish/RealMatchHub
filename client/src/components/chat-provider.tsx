@@ -5,7 +5,7 @@ import ChatInterfaceFirestore from './chat-interface-firestore'; // New Firestor
 import useFirestoreChat, { ParticipantTypeValue } from '@/hooks/use-firestore-chat-fixed';
 
 // Configuration to control which chat implementation to use
-const USE_FIRESTORE = true; // Set to true to use Firestore, false to use WebSockets
+const USE_FIRESTORE = false; // Temporarily set to false to use WebSockets until Firestore issues are resolved
 
 export interface ChatProviderProps {
   userId: number;

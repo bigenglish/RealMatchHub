@@ -21,9 +21,13 @@ try {
   if (!firestoreInstance) {
     throw new Error('Firestore instance is null or undefined');
   }
-  // Fix the type issue by using proper type assertion
-  const typedFirestoreInstance = firestoreInstance as unknown as Firestore;
-  firestore = typedFirestoreInstance;
+  
+  if (typeof firestoreInstance !== 'object') {
+    throw new Error('Firestore instance is not an object');
+  }
+  
+  // Type assertion with proper validation
+  firestore = firestoreInstance as Firestore;
   console.log('Firestore instance validated successfully in use-firestore-chat-fixed.ts');
 } catch (error) {
   const errorMessage = error instanceof Error ? error.message : 'Unknown error';

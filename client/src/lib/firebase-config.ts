@@ -1,7 +1,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 
@@ -45,7 +45,9 @@ try {
 }
 
 // Initialize Firebase services with error handling
-let auth, firestore, storage;
+let auth;
+let firestore: Firestore | null;
+let storage;
 
 try {
   auth = getAuth(app);

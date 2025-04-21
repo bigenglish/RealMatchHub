@@ -4,7 +4,7 @@ import admin from 'firebase-admin';
 try {
   if (!admin.apps.length) {
     // Try to initialize with service account JSON from environment variables
-    if (process.env.FIREBASE_ADMIN_KEY) {
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
       // Parse the JSON credential string from environment variable
       const serviceAccount = JSON.parse(
         process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON

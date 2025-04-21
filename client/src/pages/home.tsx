@@ -563,19 +563,6 @@ export default function HomePage() {
               </>
             ) : userType === 'Renters' ? (
               <>
-                {/* BASIC Tier - Renters */}
-                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
-                  <div className="bg-olive-600 p-4 text-white text-center">
-                    <h3 className="text-3xl font-bold">BASIC</h3>
-                    <p className="text-white/90">As low as $50</p>
-                  </div>
-                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
-                    <div className="mb-6">
-                      <h4 className="text-lg font-semibold mb-2">Essential Rental Search Tools</h4>
-                    </div>
-                    <ul className="space-y-3 flex-1">
-                      <li className="flex items-start">
-                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
                         <span>Advanced search filters (size, features, pet policies, etc.)</span>
                       </li>
                       <li className="flex items-start">
@@ -598,18 +585,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-{/* PREMIUM Tier - Renters */}
-                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
-                  <div className="bg-olive-600 p-4 text-white text-center">
-                    <h3 className="text-3xl font-bold">PREMIUM</h3>
-                    <p className="text-white/90">As low as $100</p>
-                  </div>
-                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
-                    <div className="mb-6">
-                      <h4 className="text-lg font-semibold mb-2">Your Advantage in the Rental Market</h4>
-                      <p className="text-sm text-gray-600">All "Basic" features, plus:</p>
-                    </div>
-                    <ul className="space-y-3 flex-1">
+
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
                         <span>Personalized rental recommendations based on your criteria</span>

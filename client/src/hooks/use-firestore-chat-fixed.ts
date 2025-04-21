@@ -14,8 +14,19 @@ import {
   Firestore
 } from 'firebase/firestore';
 
-// Ensure we have a valid Firestore instance
-const firestore: Firestore = firestoreInstance as Firestore;
+// Validate that we have a valid Firestore instance and provide detailed error information
+let firestore: Firestore;
+
+try {
+  if (!firestoreInstance) {
+    throw new Error('Firestore instance is null or undefined');
+  }
+  firestore = firestoreInstance as Firestore;
+  console.log('Firestore instance validated successfully in use-firestore-chat-fixed.ts');
+} catch (error) {
+  console.error('CRITICAL ERROR: Invalid Firestore instance in use-firestore-chat-fixed.ts:', error);
+  throw new Error(`Firebase Firestore initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+}
 
 // Message and conversation types matching our backend
 // Enums defined as const objects so they can be used both as types and values

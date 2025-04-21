@@ -26,9 +26,13 @@ export default function HowItWorks() {
             <p className="text-gray-600 mb-6">
               Start by telling us what you're looking for. Whether you're buying, selling, or need to manage your home, upload photos and answer a few simple questions about your goals and basic financial information.
             </p>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white">
+              Get Started
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Screenshot of the initial questionnaire</p>
+            <img src="/images/questionnaire.png" alt="Initial questionnaire" className="w-full h-full object-contain" />
           </div>
         </div>
 
@@ -40,11 +44,15 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Explore</h2>
             <p className="text-gray-600 mb-6">
-              Browse through agent profiles and matching results to find the perfect fit for your real estate journey.
+              Browse through our curated selection of agent profiles and matching results to find the perfect fit for your real estate journey.
             </p>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white">
+              View Profiles
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Image of agent profiles and matching results</p>
+            <img src="/images/agent-profiles.png" alt="Agent profiles" className="w-full h-full object-contain" />
           </div>
         </div>
 
@@ -56,11 +64,15 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Choose Your Services</h2>
             <p className="text-gray-600 mb-6">
-              Select from our range of pricing bundle tiers and service packages tailored to your needs.
+              Select from our transparent pricing bundle tiers and service packages tailored to your specific needs.
             </p>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white">
+              View Packages
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Screenshot of pricing bundle tiers and service packages</p>
+            <img src="/images/pricing-bundles.png" alt="Pricing bundles" className="w-full h-full object-contain" />
           </div>
         </div>
 
@@ -72,11 +84,15 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Manage Your Journey</h2>
             <p className="text-gray-600 mb-6">
-              Track your progress and manage your entire real estate journey through the Reaty.ai dashboard.
+              Track your progress and manage your entire real estate journey through our intuitive Reaty.ai dashboard.
             </p>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white">
+              View Dashboard
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Screenshot of the Reaty.ai dashboard</p>
+            <img src="/images/dashboard.png" alt="Dashboard interface" className="w-full h-full object-contain" />
           </div>
         </div>
 
@@ -88,22 +104,17 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Receive 24/7 Support</h2>
             <p className="text-gray-600 mb-6">
-              Get continuous support and guidance throughout your real estate journey.
+              Get continuous support and expert guidance throughout your real estate journey, whenever you need it.
             </p>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white">
+              Contact Support
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Support interface visualization</p>
+            <img src="/images/support.png" alt="Support interface" className="w-full h-full object-contain" />
           </div>
         </div>
-      </div>
-
-      {/* Visual Flow Arrows */}
-      <div className="hidden md:block">
-        {[1, 2, 3, 4].map((step) => (
-          <div key={step} className="flex justify-center my-8">
-            <ArrowRight className="w-6 h-6 text-olive-600 transform rotate-90" />
-          </div>
-        ))}
       </div>
 
       {/* CTA Section */}

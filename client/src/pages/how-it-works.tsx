@@ -28,7 +28,7 @@ export default function HowItWorks() {
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Initial questionnaire interface with property types and budget sliders</p>
+            <p className="text-gray-500">Screenshot of the initial questionnaire</p>
           </div>
         </div>
 
@@ -38,13 +38,13 @@ export default function HowItWorks() {
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
               <span className="text-olive-600 font-bold">2</span>
             </div>
-            <h2 className="text-2xl font-bold mb-4">Meet Your Matches</h2>
+            <h2 className="text-2xl font-bold mb-4">Explore</h2>
             <p className="text-gray-600 mb-6">
-              Based on your criteria, we'll match you with a curated list of qualified real estate agents, contractors, designers, and other professionals in your area. Review their profiles, experience, and client testimonials to find the perfect fit.
+              Browse through agent profiles and matching results to find the perfect fit for your real estate journey.
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Agent profiles with photos, bios, specializations, and ratings</p>
+            <p className="text-gray-500">Image of agent profiles and matching results</p>
           </div>
         </div>
 
@@ -56,11 +56,11 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Choose Your Services</h2>
             <p className="text-gray-600 mb-6">
-              Select only the services you need, from initial consultation to full transaction management. Our transparent pricing model lets you pay for what you use, or select from our predetermined packages, saving you time and money. No hidden fees or surprise commissions.
+              Select from our range of pricing bundle tiers and service packages tailored to your needs.
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Service packages with pricing breakdowns and feature comparisons</p>
+            <p className="text-gray-500">Screenshot of pricing bundle tiers and service packages</p>
           </div>
         </div>
 
@@ -72,11 +72,11 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Manage Your Journey</h2>
             <p className="text-gray-600 mb-6">
-              Manage every aspect of your real estate journey within the Reaty.ai platform. Track progress, review documents, schedule appointments, communicate with your team, and access valuable resources—all in one convenient location.
+              Track your progress and manage your entire real estate journey through the Reaty.ai dashboard.
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Dashboard with progress tracking, document storage, and scheduling tools</p>
+            <p className="text-gray-500">Screenshot of the Reaty.ai dashboard</p>
           </div>
         </div>
 
@@ -86,21 +86,21 @@ export default function HowItWorks() {
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
               <span className="text-olive-600 font-bold">5</span>
             </div>
-            <h2 className="text-2xl font-bold mb-4">We're Here to Help</h2>
+            <h2 className="text-2xl font-bold mb-4">Receive 24/7 Support</h2>
             <p className="text-gray-600 mb-6">
-              From Expert guidance to our dedicated Realty.ai support team, available 24/7 to answer your questions and provide assistance throughout the entire process. Access FAQs, community forums, and direct support channels whenever you need them.
+              Get continuous support and guidance throughout your real estate journey.
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Help center interface with chatbot and support features</p>
+            <p className="text-gray-500">Support interface visualization</p>
           </div>
         </div>
       </div>
 
       {/* Visual Flow Arrows */}
-      <div className="hidden md:block relative">
+      <div className="hidden md:block">
         {[1, 2, 3, 4].map((step) => (
-          <div key={step} className="absolute left-1/2 -translate-x-1/2" style={{ top: `${step * 24}rem` }}>
+          <div key={step} className="flex justify-center my-8">
             <ArrowRight className="w-6 h-6 text-olive-600 transform rotate-90" />
           </div>
         ))}
@@ -108,10 +108,9 @@ export default function HowItWorks() {
 
       {/* CTA Section */}
       <div className="text-center mt-24">
-        <h2 className="text-2xl font-bold mb-4">Ready to experience real estate simplified?</h2>
-        <p className="text-gray-600 mb-6">Create your free Reaty.ai account and start your journey.</p>
+        <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
         <Button className="bg-olive-600 hover:bg-olive-700 text-white gap-2">
-          Get Started Today
+          Begin Your Journey
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>

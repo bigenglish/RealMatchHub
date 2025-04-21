@@ -42,13 +42,18 @@ export default function ChatProvider({
   // Show a notification once when switching to Firestore
   useEffect(() => {
     if (USE_FIRESTORE) {
+      console.log('Chat Provider: Using Firestore implementation');
+      console.log('Chat Provider props:', { userId, userName, userType, expertMode });
+      
       toast({
         title: "Using Firestore Chat",
         description: "This chat is now powered by Firebase Firestore for better real-time performance",
         duration: 3000
       });
+    } else {
+      console.log('Chat Provider: Using WebSocket implementation');
     }
-  }, [toast]);
+  }, [toast, userId, userName, userType, expertMode]);
 
   // Render the appropriate chat interface
   return USE_FIRESTORE ? (

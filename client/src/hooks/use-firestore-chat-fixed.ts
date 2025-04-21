@@ -84,6 +84,8 @@ export default function useFirestoreChat({
   const [loading, setLoading] = useState<boolean>(true);
   const [messageInput, setMessageInput] = useState<string>('');
   const { toast } = useToast();
+  
+  console.log('useFirestoreChat hook initialized with', { userId, userName, userType });
 
   // Format Firestore timestamp to string
   const formatTimestamp = useCallback((timestamp: Timestamp): string => {

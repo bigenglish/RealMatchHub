@@ -677,7 +677,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </>
-              </>
             ) : (
               <>
                 {/* FREE Tier - Sellers (Original) */}

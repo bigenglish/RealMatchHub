@@ -7,8 +7,9 @@ const Welcome = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+        <CardHeader className="text-center space-y-4">
+          <img src="/images/logos/RealtyAI/logo.svg" alt="Realty.AI" className="h-12 mx-auto" />
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 text-transparent bg-clip-text">
             Welcome to Realty.AI
           </CardTitle>
           <CardDescription className="text-gray-600 text-lg">

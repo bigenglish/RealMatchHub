@@ -433,28 +433,102 @@ export default function HomePage() {
 
           {/* Pricing Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* FREE Tier */}
-            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
-              <div className="bg-olive-600 p-4 text-white text-center">
-                <h3 className="text-3xl font-bold">FREE</h3>
-              </div>
-              <div className="p-6 bg-amber-50 flex-1 flex flex-col">
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold mb-2">List and manage your property for free.</h4>
+            {userType === 'Buyers' ? (
+              <>
+                {/* FREE Tier - Buyers */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
+                  <div className="bg-olive-600 p-4 text-white text-center">
+                    <h3 className="text-3xl font-bold">FREE</h3>
+                  </div>
+                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-2">Find Your Dream Property (Free Discovery)</h4>
+                    </div>
+                    <ul className="space-y-3 flex-1">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Browse all available listings in your area</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Save your favorite properties and searches</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Access basic search filters</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Connect with local real estate professionals</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Receive basic customer support</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-                <ul className="space-y-3 flex-1">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Create and manage property listings</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Upload photos and videos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Basic search filters</span>
-                  </li>
+              </>
+            ) : userType === 'Renters' ? (
+              <>
+                {/* FREE Tier - Renters */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
+                  <div className="bg-olive-600 p-4 text-white text-center">
+                    <h3 className="text-3xl font-bold">FREE</h3>
+                  </div>
+                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-2">Start Your Rental Search (Free Discovery)</h4>
+                    </div>
+                    <ul className="space-y-3 flex-1">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Browse all available rental listings in your area</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Save your favorite rental properties and searches</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Access basic search filters</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Connect with local property managers/landlords</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Receive basic customer support</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* FREE Tier - Sellers (Original) */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
+                  <div className="bg-olive-600 p-4 text-white text-center">
+                    <h3 className="text-3xl font-bold">FREE</h3>
+                  </div>
+                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-2">List and manage your property for free.</h4>
+                    </div>
+                    <ul className="space-y-3 flex-1">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Create and manage property listings</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Upload photos and videos</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Basic search filters</span>
+                      </li>
                   <li className="flex items-start">
                     <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
                     <span>Connect with local professionals</span>

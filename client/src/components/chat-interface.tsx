@@ -28,12 +28,9 @@ enum MessageType {
   LEAVE = 'leave'
 }
 
-enum ParticipantType {
-  BUYER = 'buyer',
-  SELLER = 'seller',
-  EXPERT = 'expert',
-  CUSTOMER_SERVICE = 'customer_service'
-}
+// Changed to match the type from use-firestore-chat-fixed.ts
+// This fixes the type compatibility issues with chat-provider.tsx
+type ParticipantType = 'buyer' | 'seller' | 'expert' | 'customer_service';
 
 // Chat message type
 interface ChatMessage {
@@ -94,25 +91,94 @@ export default function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // WebSocket connection is temporarily disabled
+  // WebSocket connection effect - re-enabled
   useEffect(() => {
-    console.log('WebSocket connection disabled - authentication flow will be prioritized first');
+    console.log('Initializing WebSocket connection for chat');
     
-    // Simulating a connected state for UI purposes only
-    setConnected(true);
+    // Create WebSocket connection
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
-    // No need for mock notification in production
-    /* 
-    toast({
-      title: "WebSocket Connection",
-      description: "WebSocket temporarily disabled during authentication implementation",
-    });
-    */
-    
-    return () => {
-      // Cleanup function - nothing to do for now
-    };
-  }, [userId, userName, userType]);
+    try {
+      const newSocket = new WebSocket(wsUrl);
+      
+      newSocket.onopen = () => {
+        console.log('WebSocket connection established');
+        setConnected(true);
+        
+        // Send join message
+        const joinMessage = {
+          type: MessageType.JOIN,
+          userId: userId,
+          userName: userName,
+          userType: userType,
+        };
+        newSocket.send(JSON.stringify(joinMessage));
+        
+        // Fetch existing conversations after connection
+        fetchConversations();
+      };
+      
+      newSocket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('WebSocket message received:', data);
+          
+          if (data.type === MessageType.CHAT && activeConversation && data.conversationId === activeConversation.id) {
+            // Add new message to the current conversation
+            setMessages(prevMessages => [...prevMessages, data]);
+            
+            // Scroll to bottom when new message arrives
+            if (messagesEndRef.current) {
+              messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+          } else if (data.type === MessageType.SYSTEM) {
+            // Handle system messages (like new conversation created)
+            fetchConversations();
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      newSocket.onclose = () => {
+        console.log('WebSocket connection closed');
+        setConnected(false);
+      };
+      
+      newSocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        setConnected(false);
+        toast({
+          title: "Connection Error",
+          description: "Failed to connect to chat service. Please try again later.",
+          variant: "destructive"
+        });
+      };
+      
+      setSocket(newSocket);
+      
+      return () => {
+        // Send leave message before closing
+        if (newSocket.readyState === WebSocket.OPEN) {
+          const leaveMessage = {
+            type: MessageType.LEAVE,
+            userId: userId,
+            userName: userName,
+          };
+          newSocket.send(JSON.stringify(leaveMessage));
+          newSocket.close();
+        }
+      };
+    } catch (error) {
+      console.error('Error setting up WebSocket:', error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to initialize chat connection. Please try again later.",
+        variant: "destructive"
+      });
+    }
+  }, [userId, userName, userType, toast]);
   
   // Fetch conversations
   const fetchConversations = async () => {
@@ -221,30 +287,76 @@ export default function ChatInterface({
       return;
     }
     
-    // In non-WebSocket mode, directly update UI with local message
-    const tempMessage: ChatMessage = {
-      id: `temp-${Date.now()}`,
-      conversationId: activeConversation.id.toString(),
+    // Create message object
+    const message = {
+      type: MessageType.CHAT,
+      conversationId: activeConversation.id,
       senderId: userId,
       senderName: userName,
       senderType: userType,
       content: messageInput,
-      type: MessageType.CHAT,
       timestamp: new Date().toISOString(),
-      isRead: true
     };
     
-    // Add message to local UI
-    setMessages(prev => [...prev, tempMessage]);
-    
-    // Show a toast notification
-    toast({
-      title: "Message Sent",
-      description: "Note: WebSocket connection is temporarily disabled",
-    });
-    
-    // Clear input
-    setMessageInput('');
+    // Check if WebSocket is connected
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      try {
+        // Send through WebSocket
+        socket.send(JSON.stringify(message));
+        
+        // Clear input after sending
+        setMessageInput('');
+      } catch (error) {
+        console.error('Error sending message via WebSocket:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Fallback if WebSocket is not connected
+      console.warn('WebSocket not connected, using fallback method');
+      
+      // Create a temporary message for UI
+      const tempMessage: ChatMessage = {
+        id: `temp-${Date.now()}`,
+        conversationId: activeConversation.id.toString(),
+        senderId: userId,
+        senderName: userName,
+        senderType: userType,
+        content: messageInput,
+        type: MessageType.CHAT,
+        timestamp: new Date().toISOString(),
+        isRead: true
+      };
+      
+      // Add message to local UI
+      setMessages(prev => [...prev, tempMessage]);
+      
+      // Show a toast notification
+      toast({
+        title: "Message Sent",
+        description: "Using local mode - WebSocket reconnecting...",
+      });
+      
+      // Try to reconnect WebSocket
+      if (!connected) {
+        toast({
+          title: "Reconnecting",
+          description: "Attempting to reconnect to chat service...",
+        });
+        
+        // Create new WebSocket connection
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        const newSocket = new WebSocket(wsUrl);
+        setSocket(newSocket);
+      }
+      
+      // Clear input
+      setMessageInput('');
+    }
   };
   
   // Handle conversation selection
@@ -303,13 +415,13 @@ export default function ChatInterface({
   // Get avatar color based on user type
   const getAvatarColor = (userType: string) => {
     switch (userType) {
-      case ParticipantType.BUYER:
+      case 'buyer':
         return 'bg-blue-500';
-      case ParticipantType.SELLER:
+      case 'seller':
         return 'bg-green-500';
-      case ParticipantType.EXPERT:
+      case 'expert':
         return 'bg-amber-500';
-      case ParticipantType.CUSTOMER_SERVICE:
+      case 'customer_service':
         return 'bg-purple-500';
       default:
         return 'bg-gray-500';
@@ -433,8 +545,8 @@ export default function ChatInterface({
                 createConversation(
                   expertMode ? "New Customer Chat" : "Chat with Expert",
                   expertMode ? 
-                    [{ userId: 123, userType: ParticipantType.BUYER }] : 
-                    [{ userId: 456, userType: ParticipantType.EXPERT }]
+                    [{ userId: 123, userType: 'buyer' }] : 
+                    [{ userId: 456, userType: 'expert' }]
                 );
               }}
             >

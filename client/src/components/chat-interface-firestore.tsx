@@ -61,6 +61,16 @@ export default function ChatInterfaceFirestore({
     userName,
     userType
   });
+  
+  console.log('ChatInterfaceFirestore: Loaded with props', { 
+    userId, userName, userType, expertMode 
+  });
+  console.log('ChatInterfaceFirestore: Firestore chat state', { 
+    conversationsCount: conversations?.length || 0,
+    hasActiveConversation: !!activeConversation,
+    messagesCount: messages?.length || 0,
+    isLoading: loading
+  });
 
   // Scroll to bottom of messages when messages change
   useEffect(() => {
@@ -71,43 +81,69 @@ export default function ChatInterfaceFirestore({
 
   // Create expert conversation
   const startExpertChat = async () => {
-    if (!userId) return;
+    if (!userId) {
+      console.error('Cannot start expert chat: userId is not defined');
+      return;
+    }
     
-    // Create a conversation with our expert
-    const newConversation = await createConversation(
-      `Expert Chat with ${userName}`,
-      [
-        { userId, userType },
-        { userId: 1, userType: 'expert' as ParticipantTypeValue } // Assuming ID 1 is our expert
-      ],
-      'support',
-      { requestType: 'expert_assistance' }
-    );
+    console.log('Starting expert chat with:', { userId, userName, userType });
     
-    if (newConversation) {
-      selectConversation(newConversation);
-      setActiveTab('chat');
+    try {
+      // Create a conversation with our expert
+      const newConversation = await createConversation(
+        `Expert Chat with ${userName}`,
+        [
+          { userId, userType },
+          { userId: 1, userType: 'expert' as ParticipantTypeValue } // Assuming ID 1 is our expert
+        ],
+        'support',
+        { requestType: 'expert_assistance' }
+      );
+      
+      console.log('Expert chat conversation created:', newConversation);
+      
+      if (newConversation) {
+        selectConversation(newConversation);
+        setActiveTab('chat');
+      } else {
+        console.error('Failed to create expert chat: conversation is null');
+      }
+    } catch (error) {
+      console.error('Error creating expert chat conversation:', error);
     }
   };
 
   // Create customer service conversation
   const startCustomerServiceChat = async () => {
-    if (!userId) return;
+    if (!userId) {
+      console.error('Cannot start customer service chat: userId is not defined');
+      return;
+    }
     
-    // Create a conversation with customer service
-    const newConversation = await createConversation(
-      `Customer Support for ${userName}`,
-      [
-        { userId, userType },
-        { userId: 2, userType: 'customer_service' as ParticipantTypeValue } // Assuming ID 2 is customer service
-      ],
-      'support',
-      { requestType: 'customer_support' }
-    );
+    console.log('Starting customer service chat with:', { userId, userName, userType });
     
-    if (newConversation) {
-      selectConversation(newConversation);
-      setActiveTab('chat');
+    try {
+      // Create a conversation with customer service
+      const newConversation = await createConversation(
+        `Customer Support for ${userName}`,
+        [
+          { userId, userType },
+          { userId: 2, userType: 'customer_service' as ParticipantTypeValue } // Assuming ID 2 is customer service
+        ],
+        'support',
+        { requestType: 'customer_support' }
+      );
+      
+      console.log('Customer service conversation created:', newConversation);
+      
+      if (newConversation) {
+        selectConversation(newConversation);
+        setActiveTab('chat');
+      } else {
+        console.error('Failed to create customer service chat: conversation is null');
+      }
+    } catch (error) {
+      console.error('Error creating customer service conversation:', error);
     }
   };
 
@@ -218,7 +254,7 @@ export default function ChatInterfaceFirestore({
                     onClick={() => selectConversation(conversation)}
                   >
                     {renderAvatar(
-                      conversation.participants.find(p => p.userId !== userId)?.userType || 'expert' as ParticipantTypeValue,
+                      (conversation.participants.find(p => p.userId !== userId)?.userType as ParticipantTypeValue) || 'expert' as ParticipantTypeValue,
                       conversation.title
                     )}
                     <div className="flex-1 min-w-0">

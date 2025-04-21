@@ -1192,7 +1192,7 @@ export default function HomePage() {
           </div>
 
           <p className="text-2xl text-gray-700 max-w-3xl mx-auto">
-            Join Reaty.ai and experience a smarter, more efficient way to achieve your real estate goals."
+            Join Reaty.ai and experience a smarter, more efficient way to achieve your real estate goals.
           </p>
         </div>
       </section>

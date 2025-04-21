@@ -37,14 +37,11 @@ export async function processRealEstateQuery(
     // Format the conversation history for the API
     const formattedHistory = chatHistory.map(msg => ({
       role: msg.role === 'bot' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
+      parts: msg.content
     }));
     
-    // Create the system prompt
-    const systemPrompt = {
-      role: "system",
-      parts: [{
-        text: `You are an AI assistant for a real estate platform called REALTY.AI. 
+    // Convert system prompt to first user message
+    const initialPrompt = `You are an AI assistant for a real estate platform called REALTY.AI. 
         Focus on providing helpful, accurate information about real estate topics, property listings, 
         buying/selling processes, and our services. Our platform offers FREE, BASIC ($1,500), and PREMIUM ($2,500) 
         plans with various levels of support and features.
@@ -62,12 +59,9 @@ export async function processRealEstateQuery(
       }]
     };
     
-    // Add system prompt to the beginning of the history
-    const fullHistory = [systemPrompt, ...formattedHistory];
-    
-    // Create a chat session
+    // Create a chat session with initial system context as first message
     const chat = model.startChat({
-      history: fullHistory,
+      history: formattedHistory,
       generationConfig: {
         temperature: 0.4,
         topK: 32,

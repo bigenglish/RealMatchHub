@@ -21,11 +21,9 @@ export default function PricingComparison() {
     { price: 1000000, label: "$1,000,000" }
   ];
 
-  // Realty.AI package prices
+  // Realty.AI package prices - Only using the premium package for comparison now
   const realtyAIPrices = {
-    basic: 1500,
-    premium: 2500,
-    concierge: 5000
+    premium: 2500
   };
 
   return (
@@ -34,7 +32,7 @@ export default function PricingComparison() {
       <p className="text-center text-gray-600 mb-8">
         See how much you can save with Realty.AI compared to traditional 3% commission
       </p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Traditional Model Card */}
         <Card className="shadow-lg">
@@ -55,7 +53,7 @@ export default function PricingComparison() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="space-y-3 pt-2">
                 <h3 className="font-medium text-lg mb-2">What You Get</h3>
                 <div className="flex items-start">
@@ -86,7 +84,7 @@ export default function PricingComparison() {
             </div>
           </CardContent>
         </Card>
-        
+
         {/* Realty.AI Model Card */}
         <Card className="shadow-lg">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white">
@@ -100,19 +98,11 @@ export default function PricingComparison() {
               <div className="border-b pb-4">
                 <h3 className="font-medium text-lg mb-2">What You Pay</h3>
                 <div className="flex justify-between items-center py-2">
-                  <span>Basic Package:</span>
-                  <span className="font-bold text-green-600">${realtyAIPrices.basic.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
                   <span>Premium Package:</span>
                   <span className="font-bold text-green-600">${realtyAIPrices.premium.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center py-2">
-                  <span>Concierge Package:</span>
-                  <span className="font-bold text-green-600">${realtyAIPrices.concierge.toLocaleString()}</span>
-                </div>
               </div>
-              
+
               <div className="space-y-3 pt-2">
                 <h3 className="font-medium text-lg mb-2">What You Get</h3>
                 <div className="flex items-start">
@@ -144,18 +134,17 @@ export default function PricingComparison() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Savings Calculator Section */}
       <div className="mt-12 p-8 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-md">
         <h3 className="text-2xl font-bold text-center mb-6">Your Potential Savings</h3>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
                 <th className="text-left py-3 px-4">Home Value</th>
                 <th className="text-right py-3 px-4">Traditional 3% Commission</th>
-                <th className="text-center py-3 px-4"></th>
                 <th className="text-right py-3 px-4">Realty.AI Premium</th>
                 <th className="text-right py-3 px-4 text-green-600">Your Savings</th>
               </tr>
@@ -165,14 +154,11 @@ export default function PricingComparison() {
                 const traditionalCost = item.price * 0.03;
                 const realtyAICost = realtyAIPrices.premium;
                 const savings = traditionalCost - realtyAICost;
-                
+
                 return (
                   <tr key={item.price} className="border-b">
                     <td className="py-4 px-4 font-medium">{item.label}</td>
                     <td className="text-right py-4 px-4">${traditionalCost.toLocaleString()}</td>
-                    <td className="text-center py-4 px-4">
-                      <ArrowRight className="inline-block h-4 w-4 text-gray-400" />
-                    </td>
                     <td className="text-right py-4 px-4">${realtyAICost.toLocaleString()}</td>
                     <td className="text-right py-4 px-4 text-green-600 font-bold">
                       ${savings.toLocaleString()}
@@ -183,7 +169,7 @@ export default function PricingComparison() {
             </tbody>
           </table>
         </div>
-        
+
         <div className="mt-6 text-center text-gray-600">
           <p>Actual savings may vary based on your specific situation and chosen package.</p>
         </div>

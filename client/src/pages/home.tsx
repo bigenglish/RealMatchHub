@@ -455,7 +455,7 @@ export default function HomePage() {
                       </li>
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Access basic search filters</span>
+                        <span>Access basic search filters (location, price, property type)</span>
                       </li>
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
@@ -464,6 +464,98 @@ export default function HomePage() {
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
                         <span>Receive basic customer support</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* BASIC Tier - Buyers */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
+                  <div className="bg-olive-600 p-4 text-white text-center">
+                    <h3 className="text-3xl font-bold">BASIC</h3>
+                    <p className="text-white/90">As low as $1,500</p>
+                  </div>
+                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-2">Enhance Your Property Search</h4>
+                      <p className="text-sm text-gray-600">All "Free" features, plus:</p>
+                    </div>
+                    <ul className="space-y-3 flex-1">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Advanced search filters (size, features, amenities, etc.)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Listing activity alerts (new listings, price changes for saved properties)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Save and organize multiple property lists</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Access neighborhood insights and data</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Priority email support</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* PREMIUM Tier - Buyers */}
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
+                  <div className="bg-olive-600 p-4 text-white text-center">
+                    <h3 className="text-3xl font-bold">PREMIUM</h3>
+                    <p className="text-white/90">As low as $3,500</p>
+                  </div>
+                  <div className="p-6 bg-amber-50 flex-1 flex flex-col">
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold mb-2">Your Dedicated Buying Advantage</h4>
+                      <p className="text-sm text-gray-600">All "Basic" features, plus:</p>
+                    </div>
+                    <ul className="space-y-3 flex-1">
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Personalized property recommendations based on your criteria</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Priority access to new listings before they go public (where available)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>In-depth market analysis reports for your target areas</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Connect with verified buyer specialist agents</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Priority phone and email support</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Guidance on making competitive offers</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Dedicated buyer concierge service</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Expert offer negotiation and strategy consultation</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Assistance with due diligence checklists and processes</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Closing coordination assistance with 2 Expert reviewers</span>
                       </li>
                     </ul>
                   </div>

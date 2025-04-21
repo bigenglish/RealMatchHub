@@ -337,9 +337,9 @@ export default function SellerWorkflow({
     if (event.target.files) {
       const files = Array.from(event.target.files);
       setUploadedFiles(prevFiles => [...prevFiles, ...files]);
-      
+
       const fileUrls = files.map(file => URL.createObjectURL(file));
-      
+
       setSellerInfo(prev => ({
         ...prev,
         propertyDetails: {
@@ -919,17 +919,17 @@ export default function SellerWorkflow({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <Textarea 
-                  placeholder="Describe your property's key features, unique selling points, and what makes it special..."
-                  className="min-h-32"
-                  value={propertyDescription}
-                  onChange={(e) => setSellerInfo({
-                    ...sellerInfo, 
+                <textarea
+                  value={sellerInfo.propertyDetails?.description || ''}
+                  onChange={(e) => setSellerInfo(prev => ({
+                    ...prev,
                     propertyDetails: {
-                      ...sellerInfo.propertyDetails!,
+                      ...prev.propertyDetails!,
                       description: e.target.value
                     }
-                  })}
+                  }))}
+                  placeholder="Describe your property's key features, unique selling points, and what makes it special..."
+                  className="w-full h-40 p-3 border rounded-md"
                 />
                 <Button variant="outline" size="sm" onClick={handleGetAiSuggestions}>
                   Get AI Suggestions

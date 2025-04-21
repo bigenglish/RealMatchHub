@@ -21,11 +21,14 @@ try {
   if (!firestoreInstance) {
     throw new Error('Firestore instance is null or undefined');
   }
-  firestore = firestoreInstance as Firestore;
+  // Fix the type issue by using proper type assertion
+  const typedFirestoreInstance = firestoreInstance as unknown as Firestore;
+  firestore = typedFirestoreInstance;
   console.log('Firestore instance validated successfully in use-firestore-chat-fixed.ts');
 } catch (error) {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
   console.error('CRITICAL ERROR: Invalid Firestore instance in use-firestore-chat-fixed.ts:', error);
-  throw new Error(`Firebase Firestore initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  throw new Error(`Firebase Firestore initialization failed: ${errorMessage}`);
 }
 
 // Message and conversation types matching our backend

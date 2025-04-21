@@ -529,22 +529,24 @@ export default function HomePage() {
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
                         <span>Basic search filters</span>
                       </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Connect with local professionals</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <span>Basic customer support</span>
-                  </li>
-                </ul>
-                <div className="mt-8">
-                  <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                    GET IT NOW
-                  </Button>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Connect with local professionals</span>
+                      </li>
+                      <li className="flex items-start">
+                        <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
+                        <span>Basic customer support</span>
+                      </li>
+                    </ul>
+                    <div className="mt-8">
+                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                        GET IT NOW
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
 
             {/* BASIC Tier */}
             <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { firestore } from '@/lib/firebase-config';
+import { firestore as firestoreInstance } from '@/lib/firebase-config';
 import { 
   collection, 
   query, 
@@ -10,8 +10,12 @@ import {
   onSnapshot,
   Timestamp,
   doc,
-  getDoc
+  getDoc,
+  Firestore
 } from 'firebase/firestore';
+
+// Ensure we have a valid Firestore instance
+const firestore: Firestore = firestoreInstance as Firestore;
 
 // Message and conversation types matching our backend
 // Enums defined as const objects so they can be used both as types and values

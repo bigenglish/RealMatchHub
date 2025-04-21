@@ -7,7 +7,7 @@ export default function HowItWorks() {
     <div className="container mx-auto px-4 py-16">
       {/* Hero Section */}
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold mb-4">How Realty.AI Works</h1>
+        <h1 className="text-4xl font-bold mb-4">How Reaty.AI Works</h1>
         <p className="text-2xl text-olive-600 mb-4">Real Estate, Simplified: Powered by AI, Guided by Experts</p>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
           Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance. Buy or Sell Your next home, Effortlessly.
@@ -16,7 +16,7 @@ export default function HowItWorks() {
 
       {/* Steps */}
       <div className="space-y-24">
-        {/* Step 1 */}
+        {/* Step 1: Search */}
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
@@ -28,11 +28,11 @@ export default function HowItWorks() {
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Initial questionnaire interface</p>
+            <p className="text-gray-500">Initial questionnaire interface with property types and budget sliders</p>
           </div>
         </div>
 
-        {/* Step 2 */}
+        {/* Step 2: Explore */}
         <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
           <div>
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
@@ -44,11 +44,11 @@ export default function HowItWorks() {
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Agent profiles and matching results</p>
+            <p className="text-gray-500">Agent profiles with photos, bios, specializations, and ratings</p>
           </div>
         </div>
 
-        {/* Step 3 */}
+        {/* Step 3: Choose Services */}
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
@@ -60,11 +60,11 @@ export default function HowItWorks() {
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Service packages and pricing tiers</p>
+            <p className="text-gray-500">Service packages with pricing breakdowns and feature comparisons</p>
           </div>
         </div>
 
-        {/* Step 4 */}
+        {/* Step 4: Manage Journey */}
         <div className="grid md:grid-cols-2 gap-12 items-center md:flex-row-reverse">
           <div>
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
@@ -72,15 +72,15 @@ export default function HowItWorks() {
             </div>
             <h2 className="text-2xl font-bold mb-4">Manage Your Journey</h2>
             <p className="text-gray-600 mb-6">
-              Manage every aspect of your real estate journey within the Realty.ai platform. Track progress, review documents, schedule appointments, communicate with your team, and access valuable resources—all in one convenient location.
+              Manage every aspect of your real estate journey within the Reaty.ai platform. Track progress, review documents, schedule appointments, communicate with your team, and access valuable resources—all in one convenient location.
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Dashboard interface</p>
+            <p className="text-gray-500">Dashboard with progress tracking, document storage, and scheduling tools</p>
           </div>
         </div>
 
-        {/* Step 5 */}
+        {/* Step 5: Support */}
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="bg-olive-100 w-12 h-12 rounded-full flex items-center justify-center mb-4">
@@ -92,14 +92,24 @@ export default function HowItWorks() {
             </p>
           </div>
           <div className="bg-gray-100 rounded-lg p-8 h-64 flex items-center justify-center">
-            <p className="text-gray-500">Support interface</p>
+            <p className="text-gray-500">Help center interface with chatbot and support features</p>
           </div>
         </div>
+      </div>
+
+      {/* Visual Flow Arrows */}
+      <div className="hidden md:block relative">
+        {[1, 2, 3, 4].map((step) => (
+          <div key={step} className="absolute left-1/2 -translate-x-1/2" style={{ top: `${step * 24}rem` }}>
+            <ArrowRight className="w-6 h-6 text-olive-600 transform rotate-90" />
+          </div>
+        ))}
       </div>
 
       {/* CTA Section */}
       <div className="text-center mt-24">
         <h2 className="text-2xl font-bold mb-4">Ready to experience real estate simplified?</h2>
+        <p className="text-gray-600 mb-6">Create your free Reaty.ai account and start your journey.</p>
         <Button className="bg-olive-600 hover:bg-olive-700 text-white gap-2">
           Get Started Today
           <ArrowRight className="w-4 h-4" />

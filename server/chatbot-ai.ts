@@ -1,3 +1,4 @@
+
 /**
  * Integration with Google's Gemini AI for the real estate chatbot
  */
@@ -40,26 +41,7 @@ export async function processRealEstateQuery(
       parts: msg.content
     }));
     
-    // Convert system prompt to first user message
-    const initialPrompt = `You are an AI assistant for a real estate platform called REALTY.AI. 
-        Focus on providing helpful, accurate information about real estate topics, property listings, 
-        buying/selling processes, and our services. Our platform offers FREE, BASIC ($1,500), and PREMIUM ($2,500) 
-        plans with various levels of support and features.
-        
-        Key features of our platform:
-        - AI-powered property matching and search
-        - Document review and explanation
-        - Expert consultation services
-        - Significant savings compared to traditional agent commissions (typically 5-6%)
-        
-        Keep responses concise, friendly, and focused on real estate. If you don't know something specific about 
-        REALTY.AI's offerings, recommend the user contact our customer support or check the pricing page.
-        
-        Always suggest ways that REALTY.AI can save the user money compared to traditional real estate services.`
-      }]
-    };
-    
-    // Create a chat session with initial system context as first message
+    // Create a chat session with initial system context
     const chat = model.startChat({
       history: formattedHistory,
       generationConfig: {
@@ -69,13 +51,31 @@ export async function processRealEstateQuery(
         maxOutputTokens: 500,
       }
     });
+
+    // Set the initial prompt
+    const initialPrompt = `You are an AI assistant for a real estate platform called REALTY.AI. 
+    Focus on providing helpful, accurate information about real estate topics, property listings, 
+    buying/selling processes, and our services. Our platform offers FREE, BASIC ($1,500), and PREMIUM ($2,500) 
+    plans with various levels of support and features.
     
-    // Send the user's message and get a response
+    Key features of our platform:
+    - AI-powered property matching and search
+    - Document review and explanation
+    - Expert consultation services
+    - Significant savings compared to traditional agent commissions (typically 5-6%)
+    
+    Keep responses concise, friendly, and focused on real estate. If you don't know something specific about 
+    REALTY.AI's offerings, recommend the user contact our customer support or check the pricing page.
+    
+    Always suggest ways that REALTY.AI can save the user money compared to traditional real estate services.`;
+    
+    // Send the initial prompt and user's message
+    await chat.sendMessage(initialPrompt);
     const result = await chat.sendMessage(query);
     const response = result.response;
     const text = response.text();
     
-    // Generate related questions (this could be enhanced with a separate API call)
+    // Generate related questions
     const relatedQuestions = [
       "How much can I save with REALTY.AI compared to traditional agents?",
       "What's included in the BASIC plan?",

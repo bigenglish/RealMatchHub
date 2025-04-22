@@ -829,25 +829,47 @@ export default function SellerWorkflow({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Step 2: Highlight Features & Amenities</CardTitle>
+              <CardTitle className="text-lg">Step 2: Highlight Features & Describe Your Property</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {propertyFeatures.map((feature) => (
-                    <div
-                      key={feature.id}
-                      className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer hover:bg-muted transition-colors ${
-                        sellerInfo.features?.includes(feature.id) ? 'bg-primary/10 border-primary' : 'border-input'
-                      }`}
-                      onClick={() => handleFeatureSelection(feature.id)}
-                    >
-                      <div className={`text-muted-foreground ${sellerInfo.features?.includes(feature.id) ? 'text-primary' : ''}`}>
-                        {feature.icon}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-base font-medium mb-3">Features & Amenities</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {propertyFeatures.map((feature) => (
+                      <div
+                        key={feature.id}
+                        className={`flex items-center gap-2 p-3 rounded-md border cursor-pointer hover:bg-muted transition-colors ${
+                          sellerInfo.features?.includes(feature.id) ? 'bg-primary/10 border-primary' : 'border-input'
+                        }`}
+                        onClick={() => handleFeatureSelection(feature.id)}
+                      >
+                        <div className={`text-muted-foreground ${sellerInfo.features?.includes(feature.id) ? 'text-primary' : ''}`}>
+                          {feature.icon}
+                        </div>
+                        <span className="text-sm">{feature.label}</span>
                       </div>
-                      <span className="text-sm">{feature.label}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-base font-medium mb-3">Property Description</h3>
+                  <textarea
+                    value={sellerInfo.propertyDetails?.description || ''}
+                    onChange={(e) => setSellerInfo(prev => ({
+                      ...prev,
+                      propertyDetails: {
+                        ...prev.propertyDetails!,
+                        description: e.target.value
+                      }
+                    }))}
+                    placeholder="Describe your property's key features, unique selling points, and what makes it special..."
+                    className="w-full h-40 p-3 border rounded-md"
+                  />
+                  <Button variant="outline" size="sm" onClick={handleGetAiSuggestions} className="mt-2">
+                    Get AI Suggestions
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -855,7 +877,7 @@ export default function SellerWorkflow({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Step 3: Upload Photos & Videos</CardTitle>
+              <CardTitle className="text-lg">Step 3: Upload Property Photos & Videos</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -913,30 +935,7 @@ export default function SellerWorkflow({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Step 4: Write Your Property Description</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <textarea
-                  value={sellerInfo.propertyDetails?.description || ''}
-                  onChange={(e) => setSellerInfo(prev => ({
-                    ...prev,
-                    propertyDetails: {
-                      ...prev.propertyDetails!,
-                      description: e.target.value
-                    }
-                  }))}
-                  placeholder="Describe your property's key features, unique selling points, and what makes it special..."
-                  className="w-full h-40 p-3 border rounded-md"
-                />
-                <Button variant="outline" size="sm" onClick={handleGetAiSuggestions}>
-                  Get AI Suggestions
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          
 
           <div className="flex justify-between">
             <Button variant="outline" onClick={handlePreviousStep}>

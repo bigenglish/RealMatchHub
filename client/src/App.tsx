@@ -19,6 +19,7 @@ import SellerFlow from "@/pages/seller-flow";
 import RequestService from "@/pages/request-service";
 import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
+import HowItWorks from "@/pages/how-it-works";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -66,7 +67,7 @@ function Router() {
           <Route path="/resources" component={Resources} />
           <Route path="/demo" component={Demo} />
           <Route path="/get-started" component={() => <Welcome />} />
-          <Route path="/how-it-works" component={() => <div className="py-20 text-center"><h1 className="text-3xl font-bold">How It Works</h1><p className="mt-4">Coming soon</p></div>} />
+          <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/request-service" component={RequestService} />
           <Route path="/cma" component={CMAAnalysis} />
           <Route component={NotFound} />

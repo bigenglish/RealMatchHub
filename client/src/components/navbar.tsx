@@ -54,7 +54,7 @@ export default function Navbar() {
             </Link>
             <Link href="/get-started">
               <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
-                GET STARTED
+                Get Started Today
               </Button>
             </Link>
           </div>

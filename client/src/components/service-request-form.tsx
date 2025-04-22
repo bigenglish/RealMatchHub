@@ -137,14 +137,13 @@ export default function ServiceRequestForm({
               name="serviceType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Type of Service</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select the service you need" />
+                        <SelectValue placeholder="Choose a specific service" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

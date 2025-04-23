@@ -21,6 +21,7 @@ import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
 import HowItWorks from "@/pages/how-it-works";
 import PaymentConfirmation from "@/pages/payment-confirmation";
+import BundleDetails from "./pages/bundle-details"; // Added import
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -38,7 +39,7 @@ function Router() {
   const [location] = useLocation();
   const isHomePage = location === '/';
   const isAuthPage = location.startsWith('/auth/');
-  
+
   // Don't show Navbar or Footer on auth pages
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -50,7 +51,7 @@ function Router() {
           <Route path="/auth/login" component={Login} />
           <Route path="/auth/register" component={Register} />
           <Route path="/auth/forgot-password" component={ForgotPassword} />
-          
+
           {/* Main Routes */}
           <Route path="/" component={Home} />
           <Route path="/properties" component={Properties} />
@@ -72,6 +73,7 @@ function Router() {
           <Route path="/request-service" component={RequestService} />
           <Route path="/cma" component={CMAAnalysis} />
           <Route path="/payment-confirmation" component={PaymentConfirmation} />
+          <Route path="/bundle-details" component={BundleDetails} /> {/* Added route */}
           <Route component={NotFound} />
         </Switch>
       </main>

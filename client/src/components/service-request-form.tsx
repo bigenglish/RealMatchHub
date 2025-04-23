@@ -138,7 +138,11 @@ export default function ServiceRequestForm({
               render={({ field }) => (
                 <FormItem>
                   <Select
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      // Reset provider when service type changes
+                      form.setValue('serviceProviderId', '');
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -158,6 +162,42 @@ export default function ServiceRequestForm({
                 </FormItem>
               )}
             />
+
+            {/* Service Provider Selection */}
+            {form.watch('serviceType') && (
+              <FormField
+                control={form.control}
+                name="serviceProviderId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Service Provider</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose a service provider" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {serviceExperts
+                          .filter(expert => expert.serviceType === form.watch('serviceType'))
+                          .map((expert) => (
+                            <SelectItem key={expert.id} value={expert.id.toString()}>
+                              {expert.name} {expert.rating && `(${expert.rating}⭐)`}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      All providers are licensed and vetted professionals
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

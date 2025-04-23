@@ -130,52 +130,6 @@ export default function ServiceRequestForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Request Professional Services</h2>
-          <p className="text-gray-500">Get expert assistance for your home buying journey</p>
-
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-            <h3 className="font-medium text-gray-800 mb-3">Your Home Buying Timeline:</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="text-primary">1.</span>
-                <span>Search & Tour Properties</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">2.</span>
-                <span>Review Disclosure and Reports</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">3.</span>
-                <span>Suggest Purchase Price & Terms</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">4.</span>
-                <span>Write up Offer & Negotiation</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">5.</span>
-                <span>Handle Paperwork</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">6.</span>
-                <span>Handle Negotiations for Repairs and Credits</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">7.</span>
-                <span>Keep Track of Timelines & Contingencies</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">8.</span>
-                <span>Work with Lender and Escrow to Close</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary">9.</span>
-                <span>Keys to your Home and Rebate your Money</span>
-              </div>
-            </div>
-          </div>
-        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -184,11 +138,7 @@ export default function ServiceRequestForm({
               render={({ field }) => (
                 <FormItem>
                   <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      // Reset provider when service type changes
-                      form.setValue('serviceProviderId', '');
-                    }}
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -208,42 +158,6 @@ export default function ServiceRequestForm({
                 </FormItem>
               )}
             />
-
-            {/* Service Provider Selection */}
-            {form.watch('serviceType') && (
-              <FormField
-                control={form.control}
-                name="serviceProviderId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Service Provider</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Choose a service provider" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {serviceExperts
-                          .filter(expert => expert.serviceType === form.watch('serviceType'))
-                          .map((expert) => (
-                            <SelectItem key={expert.id} value={expert.id.toString()}>
-                              {expert.name} {expert.rating && `(${expert.rating}⭐)`}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      All providers are licensed and vetted professionals
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <FormField
               control={form.control}

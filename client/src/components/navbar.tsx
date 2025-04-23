@@ -10,9 +10,19 @@ export default function Navbar() {
     <nav className="bg-background/90 backdrop-blur-sm fixed w-full z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/auth/welcome">
+          <Link href="/">
             <div className="flex items-center cursor-pointer">
-              <img src="/images/logos/RealtyAI/logo.png" alt="Realty.AI Logo" className="h-12" />
+              <div className="text-olive-600">
+                <svg width="48" height="48" viewBox="0 0 58 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M29 2L2 17.5V56H56V17.5L29 2Z" stroke="#606C38" strokeWidth="4" fill="none" />
+                  <rect x="17" y="25" width="5" height="20" fill="#606C38" />
+                  <rect x="26" y="20" width="5" height="25" fill="#606C38" />
+                  <rect x="35" y="30" width="5" height="15" fill="#606C38" />
+                </svg>
+              </div>
+              <div className="ml-2 text-xl tracking-wider font-bold">
+                <div className="text-olive-600">REALTY.AI</div>
+              </div>
             </div>
           </Link>
 
@@ -42,7 +52,7 @@ export default function Navbar() {
             <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Demo
             </Link>
-            <Link href="/auth/welcome">
+            <Link href="/get-started">
               <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
                 Get Started Today
               </Button>

@@ -121,7 +121,7 @@ export default function MarketplacePage() {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-3">
                   <Link href={`/marketplace/bundle/${bundle.id}`}>
-                    <Button className="w-full">{bundle.name === "FREE" ? "Free" : "View Bundle Details"}</Button>
+                    <Button className="w-full">View Bundle Details</Button>
                   </Link>
                 </CardFooter>
               </Card>

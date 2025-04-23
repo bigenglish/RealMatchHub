@@ -10,7 +10,7 @@ export default function Navbar() {
     <nav className="bg-background/90 backdrop-blur-sm fixed w-full z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/">
+          <Link href="/auth/welcome">
             <div className="flex items-center cursor-pointer">
               <img src="/images/logos/RealtyAI/logo.png" alt="Realty.AI Logo" className="h-12" />
             </div>

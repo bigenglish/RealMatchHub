@@ -888,56 +888,117 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Personalized Matching Section */}
+      {/* Neighborhood Explorer and Reviews Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>
-              <h3 className="text-2xl font-bold mb-6">Popular Neighborhoods</h3>
+              <h3 className="text-2xl font-bold mb-6">Neighborhood Explorer</h3>
               <div className="w-full h-[400px] rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.GOOGLE_PLACES_API_KEY}&q=Los+Angeles,CA`}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+                {/* Map display - enhanced with UI elements */}
+                <div className="bg-gray-100 w-full h-full relative overflow-hidden rounded-lg">
+                  {/* Static map background with slight gradient overlay */}
+                  <div className="absolute inset-0">
+                    <img 
+                      src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                      alt="City map view" 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                  </div>
+                  
+                  {/* Map UI elements */}
+                  <div className="absolute top-0 left-0 right-0 p-4">
+                    <div className="bg-white rounded-md shadow-lg p-3 max-w-xs mx-auto">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="text"
+                          placeholder="Search neighborhoods..."
+                          className="pl-10 pr-4 py-2 w-full rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-olive-600"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Featured Locations */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="bg-white rounded-t-lg shadow-lg p-4">
+                      <h4 className="text-lg font-semibold mb-3">Popular Neighborhoods</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { name: "Los Angeles", price: "$1.2M avg" },
+                          { name: "San Francisco", price: "$1.8M avg" },
+                          { name: "New York", price: "$1.5M avg" },
+                          { name: "Miami", price: "$950K avg" }
+                        ].map((location, i) => (
+                          <div key={i} className="flex items-center p-2 bg-gray-50 rounded-md">
+                            <MapPin className="h-4 w-4 text-olive-600 mr-2" />
+                            <div>
+                              <div className="font-medium text-sm">{location.name}</div>
+                              <div className="text-xs text-gray-500">{location.price}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 text-center">
+                        <Button variant="link" size="sm" className="text-olive-600">
+                          View Full Map <ArrowRight className="h-3 w-3 ml-1 inline" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold mb-6">Trusted By</h2>
+              <h3 className="text-2xl font-bold mb-6">Customer Testimonials</h3>
               <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                   <div className="flex items-start">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
                         <div className="flex text-yellow-400">
-                          {'★'.repeat(5)}
+                          {'★★★★★'}
                         </div>
                       </div>
                       <p className="text-gray-600 mb-2">"I paid no agent commissions, saved on my home and saved $25,000 on my purchase!"</p>
-                      <p className="font-semibold">John D., Los Angeles</p>
-                      <p className="text-sm text-gray-500">Feb 4, 2025</p>
+                      <div className="flex items-center mt-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">JD</div>
+                        <div>
+                          <p className="font-semibold">John D., Los Angeles</p>
+                          <p className="text-sm text-gray-500">Feb 4, 2025</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                   <div className="flex items-start">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
                         <div className="flex text-yellow-400">
-                          {'★'.repeat(5)}
+                          {'★★★★★'}
                         </div>
                       </div>
                       <p className="text-gray-600 mb-2">"First time buying a home and Realty.AI was incredibly helpful. The AI simplified all the paperwork and connected me to great local experts."</p>
-                      <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
-                      <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                      <div className="flex items-center mt-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">SJ</div>
+                        <div>
+                          <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
+                          <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </div>
+                
+                <div className="text-center mt-4">
+                  <Button variant="outline" className="text-olive-600 border-olive-600 hover:bg-olive-50">
+                    View More Reviews
+                  </Button>
                 </div>
               </div>
             </div>

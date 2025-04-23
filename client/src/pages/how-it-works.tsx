@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowRightCircle, Search, Users, ScrollText, LayoutDashboard, HeadphonesIcon } from "lucide-react";
 import { Link } from "wouter";
@@ -224,6 +223,11 @@ export default function HowItWorks() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
+        <div className="mt-4"> {/* Added div for spacing */}
+          <Button asChild size="lg" variant="secondary">
+            <Link href="/auth/welcome">Create Your Free Account</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

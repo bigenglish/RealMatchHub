@@ -217,17 +217,12 @@ export default function HowItWorks() {
       <div className="text-center mt-32 bg-gradient-to-r from-blue-50 to-cyan-50 p-16 rounded-2xl shadow-lg">
         <h2 className="text-3xl font-bold mb-4">Ready to experience real estate simplified?</h2>
         <p className="text-gray-600 mb-8 text-lg max-w-2xl mx-auto">Create your free Reaty.AI account and start your journey today.</p>
-        <Link href="/signup">
+        <Link href="/auth/welcome">
           <Button className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6 rounded-lg">
             Get Started Today
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
-        <div className="mt-4"> {/* Added div for spacing */}
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/auth/welcome">Create Your Free Account</Link>
-          </Button>
-        </div>
       </div>
     </div>
   );

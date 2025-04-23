@@ -42,7 +42,7 @@ export default function Navbar() {
             <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Demo
             </Link>
-            <Link href="/get-started">
+            <Link href="/auth/welcome">
               <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
                 Get Started Today
               </Button>

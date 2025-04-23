@@ -8,7 +8,19 @@ const Welcome = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <img src="/images/logos/RealtyAI/logo.svg" alt="Realty.AI" className="h-14 w-auto mx-auto" style={{ marginTop: '1rem', marginBottom: '1rem' }} />
+          <div className="flex items-center justify-center">
+            <div className="text-olive-600">
+              <svg width="48" height="48" viewBox="0 0 58 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M29 2L2 17.5V56H56V17.5L29 2Z" stroke="#606C38" strokeWidth="4" fill="none" />
+                <rect x="17" y="25" width="5" height="20" fill="#606C38" />
+                <rect x="26" y="20" width="5" height="25" fill="#606C38" />
+                <rect x="35" y="30" width="5" height="15" fill="#606C38" />
+              </svg>
+            </div>
+            <div className="ml-2 text-xl tracking-wider font-bold">
+              <div className="text-olive-600">REALTY.AI</div>
+            </div>
+          </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 text-transparent bg-clip-text">
             Welcome to Realty.AI
           </CardTitle>

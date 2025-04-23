@@ -47,7 +47,8 @@ function CheckoutForm({ onSuccess, onCancel, services, totalAmount }: CheckoutFo
         confirmParams: {
           return_url: `${window.location.origin}/payment-confirmation`,
         },
-        redirect: 'if_required',
+        // Always redirect to our payment confirmation page
+        redirect: 'always',
       });
 
       if (error) {

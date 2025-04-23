@@ -20,6 +20,7 @@ import RequestService from "@/pages/request-service";
 import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
 import HowItWorks from "@/pages/how-it-works";
+import PaymentConfirmation from "@/pages/payment-confirmation";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -70,6 +71,7 @@ function Router() {
           <Route path="/how-it-works" component={HowItWorks} />
           <Route path="/request-service" component={RequestService} />
           <Route path="/cma" component={CMAAnalysis} />
+          <Route path="/payment-confirmation" component={PaymentConfirmation} />
           <Route component={NotFound} />
         </Switch>
       </main>

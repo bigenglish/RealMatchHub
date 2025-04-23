@@ -9,6 +9,22 @@ export default function BundleDetails() {
   
   const { data: bundle } = useQuery({
     queryKey: [`/api/marketplace/bundles/${id}`],
+    initialData: {
+      name: "BASIC",
+      description: "Full virtual support from listing to post-closing",
+      price: "As low as $1,500",
+      savings: "Save time and money",
+      featuredImage: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3",
+      features: [
+        "All 'Free' features",
+        "Professional Photography (high-quality photos of the property)",
+        "Staging Consultation (Expert consultation with staging tips)",
+        "Comparative Market Analysis (CMA) Updates (regular updates on market conditions)",
+        "Seller Disclosure Preparation Support (digital tools and templates, guidance)",
+        "MLS Listing (basic MLS listing with syndication to major portals)",
+        "Due Diligence Checklist & Support (guidance through the due diligence process)"
+      ]
+    }
   });
 
   if (!bundle) {

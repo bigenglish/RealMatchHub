@@ -73,7 +73,7 @@ function Router() {
           <Route path="/request-service" component={RequestService} />
           <Route path="/cma" component={CMAAnalysis} />
           <Route path="/payment-confirmation" component={PaymentConfirmation} />
-          <Route path="/bundle-details" component={BundleDetails} /> {/* Added route */}
+          <Route path="/marketplace/bundle/:id" component={BundleDetails} /> {/* Updated route pattern */}
           <Route component={NotFound} />
         </Switch>
       </main>

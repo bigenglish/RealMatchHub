@@ -12,17 +12,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <Link href="/">
             <div className="flex items-center cursor-pointer">
-              <div className="text-olive-600">
-                <svg width="48" height="48" viewBox="0 0 58 58" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M29 2L2 17.5V56H56V17.5L29 2Z" stroke="#606C38" strokeWidth="4" fill="none" />
-                  <rect x="17" y="25" width="5" height="20" fill="#606C38" />
-                  <rect x="26" y="20" width="5" height="25" fill="#606C38" />
-                  <rect x="35" y="30" width="5" height="15" fill="#606C38" />
-                </svg>
-              </div>
-              <div className="ml-2 text-xl tracking-wider font-bold">
-                <div className="text-olive-600">REALTY.AI</div>
-              </div>
+              <img src="/images/logos/RealtyAI/logo.png" alt="Realty.AI Logo" className="h-12" />
             </div>
           </Link>
 

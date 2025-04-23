@@ -196,7 +196,7 @@ export default function HomePage() {
           </div>
 
           {/* Call to action button below video */}
-          <div className="mt-8 text-center">
+          <div className="mt-16 mb-24 text-center">
             <Link href="/auth/welcome">
               <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
                 GET STARTED FREE

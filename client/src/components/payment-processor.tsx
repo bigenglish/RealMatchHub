@@ -6,6 +6,21 @@ import { Separator } from '@/components/ui/separator';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { ServiceOffering as BaseServiceOffering } from '@shared/schema';
+import { InfoIcon } from 'lucide-react';
+import { 
+  Card, 
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle 
+} from '@/components/ui/card';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // Extend the ServiceOffering type to include the price field from API
 interface ServiceOffering extends BaseServiceOffering {
@@ -107,9 +122,56 @@ function CheckoutForm({ onSuccess, onCancel, services, totalAmount }: CheckoutFo
         </div>
       </div>
       
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center">
+            <InfoIcon size={16} className="mr-2 text-blue-500" />
+            Test Mode Payment Information
+          </CardTitle>
+          <CardDescription>
+            Use these test payment details to complete the transaction.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <div>
+            <span className="font-semibold">Card Number:</span> 4242 4242 4242 4242
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-1">
+            <div>
+              <span className="font-semibold">Expiry:</span> Any future date
+            </div>
+            <div>
+              <span className="font-semibold">CVC:</span> Any 3 digits
+            </div>
+            <div>
+              <span className="font-semibold">ZIP:</span> Any 5 digits
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
       <div className="rounded-lg border p-4">
         <PaymentElement />
       </div>
+      
+      <Accordion type="single" collapsible className="border rounded-lg">
+        <AccordionItem value="help">
+          <AccordionTrigger className="px-4">Need help with your payment?</AccordionTrigger>
+          <AccordionContent className="px-4 pb-4 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              If you're having trouble, please try the following:
+            </p>
+            <ul className="text-sm list-disc pl-5 space-y-1">
+              <li>Make sure to enter the test card number exactly: 4242 4242 4242 4242</li>
+              <li>Enter a future expiration date (e.g., 12/25)</li>
+              <li>Use any 3 digits for the CVC code</li>
+              <li>Use any 5 digits for the postal code (e.g., 10001)</li>
+              <li>If you see "incorrect CVC" errors, try 123</li>
+              <li>Refresh the page and try again if the form doesn't respond</li>
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <div className="flex justify-between pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>

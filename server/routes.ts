@@ -1534,19 +1534,41 @@ app.post("/api/chatbot", async (req, res) => {
     // Create payment intent for one-time payments
     app.post("/api/create-payment-intent", async (req, res) => {
       try {
+        console.log('[express] Payment intent request received:', req.body);
         const { amount, serviceIds, metadata } = req.body;
 
-        // Validate amount - must be a number and at least 0.5 for Stripe
-        if (!amount || typeof amount !== 'number' || isNaN(amount) || amount < 0.5) {
+        // Enhanced validation with specific error messages
+        if (!amount) {
+          console.warn('[express] Missing amount in payment intent request');
           return res.status(400).json({ 
-            message: "Amount is required and must be at least $0.50",
-            error: "Invalid amount"
+            message: "Amount is required to process payment",
+            error: "Missing amount",
+            code: "missing_amount"
+          });
+        }
+        
+        if (typeof amount !== 'number' || isNaN(amount)) {
+          console.warn(`[express] Invalid amount type in payment intent request: ${typeof amount}`);
+          return res.status(400).json({ 
+            message: "Amount must be a valid number",
+            error: "Invalid amount format",
+            code: "invalid_amount_format"
+          });
+        }
+        
+        if (amount < 0.5) {
+          console.warn(`[express] Amount too small in payment intent request: ${amount}`);
+          return res.status(400).json({ 
+            message: "Amount must be at least $0.50",
+            error: "Amount below minimum",
+            code: "amount_below_minimum"
           });
         }
 
         console.log(`[express] Creating payment intent for amount: $${amount.toFixed(2)}`);
 
         let enhancedMetadata = metadata || {};
+        let validServices = [];
 
         // If service IDs are provided, retrieve service details and include in metadata
         if (serviceIds && Array.isArray(serviceIds) && serviceIds.length > 0) {
@@ -1556,11 +1578,16 @@ app.post("/api/chatbot", async (req, res) => {
               serviceIds.map(async (id) => {
                 try {
                   const service = await storage.getServiceOffering(Number(id));
-                  return service ? {
+                  if (!service) {
+                    console.warn(`[express] Service ID ${id} not found`);
+                    return null;
+                  }
+                  return {
                     id: service.id,
                     name: service.name,
-                    type: service.serviceType
-                  } : null;
+                    type: service.serviceType,
+                    price: service.price
+                  };
                 } catch (err) {
                   console.error(`[express] Error retrieving service ID ${id}:`, err);
                   return null;
@@ -1568,63 +1595,103 @@ app.post("/api/chatbot", async (req, res) => {
               })
             );
 
-            const validServices = services.filter(s => s !== null);
-            enhancedMetadata = {
-              ...enhancedMetadata,
-              services: JSON.stringify(validServices),
-              serviceCount: validServices.length
-            };
-
-            console.log(`[express] Payment for ${validServices.length} services: ${validServices.map(s => s.name).join(', ')}`);
+            validServices = services.filter(s => s !== null);
+            
+            if (validServices.length === 0) {
+              console.warn('[express] No valid services found for payment intent');
+            } else {
+              enhancedMetadata = {
+                ...enhancedMetadata,
+                services: JSON.stringify(validServices),
+                serviceCount: validServices.length
+              };
+              console.log(`[express] Payment for ${validServices.length} services: ${validServices.map(s => s.name).join(', ')}`);
+            }
           } catch (err) {
             console.error('[express] Error retrieving service details:', err);
             // Continue with payment intent creation even if service details couldn't be retrieved
           }
+        } else {
+          console.log('[express] No service IDs provided for payment intent');
         }
 
         try {
-          // Create a payment intent
+          // Create the payment intent with detailed parameters
           const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(amount * 100), // Convert to cents
             currency: 'usd',
-            metadata: enhancedMetadata,
+            metadata: {
+              ...enhancedMetadata,
+              environment: process.env.NODE_ENV || 'development',
+              source: 'realty-ai-platform',
+              created_at: new Date().toISOString()
+            },
             automatic_payment_methods: {
               enabled: true,
             },
+            description: `Payment for ${validServices.length > 0 
+              ? validServices.map(s => s.name).join(', ') 
+              : 'Realty.AI services'}`
           });
 
-          console.log(`[express] Payment intent created: ${paymentIntent.id}`);
+          console.log(`[express] Payment intent created successfully: ${paymentIntent.id}`);
 
           res.json({
             clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id,
+            amount: paymentIntent.amount / 100, // Convert back from cents
+            currency: paymentIntent.currency
           });
         } catch (stripeError) {
           console.error('[express] Stripe API error:', stripeError);
 
-          // Handle specific Stripe errors
+          // Enhanced error handling for Stripe errors
           if (stripeError.type === 'StripeCardError') {
             return res.status(400).json({ 
-              message: "Payment card error", 
-              error: stripeError.message 
+              message: "There was an issue with your payment card", 
+              error: stripeError.message,
+              code: stripeError.code || 'card_error'
             });
           } else if (stripeError.type === 'StripeInvalidRequestError') {
             return res.status(400).json({ 
-              message: "Invalid request to payment processor", 
-              error: stripeError.message 
+              message: "Invalid payment request", 
+              error: stripeError.message,
+              code: stripeError.code || 'invalid_request'
+            });
+          } else if (stripeError.type === 'StripeAuthenticationError') {
+            console.error('[express] Stripe authentication error - API key may be invalid');
+            return res.status(500).json({ 
+              message: "Payment service authentication error", 
+              error: "Unable to authenticate with payment service",
+              code: 'auth_error'
+            });
+          } else if (stripeError.type === 'StripeRateLimitError') {
+            return res.status(429).json({ 
+              message: "Too many payment requests", 
+              error: "Please wait a moment and try again",
+              code: 'rate_limit'
+            });
+          } else if (stripeError.type === 'StripeConnectionError') {
+            return res.status(503).json({ 
+              message: "Payment service connection error", 
+              error: "Unable to connect to payment service",
+              code: 'connection_error'
             });
           } else {
             // For other types of errors
             return res.status(500).json({ 
               message: "Payment processor error", 
-              error: stripeError.message 
+              error: stripeError.message,
+              code: stripeError.code || 'unknown_error'
             });
           }
         }
       } catch (error) {
         console.error('[express] Error creating payment intent:', error);
-        res.status(500).json({ 
-          message: "Error creating payment intent", 
-          error: error instanceof Error ? error.message : String(error)
+        return res.status(500).json({
+          message: 'Internal server error processing payment',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          code: 'server_error'
         });
       }
     });

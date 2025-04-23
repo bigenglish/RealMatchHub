@@ -86,15 +86,23 @@ export default function PaymentConfirmation() {
         
         {status === 'success' && (
           <div className="flex flex-col items-center justify-center">
-            <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+            <div className="bg-green-100 p-6 rounded-full mb-4">
+              <CheckCircle className="w-16 h-16 text-green-600" />
+            </div>
             <h1 className="text-2xl font-bold text-green-700">Payment Successful</h1>
-            <p className="text-muted-foreground mt-2 mb-6">{message}</p>
+            <div className="my-4 w-24 h-1 bg-green-200 rounded mx-auto"></div>
+            <p className="text-muted-foreground my-4">{message}</p>
+            
             {paymentIntentId && (
-              <p className="text-sm text-muted-foreground mb-6">
-                Payment ID: {paymentIntentId.slice(0, 8)}...
-              </p>
+              <div className="bg-muted/50 rounded-lg py-3 px-4 mb-6 w-full">
+                <p className="text-sm flex items-center justify-center">
+                  <span className="text-muted-foreground mr-2">Transaction ID:</span>
+                  <span className="font-mono">{paymentIntentId.slice(0, 12)}...</span>
+                </p>
+              </div>
             )}
-            <div className="space-y-4 w-full">
+            
+            <div className="space-y-4 w-full mt-2">
               <Button className="w-full" asChild>
                 <Link href="/services">Browse More Services</Link>
               </Button>
@@ -102,14 +110,33 @@ export default function PaymentConfirmation() {
                 <Link href="/">Return to Home</Link>
               </Button>
             </div>
+            
+            <p className="text-xs text-muted-foreground mt-6">
+              A confirmation email has been sent to your registered email address.
+              If you have any questions, please contact our support team.
+            </p>
           </div>
         )}
         
         {status === 'error' && (
           <div className="flex flex-col items-center justify-center">
-            <XCircle className="w-16 h-16 text-destructive mb-4" />
-            <h1 className="text-2xl font-bold text-destructive">Payment Failed</h1>
-            <p className="text-muted-foreground mt-2 mb-6">{message}</p>
+            <div className="bg-red-100 p-6 rounded-full mb-4">
+              <XCircle className="w-16 h-16 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-red-700">Payment Failed</h1>
+            <div className="my-4 w-24 h-1 bg-red-200 rounded mx-auto"></div>
+            <p className="text-muted-foreground my-4">{message}</p>
+            
+            <div className="bg-muted/50 rounded-lg py-4 px-5 mb-6 w-full">
+              <h3 className="text-sm font-medium mb-2">Common reasons for payment failure:</h3>
+              <ul className="text-sm text-muted-foreground text-left list-disc pl-5 space-y-1">
+                <li>Incorrect card information</li>
+                <li>Insufficient funds</li>
+                <li>Temporary authorization issue</li>
+                <li>Card declined by issuing bank</li>
+              </ul>
+            </div>
+            
             <div className="space-y-4 w-full">
               <Button className="w-full" asChild>
                 <Link href="/services">Try Again</Link>
@@ -118,6 +145,11 @@ export default function PaymentConfirmation() {
                 <Link href="/">Return to Home</Link>
               </Button>
             </div>
+            
+            <p className="text-xs text-muted-foreground mt-6">
+              Need help? Contact our support team at support@realty.ai
+              or call 1-800-555-REAL.
+            </p>
           </div>
         )}
       </div>

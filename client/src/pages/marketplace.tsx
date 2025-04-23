@@ -11,7 +11,7 @@ import { Link } from "wouter";
 
 export default function MarketplacePage() {
   const [activeTab, setActiveTab] = useState("bundles");
-  
+
   // Fetch service bundles
   const { 
     data: bundles = [], 
@@ -21,7 +21,7 @@ export default function MarketplacePage() {
     queryKey: ["/api/marketplace/bundles"],
     enabled: activeTab === "bundles"
   });
-  
+
   // Fetch all service offerings
   const { 
     data: services = [], 
@@ -31,7 +31,7 @@ export default function MarketplacePage() {
     queryKey: ["/api/marketplace/services"],
     enabled: activeTab === "services"
   });
-  
+
   // Fetch service types for filtering
   const { 
     data: serviceTypes = [], 
@@ -40,7 +40,7 @@ export default function MarketplacePage() {
     queryKey: ["/api/marketplace/service-types"],
     enabled: activeTab === "services"
   });
-  
+
   // Loading state
   if (
     (activeTab === "bundles" && bundlesLoading) || 
@@ -52,7 +52,7 @@ export default function MarketplacePage() {
       </div>
     );
   }
-  
+
   // Error state
   if ((activeTab === "bundles" && bundlesError) || (activeTab === "services" && servicesError)) {
     return (
@@ -62,7 +62,7 @@ export default function MarketplacePage() {
       </div>
     );
   }
-  
+
   return (
     <div className="max-w-screen-xl mx-auto">
       <div className="mb-12 text-center">
@@ -72,13 +72,13 @@ export default function MarketplacePage() {
           Choose from bundled packages or individual services based on your needs.
         </p>
       </div>
-      
+
       <Tabs defaultValue="bundles" className="mb-12" onValueChange={setActiveTab}>
         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
           <TabsTrigger value="bundles">Service Bundles</TabsTrigger>
           <TabsTrigger value="services">Individual Services</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="bundles" className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {bundles.map((bundle: ServiceBundle) => (
@@ -102,6 +102,14 @@ export default function MarketplacePage() {
                     )}
                   </div>
                   <CardDescription>{bundle.description}</CardDescription>
+                  {bundle.name === "FREE" && (
+                    <ul className="mt-4 space-y-2">
+                      <li>• AI-powered property valuation</li>
+                      <li>• Communicate, schedule virtual & in-person tours</li>
+                      <li>• Listing creation with direct connection to buyers</li>
+                      <li>• Market Trend Reports (local market data)</li>
+                    </ul>
+                  )}
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <div className="flex justify-between mb-3">
@@ -113,14 +121,14 @@ export default function MarketplacePage() {
                 </CardContent>
                 <CardFooter className="flex flex-col gap-3">
                   <Link href={`/marketplace/bundle/${bundle.id}`}>
-                    <Button className="w-full">View Bundle Details</Button>
+                    <Button className="w-full">{bundle.name === "FREE" ? "Free" : "View Bundle Details"}</Button>
                   </Link>
                 </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="services" className="mt-8">
           <div className="space-y-10">
             {Array.from(new Set(services.map((s: ServiceOffering) => s.serviceType))).map((type) => (

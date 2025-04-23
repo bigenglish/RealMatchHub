@@ -18,14 +18,14 @@ export interface IStorage {
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   getPropertiesWithGeo(): Promise<PropertyWithGeo[]>;
-  
+
   // Market Trends
   getMarketTrends(): Promise<MarketTrend[]>;
   getMarketTrendsByYear(year: number): Promise<MarketTrend[]>;
   getMarketTrendsByNeighborhood(neighborhood: string): Promise<MarketTrend[]>;
   getMarketTrendData(): Promise<MarketTrendData[]>;
   createMarketTrend(trend: InsertMarketTrend): Promise<MarketTrend>;
-  
+
   // Service Providers
   getServiceProviders(): Promise<ServiceProvider[]>;
   getServiceProvider(id: number): Promise<ServiceProvider | undefined>;
@@ -42,14 +42,14 @@ export interface IStorage {
   deleteServiceExpert(id: number): Promise<boolean>;
   getServiceExpertsByLocation(location: string, radius: number): Promise<ServiceExpert[]>;
   getServiceExpertsByAvailability(date: Date): Promise<ServiceExpert[]>;
-  
+
   // Service Bundles (packages)
   getServiceBundles(): Promise<ServiceBundle[]>;
   getServiceBundle(id: number): Promise<ServiceBundle | undefined>;
   createServiceBundle(bundle: InsertServiceBundle): ServiceBundle; // Modified to non-Promise for sample data
   updateServiceBundle(id: number, bundle: Partial<InsertServiceBundle>): Promise<ServiceBundle | undefined>;
   deleteServiceBundle(id: number): Promise<boolean>;
-  
+
   // Service Offerings (individual services)
   getServiceOfferings(): Promise<ServiceOffering[]>;
   getServiceOffering(id: number): Promise<ServiceOffering | undefined>;
@@ -57,12 +57,12 @@ export interface IStorage {
   createServiceOffering(offering: InsertServiceOffering): ServiceOffering; // Modified to non-Promise for sample data
   updateServiceOffering(id: number, offering: Partial<InsertServiceOffering>): Promise<ServiceOffering | undefined>;
   deleteServiceOffering(id: number): Promise<boolean>;
-  
+
   // Bundle Services (many-to-many relationship)
   getServicesInBundle(bundleId: number): Promise<ServiceOffering[]>;
   addServiceToBundle(bundleId: number, serviceId: number): BundleService; // Modified to non-Promise for sample data
   removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean>;
-  
+
   // Service Requests (marketplace)
   getServiceRequests(): Promise<ServiceRequest[]>;
   getServiceRequest(id: number): Promise<ServiceRequest | undefined>;
@@ -72,7 +72,7 @@ export interface IStorage {
   updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined>;
   updateServiceRequest(id: number, updates: Partial<ServiceRequest>): Promise<ServiceRequest | undefined>;
   getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]>;
-  
+
   // Chat Conversations
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
   getChatConversation(id: number): Promise<ChatConversation | undefined>;
@@ -80,13 +80,13 @@ export interface IStorage {
   getChatConversationsByUserId(userId: number): Promise<ChatConversationWithDetails[]>;
   addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
   removeChatParticipant(conversationId: number, userId: number): Promise<boolean>;
-  
+
   // Chat Messages
   saveChatMessage(message: Omit<ChatMessage, 'id'>): Promise<ChatMessage>;
   getChatMessages(conversationId: number): Promise<ChatMessage[]>;
   getChatUnreadMessages(userId: number): Promise<{ conversationId: number, count: number }[]>;
   markChatMessagesAsRead(conversationId: number, userId: number): Promise<boolean>;
-  
+
   // Appointments
   createAppointment(appointment: AppointmentDetails): Promise<Appointment>;
   getAppointment(id: number): Promise<Appointment | undefined>;
@@ -137,7 +137,7 @@ export class MemStorage implements IStorage {
     this.chatParticipants = new Map();
     this.chatMessages = new Map();
     this.appointments = new Map();
-    
+
     this.propertyId = 1;
     this.providerId = 1;
     this.serviceExpertId = 1;
@@ -150,15 +150,15 @@ export class MemStorage implements IStorage {
     this.chatParticipantId = 1;
     this.chatMessageId = 1;
     this.appointmentId = 1;
-    
+
     // Initialize with sample data
     this.initializeSampleData();
   }
-  
+
   private initializeSampleData() {
     // Initialize market trends
     this.initializeSampleMarketTrends();
-    
+
     // Sample service experts
     const sampleServiceExperts: InsertServiceExpert[] = [
       {
@@ -239,7 +239,7 @@ export class MemStorage implements IStorage {
         serviceType: "Real Estate Attorney"
       }
     ];
-    
+
     // Sample properties
     const sampleProperties: InsertProperty[] = [
       {
@@ -315,7 +315,7 @@ export class MemStorage implements IStorage {
         listedDate: "2024-02-20",
       }
     ];
-    
+
     // Sample service providers
     const sampleProviders: InsertServiceProvider[] = [
       {
@@ -391,35 +391,36 @@ export class MemStorage implements IStorage {
         contact: "555-789-0123",
       }
     ];
-    
+
     // Add properties to storage
     sampleProperties.forEach(property => {
       this.createProperty(property);
     });
-    
+
     // Add service providers to storage
     sampleProviders.forEach(provider => {
       this.createServiceProvider(provider);
     });
-    
+
     // Add service experts to storage
     sampleServiceExperts.forEach(expert => {
       this.createServiceExpert(expert);
     });
-    
+
     // Add sample service bundles based on the pricing tiers
     const bundle1 = this.createServiceBundle({
       name: "FREE",
-      description: "Find your perfect match with AI-driven property discovery",
+      description: "Get a quick valuation and connect with potential buyers",
       price: "$0",
       savings: "",
       popularityRank: 3,
       featuredImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3",
       isActive: true,
       features: [
-        "AI-powered property search & alerts",
-        "Communicate, schedule and complete necessary paperwork with direct connection to listing agents/sellers",
-        "Add inspiration photos, design and visualize your home before moving in"
+        "AI-powered property valuation",
+        "Communicate, schedule virtual & in-person tours",
+        "Listing creation with direct connection to buyers",
+        "Market Trend Reports (local market data)"
       ]
     });
 
@@ -550,7 +551,7 @@ export class MemStorage implements IStorage {
   async getProperties(): Promise<Property[]> {
     return Array.from(this.properties.values());
   }
-  
+
   // Non-promise version for AI search
   getProperties(): Property[] {
     return Array.from(this.properties.values()).map(property => ({
@@ -560,7 +561,7 @@ export class MemStorage implements IStorage {
       location: property.address  // For simplicity in the demo
     }));
   }
-  
+
   private getPropertyStyle(property: Property): string {
     // Extract architectural style from property details
     if (property.title.toLowerCase().includes('modern')) return 'modern';
@@ -571,7 +572,7 @@ export class MemStorage implements IStorage {
     if (property.title.toLowerCase().includes('craftsman')) return 'craftsman';
     if (property.title.toLowerCase().includes('mediterranean')) return 'mediterranean';
     if (property.title.toLowerCase().includes('contemporary')) return 'contemporary';
-    
+
     // Check description for style hints
     const desc = property.description.toLowerCase();
     if (desc.includes('modern')) return 'modern';
@@ -583,16 +584,16 @@ export class MemStorage implements IStorage {
     if (desc.includes('mediterranean')) return 'mediterranean';
     if (desc.includes('contemporary')) return 'contemporary';
     if (desc.includes('industrial') || desc.includes('loft')) return 'industrial';
-    
+
     // Default based on property type
     if (property.propertyType === 'Condo' || property.propertyType === 'Apartment') return 'contemporary';
     return 'traditional';
   }
-  
+
   private getPropertyFeatures(property: Property): string[] {
     const features: string[] = [];
     const desc = property.description.toLowerCase();
-    
+
     // Extract features from description
     if (desc.includes('garage') || desc.includes('parking')) features.push('garage');
     if (desc.includes('garden') || desc.includes('yard') || desc.includes('outdoor')) features.push('garden');
@@ -603,18 +604,18 @@ export class MemStorage implements IStorage {
     if (desc.includes('basement')) features.push('basement');
     if (desc.includes('view') || desc.includes('panoramic')) features.push('view');
     if (desc.includes('security') || desc.includes('alarm')) features.push('security');
-    
+
     // Add basic features based on property type
     if (property.propertyType === 'Single Family Home') {
       features.push('private entrance');
       features.push('garden');
     }
-    
+
     if (property.propertyType === 'Condo') {
       features.push('elevator');
       features.push('gym access');
     }
-    
+
     return features;
   }
 
@@ -751,7 +752,7 @@ export class MemStorage implements IStorage {
   createServiceBundle(bundle: InsertServiceBundle): ServiceBundle {
     const id = this.serviceBundleId++;
     const createdAt = new Date();
-    
+
     const serviceBundle: ServiceBundle = {
       id,
       name: bundle.name,
@@ -764,7 +765,7 @@ export class MemStorage implements IStorage {
       createdAt,
       features: bundle.features || null
     };
-    
+
     this.serviceBundles.set(id, serviceBundle);
     return serviceBundle;
   }
@@ -808,7 +809,7 @@ export class MemStorage implements IStorage {
   createServiceOffering(offering: InsertServiceOffering): ServiceOffering {
     const id = this.serviceOfferingId++;
     const createdAt = new Date();
-    
+
     const serviceOffering: ServiceOffering = {
       ...offering,
       id,
@@ -816,7 +817,7 @@ export class MemStorage implements IStorage {
       isActive: offering.isActive ?? true,
       requiredDocuments: offering.requiredDocuments || null
     };
-    
+
     this.serviceOfferings.set(id, serviceOffering);
     return serviceOffering;
   }
@@ -846,25 +847,25 @@ export class MemStorage implements IStorage {
     // Get all BundleService records for the given bundle
     const bundleServiceEntries = Array.from(this.bundleServices.values())
       .filter(bs => bs.bundleId === bundleId);
-    
+
     // Get all service offerings for those service IDs
     const serviceIds = bundleServiceEntries.map(bs => bs.serviceId);
     const services = Array.from(this.serviceOfferings.values())
       .filter(service => serviceIds.includes(service.id));
-    
+
     return services;
   }
 
   // This method is special for sample data - it returns non-Promise for use in initializeSampleData
   addServiceToBundle(bundleId: number, serviceId: number): BundleService {
     const id = this.bundleServiceId++;
-    
+
     const bundleService: BundleService = {
       id,
       bundleId,
       serviceId
     };
-    
+
     this.bundleServices.set(id, bundleService);
     return bundleService;
   }
@@ -872,11 +873,11 @@ export class MemStorage implements IStorage {
   async removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean> {
     const bundleServiceEntry = Array.from(this.bundleServices.values())
       .find(bs => bs.bundleId === bundleId && bs.serviceId === serviceId);
-    
+
     if (!bundleServiceEntry) {
       return false;
     }
-    
+
     return this.bundleServices.delete(bundleServiceEntry.id);
   }
 
@@ -903,7 +904,7 @@ export class MemStorage implements IStorage {
     const id = this.serviceRequestId++;
     const requestDate = new Date();
     const createdAt = new Date();
-    
+
     // Create a properly typed ServiceRequest object without using spread operator
     const serviceRequest: ServiceRequest = {
       id,
@@ -917,7 +918,7 @@ export class MemStorage implements IStorage {
       notes: request.notes || null,
       propertyId: request.propertyId || null
     };
-    
+
     this.serviceRequests.set(id, serviceRequest);
     return serviceRequest;
   }
@@ -959,12 +960,12 @@ export class MemStorage implements IStorage {
       .filter(expert => {
         // Check if exact service type matches
         if (expert.serviceType === serviceType) return true;
-        
+
         // Check if the service type is in the services offered
         return expert.servicesOffered.includes(serviceType);
       });
   }
-  
+
   // Properties with geo coordinates for map visualization
   async getPropertiesWithGeo(): Promise<PropertyWithGeo[]> {
     // Convert properties to PropertyWithGeo format with coordinates
@@ -973,7 +974,7 @@ export class MemStorage implements IStorage {
       // In a real implementation, these would come from the database or geocoding API
       const latitude = 37.7749 + (Math.random() - 0.5) * 0.1; // Randomize around San Francisco
       const longitude = -122.4194 + (Math.random() - 0.5) * 0.1;
-      
+
       return {
         listingId: property.id.toString(),
         address: property.address,
@@ -992,42 +993,42 @@ export class MemStorage implements IStorage {
         listedDate: property.listedDate.toString(),
       };
     });
-    
+
     return propertiesWithGeo;
   }
-  
+
   // Market Trends methods
   async getMarketTrends(): Promise<MarketTrend[]> {
     return Array.from(this.marketTrends.values());
   }
-  
+
   async getMarketTrendsByYear(year: number): Promise<MarketTrend[]> {
     return Array.from(this.marketTrends.values()).filter(trend => trend.year === year);
   }
-  
+
   async getMarketTrendsByNeighborhood(neighborhood: string): Promise<MarketTrend[]> {
     return Array.from(this.marketTrends.values()).filter(trend => 
       trend.neighborhood === neighborhood || !neighborhood
     );
   }
-  
+
   async createMarketTrend(trend: InsertMarketTrend): Promise<MarketTrend> {
     const id = this.marketTrendId++;
     const newTrend: MarketTrend = {
       id,
       ...trend
     };
-    
+
     this.marketTrends.set(id, newTrend);
     return newTrend;
   }
-  
+
   async getMarketTrendData(): Promise<MarketTrendData[]> {
     // If we don't have market trends data, create sample data
     if (this.marketTrends.size === 0) {
       this.initializeSampleMarketTrends();
     }
-    
+
     return Array.from(this.marketTrends.values()).map(trend => ({
       year: trend.year,
       quarter: trend.quarter,
@@ -1040,46 +1041,46 @@ export class MemStorage implements IStorage {
       propertyType: trend.propertyType || undefined
     }));
   }
-  
+
   private initializeSampleMarketTrends() {
     // Generate sample market trend data for the last 5 years
     const currentYear = new Date().getFullYear();
     const neighborhoods = ['Downtown', 'Suburban Heights', 'Westside', 'Eastside', 'Northgate'];
     const propertyTypes = ['Single Family Home', 'Condo', 'Townhouse'];
-    
+
     let basePrice = 850000; // Starting average price
-    
+
     for (let year = currentYear - 5; year <= currentYear; year++) {
       for (let quarter = 1; quarter <= 4; quarter++) {
         // Skip future quarters
         if (year === currentYear && quarter > Math.floor((new Date().getMonth() + 3) / 3)) {
           continue;
         }
-        
+
         // Price trends with seasonal variations and general upward trend
         // Price grows about 5% per year with quarterly fluctuations
         const yearFactor = 1 + (year - (currentYear - 5)) * 0.05; // 5% annual increase
         const quarterFactor = 1 + (quarter === 2 || quarter === 3 ? 0.02 : -0.01); // Seasonal variations
-        
+
         // Calculate this quarter's price based on the base price with yearly and quarterly factors
         const quarterPrice = Math.round(basePrice * yearFactor * quarterFactor);
-        
+
         // Calculate percentage change from previous quarter
         const prevPrice = basePrice * (year === currentYear - 5 && quarter === 1 ? 1 : yearFactor * (1 + ((quarter === 1 ? 4 : quarter - 1) === 2 || (quarter === 1 ? 4 : quarter - 1) === 3 ? 0.02 : -0.01)));
         const percentageChange = ((quarterPrice - prevPrice) / prevPrice) * 100;
-        
+
         // For each neighborhood, add slightly different data
         neighborhoods.forEach((neighborhood, index) => {
           // Each neighborhood has slightly different prices and trends
           const neighborhoodFactor = 1 + (index - 2) * 0.1; // -0.2 to +0.2 variation
-          
+
           propertyTypes.forEach((propertyType, typeIndex) => {
             // Each property type has different price levels
             const typeFactor = typeIndex === 0 ? 1.2 : typeIndex === 1 ? 0.7 : 0.9;
-            
+
             const finalPrice = Math.round(quarterPrice * neighborhoodFactor * typeFactor);
             const medianPrice = Math.round(finalPrice * 0.9); // Median is typically lower than average
-            
+
             this.createMarketTrend({
               year,
               quarter,
@@ -1096,7 +1097,7 @@ export class MemStorage implements IStorage {
       }
     }
   }
-  
+
   // Chat Conversations
   async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
     const id = this.chatConversationId++;
@@ -1109,40 +1110,40 @@ export class MemStorage implements IStorage {
     this.chatConversations.set(id, newConversation);
     return newConversation;
   }
-  
+
   async getChatConversation(id: number): Promise<ChatConversation | undefined> {
     return this.chatConversations.get(id);
   }
-  
+
   async getChatConversations(): Promise<ChatConversation[]> {
     return Array.from(this.chatConversations.values());
   }
-  
+
   async getChatConversationsByUserId(userId: number): Promise<ChatConversationWithDetails[]> {
     // Get all participants for this user
     const userParticipations = Array.from(this.chatParticipants.values())
       .filter(participant => participant.userId === userId)
       .map(participant => participant.conversationId);
-    
+
     // Get conversations
     const conversations = Array.from(this.chatConversations.values())
       .filter(conversation => userParticipations.includes(conversation.id));
-    
+
     // Enrich with participants and latest message
     return Promise.all(conversations.map(async conversation => {
       const participants = Array.from(this.chatParticipants.values())
         .filter(participant => participant.conversationId === conversation.id);
-      
+
       const messages = Array.from(this.chatMessages.values())
         .filter(message => message.conversationId === conversation.id)
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      
+
       const latestMessage = messages.length > 0 ? messages[0] : undefined;
-      
+
       const unreadCount = messages.filter(message => 
         !message.isRead && message.senderId !== userId
       ).length;
-      
+
       return {
         ...conversation,
         participants,
@@ -1151,7 +1152,7 @@ export class MemStorage implements IStorage {
       };
     }));
   }
-  
+
   async addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant> {
     const id = this.chatParticipantId++;
     const newParticipant: ChatParticipant = {
@@ -1163,21 +1164,21 @@ export class MemStorage implements IStorage {
     this.chatParticipants.set(id, newParticipant);
     return newParticipant;
   }
-  
+
   async removeChatParticipant(conversationId: number, userId: number): Promise<boolean> {
     const participants = Array.from(this.chatParticipants.values());
     const participantToRemove = participants.find(p => 
       p.conversationId === conversationId && p.userId === userId
     );
-    
+
     if (participantToRemove) {
       this.chatParticipants.delete(participantToRemove.id);
       return true;
     }
-    
+
     return false;
   }
-  
+
   // Chat Messages
   async saveChatMessage(message: Omit<ChatMessage, 'id'>): Promise<ChatMessage> {
     const id = this.chatMessageId++;
@@ -1186,31 +1187,31 @@ export class MemStorage implements IStorage {
       id: id.toString(),
     };
     this.chatMessages.set(id, newMessage);
-    
+
     // Update last message timestamp on conversation
     const conversation = this.chatConversations.get(parseInt(message.conversationId));
     if (conversation) {
       conversation.lastMessageAt = message.timestamp;
       this.chatConversations.set(conversation.id, conversation);
     }
-    
+
     return newMessage;
   }
-  
+
   async getChatMessages(conversationId: number): Promise<ChatMessage[]> {
     return Array.from(this.chatMessages.values())
       .filter(message => parseInt(message.conversationId) === conversationId)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }
-  
+
   async getChatUnreadMessages(userId: number): Promise<{ conversationId: number, count: number }[]> {
     // Get conversations this user is a part of
     const userParticipations = Array.from(this.chatParticipants.values())
       .filter(participant => participant.userId === userId)
       .map(participant => participant.conversationId);
-    
+
     const result: { conversationId: number, count: number }[] = [];
-    
+
     // For each conversation, count unread messages
     for (const conversationId of userParticipations) {
       const unreadCount = Array.from(this.chatMessages.values()).filter(message => 
@@ -1218,15 +1219,15 @@ export class MemStorage implements IStorage {
         message.senderId !== userId &&
         !message.isRead
       ).length;
-      
+
       if (unreadCount > 0) {
         result.push({ conversationId, count: unreadCount });
       }
     }
-    
+
     return result;
   }
-  
+
   async markChatMessagesAsRead(conversationId: number, userId: number): Promise<boolean> {
     const messages = Array.from(this.chatMessages.values())
       .filter(message => 
@@ -1234,31 +1235,31 @@ export class MemStorage implements IStorage {
         message.senderId !== userId &&
         !message.isRead
       );
-    
+
     // Mark all messages as read
     for (const message of messages) {
       message.isRead = true;
       this.chatMessages.set(parseInt(message.id), message);
     }
-    
+
     // Update last read timestamp for participant
     const participant = Array.from(this.chatParticipants.values()).find(p => 
       p.conversationId === conversationId && p.userId === userId
     );
-    
+
     if (participant) {
       participant.lastReadAt = new Date().toISOString();
       this.chatParticipants.set(participant.id, participant);
     }
-    
+
     return true;
   }
-  
+
   // Appointments
   async createAppointment(appointmentDetails: AppointmentDetails): Promise<Appointment> {
     const id = this.appointmentId++;
     const now = new Date().toISOString();
-    
+
     const appointment: Appointment = {
       id,
       propertyId: appointmentDetails.propertyId || null,
@@ -1273,47 +1274,47 @@ export class MemStorage implements IStorage {
       updatedAt: now,
       metadata: appointmentDetails.metadata || null
     };
-    
+
     this.appointments.set(id, appointment);
     return appointment;
   }
-  
+
   async getAppointment(id: number): Promise<Appointment | undefined> {
     return this.appointments.get(id);
   }
-  
+
   async getAppointmentsByUser(userId: number): Promise<Appointment[]> {
     return Array.from(this.appointments.values())
       .filter(appointment => appointment.userId === userId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
-  
+
   async getAppointmentsByExpert(expertId: number): Promise<Appointment[]> {
     return Array.from(this.appointments.values())
       .filter(appointment => appointment.expertId === expertId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
-  
+
   async getAppointmentsByProperty(propertyId: number): Promise<Appointment[]> {
     return Array.from(this.appointments.values())
       .filter(appointment => appointment.propertyId === propertyId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
-  
+
   async updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined> {
     const appointment = this.appointments.get(id);
-    
+
     if (appointment) {
       const updatedAppointment: Appointment = {
         ...appointment,
         status,
         updatedAt: new Date().toISOString()
       };
-      
+
       this.appointments.set(id, updatedAppointment);
       return updatedAppointment;
     }
-    
+
     return undefined;
   }
 }

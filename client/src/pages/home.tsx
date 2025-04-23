@@ -891,8 +891,57 @@ export default function HomePage() {
       {/* Personalized Matching Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-5xl font-bold mb-6">PERSONALIZED MATCHING</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div>
+              <h3 className="text-2xl font-bold mb-6">Popular Neighborhoods</h3>
+              <div className="w-full h-[400px] rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=Los+Angeles,CA"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold mb-6">Trusted By</h2>
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {'★'.repeat(5)}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2">"I paid no agent commissions, saved on my home and saved $25,000 on my purchase!"</p>
+                      <p className="font-semibold">John D., Los Angeles</p>
+                      <p className="text-sm text-gray-500">Feb 4, 2025</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {'★'.repeat(5)}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2">"First time buying a home and Realty.AI was incredibly helpful. The AI simplified all the paperwork and connected me to great local experts."</p>
+                      <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
+                      <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

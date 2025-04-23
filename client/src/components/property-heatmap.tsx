@@ -729,3 +729,31 @@ export default function PropertyHeatmap() {
     </div>
   );
 }
+import React from 'react';
+import { Card } from './ui/card';
+
+interface PropertyHeatmapProps {
+  location?: string;
+  zoom?: number;
+}
+
+export const PropertyHeatmap: React.FC<PropertyHeatmapProps> = ({
+  location = "Los Angeles, CA",
+  zoom = 12
+}) => {
+  return (
+    <Card className="w-full h-[400px] overflow-hidden">
+      <iframe
+        src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${encodeURIComponent(location)}&zoom=${zoom}`}
+        width="100%"
+        height="100%"
+        style={{ border: 0 }}
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    </Card>
+  );
+};
+
+export default PropertyHeatmap;

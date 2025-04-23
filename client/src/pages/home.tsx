@@ -896,7 +896,7 @@ export default function HomePage() {
               <h3 className="text-2xl font-bold mb-6">Popular Neighborhoods</h3>
               <div className="w-full h-[400px] rounded-lg overflow-hidden shadow-lg">
                 <iframe
-                  src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.GOOGLE_PLACES_API_KEY || ''}&q=Los+Angeles,CA`}
+                  src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.GOOGLE_PLACES_API_KEY}&q=Los+Angeles,CA`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

@@ -896,7 +896,7 @@ export default function HomePage() {
               <h3 className="text-2xl font-bold mb-6">Popular Neighborhoods</h3>
               <div className="w-full h-[400px] rounded-lg overflow-hidden shadow-lg">
                 <iframe
-                  src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=Los+Angeles,CA"
+                  src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.GOOGLE_PLACES_API_KEY || ''}&q=Los+Angeles,CA`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
@@ -943,29 +943,28 @@ export default function HomePage() {
             </div>
           </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-bold text-xl mb-2">Curate Your Dream Home:</h3>
-                <p className="text-gray-700">Save photos, listings, and design ideas for inspiration.</p>
-              </div>
-
-              <div>
-                <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
-                <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-bold text-xl mb-2">Curate Your Dream Home:</h3>
+              <p className="text-gray-700">Save photos, listings, and design ideas for inspiration.</p>
             </div>
 
-            <div className="flex justify-end gap-4 mt-8">
-              <Button 
-                className="bg-olive-600 hover:bg-olive-700 py-6 px-8"
-                onClick={() => openVideoDialog("/pay-your-way.mp4")}
-              >
-                See How It Works
-              </Button>
-              <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8">
-                Start For Free
-              </Button>
+            <div>
+              <h3 className="font-bold text-xl mb-2">Smart Matching:</h3>
+              <p className="text-gray-700">Get personalized recommendations based on your unique preferences.</p>
             </div>
+          </div>
+
+          <div className="flex justify-end gap-4 mt-8">
+            <Button 
+              className="bg-olive-600 hover:bg-olive-700 py-6 px-8"
+              onClick={() => openVideoDialog("/pay-your-way.mp4")}
+            >
+              See How It Works
+            </Button>
+            <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8">
+              Start For Free
+            </Button>
           </div>
 
           {/*Property Recommendations */}

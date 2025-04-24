@@ -13,6 +13,69 @@ import { db } from "../db";
 
 const router = Router();
 
+// === Health Check Endpoint ===
+router.get('/communication-health', async (req, res) => {
+  try {
+    // Check database connection by querying table counts
+    const tableStatuses = await Promise.all([
+      db.execute('SELECT COUNT(*) FROM communication_logs').then(result => ({ 
+        table: 'communication_logs', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'communication_logs', status: 'error' })),
+      
+      db.execute('SELECT COUNT(*) FROM property_showings').then(result => ({ 
+        table: 'property_showings', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'property_showings', status: 'error' })),
+      
+      db.execute('SELECT COUNT(*) FROM property_offers').then(result => ({ 
+        table: 'property_offers', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'property_offers', status: 'error' })),
+      
+      db.execute('SELECT COUNT(*) FROM property_documents').then(result => ({ 
+        table: 'property_documents', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'property_documents', status: 'error' })),
+      
+      db.execute('SELECT COUNT(*) FROM transaction_progress').then(result => ({ 
+        table: 'transaction_progress', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'transaction_progress', status: 'error' })),
+      
+      db.execute('SELECT COUNT(*) FROM valuation_time_slots').then(result => ({ 
+        table: 'valuation_time_slots', 
+        status: 'connected',
+        count: parseInt(result[0].count)
+      })).catch(() => ({ table: 'valuation_time_slots', status: 'error' }))
+    ]);
+    
+    // Check overall system status
+    const allTablesConnected = tableStatuses.every(table => table.status === 'connected');
+    
+    res.json({
+      status: allTablesConnected ? 'healthy' : 'degraded',
+      message: allTablesConnected 
+        ? 'Property communication system is fully operational' 
+        : 'Some property communication tables are not accessible',
+      timestamp: new Date().toISOString(),
+      tables: tableStatuses
+    });
+  } catch (error) {
+    console.error('[communication-routes] Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Property communication system health check failed',
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+});
+
 // === Communication Logs (Messages) ===
 
 // Get all communication logs for a property

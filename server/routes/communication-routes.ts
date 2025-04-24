@@ -9,6 +9,7 @@ import {
   insertValuationTimeSlotSchema
 } from "@shared/schema";
 import { z } from "zod";
+import { db } from "../db";
 
 const router = Router();
 

@@ -23,6 +23,7 @@ import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functio
 import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
 import { generatePropertyRecommendations } from "./ai-property-recommendations"; // Import AI property recommendations
 import { initializeChat } from "./chat-service"; // Import websocket chat service
+import { calculatePersonalizedNeighborhoodScores, getNeighborhoodsByCity, getNeighborhoodById } from "./neighborhood-service"; // Import neighborhood service
 import { 
   insertAppointmentSchema, 
   insertChatConversationSchema, 
@@ -1730,6 +1731,50 @@ app.post("/api/chatbot", async (req, res) => {
       }
     });
   }
+
+  // Neighborhood API endpoints
+  app.get("/api/neighborhoods/:city", async (req, res) => {
+    try {
+      const city = req.params.city;
+      const neighborhoods = getNeighborhoodsByCity(city);
+      res.json(neighborhoods);
+    } catch (error) {
+      console.error(`[express] Error fetching neighborhoods for ${req.params.city}:`, error);
+      res.status(500).json({ message: "Error fetching neighborhood data" });
+    }
+  });
+
+  app.get("/api/neighborhoods/:city/:id", async (req, res) => {
+    try {
+      const { city, id } = req.params;
+      const neighborhood = getNeighborhoodById(city, id);
+      
+      if (!neighborhood) {
+        return res.status(404).json({ message: "Neighborhood not found" });
+      }
+      
+      res.json(neighborhood);
+    } catch (error) {
+      console.error(`[express] Error fetching neighborhood ${req.params.id}:`, error);
+      res.status(500).json({ message: "Error fetching neighborhood details" });
+    }
+  });
+
+  app.post("/api/neighborhoods/personalized", async (req, res) => {
+    try {
+      const { city, responses } = req.body;
+      
+      if (!city || !responses) {
+        return res.status(400).json({ message: "City and questionnaire responses are required" });
+      }
+      
+      const scoredNeighborhoods = calculatePersonalizedNeighborhoodScores(city, responses);
+      res.json(scoredNeighborhoods);
+    } catch (error) {
+      console.error("[express] Error calculating personalized neighborhood scores:", error);
+      res.status(500).json({ message: "Error calculating neighborhood scores" });
+    }
+  });
 
   // Initialize WebSocket chat service (legacy)
   const wss = initializeChat(httpServer);

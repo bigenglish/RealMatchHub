@@ -1,0 +1,61 @@
+**Neighborhood Preferences Questionnaire**
+
+**Instructions:** Please answer the following questions to help us find the perfect neighborhood for you. For questions with a scale, 1 means "Not at all important" or "Not at all likely," and 5 means "Extremely important" or "Extremely likely."
+
+**1. Lifestyle & Priorities:**
+
+* How important is a vibrant nightlife scene to your neighborhood choice? (Scale: 1-5)
+* How important is a quiet and peaceful environment? (Scale: 1-5)
+* How important is easy walkability to shops and restaurants? (Scale: 1-5)
+* How important is access to nature and green spaces (parks, trails)? (Scale: 1-5)
+* How important is a strong sense of community in your neighborhood? (Scale: 1-5)
+* On a scale of 0 to 10, how likely are you to enjoy living in a neighborhood with frequent local events and festivals? (0 - Not at all likely, 10 - Extremely likely)
+* How important is a pet-friendly environment (parks, services)? (Scale: 1-5)
+* How important is a diverse and inclusive community? (Scale: 1-5)
+* On a scale of 0 to 10, how likely are you to enjoy living in a neighborhood with a strong and active local business community? (0 - Not at all likely, 10 - Extremely likely)
+* How important is proximity to cultural institutions (museums, theaters, art galleries)? (Scale: 1-5)
+
+**2. Commute & Transportation:**
+
+* How important is a short commute to your primary destination (work, school)? (Scale: 1-5)
+* What is your preferred mode of transportation for your primary commute? (Multiple Choice: Car, Public Transportation, Walking, Biking, Other)
+* If you use public transportation, how important is easy access to bus stops, train stations, or subway lines? (Scale: 1-5)
+* If you drive, how important is easy access to major highways and parking? (Scale: 1-5)
+* What is your ideal maximum commute time (in minutes)? (Open Text - Number)
+* How important is walkability for everyday errands (groceries, pharmacy)? (Scale: 1-5)
+* On a scale of 0 to 10, how likely are you to consider a neighborhood with excellent public transportation options? (0 - Not at all likely, 10 - Extremely likely)
+
+**3. Family & Education:**
+
+* Do you have children or plan to in the future? (Yes, No, Maybe)
+* If yes, how important are highly-rated schools in your neighborhood choice? (Scale: 1-5)
+* If applicable, what is the age range of your children or anticipated children? (Multiple Choice: Infant/Toddler, Elementary, Middle School, High School, Not Applicable)
+* How important is proximity to parks and playgrounds for children? (Scale: 1-5)
+* How important is the availability of childcare facilities in the neighborhood? (Scale: 1-5)
+* On a scale of 0 to 10, how likely are you to prioritize a neighborhood known for its family-friendly atmosphere? (0 - Not at all likely, 10 - Extremely likely)
+* How important is proximity to libraries and community centers? (Scale: 1-5)
+
+**4. Amenities & Local Services:**
+
+* How important is proximity to grocery stores and everyday shopping? (Scale: 1-5)
+* How important is proximity to healthcare facilities (hospitals, clinics)? (Scale: 1-5)
+* How important is access to gyms and fitness centers? (Scale: 1-5)
+* How important is proximity to restaurants and cafes? (Scale: 1-5)
+* How important is proximity to entertainment venues (movie theaters, live music)? (Scale: 1-5)
+* How important is the availability of local farmers markets? (Scale: 1-5)
+* On a scale of 0 to 10, how likely are you to choose a neighborhood with a wide variety of local amenities within walking distance? (0 - Not at all likely, 10 - Extremely likely)
+* How important is proximity to services like dry cleaners, pharmacies, and banks? (Scale: 1-5)
+
+**5. Budget & Financial Considerations:**
+
+* Are you also considering the overall cost of living in a neighborhood (beyond just housing prices)? (Yes/No)
+* How comfortable are you with potential Homeowners Association (HOA) fees? (Scale: 1 - Not comfortable at all, 5 - Very comfortable)
+* How important is the potential for future property value appreciation in a neighborhood? (Scale: 1-5)
+
+**Remember to:**
+
+* Explain the scale (1-5 for importance, 0-10 for likelihood) clearly to the users in your Replit agent interface.
+* Store these responses in a structured way (e.g., JSON object) associated with each user.
+* Use this data in your Replit backend to filter and rank properties and neighborhoods based on user preferences.
+
+This structured questionnaire with importance scales will provide much richer dat

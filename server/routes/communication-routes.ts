@@ -6,53 +6,92 @@ import {
   insertPropertyOfferSchema,
   insertPropertyDocumentSchema,
   insertTransactionProgressSchema,
-  insertValuationTimeSlotSchema
+  insertValuationTimeSlotSchema,
+  communicationLogs, 
+  propertyShowings, 
+  propertyOffers, 
+  propertyDocuments, 
+  transactionProgress, 
+  valuationTimeSlots
 } from "@shared/schema";
 import { z } from "zod";
 import { db } from "../db";
+import { sql } from "drizzle-orm";
 
 const router = Router();
 
 // === Health Check Endpoint ===
 router.get('/communication-health', async (req, res) => {
   try {
+    // Tables are already imported at the top level
+    
     // Check database connection by querying table counts
     const tableStatuses = await Promise.all([
-      db.execute('SELECT COUNT(*) FROM communication_logs').then(result => ({ 
-        table: 'communication_logs', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'communication_logs', status: 'error' })),
+      db.select({ count: sql<number>`count(*)` }).from(communicationLogs)
+        .then(result => ({ 
+          table: 'communication_logs', 
+          status: 'connected',
+          count: Number(result[0].count) 
+        }))
+        .catch((err) => { 
+          console.error('[health-check] communication_logs error:', err); 
+          return { table: 'communication_logs', status: 'error' }; 
+        }),
       
-      db.execute('SELECT COUNT(*) FROM property_showings').then(result => ({ 
-        table: 'property_showings', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'property_showings', status: 'error' })),
+      db.select({ count: sql<number>`count(*)` }).from(propertyShowings)
+        .then(result => ({ 
+          table: 'property_showings', 
+          status: 'connected',
+          count: Number(result[0].count)
+        }))
+        .catch((err) => { 
+          console.error('[health-check] property_showings error:', err); 
+          return { table: 'property_showings', status: 'error' }; 
+        }),
       
-      db.execute('SELECT COUNT(*) FROM property_offers').then(result => ({ 
-        table: 'property_offers', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'property_offers', status: 'error' })),
+      db.select({ count: sql<number>`count(*)` }).from(propertyOffers)
+        .then(result => ({ 
+          table: 'property_offers', 
+          status: 'connected',
+          count: Number(result[0].count)
+        }))
+        .catch((err) => { 
+          console.error('[health-check] property_offers error:', err); 
+          return { table: 'property_offers', status: 'error' }; 
+        }),
       
-      db.execute('SELECT COUNT(*) FROM property_documents').then(result => ({ 
-        table: 'property_documents', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'property_documents', status: 'error' })),
+      db.select({ count: sql<number>`count(*)` }).from(propertyDocuments)
+        .then(result => ({ 
+          table: 'property_documents', 
+          status: 'connected',
+          count: Number(result[0].count)
+        }))
+        .catch((err) => { 
+          console.error('[health-check] property_documents error:', err); 
+          return { table: 'property_documents', status: 'error' }; 
+        }),
       
-      db.execute('SELECT COUNT(*) FROM transaction_progress').then(result => ({ 
-        table: 'transaction_progress', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'transaction_progress', status: 'error' })),
+      db.select({ count: sql<number>`count(*)` }).from(transactionProgress)
+        .then(result => ({ 
+          table: 'transaction_progress', 
+          status: 'connected',
+          count: Number(result[0].count)
+        }))
+        .catch((err) => { 
+          console.error('[health-check] transaction_progress error:', err); 
+          return { table: 'transaction_progress', status: 'error' }; 
+        }),
       
-      db.execute('SELECT COUNT(*) FROM valuation_time_slots').then(result => ({ 
-        table: 'valuation_time_slots', 
-        status: 'connected',
-        count: parseInt(result[0].count)
-      })).catch(() => ({ table: 'valuation_time_slots', status: 'error' }))
+      db.select({ count: sql<number>`count(*)` }).from(valuationTimeSlots)
+        .then(result => ({ 
+          table: 'valuation_time_slots', 
+          status: 'connected',
+          count: Number(result[0].count)
+        }))
+        .catch((err) => { 
+          console.error('[health-check] valuation_time_slots error:', err); 
+          return { table: 'valuation_time_slots', status: 'error' }; 
+        })
     ]);
     
     // Check overall system status

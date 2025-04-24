@@ -107,8 +107,11 @@ router.post('/showings/:propertyId/:userId', async (req, res) => {
   try {
     const { propertyId, userId } = req.params;
     
+    // Create a schema without the showingId field since we'll generate it
+    const showingRequestSchema = insertPropertyShowingSchema.omit({ showingId: true });
+    
     // Validate the request body
-    const { showingId, ...validatedData } = insertPropertyShowingSchema.parse({
+    const validatedData = showingRequestSchema.parse({
       ...req.body,
       propertyId,
       userId
@@ -185,8 +188,11 @@ router.post('/offers/:propertyId/:userId', async (req, res) => {
   try {
     const { propertyId, userId } = req.params;
     
+    // Create a schema without the offerId field since we'll generate it
+    const offerRequestSchema = insertPropertyOfferSchema.omit({ offerId: true });
+    
     // Validate the request body
-    const { offerId, ...validatedData } = insertPropertyOfferSchema.parse({
+    const validatedData = offerRequestSchema.parse({
       ...req.body,
       propertyId,
       userId

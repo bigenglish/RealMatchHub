@@ -424,12 +424,32 @@ export default function HomePage() {
                           {'★★★★★'}
                         </div>
                       </div>
-                      <p className="text-gray-600 mb-2">"First time buying a home and Realty.AI was incredibly helpful. The AI simplified all the paperwork and connected me to great local experts."</p>
+                      <p className="text-gray-600 mb-2">"For a quintessential San Francisco experience with Victorian charm, a lively atmosphere, and stunning views, explore Hayes Valley. You can wander through independent boutiques, catch a performance at the symphony, and grab a delicious bite at a trendy restaurant – all within a few blocks. It's got a real sophisticated yet approachable vibe."</p>
                       <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">SJ</div>
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">CE</div>
                         <div>
-                          <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
-                          <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                          <p className="font-semibold">City Enthusiast, Hayes Valley</p>
+                          <p className="text-sm text-gray-500">San Francisco, CA</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {'★★★★★'}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2">"If you're drawn to a vibrant Brooklyn neighborhood with a strong artistic spirit, independent shops, and a fantastic food scene, you have to check out Williamsburg. From its waterfront parks with Manhattan skyline views to its bustling Bedford Avenue, there's always something happening. It's got a cool, creative energy that's uniquely New York."</p>
+                      <div className="flex items-center mt-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">BN</div>
+                        <div>
+                          <p className="font-semibold">Brooklyn Native, Williamsburg</p>
+                          <p className="text-sm text-gray-500">New York City, NY</p>
                         </div>
                       </div>
                     </div>

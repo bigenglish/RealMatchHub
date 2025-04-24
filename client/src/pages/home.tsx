@@ -1480,8 +1480,8 @@ export default function HomePage() {
           <h2 className="text-6xl font-bold mb-12 text-gray-800">READY TO GET STARTED?</h2>
 
           <div className="mb-10">
-            <Button className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
-              Create Your Free Account
+            <Button asChild className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
+              <Link href="/auth/welcome">Create Your Free Account</Link>
             </Button>
           </div>
 

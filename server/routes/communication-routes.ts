@@ -269,8 +269,11 @@ router.post('/documents/:propertyId/:userId', async (req, res) => {
   try {
     const { propertyId, userId } = req.params;
     
+    // Create a schema without the documentId field since we'll generate it
+    const documentRequestSchema = insertPropertyDocumentSchema.omit({ documentId: true });
+    
     // Validate the request body
-    const { documentId, ...validatedData } = insertPropertyDocumentSchema.parse({
+    const validatedData = documentRequestSchema.parse({
       ...req.body,
       propertyId,
       userId

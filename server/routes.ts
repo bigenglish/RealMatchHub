@@ -1982,6 +1982,72 @@ app.post("/api/chatbot", async (req, res) => {
     // Register Auth routes
     app.use("/api/auth", authRoutes);
     console.log("[express] Auth routes registered");
+    
+    // ----- Neighborhood Explorer Routes -----
+    
+    // Get all neighborhoods for a city
+    app.get('/api/neighborhoods/:city', (req, res) => {
+      try {
+        const cityName = req.params.city;
+        const neighborhoods = getNeighborhoodsByCity(cityName);
+        
+        console.log(`[express] Fetched ${neighborhoods.length} neighborhoods for ${cityName}`);
+        res.json(neighborhoods);
+      } catch (error) {
+        console.error('[express] Error fetching neighborhoods:', error);
+        res.status(500).json({ 
+          message: 'Failed to fetch neighborhoods',
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    });
+    
+    // Get a specific neighborhood by ID
+    app.get('/api/neighborhoods/:city/:id', (req, res) => {
+      try {
+        const { city, id } = req.params;
+        const neighborhood = getNeighborhoodById(city, id);
+        
+        if (!neighborhood) {
+          return res.status(404).json({ message: `Neighborhood with ID ${id} not found in ${city}` });
+        }
+        
+        console.log(`[express] Fetched neighborhood ${id} in ${city}`);
+        res.json(neighborhood);
+      } catch (error) {
+        console.error('[express] Error fetching neighborhood:', error);
+        res.status(500).json({ 
+          message: 'Failed to fetch neighborhood',
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    });
+    
+    // Calculate personalized neighborhood scores
+    app.post('/api/neighborhoods/personalized', (req, res) => {
+      try {
+        const { city, responses } = req.body;
+        
+        if (!city || !responses) {
+          return res.status(400).json({ message: 'City and questionnaire responses are required' });
+        }
+        
+        // Get all neighborhoods for the city
+        const neighborhoods = getNeighborhoodsByCity(city);
+        
+        // Calculate personalized scores
+        const personalizedNeighborhoods = calculatePersonalizedNeighborhoodScores(neighborhoods, responses);
+        
+        console.log(`[express] Calculated personalized scores for ${personalizedNeighborhoods.length} neighborhoods in ${city}`);
+        res.json(personalizedNeighborhoods);
+      } catch (error) {
+        console.error('[express] Error calculating personalized neighborhood scores:', error);
+        res.status(500).json({ 
+          message: 'Failed to calculate personalized neighborhood scores',
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    });
   } catch (error) {
     console.error("[express] Failed to initialize Google Vision API:", error);
   }

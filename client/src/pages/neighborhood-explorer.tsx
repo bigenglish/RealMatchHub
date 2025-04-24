@@ -66,7 +66,7 @@ const NeighborhoodExplorer: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<NeighborhoodData | null>(null);
   const [questionnaireResponses, setQuestionnaireResponses] = useState<QuestionnaireResponse | null>(null);
-  
+
   // API data states
   const [personalizedNeighborhoods, setPersonalizedNeighborhoods] = useState<APINeighborhoodData[]>([]);
   const [selectedAPINeighborhood, setSelectedAPINeighborhood] = useState<APINeighborhoodData | null>(null);
@@ -99,7 +99,7 @@ const NeighborhoodExplorer: React.FC = () => {
   const fetchPersonalizedNeighborhoods = async (city: string, responses: QuestionnaireResponse) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/neighborhoods/personalized', {
         method: 'POST',
@@ -111,16 +111,16 @@ const NeighborhoodExplorer: React.FC = () => {
           responses
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch personalized neighborhoods: ${response.statusText}`);
       }
-      
+
       const data: APINeighborhoodData[] = await response.json();
       console.log('Personalized neighborhoods data:', data);
-      
+
       setPersonalizedNeighborhoods(data);
-      
+
       // If we have a selected neighborhood, find its equivalent in the API data
       if (selectedNeighborhood) {
         const matchingNeighborhood = data.find(n => n.id === selectedNeighborhood.id);
@@ -128,7 +128,7 @@ const NeighborhoodExplorer: React.FC = () => {
           setSelectedAPINeighborhood(matchingNeighborhood);
         }
       }
-      
+
       return data;
     } catch (err) {
       console.error('Error fetching personalized neighborhoods:', err);
@@ -142,12 +142,12 @@ const NeighborhoodExplorer: React.FC = () => {
   // Handler for questionnaire completion
   const handleQuestionnaireComplete = async (responses: QuestionnaireResponse) => {
     setQuestionnaireResponses(responses);
-    
+
     // Fetch personalized data from the API
     if (selectedCity) {
       await fetchPersonalizedNeighborhoods(selectedCity, responses);
     }
-    
+
     setStep(ExplorerStep.Results);
     window.scrollTo(0, 0);
   };
@@ -202,7 +202,7 @@ const NeighborhoodExplorer: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-8 p-4 bg-olive-50 rounded-lg">
                 <h3 className="font-semibold mb-2">How It Works</h3>
                 <ol className="list-decimal pl-5 space-y-2">
@@ -222,7 +222,7 @@ const NeighborhoodExplorer: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Home
               </Button>
-              
+
               <Button 
                 className="bg-olive-600 hover:bg-olive-700"
                 onClick={() => window.scrollTo(0, 0)}
@@ -232,7 +232,7 @@ const NeighborhoodExplorer: React.FC = () => {
             </CardFooter>
           </Card>
         );
-      
+
       case ExplorerStep.NeighborhoodMap:
         return (
           <CityMap 
@@ -241,7 +241,7 @@ const NeighborhoodExplorer: React.FC = () => {
             onBack={() => setStep(ExplorerStep.CitySelection)}
           />
         );
-      
+
       case ExplorerStep.Questionnaire:
         return (
           <NeighborhoodQuestionnaire 
@@ -250,7 +250,7 @@ const NeighborhoodExplorer: React.FC = () => {
             cityName={selectedCity}
           />
         );
-      
+
       case ExplorerStep.Results:
         if (isLoading) {
           return (
@@ -268,7 +268,7 @@ const NeighborhoodExplorer: React.FC = () => {
             </Card>
           );
         }
-        
+
         if (error) {
           return (
             <Card className="w-full max-w-4xl mx-auto">
@@ -287,13 +287,13 @@ const NeighborhoodExplorer: React.FC = () => {
             </Card>
           );
         }
-        
+
         // Use the API data if available, fall back to the original neighborhood data otherwise
         const neighborhood = selectedAPINeighborhood || selectedNeighborhood;
         const matchScore = selectedAPINeighborhood 
           ? Math.round(selectedAPINeighborhood.personalizedScore * 100) 
           : 93; // fallback score
-          
+
         return (
           <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
@@ -335,7 +335,7 @@ const NeighborhoodExplorer: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="space-y-2">
                             <p className="font-semibold">Category Scores:</p>
                             <div className="space-y-2">
@@ -376,7 +376,7 @@ const NeighborhoodExplorer: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-start">
                             <div className="bg-olive-50 p-2 rounded-full mr-3">
                               <MapPin className="h-4 w-4 text-olive-600" />
@@ -389,7 +389,7 @@ const NeighborhoodExplorer: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          
+
                           {selectedAPINeighborhood.relevantPOIs && selectedAPINeighborhood.relevantPOIs.length > 0 && (
                             <div>
                               <h4 className="font-semibold mb-2">Points of Interest</h4>
@@ -421,7 +421,7 @@ const NeighborhoodExplorer: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-start">
                             <div className="bg-olive-50 p-2 rounded-full mr-3">
                               <MapPin className="h-4 w-4 text-olive-600" />
@@ -433,7 +433,7 @@ const NeighborhoodExplorer: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          
+
                           {selectedNeighborhood && (
                             <div className="flex flex-wrap gap-2 mt-4">
                               {selectedNeighborhood.tags.map((tag, index) => (
@@ -448,7 +448,7 @@ const NeighborhoodExplorer: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="text-xl font-bold mb-4">Next Steps</h3>
                   <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
@@ -458,25 +458,25 @@ const NeighborhoodExplorer: React.FC = () => {
                           Now that we understand your preferences, here are some recommended next steps:
                         </p>
                       </div>
-                      
+
                       <div className="space-y-3">
                         <div className="flex items-center">
                           <div className="bg-olive-50 h-6 w-6 rounded-full flex items-center justify-center text-olive-600 mr-3">1</div>
                           <span>View available properties in {selectedNeighborhood?.name}</span>
                         </div>
-                        
+
                         <div className="flex items-center">
                           <div className="bg-olive-50 h-6 w-6 rounded-full flex items-center justify-center text-olive-600 mr-3">2</div>
                           <span>Connect with a local expert in {selectedCity}</span>
                         </div>
-                        
+
                         <div className="flex items-center">
                           <div className="bg-olive-50 h-6 w-6 rounded-full flex items-center justify-center text-olive-600 mr-3">3</div>
                           <span>Schedule a neighborhood tour</span>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mt-6">
                       <Button className="w-full bg-olive-600 hover:bg-olive-700">
                         Find Properties in {selectedNeighborhood?.name}
@@ -485,7 +485,7 @@ const NeighborhoodExplorer: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-8">
                 <h3 className="text-xl font-bold mb-4">Discover Local Gems: Neighborhood Insights</h3>
                 <div className="grid grid-cols-1 gap-4 mb-8">
@@ -499,7 +499,7 @@ const NeighborhoodExplorer: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
                     <p className="text-gray-600 italic mb-4">"For a quintessential San Francisco experience with Victorian charm, a lively atmosphere, and stunning views, explore Hayes Valley. You can wander through independent boutiques, catch a performance at the symphony, and grab a delicious bite at a trendy restaurant – all within a few blocks. It's got a real sophisticated yet approachable vibe."</p>
                     <div className="flex items-center">
@@ -592,7 +592,7 @@ const NeighborhoodExplorer: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Questionnaire
               </Button>
-              
+
               <Button 
                 onClick={goToHome}
                 className="bg-olive-600 hover:bg-olive-700"
@@ -602,7 +602,7 @@ const NeighborhoodExplorer: React.FC = () => {
             </CardFooter>
           </Card>
         );
-        
+
       default:
         return null;
     }

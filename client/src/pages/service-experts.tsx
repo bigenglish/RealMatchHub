@@ -521,26 +521,6 @@ const ServiceExpertsPage = () => {
                 <div className="flex justify-center py-12">
                   <p>Loading service experts near {locationName}...</p>
                 </div>
-              ) : !showExperts ? (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-medium mb-4">Select a Service Type</h3>
-                  <p className="text-gray-500 mb-6">
-                    Choose a specific service type from the dropdown menu above to see available experts in your area.
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {/* We're displaying the buttons for each expert type */}
-                    {Array.from(expertTypes).map((type) => (
-                      <Button 
-                        key={type} 
-                        variant="outline" 
-                        onClick={() => setExpertTypeFilter(type)}
-                        className="m-1"
-                      >
-                        {type}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
               ) : filteredExperts?.length === 0 ? (
                 <div className="text-center py-12">
                   <h3 className="text-lg font-medium">No service experts found</h3>

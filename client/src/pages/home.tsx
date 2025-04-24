@@ -359,12 +359,21 @@ export default function HomePage() {
                           { name: "New York", price: "$1.5M avg" },
                           { name: "Miami", price: "$950K avg" }
                         ].map((location, i) => (
-                          <div key={i} className="flex items-center p-2 bg-gray-50 rounded-md">
-                            <MapPin className="h-4 w-4 text-olive-600 mr-2" />
-                            <div>
-                              <div className="font-medium text-sm">{location.name}</div>
-                              <div className="text-xs text-gray-500">{location.price}</div>
+                          <div key={i} className="flex flex-col p-2 bg-gray-50 rounded-md">
+                            <div className="flex items-center mb-2">
+                              <MapPin className="h-4 w-4 text-olive-600 mr-2" />
+                              <div>
+                                <div className="font-medium text-sm">{location.name}</div>
+                                <div className="text-xs text-gray-500">{location.price}</div>
+                              </div>
                             </div>
+                            <Button 
+                              size="sm"
+                              className="w-full mt-1 bg-olive-600 hover:bg-olive-700 text-white"
+                              onClick={() => navigate(`/neighborhood-explorer?city=${encodeURIComponent(location.name)}`)}
+                            >
+                              Explore {location.name}
+                            </Button>
                           </div>
                         ))}
                       </div>
@@ -626,7 +635,7 @@ export default function HomePage() {
                       </li>
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Priority email support</span>
+                        <span><span>Priority email support</span>
                       </li>
                     </ul>
                     <div className="mt-8">

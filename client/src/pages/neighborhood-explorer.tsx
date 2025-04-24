@@ -84,14 +84,27 @@ const NeighborhoodExplorer: React.FC = () => {
   // Handler for city selection
   const handleCitySelect = (cityName: string) => {
     setSelectedCity(cityName);
+    setStep(ExplorerStep.Questionnaire);
+    window.scrollTo(0, 0);
+  };
+
+  // Handler for questionnaire completion
+  const handleQuestionnaireComplete = async (responses: QuestionnaireResponse) => {
+    setQuestionnaireResponses(responses);
     setStep(ExplorerStep.NeighborhoodMap);
     window.scrollTo(0, 0);
   };
 
   // Handler for neighborhood selection
-  const handleNeighborhoodSelect = (neighborhood: NeighborhoodData) => {
+  const handleNeighborhoodSelect = async (neighborhood: NeighborhoodData) => {
     setSelectedNeighborhood(neighborhood);
-    setStep(ExplorerStep.Questionnaire);
+
+    // Fetch personalized data from the API
+    if (selectedCity && questionnaireResponses) {
+      await fetchPersonalizedNeighborhoods(selectedCity, questionnaireResponses);
+    }
+
+    setStep(ExplorerStep.Results);
     window.scrollTo(0, 0);
   };
 
@@ -139,27 +152,12 @@ const NeighborhoodExplorer: React.FC = () => {
     }
   };
 
-  // Handler for questionnaire completion
-  const handleQuestionnaireComplete = async (responses: QuestionnaireResponse) => {
-    setQuestionnaireResponses(responses);
-
-    // Fetch personalized data from the API
-    if (selectedCity) {
-      await fetchPersonalizedNeighborhoods(selectedCity, responses);
-    }
-
-    setStep(ExplorerStep.Results);
-    window.scrollTo(0, 0);
-  };
-
   // Go back to previous step
   const handleBack = () => {
     if (step === ExplorerStep.NeighborhoodMap) {
-      setStep(ExplorerStep.CitySelection);
-    } else if (step === ExplorerStep.Questionnaire) {
-      setStep(ExplorerStep.NeighborhoodMap);
-    } else if (step === ExplorerStep.Results) {
       setStep(ExplorerStep.Questionnaire);
+    } else if (step === ExplorerStep.Results) {
+      setStep(ExplorerStep.NeighborhoodMap);
     }
     window.scrollTo(0, 0);
   };
@@ -207,8 +205,8 @@ const NeighborhoodExplorer: React.FC = () => {
                 <h3 className="font-semibold mb-2">How It Works</h3>
                 <ol className="list-decimal pl-5 space-y-2">
                   <li>Select a city you're interested in exploring</li>
-                  <li>Choose a specific neighborhood from the interactive map</li>
                   <li>Complete the preferences questionnaire</li>
+                  <li>Choose a specific neighborhood from the interactive map</li>
                   <li>Get personalized insights about your chosen neighborhood</li>
                 </ol>
               </div>
@@ -238,7 +236,7 @@ const NeighborhoodExplorer: React.FC = () => {
           <CityMap 
             cityName={selectedCity} 
             onNeighborhoodSelect={handleNeighborhoodSelect}
-            onBack={() => setStep(ExplorerStep.CitySelection)}
+            onBack={() => setStep(ExplorerStep.Questionnaire)}
           />
         );
 
@@ -246,7 +244,7 @@ const NeighborhoodExplorer: React.FC = () => {
         return (
           <NeighborhoodQuestionnaire 
             onComplete={handleQuestionnaireComplete}
-            onCancel={() => setStep(ExplorerStep.NeighborhoodMap)}
+            onCancel={() => setStep(ExplorerStep.CitySelection)}
             cityName={selectedCity}
           />
         );
@@ -481,44 +479,6 @@ const NeighborhoodExplorer: React.FC = () => {
                       <Button className="w-full bg-olive-600 hover:bg-olive-700">
                         Find Properties in {selectedNeighborhood?.name}
                       </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Discover Local Gems: Neighborhood Insights</h3>
-                <div className="grid grid-cols-1 gap-4 mb-8">
-                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                    <p className="text-gray-600 italic mb-4">"If you're looking for a walkable, vibrant LA neighborhood with amazing street art, independent boutiques, and buzzing cafes, check out the Arts District. I love being able to stroll to my favorite coffee shop and explore new galleries every weekend. The energy here is infectious!"</p>
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">LE</div>
-                      <div>
-                        <p className="font-semibold">Local Explorer</p>
-                        <p className="text-sm text-gray-500">Arts District, Los Angeles</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                    <p className="text-gray-600 italic mb-4">"For a quintessential San Francisco experience with Victorian charm, a lively atmosphere, and stunning views, explore Hayes Valley. You can wander through independent boutiques, catch a performance at the symphony, and grab a delicious bite at a trendy restaurant – all within a few blocks. It's got a real sophisticated yet approachable vibe."</p>
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">CE</div>
-                      <div>
-                        <p className="font-semibold">City Enthusiast</p>
-                        <p className="text-sm text-gray-500">Hayes Valley, San Francisco</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                    <p className="text-gray-600 italic mb-4">"If you're drawn to a vibrant Brooklyn neighborhood with a strong artistic spirit, independent shops, and a fantastic food scene, you have to check out Williamsburg. From its waterfront parks with Manhattan skyline views to its bustling Bedford Avenue, there's always something happening. It's got a cool, creative energy that's uniquely New York."</p>
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">BN</div>
-                      <div>
-                        <p className="font-semibold">Brooklyn Native</p>
-                        <p className="text-sm text-gray-500">Williamsburg, New York City</p>
-                      </div>
                     </div>
                   </div>
                 </div>

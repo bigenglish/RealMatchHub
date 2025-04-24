@@ -486,8 +486,45 @@ const NeighborhoodExplorer: React.FC = () => {
                 </div>
               </div>
               
+              <div className="mt-8">
+                <h3 className="text-xl font-bold mb-4">Discover Local Gems: Neighborhood Insights</h3>
+                <div className="grid grid-cols-1 gap-4 mb-8">
+                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+                    <p className="text-gray-600 italic mb-4">"If you're looking for a walkable, vibrant LA neighborhood with amazing street art, independent boutiques, and buzzing cafes, check out the Arts District. I love being able to stroll to my favorite coffee shop and explore new galleries every weekend. The energy here is infectious!"</p>
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">LE</div>
+                      <div>
+                        <p className="font-semibold">Local Explorer</p>
+                        <p className="text-sm text-gray-500">Arts District, Los Angeles</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+                    <p className="text-gray-600 italic mb-4">"For a quintessential San Francisco experience with Victorian charm, a lively atmosphere, and stunning views, explore Hayes Valley. You can wander through independent boutiques, catch a performance at the symphony, and grab a delicious bite at a trendy restaurant – all within a few blocks. It's got a real sophisticated yet approachable vibe."</p>
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">CE</div>
+                      <div>
+                        <p className="font-semibold">City Enthusiast</p>
+                        <p className="text-sm text-gray-500">Hayes Valley, San Francisco</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
+                    <p className="text-gray-600 italic mb-4">"If you're drawn to a vibrant Brooklyn neighborhood with a strong artistic spirit, independent shops, and a fantastic food scene, you have to check out Williamsburg. From its waterfront parks with Manhattan skyline views to its bustling Bedford Avenue, there's always something happening. It's got a cool, creative energy that's uniquely New York."</p>
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-olive-50 flex items-center justify-center text-olive-600 mr-3">BN</div>
+                      <div>
+                        <p className="font-semibold">Brooklyn Native</p>
+                        <p className="text-sm text-gray-500">Williamsburg, New York City</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               {personalizedNeighborhoods.length > 1 ? (
-                <div className="mt-8">
+                <div>
                   <h3 className="text-xl font-bold mb-4">Other Neighborhoods You Might Like</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {personalizedNeighborhoods

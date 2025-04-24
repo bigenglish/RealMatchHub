@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +23,7 @@ export default function HomePage() {
   const [userType, setUserType] = useState("Buyers");
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [currentVideo, setCurrentVideo] = useState("");
+  const [, navigate] = useLocation();
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoAttempts, setVideoAttempts] = useState(0);
 
@@ -368,7 +369,12 @@ export default function HomePage() {
                         ))}
                       </div>
                       <div className="mt-3 text-center">
-                        <Button variant="link" size="sm" className="text-olive-600">
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="text-olive-600"
+                          onClick={() => navigate("/neighborhood-explorer")}
+                        >
                           View Full Map <ArrowRight className="h-3 w-3 ml-1 inline" />
                         </Button>
                       </div>

@@ -22,6 +22,7 @@ import Navbar from "@/components/navbar";
 import HowItWorks from "@/pages/how-it-works";
 import PaymentConfirmation from "@/pages/payment-confirmation";
 import BundleDetails from "./pages/bundle-details"; // Added import
+import NeighborhoodExplorer from "@/pages/neighborhood-explorer";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -74,6 +75,7 @@ function Router() {
           <Route path="/cma" component={CMAAnalysis} />
           <Route path="/payment-confirmation" component={PaymentConfirmation} />
           <Route path="/marketplace/bundle/:id" component={BundleDetails} /> {/* Updated route pattern */}
+          <Route path="/neighborhood-explorer" component={NeighborhoodExplorer} />
           <Route component={NotFound} />
         </Switch>
       </main>

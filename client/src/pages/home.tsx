@@ -385,7 +385,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold mb-6">Customer Testimonials</h3>
+              <h3 className="text-2xl font-bold mb-6">Neighborhood Insights</h3>
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                   <div className="flex items-start">

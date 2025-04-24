@@ -522,6 +522,7 @@ const NeighborhoodExplorer: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
 
               {personalizedNeighborhoods.length > 1 ? (
                 <div>

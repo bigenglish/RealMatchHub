@@ -358,3 +358,128 @@ export type CmaMarketInsight = typeof cmaMarketInsights.$inferSelect;
 export type InsertCmaMarketInsight = z.infer<typeof insertCmaMarketInsightSchema>;
 export type CmaPricingAdjustment = typeof cmaPricingAdjustments.$inferSelect;
 export type InsertCmaPricingAdjustment = z.infer<typeof insertCmaPricingAdjustmentSchema>;
+
+// ============= Property Transaction Communication Schema =============
+
+// Messages exchanged between user and agent/service provider about a property
+export const communicationLogs = pgTable("communication_logs", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(), // Could be a listing ID or internal property ID
+  userId: text("user_id").notNull(), // Identifies the client/user
+  senderId: text("sender_id").notNull(), // Could be user_id or agent_id
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  text: text("text").notNull(),
+  attachments: jsonb("attachments").default([]), // Array of {name, url} objects
+  isRead: boolean("is_read").default(false),
+  messageType: text("message_type").default("text"), // text, document, offer, etc.
+});
+
+// Property showings (visits)
+export const propertyShowings = pgTable("property_showings", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(),
+  userId: text("user_id").notNull(),
+  showingId: text("showing_id").notNull().unique(),
+  date: date("date").notNull(),
+  time: text("time").notNull(), // Using text for time format like "14:00"
+  address: text("address").notNull(),
+  status: text("status").notNull().default("Scheduled"), // Scheduled, Completed, Cancelled
+  agentName: text("agent_name"),
+  feedback: text("feedback"),
+  followUpActions: jsonb("follow_up_actions").default([]),
+});
+
+// Property offers
+export const propertyOffers = pgTable("property_offers", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(),
+  userId: text("user_id").notNull(),
+  offerId: text("offer_id").notNull().unique(),
+  amount: integer("amount").notNull(),
+  status: text("status").notNull().default("Pending"), // Pending, Accepted, Rejected, Countered
+  submissionDate: timestamp("submission_date").defaultNow().notNull(),
+  notes: text("notes"),
+  expertReviewSummary: text("expert_review_summary"),
+  offerDetails: jsonb("offer_details").default({}), // Additional offer details
+});
+
+// Property documents
+export const propertyDocuments = pgTable("property_documents", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(),
+  userId: text("user_id").notNull(),
+  documentId: text("document_id").notNull().unique(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // PDF, DOCX, etc.
+  url: text("url").notNull(),
+  uploadDate: timestamp("upload_date").defaultNow().notNull(),
+  uploadedBy: text("uploaded_by").notNull(), // ID of user or agent who uploaded
+  category: text("category").default("General"), // General, Disclosure, Inspection, etc.
+  isArchived: boolean("is_archived").default(false),
+});
+
+// Transaction progress tracking
+export const transactionProgress = pgTable("transaction_progress", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(),
+  userId: text("user_id").notNull(),
+  currentStage: text("current_stage").notNull(),
+  stages: jsonb("stages").default([]), // Array of {name, status} objects
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  estimatedClosingDate: date("estimated_closing_date"),
+  notes: text("notes"),
+});
+
+// Property valuation time slots
+export const valuationTimeSlots = pgTable("valuation_time_slots", {
+  id: serial("id").primaryKey(),
+  propertyId: text("property_id").notNull(),
+  date: date("date").notNull(),
+  time: text("time").notNull(), // Using text for time format like "14:00"
+  isBooked: boolean("is_booked").default(false),
+  bookedBy: text("booked_by"), // User ID of who booked the slot
+  valuationAgentId: text("valuation_agent_id"), // Agent assigned for valuation
+});
+
+// Create insert schemas
+export const insertCommunicationLogSchema = createInsertSchema(communicationLogs).omit({ 
+  id: true, 
+  timestamp: true 
+});
+export const insertPropertyShowingSchema = createInsertSchema(propertyShowings).omit({ 
+  id: true 
+});
+export const insertPropertyOfferSchema = createInsertSchema(propertyOffers).omit({ 
+  id: true, 
+  submissionDate: true 
+});
+export const insertPropertyDocumentSchema = createInsertSchema(propertyDocuments).omit({ 
+  id: true, 
+  uploadDate: true 
+});
+export const insertTransactionProgressSchema = createInsertSchema(transactionProgress).omit({ 
+  id: true, 
+  lastUpdated: true 
+});
+export const insertValuationTimeSlotSchema = createInsertSchema(valuationTimeSlots).omit({ 
+  id: true 
+});
+
+// Export types
+export type CommunicationLog = typeof communicationLogs.$inferSelect;
+export type InsertCommunicationLog = z.infer<typeof insertCommunicationLogSchema>;
+
+export type PropertyShowing = typeof propertyShowings.$inferSelect;
+export type InsertPropertyShowing = z.infer<typeof insertPropertyShowingSchema>;
+
+export type PropertyOffer = typeof propertyOffers.$inferSelect;
+export type InsertPropertyOffer = z.infer<typeof insertPropertyOfferSchema>;
+
+export type PropertyDocument = typeof propertyDocuments.$inferSelect;
+export type InsertPropertyDocument = z.infer<typeof insertPropertyDocumentSchema>;
+
+export type TransactionProgress = typeof transactionProgress.$inferSelect;
+export type InsertTransactionProgress = z.infer<typeof insertTransactionProgressSchema>;
+
+export type ValuationTimeSlot = typeof valuationTimeSlots.$inferSelect;
+export type InsertValuationTimeSlot = z.infer<typeof insertValuationTimeSlotSchema>;

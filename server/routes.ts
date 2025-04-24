@@ -38,6 +38,7 @@ import documentRoutes from "./routes/document-routes"; // Import document routes
 import serviceRequestRoutes from "./routes/service-request-routes"; // Import service request routes
 import cmaRoutes from "./routes/cma-routes"; // Import CMA routes
 import authRoutes from "./routes/auth-routes"; // Import auth routes
+import { communicationRoutes } from "./routes/communication-routes"; // Import communication routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
 
@@ -1982,6 +1983,10 @@ app.post("/api/chatbot", async (req, res) => {
     // Register Auth routes
     app.use("/api/auth", authRoutes);
     console.log("[express] Auth routes registered");
+    
+    // Register Property Communication routes
+    app.use("/api", communicationRoutes);
+    console.log("[express] Property communication routes registered");
     
     // ----- Neighborhood Explorer Routes -----
     

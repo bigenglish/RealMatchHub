@@ -655,7 +655,7 @@ export default function HomePage() {
                       </li>
                       <li className="flex items-start">
                         <Check className="h-5 w-5 text-olive-600 mr-2 mt-0.5 flex-shrink-0" />
-                        <span><span>Priority email support</span>
+                        <span>Priority email support</span>
                       </li>
                     </ul>
                     <div className="mt-8">

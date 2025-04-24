@@ -396,25 +396,7 @@ export default function HomePage() {
             <div>
               <h3 className="text-2xl font-bold mb-6">Neighborhood Insights</h3>
               <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <div className="flex text-yellow-400">
-                          {'★★★★★'}
-                        </div>
-                      </div>
-                      <p className="text-gray-600 mb-2">"I paid no agent commissions, saved on my home and saved $25,000 on my purchase!"</p>
-                      <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">JD</div>
-                        <div>
-                          <p className="font-semibold">John D., Los Angeles</p>
-                          <p className="text-sm text-gray-500">Feb 4, 2025</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
 
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                   <div className="flex items-start">

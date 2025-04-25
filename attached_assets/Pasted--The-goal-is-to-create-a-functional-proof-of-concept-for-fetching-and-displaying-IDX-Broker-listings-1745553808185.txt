@@ -1,0 +1,201 @@
+"The goal is to create a functional proof-of-concept for fetching and displaying IDX Broker listings with search capability, entirely within Replit. This will involve building both the backend API and a basic frontend.
+
+Backend Setup (Node.js/Express.js):
+
+Install Dependencies: Run the following commands in the Replit shell:
+
+Bash
+
+npm install express cors axios dotenv
+Create index.js (Backend Code): Create this file and paste the following code:
+
+JavaScript
+
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+import 'dotenv/config';
+
+const app = express();
+const port = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+const IDX_BROKER_API_KEY = process.env.IDX_BROKER_API_KEY;
+const IDX_BROKER_BASE_URL = 'https://api.idxbroker.com/rets/results';
+
+// Endpoint to fetch featured listings
+app.get('/api/idx/listings/featured', async (req, res) => {
+  if (!IDX_BROKER_API_KEY) {
+    return res.status(500).json({ error: 'IDX Broker API Key not configured.' });
+  }
+  try {
+    const response = await axios.get(`${IDX_BROKER_BASE_URL}/featured`, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'accesskey': IDX_BROKER_API_KEY,
+        'outputtype': 'json'
+      }
+    });
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Error fetching featured listings:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve featured listings.' });
+  }
+});
+
+// Endpoint to search listings
+app.get('/api/idx/listings/search', async (req, res) => {
+  if (!IDX_BROKER_API_KEY) {
+    return res.status(500).json({ error: 'IDX Broker API Key not configured.' });
+  }
+  try {
+    const searchParams = new URLSearchParams(req.query as Record<string, string>);
+    searchParams.append('outputtype', 'json');
+
+    const response = await axios.get(`${IDX_BROKER_BASE_URL}/listings/search`, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'accesskey': IDX_BROKER_API_KEY,
+      },
+      params: searchParams
+    });
+    res.json(response.data);
+  } catch (error: any) {
+    console.error('Error fetching search results:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve MLS listings.' });
+  }
+});
+
+app.use(express.static('public')); // Serve frontend files
+
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});
+Create .env File: Create this file and add your IDX Broker API key:
+
+IDX_BROKER_API_KEY=YOUR_ACTUAL_IDX_BROKER_API_KEY
+Frontend Setup (HTML/CSS/JavaScript in public folder):
+
+Create public Folder: Create a new folder named public.
+
+Create public/index.html:
+
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Realty IDX Explorer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Realty IDX Explorer</h1>
+
+  <div id="search-container">
+    <h2>Search Properties</h2>
+    <label for="city">City:</label>
+    <input type="text" id="city" name="city">
+    <label for="beds">Beds:</label>
+    <input type="number" id="beds" name="beds">
+    <button id="search-button">Search</button>
+  </div>
+
+  <div id="listings-container">
+    <h2>Featured Listings</h2>
+    <div id="featured-listings"></div>
+
+    <h2>Search Results</h2>
+    <div id="search-results"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+Create public/style.css:
+
+CSS
+
+body {
+  font-family: sans-serif;
+  margin: 20px;
+}
+
+#search-container {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#listings-container h2 {
+  margin-top: 20px;
+}
+
+.listing {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
+Create public/script.js:
+
+JavaScript
+
+const featuredListingsDiv = document.getElementById('featured-listings');
+const searchButton = document.getElementById('search-button');
+const searchResultsDiv = document.getElementById('search-results');
+const cityInput = document.getElementById('city');
+const bedsInput = document.getElementById('beds');
+
+const backendUrl = ''; // Will be populated with the Replit URL
+
+async function fetchFeaturedListings() {
+  try {
+    const response = await fetch(`${backendUrl}/api/idx/listings/featured`);
+    const data = await response.json();
+    displayListings(data.results, featuredListingsDiv, 'Featured Listing');
+  } catch (error) {
+    console.error('Error fetching featured listings:', error);
+    featuredListingsDiv.textContent = 'Failed to load featured listings.';
+  }
+}
+
+async function searchListings() {
+  const city = cityInput.value;
+  const beds = bedsInput.value;
+  const searchUrl = `<span class="math-inline">\{backendUrl\}/api/idx/listings/search?city\=</span>{city}&beds=${beds}`;
+
+  try {
+    const response = await fetch(searchUrl);
+    const data = await response.json();
+    searchResultsDiv.innerHTML = '';
+    if (data.results && data.results.length > 0) {
+      displayListings(data.results, searchResultsDiv, 'Search Result');
+    } else {
+      searchResultsDiv.textContent = 'No listings found matching your criteria.';
+    }
+  } catch (error) {
+    console.error('Error searching listings:', error);
+    searchResultsDiv.textContent = 'Failed to perform search.';
+  }
+}
+
+function displayListings(listings, container, title) {
+  if (listings && listings.length > 0) {
+    listings.forEach(listing => {
+      const listingDiv = document.createElement('div');
+      listingDiv.classList.add('listing');
+      listingDiv.innerHTML = `<h3>${title}</h3><p>Address: ${listing.address}</p><p>Price: $${listing.price}</p><p>Beds: ${listing.bedrooms}</p>`;
+      container.appendChild(listingDiv);
+    });
+  } else if (container === featuredListingsDiv) {
+    container.textContent = 'No featured listings available.';
+  }
+}
+
+searchButton.addEventListener('click', searchListings);
+fetchFeaturedListings();

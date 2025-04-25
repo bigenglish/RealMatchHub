@@ -41,6 +41,7 @@ import authRoutes from "./routes/auth-routes"; // Import auth routes
 import { communicationRoutes } from "./routes/communication-routes"; // Import communication routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
+import { idxBrokerRoutes } from "./idx-broker-api"; // Import IDX Broker API routes
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1986,6 +1987,9 @@ app.post("/api/chatbot", async (req, res) => {
     
     // Register Property Communication routes
     app.use("/api", communicationRoutes);
+    
+    // Register IDX Broker API Routes
+    app.use("/api", idxBrokerRoutes);
     console.log("[express] Property communication routes registered");
     
     // ----- Neighborhood Explorer Routes -----

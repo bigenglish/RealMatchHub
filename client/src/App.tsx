@@ -24,6 +24,7 @@ import PaymentConfirmation from "@/pages/payment-confirmation";
 import BundleDetails from "./pages/bundle-details"; // Added import
 import NeighborhoodExplorer from "@/pages/neighborhood-explorer";
 import IdxExplorer from "@/pages/idx-explorer";
+import IDXTroubleshoot from "@/pages/idx-troubleshoot";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -78,6 +79,7 @@ function Router() {
           <Route path="/marketplace/bundle/:id" component={BundleDetails} /> {/* Updated route pattern */}
           <Route path="/neighborhood-explorer" component={NeighborhoodExplorer} />
           <Route path="/idx-explorer" component={IdxExplorer} />
+          <Route path="/idx-troubleshoot" component={IDXTroubleshoot} />
           <Route component={NotFound} />
         </Switch>
       </main>

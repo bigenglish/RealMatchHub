@@ -16,6 +16,61 @@ const IDX_BROKER_BASE_URL = 'https://api.idxbroker.com/clients/featured';
 console.log('[IDX-Broker] API Key exists:', !!IDX_BROKER_API_KEY);
 console.log('[IDX-Broker] Base URL:', IDX_BROKER_BASE_URL);
 
+// Add a status endpoint for troubleshooting
+router.get('/idx/status', async (req, res) => {
+  console.log('[IDX-Broker] Status check requested');
+  
+  try {
+    let apiResponse = null;
+    
+    if (IDX_BROKER_API_KEY) {
+      try {
+        // Test a simple API call to check connectivity
+        console.log('[IDX-Broker] Testing API connectivity...');
+        const response = await axios.get(IDX_BROKER_BASE_URL, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'accesskey': IDX_BROKER_API_KEY,
+            'outputtype': 'json'
+          }
+        });
+        
+        console.log('[IDX-Broker] Test API response status:', response.status);
+        apiResponse = {
+          status: response.status,
+          statusText: response.statusText,
+          contentType: response.headers['content-type'],
+          dataType: typeof response.data,
+          dataSize: JSON.stringify(response.data).length,
+          data: response.data
+        };
+      } catch (apiError) {
+        console.error('[IDX-Broker] Error testing API connectivity:', apiError.message);
+        if (apiError.response) {
+          apiResponse = {
+            status: apiError.response.status,
+            statusText: apiError.response.statusText,
+            error: apiError.message
+          };
+        } else {
+          apiResponse = {
+            error: apiError.message
+          };
+        }
+      }
+    }
+    
+    res.json({
+      apiKey: !!IDX_BROKER_API_KEY,
+      apiBaseUrl: IDX_BROKER_BASE_URL,
+      apiResponse
+    });
+  } catch (error) {
+    console.error('[IDX-Broker] Error in status check:', error);
+    res.status(500).json({ error: 'Failed to check IDX Broker status' });
+  }
+});
+
 // Endpoint to fetch featured listings
 router.get('/idx/listings/featured', async (req, res) => {
   console.log('[IDX-Broker] Received request for featured listings');

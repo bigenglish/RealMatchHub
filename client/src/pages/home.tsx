@@ -196,13 +196,21 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Call to action button below video */}
+          {/* Call to action buttons below video */}
           <div className="mt-32 mb-24 text-center">
-            <Link href="/auth/welcome">
-              <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
-                GET STARTED FREE
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
+              <Link href="/auth/welcome">
+                <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg w-full sm:w-auto">
+                  GET STARTED FREE
+                </Button>
+              </Link>
+              <Link href="/idx-explorer">
+                <Button size="lg" className="bg-white hover:bg-gray-100 text-olive-700 border-olive-600 border px-8 py-6 text-lg w-full sm:w-auto">
+                  EXPLORE PROPERTIES <Search className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+            <p className="text-gray-600 mt-3">View our complete MLS listings with our IDX Property Explorer</p>
           </div>
         </div>
 

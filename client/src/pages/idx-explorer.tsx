@@ -1,248 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { apiRequest } from '@/lib/queryClient';
-import { Loader2 } from 'lucide-react';
+import React from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import IDXWidget from '@/components/idx-widget';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
-interface Property {
-  id?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  price?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  squareFeet?: number;
-  description?: string;
-  images?: string[];
-  propertyType?: string;
-}
-
+/**
+ * IDX Explorer page
+ * 
+ * This page uses the official IDX Broker widget approach, which is more reliable 
+ * than direct API calls since IDX Broker's API endpoints can be complex and 
+ * subject to changes or account-specific configuration.
+ * 
+ * The widget approach embeds IDX Broker's officially supported JavaScript, which
+ * ensures compatibility and reduces maintenance overhead.
+ */
 const IdxExplorer: React.FC = () => {
-  const [featuredListings, setFeaturedListings] = useState<Property[]>([]);
-  const [searchResults, setSearchResults] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [city, setCity] = useState('');
-  const [beds, setBeds] = useState('');
-
-  useEffect(() => {
-    // Fetch featured listings when component mounts
-    fetchFeaturedListings();
-  }, []);
-
-  const fetchFeaturedListings = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await apiRequest('GET', '/api/idx/listings/featured');
-      const data = await response.json();
-      console.log('Featured listings data:', data);
-      
-      if (data.success && data.results && Array.isArray(data.results)) {
-        setFeaturedListings(data.results);
-      } else if (data.raw) {
-        // Log the raw response for debugging purposes
-        console.log('Raw IDX API response:', data.raw);
-        
-        // Show an informative message to the user
-        setError('The IDX Broker API returned data in an unexpected format. Please check the API documentation or credentials.');
-        
-        // If we have any kind of array data, try to display it
-        if (data.results && Array.isArray(data.results)) {
-          setFeaturedListings(data.results);
-        } else {
-          setFeaturedListings([]);
-        }
-      } else {
-        setError('Invalid response format from IDX API');
-      }
-    } catch (err) {
-      console.error('Error fetching featured listings:', err);
-      setError('Failed to load featured listings. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const searchListings = async () => {
-    if (!city && !beds) {
-      setError('Please enter at least one search criteria');
-      return;
-    }
-
-    setSearchLoading(true);
-    setError(null);
-    
-    try {
-      const params = new URLSearchParams();
-      if (city) params.append('city', city);
-      if (beds) params.append('beds', beds);
-      
-      const response = await apiRequest('GET', `/api/idx/listings/search?${params.toString()}`);
-      const data = await response.json();
-      console.log('Search results data:', data);
-      
-      if (data.success && data.results && Array.isArray(data.results)) {
-        setSearchResults(data.results);
-      } else if (data.raw) {
-        // Log the raw response for debugging purposes
-        console.log('Raw IDX API search response:', data.raw);
-        
-        // Show an informative message to the user
-        setError('The IDX Broker API returned search data in an unexpected format. Please check the API documentation or credentials.');
-        
-        // If we have any kind of array data, try to display it
-        if (data.results && Array.isArray(data.results)) {
-          setSearchResults(data.results);
-        } else {
-          setSearchResults([]);
-        }
-      } else {
-        if (data.error) {
-          setError(`IDX API Error: ${data.error}`);
-          if (data.details) {
-            console.error('Error details:', data.details);
-          }
-        } else {
-          setSearchResults([]);
-          setError('No search results found or invalid response format.');
-        }
-      }
-    } catch (err) {
-      console.error('Error searching listings:', err);
-      setError('Failed to search listings. Please try again later.');
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const renderPropertyCard = (property: Property, index: number) => {
-    return (
-      <Card key={property.id || index} className="mb-4">
-        <CardHeader>
-          <CardTitle>{property.address}</CardTitle>
-          <CardDescription>
-            {property.city}, {property.state} {property.zipCode}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {property.images && property.images.length > 0 && (
-            <div className="w-full h-48 overflow-hidden mb-4 rounded-md">
-              <img 
-                src={property.images[0]} 
-                alt={`Property at ${property.address}`} 
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <div>
-              <p className="text-sm font-medium">Price</p>
-              <p className="text-lg">${property.price?.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Beds</p>
-              <p className="text-lg">{property.bedrooms}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Baths</p>
-              <p className="text-lg">{property.bathrooms}</p>
-            </div>
-          </div>
-          <p className="text-sm text-gray-500 line-clamp-3">{property.description}</p>
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full" variant="outline">View Details</Button>
-        </CardFooter>
-      </Card>
-    );
-  };
-
   return (
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Realty.AI IDX Explorer</h1>
       
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+      <Alert className="mb-6">
+        <InfoIcon className="h-4 w-4" />
+        <AlertTitle>Property Listings Powered by IDX Broker</AlertTitle>
+        <AlertDescription>
+          This explorer uses the official IDX Broker widget technology to display the most 
+          up-to-date and accurate property listings. The widgets below connect directly to 
+          the IDX Broker platform, ensuring you get real-time data.
+        </AlertDescription>
+      </Alert>
 
-      <div className="bg-gray-50 p-6 rounded-lg shadow-sm mb-8">
-        <h2 className="text-xl font-semibold mb-4">Search Properties</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <Label htmlFor="city">City</Label>
-            <Input 
-              id="city" 
-              value={city} 
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Enter city name"
-            />
-          </div>
-          <div>
-            <Label htmlFor="beds">Minimum Beds</Label>
-            <Input 
-              id="beds" 
-              type="number" 
-              value={beds} 
-              onChange={(e) => setBeds(e.target.value)}
-              placeholder="Enter minimum beds"
-            />
-          </div>
-        </div>
-        <Button 
-          onClick={searchListings} 
-          disabled={searchLoading}
-          className="w-full"
-        >
-          {searchLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Searching...
-            </>
-          ) : (
-            'Search'
-          )}
-        </Button>
-      </div>
-
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Search Results</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {searchResults.map((property, index) => renderPropertyCard(property, index))}
-          </div>
-        </div>
-      )}
-
-      {/* Featured Listings */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">
-          Featured Listings
-          {loading && <Loader2 className="ml-2 inline-block h-4 w-4 animate-spin" />}
-        </h2>
+      <Tabs defaultValue="featured" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="featured">Featured Listings</TabsTrigger>
+          <TabsTrigger value="search">Advanced Search</TabsTrigger>
+          <TabsTrigger value="map">Map Search</TabsTrigger>
+        </TabsList>
         
-        {featuredListings.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {featuredListings.map((property, index) => renderPropertyCard(property, index))}
-          </div>
-        ) : !loading ? (
-          <p className="text-gray-500">No featured listings available.</p>
-        ) : null}
+        <TabsContent value="featured">
+          <IDXWidget 
+            title="Featured Properties" 
+            widgetId="featured_1" 
+          />
+        </TabsContent>
+        
+        <TabsContent value="search">
+          <IDXWidget 
+            title="Search Properties" 
+            widgetId="search_1" 
+          />
+        </TabsContent>
+        
+        <TabsContent value="map">
+          <IDXWidget 
+            title="Map Search" 
+            widgetId="map_1" 
+          />
+        </TabsContent>
+      </Tabs>
+      
+      <div className="mt-10 text-sm text-gray-600">
+        <h3 className="font-semibold mb-2">About IDX Broker Integration</h3>
+        <p>
+          IDX Broker provides MLS property data integration services for real estate websites.
+          This integration ensures that property data is always up-to-date and complies with all
+          MLS rules and regulations. The IDX Broker service requires an active account and proper
+          configuration to display real estate listings from your area's MLS.
+        </p>
       </div>
     </div>
   );

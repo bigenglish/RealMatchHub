@@ -9,33 +9,72 @@ dotenv.config();
 const router = express.Router();
 
 const IDX_BROKER_API_KEY = process.env.IDX_BROKER_API_KEY;
-const IDX_BROKER_BASE_URL = 'https://api.idxbroker.com/rets/results';
+// Updated to match the API documentation - IDX Broker API endpoints
+const IDX_BROKER_BASE_URL = 'https://api.idxbroker.com/clients/featured';
+
+// Log the configuration
+console.log('[IDX-Broker] API Key exists:', !!IDX_BROKER_API_KEY);
+console.log('[IDX-Broker] Base URL:', IDX_BROKER_BASE_URL);
 
 // Endpoint to fetch featured listings
 router.get('/idx/listings/featured', async (req, res) => {
+  console.log('[IDX-Broker] Received request for featured listings');
+  
   if (!IDX_BROKER_API_KEY) {
+    console.error('[IDX-Broker] API Key not configured');
     return res.status(500).json({ error: 'IDX Broker API Key not configured.' });
   }
+  
   try {
-    const response = await axios.get(`${IDX_BROKER_BASE_URL}/featured`, {
+    console.log(`[IDX-Broker] Fetching featured listings from ${IDX_BROKER_BASE_URL}`);
+    
+    const response = await axios.get(IDX_BROKER_BASE_URL, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'accesskey': IDX_BROKER_API_KEY,
         'outputtype': 'json'
       }
     });
-    res.json(response.data);
+    
+    console.log('[IDX-Broker] API response status:', response.status);
+    console.log('[IDX-Broker] Response data type:', typeof response.data);
+    
+    // If we got data but no results, create a dummy response for testing
+    if (!response.data || !Array.isArray(response.data.properties)) {
+      console.log('[IDX-Broker] Response data structure:', JSON.stringify(response.data).substring(0, 200) + '...');
+      
+      // Return the actual response even if it doesn't match expected format
+      return res.json({
+        success: true,
+        results: response.data && Array.isArray(response.data) ? response.data : [],
+        raw: response.data
+      });
+    }
+    
+    res.json({
+      success: true,
+      results: response.data.properties || []
+    });
   } catch (error) {
-    console.error('Error fetching featured listings:', error.message);
-    res.status(500).json({ error: 'Failed to retrieve featured listings.' });
+    console.error('[IDX-Broker] Error fetching featured listings:', error.message);
+    if (error.response) {
+      console.error('[IDX-Broker] Response status:', error.response.status);
+      console.error('[IDX-Broker] Response headers:', error.response.headers);
+      console.error('[IDX-Broker] Response data:', error.response.data);
+    }
+    res.status(500).json({ error: 'Failed to retrieve featured listings.', details: error.message });
   }
 });
 
 // Endpoint to search listings
 router.get('/idx/listings/search', async (req, res) => {
+  console.log('[IDX-Broker] Received search request with query:', req.query);
+  
   if (!IDX_BROKER_API_KEY) {
+    console.error('[IDX-Broker] API Key not configured');
     return res.status(500).json({ error: 'IDX Broker API Key not configured.' });
   }
+  
   try {
     const searchParams = new URLSearchParams();
     
@@ -46,19 +85,42 @@ router.get('/idx/listings/search', async (req, res) => {
     
     searchParams.append('outputtype', 'json');
 
-    console.log(`Searching with params: ${searchParams.toString()}`);
+    const searchUrl = `${IDX_BROKER_BASE_URL}/search`;
+    console.log(`[IDX-Broker] Searching at ${searchUrl} with params: ${searchParams.toString()}`);
 
-    const response = await axios.get(`${IDX_BROKER_BASE_URL}/listings/search`, {
+    const response = await axios.get(searchUrl, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'accesskey': IDX_BROKER_API_KEY,
       },
       params: searchParams
     });
-    res.json(response.data);
+    
+    console.log('[IDX-Broker] Search response status:', response.status);
+    
+    // If we got data but no results, create a dummy response for testing
+    if (!response.data || !Array.isArray(response.data.properties)) {
+      console.log('[IDX-Broker] Search response data structure:', JSON.stringify(response.data).substring(0, 200) + '...');
+      
+      return res.json({
+        success: true,
+        results: response.data && Array.isArray(response.data) ? response.data : [],
+        raw: response.data
+      });
+    }
+    
+    res.json({
+      success: true,
+      results: response.data.properties || []
+    });
   } catch (error) {
-    console.error('Error fetching search results:', error.message);
-    res.status(500).json({ error: 'Failed to retrieve MLS listings.' });
+    console.error('[IDX-Broker] Error fetching search results:', error.message);
+    if (error.response) {
+      console.error('[IDX-Broker] Response status:', error.response.status);
+      console.error('[IDX-Broker] Response headers:', error.response.headers);
+      console.error('[IDX-Broker] Response data:', error.response.data);
+    }
+    res.status(500).json({ error: 'Failed to retrieve MLS listings.', details: error.message });
   }
 });
 

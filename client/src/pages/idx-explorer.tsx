@@ -49,8 +49,22 @@ const IdxExplorer: React.FC = () => {
       const response = await apiRequest('GET', '/api/idx/listings/featured');
       const data = await response.json();
       console.log('Featured listings data:', data);
-      if (data.results && Array.isArray(data.results)) {
+      
+      if (data.success && data.results && Array.isArray(data.results)) {
         setFeaturedListings(data.results);
+      } else if (data.raw) {
+        // Log the raw response for debugging purposes
+        console.log('Raw IDX API response:', data.raw);
+        
+        // Show an informative message to the user
+        setError('The IDX Broker API returned data in an unexpected format. Please check the API documentation or credentials.');
+        
+        // If we have any kind of array data, try to display it
+        if (data.results && Array.isArray(data.results)) {
+          setFeaturedListings(data.results);
+        } else {
+          setFeaturedListings([]);
+        }
       } else {
         setError('Invalid response format from IDX API');
       }
@@ -80,13 +94,30 @@ const IdxExplorer: React.FC = () => {
       const data = await response.json();
       console.log('Search results data:', data);
       
-      if (data.results && Array.isArray(data.results)) {
+      if (data.success && data.results && Array.isArray(data.results)) {
         setSearchResults(data.results);
+      } else if (data.raw) {
+        // Log the raw response for debugging purposes
+        console.log('Raw IDX API search response:', data.raw);
+        
+        // Show an informative message to the user
+        setError('The IDX Broker API returned search data in an unexpected format. Please check the API documentation or credentials.');
+        
+        // If we have any kind of array data, try to display it
+        if (data.results && Array.isArray(data.results)) {
+          setSearchResults(data.results);
+        } else {
+          setSearchResults([]);
+        }
       } else {
         if (data.error) {
           setError(`IDX API Error: ${data.error}`);
+          if (data.details) {
+            console.error('Error details:', data.details);
+          }
         } else {
           setSearchResults([]);
+          setError('No search results found or invalid response format.');
         }
       }
     } catch (err) {

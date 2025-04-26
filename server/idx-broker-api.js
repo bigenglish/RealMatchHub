@@ -71,6 +71,137 @@ router.get('/idx/status', async (req, res) => {
   }
 });
 
+// Add a test endpoint for a specific account
+router.get('/idx/test', async (req, res) => {
+  console.log('[IDX-Broker] Test request with specific account ID');
+  
+  try {
+    // Use account ID from query param or default to 58882 (user-provided ID)
+    const accountId = req.query.accountId || '58882';
+    
+    // Test different API endpoints with the specific account ID
+    const testEndpoints = [
+      // Direct endpoint with accountId
+      `https://api.idxbroker.com/clients/${accountId}/featured`,
+      // Legacy v1.7.0 endpoint format
+      `https://api.idxbroker.com/clients/featured?clientID=${accountId}`,
+      // Properties endpoint for the account
+      `https://api.idxbroker.com/clients/${accountId}/properties`,
+      // Alternative MLS listings endpoint
+      `https://api.idxbroker.com/mls/listings/${accountId}`
+    ];
+    
+    console.log(`[IDX-Broker] Testing multiple endpoints for account ID: ${accountId}`);
+    
+    const results = [];
+    let success = false;
+    
+    for (const endpoint of testEndpoints) {
+      try {
+        console.log(`[IDX-Broker] Testing endpoint: ${endpoint}`);
+        
+        const response = await axios.get(endpoint, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'accesskey': IDX_BROKER_API_KEY,
+            'outputtype': 'json'
+          },
+          timeout: 5000 // 5 second timeout for each request
+        });
+        
+        console.log(`[IDX-Broker] Response from ${endpoint}: Status ${response.status}`);
+        
+        const result = {
+          endpoint,
+          status: response.status,
+          statusText: response.statusText,
+          dataType: typeof response.data,
+          hasData: response.status === 200 && (
+            (typeof response.data === 'object' && Object.keys(response.data).length > 0) ||
+            (Array.isArray(response.data) && response.data.length > 0) ||
+            (typeof response.data === 'string' && response.data.length > 10)
+          )
+        };
+        
+        // If we get a successful response with data, mark overall test as successful
+        if (result.hasData) {
+          success = true;
+        }
+        
+        results.push(result);
+      } catch (endpointError) {
+        console.error(`[IDX-Broker] Error testing endpoint ${endpoint}:`, endpointError.message);
+        
+        const errorResult = {
+          endpoint,
+          error: endpointError.message
+        };
+        
+        if (endpointError.response) {
+          errorResult.status = endpointError.response.status;
+          errorResult.statusText = endpointError.response.statusText;
+        }
+        
+        results.push(errorResult);
+      }
+    }
+    
+    // Also test the widget URL for this account
+    try {
+      console.log(`[IDX-Broker] Testing widget URL for account ${accountId}...`);
+      const widgetUrl = `https://idx.diversesolutions.com/scripts/controls.js?accountid=${accountId}&widgetid=widget_1`;
+      
+      const widgetResponse = await axios.head(widgetUrl, { timeout: 5000 });
+      
+      console.log(`[IDX-Broker] Widget URL test result: ${widgetResponse.status}`);
+      
+      results.push({
+        endpoint: widgetUrl,
+        status: widgetResponse.status,
+        statusText: widgetResponse.statusText,
+        isWidget: true,
+        widgetWorks: widgetResponse.status === 200
+      });
+      
+      if (widgetResponse.status === 200) {
+        success = true;
+      }
+    } catch (widgetError) {
+      console.error('[IDX-Broker] Error testing widget URL:', widgetError.message);
+      
+      const widgetResult = {
+        endpoint: `https://idx.diversesolutions.com/scripts/controls.js?accountid=${accountId}&widgetid=widget_1`,
+        error: widgetError.message,
+        isWidget: true
+      };
+      
+      if (widgetError.response) {
+        widgetResult.status = widgetError.response.status;
+        widgetResult.statusText = widgetError.response.statusText;
+      }
+      
+      results.push(widgetResult);
+    }
+    
+    res.json({
+      success,
+      accountId,
+      apiKeyValid: !!IDX_BROKER_API_KEY,
+      message: success 
+        ? `Successfully connected to IDX Broker with account ID ${accountId}` 
+        : `Failed to find valid data for account ID ${accountId}`,
+      results
+    });
+  } catch (error) {
+    console.error('[IDX-Broker] Error in test:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to test IDX Broker connection',
+      message: error.message
+    });
+  }
+});
+
 // Endpoint to fetch featured listings
 router.get('/idx/listings/featured', async (req, res) => {
   console.log('[IDX-Broker] Received request for featured listings');

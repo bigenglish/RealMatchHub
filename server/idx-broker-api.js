@@ -11,10 +11,37 @@ const router = express.Router();
 const IDX_BROKER_API_KEY = process.env.IDX_BROKER_API_KEY;
 // Updated to match the API documentation - IDX Broker API endpoints
 const IDX_BROKER_BASE_URL = 'https://api.idxbroker.com/clients/featured';
+// The IDX Broker widget script URL provided by the user
+const IDX_BROKER_WIDGET_SCRIPT_URL = '//losangelesforsale.idxbroker.com/idx/mapwidgetjs.php?widgetid=40942';
 
 // Log the configuration
 console.log('[IDX-Broker] API Key exists:', !!IDX_BROKER_API_KEY);
 console.log('[IDX-Broker] Base URL:', IDX_BROKER_BASE_URL);
+console.log('[IDX-Broker] Widget Script URL:', IDX_BROKER_WIDGET_SCRIPT_URL);
+
+// Endpoint to get the IDX script
+router.get('/api/get-idx-script', async (req, res) => {
+  console.log('[IDX-Broker] Fetch IDX script requested');
+  
+  try {
+    const scriptUrl = `https:${IDX_BROKER_WIDGET_SCRIPT_URL}`;
+    console.log(`[IDX-Broker] Fetching widget script from: ${scriptUrl}`);
+
+    const response = await axios.get(scriptUrl);
+    
+    if (response.status === 200) {
+      console.log('[IDX-Broker] Successfully fetched widget script');
+      res.setHeader('Content-Type', 'text/javascript');
+      res.send(response.data);
+    } else {
+      console.error(`[IDX-Broker] Error fetching widget script: ${response.status} ${response.statusText}`);
+      res.status(response.status).send(`Error fetching IDX script: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('[IDX-Broker] Error fetching widget script:', error.message);
+    res.status(500).send('Failed to fetch IDX script');
+  }
+});
 
 // Add a status endpoint for troubleshooting
 router.get('/idx/status', async (req, res) => {

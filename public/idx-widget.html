@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDX Broker Listings - REALTY.AI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .loading-spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4f46e5;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Los Angeles Property Listings</h1>
+    <p>Browse through our selection of available properties in Los Angeles. Use the filters below to refine your search.</p>
+    
+    <!-- IDX Broker Map Widget -->
+    <div id="IDX-mapWidget-40942">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Include the IDX Broker widget script exactly as provided -->
+  <script charset="UTF-8" type="text/javascript" id="idxwidgetsrc-40942" src="//losangelesforsale.idxbroker.com/idx/mapwidgetjs.php?widgetid=40942"></script>
+</body>
+</html>

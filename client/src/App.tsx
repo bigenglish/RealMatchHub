@@ -30,6 +30,7 @@ import IDXDirect from "@/pages/idx-direct";
 import IDXEmbed from "@/pages/idx-embed";
 import IDXWidgetDirect from "@/pages/idx-widget-direct";
 import IDXImplementationSelector from "@/pages/idx-implementation-selector";
+import IDXSimplest from "@/pages/idx-simplest";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -89,6 +90,7 @@ function Router() {
           <Route path="/idx-direct" component={IDXDirect} />
           <Route path="/idx-embed" component={IDXEmbed} />
           <Route path="/idx-widget-direct" component={IDXWidgetDirect} />
+          <Route path="/idx-simplest" component={IDXSimplest} />
           <Route path="/idx" component={IDXImplementationSelector} />
           <Route component={NotFound} />
         </Switch>

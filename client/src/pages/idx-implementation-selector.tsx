@@ -99,6 +99,27 @@ const IDXImplementationSelector: React.FC = () => {
           </CardContent>
         </Card>
         
+        <Card className="border-primary">
+          <CardHeader className="bg-primary/5">
+            <CardTitle className="flex items-center">
+              <span className="mr-2">🌟</span> 
+              Direct Data Endpoint (New)
+            </CardTitle>
+            <CardDescription>
+              The latest implementation using a dedicated backend endpoint.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">
+              This approach provides a dedicated `/idx-data` endpoint in our backend that directly
+              communicates with IDX Broker and transforms the data for our UI. Best approach for production.
+            </p>
+            <Button asChild className="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700">
+              <Link href="/idx-data">View Implementation</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        
         <Card>
           <CardHeader>
             <CardTitle>Troubleshooting Tools</CardTitle>

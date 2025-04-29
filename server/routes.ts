@@ -1786,6 +1786,54 @@ app.post("/api/chatbot", async (req, res) => {
   app.use('/api/chat', chatFirestoreRoutes);
   console.log('[express] Firestore chat routes registered');
 
+  // Register IDX Broker routes
+  app.use('/', idxBrokerRoutes);
+  console.log('[express] IDX Broker routes registered');
+
+  // Specific IDX Data endpoint for frontend
+  app.get('/idx-data', async (req, res) => {
+    try {
+      console.log('[express] IDX-data endpoint called');
+      
+      // Get filters from query parameters
+      const city = req.query.city as string;
+      const minPrice = req.query.minPrice ? Number(req.query.minPrice) : undefined;
+      const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : undefined;
+      const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
+      const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
+      const limit = req.query.limit ? Number(req.query.limit) : 20;
+      
+      console.log(`[express] Fetching IDX data with filters: city=${city}, price=${minPrice}-${maxPrice}, beds=${bedrooms}, baths=${bathrooms}`);
+      
+      // Fetch listings from IDX Broker
+      const listings = await fetchIdxListings({
+        limit,
+        city,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms
+      });
+      
+      console.log(`[express] Fetched ${listings.listings.length} IDX listings`);
+      
+      res.json({
+        success: true,
+        count: listings.listings.length,
+        totalCount: listings.totalCount,
+        hasMore: listings.hasMoreListings,
+        listings: listings.listings
+      });
+    } catch (error) {
+      console.error('[express] Error fetching IDX data:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch IDX data',
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Legacy Chat conversation routes (will be migrated to Firestore)
   app.post("/api/legacy-chat/conversations", async (req, res) => {
     try {
@@ -1987,9 +2035,6 @@ app.post("/api/chatbot", async (req, res) => {
     
     // Register Property Communication routes
     app.use("/api", communicationRoutes);
-    
-    // Register IDX Broker API Routes
-    app.use("/api", idxBrokerRoutes);
     console.log("[express] Property communication routes registered");
     
     // ----- Neighborhood Explorer Routes -----

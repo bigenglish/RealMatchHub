@@ -127,7 +127,9 @@ export async function fetchIdxListings({
       // Primary endpoints for property data
       const possibleEndpoints = [
         'https://api.idxbroker.com/clients/properties',
-        'https://api.idxbroker.com/mls/propertylist'
+        'https://api.idxbroker.com/mls/propertylist',
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/clients/listingids'
       ];
       
       // Different header combinations to try

@@ -99,6 +99,8 @@ export default function ChatInterface({
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
+    console.log('Attempting to connect to WebSocket at URL:', wsUrl);
+    
     try {
       const newSocket = new WebSocket(wsUrl);
       
@@ -350,6 +352,7 @@ export default function ChatInterface({
         // Create new WebSocket connection
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws`;
+        console.log('Reconnecting WebSocket at URL:', wsUrl);
         const newSocket = new WebSocket(wsUrl);
         setSocket(newSocket);
       }

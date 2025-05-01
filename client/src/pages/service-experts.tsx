@@ -386,6 +386,24 @@ const ServiceExpertsPage = () => {
                 size="lg" 
                 className="bg-primary"
                 onClick={() => {
+                  const locationInput = document.querySelector('input[placeholder*="city, ZIP"]') as HTMLInputElement;
+                  if (locationInput && !locationInput.value) {
+                    locationInput.focus();
+                    toast({
+                      title: "Location Required",
+                      description: "Please enter your location to find local experts",
+                      variant: "default"
+                    });
+                    return;
+                  }
+                  
+                  if (locationInput?.value) {
+                    const searchButton = document.querySelector('button:has(svg[class*="Search"])') as HTMLButtonElement;
+                    if (searchButton) {
+                      searchButton.click();
+                    }
+                  }
+                  
                   const expertsSection = document.querySelector('#service-experts-list');
                   if (expertsSection) {
                     expertsSection.scrollIntoView({ behavior: 'smooth' });

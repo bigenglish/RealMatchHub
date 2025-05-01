@@ -923,22 +923,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Checking Google Places API status");
       console.log("[express] API key present:", hasApiKey);
 
-      if (hasApiKey) {
-        console.log("[express] API key first 4 chars:", apiKey!.substring(0, 4) + "...");
+      if (!hasApiKey) {
+        return res.status(200).json({
+          enabled: false,
+          message: "Google Places API key is not configured"
+        });
+      }
 
-        // Make a test API call to verify the API key works
-        try {
-          // Default location: San Francisco City Hall
-          const testLocation = "37.7793,-122.4193";
-          const testRadius = 1000;
-          const testQuery = "cafe";
+      // Make a test API call to verify the API key works
+      try {
+        // Default location: San Francisco City Hall
+        const testLocation = "37.7793,-122.4193";
+        const testRadius = 1000;
+        const testQuery = "cafe";
 
-          console.log("[express] Making test API call to Google Places API");
-          const testResult = await searchNearbyPlaces({
-            query: testQuery,
-            location: testLocation,
-            radius: testRadius
-          });
+        console.log("[express] Making test API call to Google Places API");
+        const testResult = await searchNearbyPlaces({
+          query: testQuery,
+          location: testLocation,
+          radius: testRadius
+        });
+
+        // Check if we got valid results
+        if (!testResult || !Array.isArray(testResult)) {
+          throw new Error("Invalid response format from Google Places API");
+        }
 
           // Check the specific error that might be in the response
           // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way

@@ -30,6 +30,7 @@ import { Clock, MapPin, Calendar, Users, Home } from 'lucide-react';
 // Validation schema for service request
 const serviceRequestSchema = z.object({
   serviceType: z.string().min(1, { message: 'Service type is required' }),
+  serviceProviderId: z.string().min(1, {message: 'Service provider is required'}),
   propertyZipCode: z.string().min(5, { message: 'Valid ZIP code is required' }),
   preferredDate: z.string().min(1, { message: 'Preferred date is required' }),
   preferredTime: z.string().min(1, { message: 'Preferred time is required' }),
@@ -66,11 +67,24 @@ export default function ServiceRequestForm({
     },
   });
 
+  // Fetch service providers
+  const { data: serviceProviders = [] } = useQuery({
+    queryKey: ['/api/service-providers'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/service-providers`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch service providers');
+      }
+      return response.json();
+    },
+  });
+
   // Initialize form with default values
   const form = useForm<z.infer<typeof serviceRequestSchema>>({
     resolver: zodResolver(serviceRequestSchema),
     defaultValues: {
       serviceType: '',
+      serviceProviderId: '',
       propertyZipCode: defaultZipCode || '',
       preferredDate: '',
       preferredTime: '',
@@ -137,6 +151,7 @@ export default function ServiceRequestForm({
               name="serviceType"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel className="text-gray-700 font-medium">Service Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -152,6 +167,37 @@ export default function ServiceRequestForm({
                           {type}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="serviceProviderId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 font-medium">Service Provider</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    disabled={!form.watch("serviceType")}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a service provider" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {serviceProviders
+                        .filter(provider => provider.type === form.watch("serviceType"))
+                        .map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id.toString()}>
+                            {provider.name} ({provider.experience} years experience)
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

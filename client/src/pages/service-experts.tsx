@@ -382,7 +382,16 @@ const ServiceExpertsPage = () => {
               </div>
             </div>
             <div className="mt-8 text-center">
-              <Button size="lg" className="bg-primary">
+              <Button 
+                size="lg" 
+                className="bg-primary"
+                onClick={() => {
+                  const expertsSection = document.querySelector('#service-experts-list');
+                  if (expertsSection) {
+                    expertsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
                 Find an Expert Now
               </Button>
             </div>
@@ -506,7 +515,7 @@ const ServiceExpertsPage = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs id="service-experts-list" defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6 flex flex-wrap">
               <TabsTrigger value="all">All Services</TabsTrigger>
               {expertServiceTypes.map((type) => (

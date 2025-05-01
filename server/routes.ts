@@ -949,33 +949,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error("Invalid response format from Google Places API");
         }
 
-          // Check the specific error that might be in the response
-          // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
-          if (Array.isArray(testResult)) {
-            console.log("[express] Test API call successful, got", testResult.length, "results");
-            res.json({
-              enabled: true,
-              message: "Google Places API is configured and working",
-              results_count: testResult.length
-            });
-          } else {
-            console.log("[express] Test API call failed, didn't get array response");
-            res.json({
-              enabled: false,
-              message: "Google Places API returned unexpected response format"
-            });
-          }
-        } catch (error: any) {
-          console.error("[express] Test API call to Google Places failed:", error.message);
+        // Check the specific error that might be in the response
+        // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
+        if (Array.isArray(testResult)) {
+          console.log("[express] Test API call successful, got", testResult.length, "results");
+          res.json({
+            enabled: true,
+            message: "Google Places API is configured and working",
+            results_count: testResult.length
+          });
+        } else {
+          console.log("[express] Test API call failed, didn't get array response");
           res.json({
             enabled: false,
-            message: `Google Places API key is present but failed: ${error.message}`
+            message: "Google Places API returned unexpected response format"
           });
         }
-      } else {
+      } catch (error: any) {
+        console.error("[express] Test API call to Google Places failed:", error.message);
         res.json({
           enabled: false,
-          message: "Google Places API key is not configured"
+          message: `Google Places API key is present but failed: ${error.message}`
         });
       }
     } catch (error) {

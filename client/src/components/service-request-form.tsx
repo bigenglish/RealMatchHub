@@ -31,10 +31,10 @@ import { Clock, MapPin, Calendar, Users, Home } from 'lucide-react';
 // Validation schema for service request
 const serviceRequestSchema = z.object({
   serviceType: z.string().min(1, { message: 'Service type is required' }),
-  serviceProviderId: z.string().min(1, {message: 'Service provider is required'}),
-  propertyZipCode: z.string().min(5, { message: 'Valid ZIP code is required' }),
-  preferredDate: z.string().min(1, { message: 'Preferred date is required' }),
-  preferredTime: z.string().min(1, { message: 'Preferred time is required' }),
+  serviceProviderId: z.string().optional(), // Made optional since we'll find providers on the service-experts page
+  propertyZipCode: z.string().optional(), // Made optional for easier navigation
+  preferredDate: z.string().optional(), // Made optional for easier navigation
+  preferredTime: z.string().optional(), // Made optional for easier navigation
   notes: z.string().optional(),
 });
 
@@ -97,6 +97,25 @@ export default function ServiceRequestForm({
   const onSubmit = async (data: z.infer<typeof serviceRequestSchema>) => {
     setIsSubmitting(true);
     try {
+      // Get the selected service type for redirection
+      const serviceType = data.serviceType;
+      
+      // Navigate directly to service-experts with the selected service type
+      navigate(`/service-experts?service=${encodeURIComponent(serviceType)}`);
+      
+      toast({
+        title: 'Connecting to Service Experts',
+        description: 'Redirecting you to available service experts in your area.',
+      });
+      
+      // If onSuccess callback is provided, call it
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      return; // Skip the API call for now as we're navigating away
+      
+      /* Preserve the original function logic below in case we need it later
       const response = await apiRequest('POST', '/api/service-requests', {
         ...data,
         propertyId: propertyId,
@@ -117,7 +136,7 @@ export default function ServiceRequestForm({
       if (onSuccess) {
         onSuccess();
       }
-
+      */
     } catch (error) {
       toast({
         title: 'Error',
@@ -194,8 +213,8 @@ export default function ServiceRequestForm({
                     </FormControl>
                     <SelectContent>
                       {serviceProviders
-                        .filter(provider => provider.type === form.watch("serviceType"))
-                        .map((provider) => (
+                        .filter((provider: {type: string}) => provider.type === form.watch("serviceType"))
+                        .map((provider: {id: number, name: string, experience: number}) => (
                           <SelectItem key={provider.id} value={provider.id.toString()}>
                             {provider.name} ({provider.experience} years experience)
                           </SelectItem>
@@ -298,13 +317,19 @@ export default function ServiceRequestForm({
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full bg-olive-600 hover:bg-olive-700 text-white"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Service Request'}
-            </Button>
+            <div className="space-y-4">
+              <Button
+                type="submit"
+                className="w-full bg-olive-600 hover:bg-olive-700 text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Connecting...' : 'Find Matching Service Experts'}
+              </Button>
+              
+              <div className="text-center text-sm text-gray-500">
+                By clicking this button, you'll be directed to available service professionals in your area
+              </div>
+            </div>
           </form>
         </Form>
       </CardContent>

@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
+import http from "http";
 import { storage } from "./storage";
 import { 
   insertPropertySchema, 
@@ -2112,6 +2113,42 @@ app.post("/api/chatbot", async (req, res) => {
   }
 
   // Server is started in server/index.ts - removed duplicate listen call
+
+  // Add a health check endpoint specifically for the keep-alive mechanism
+  app.get('/api/healthcheck', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      message: 'Server is running properly'
+    });
+  });
+
+  // Set up a keep-alive mechanism to prevent the server from going to sleep
+  // This will help ensure the application remains accessible to external developers
+  const serverUrl = process.env.REPLIT_DEPLOYMENT_URL || process.env.REPL_SLUG
+    ? `https://${process.env.REPL_SLUG}.replit.dev`
+    : 'http://localhost:5000';
+    
+  console.log(`[express] Setting up keep-alive ping to server URL: ${serverUrl}`);
+  
+  // Ping the server every 4 minutes to keep it alive (less than the typical 5-minute timeout)
+  setInterval(() => {
+    try {
+      http.get(`${serverUrl}/api/healthcheck`, (res) => {
+        const { statusCode } = res;
+        if (statusCode === 200) {
+          console.log(`[keep-alive] Server healthcheck successful at ${new Date().toISOString()}`);
+        } else {
+          console.warn(`[keep-alive] Server healthcheck returned non-200 status: ${statusCode}`);
+        }
+      }).on('error', (err) => {
+        console.error(`[keep-alive] Failed to ping server: ${err.message}`);
+      });
+    } catch (error) {
+      console.error(`[keep-alive] Error in keep-alive mechanism: ${error}`);
+    }
+  }, 4 * 60 * 1000); // 4 minutes
 
   return httpServer;
 }

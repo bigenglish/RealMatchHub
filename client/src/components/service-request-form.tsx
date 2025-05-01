@@ -55,6 +55,7 @@ export default function ServiceRequestForm({
 }: ServiceRequestFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, navigate] = useLocation(); // Import useLocation hook for navigation
 
   // Fetch service expert types based on user type (buyer or seller)
   const { data: serviceTypes } = useQuery({

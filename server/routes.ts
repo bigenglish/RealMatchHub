@@ -1243,6 +1243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const { features, propertyType, location } = req.body;
     
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     const prompt = `Write an engaging property description for a ${propertyType} with the following features:

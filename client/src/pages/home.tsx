@@ -608,9 +608,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Free">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -649,9 +651,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Basic">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -710,9 +714,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Premium">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -751,9 +757,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Free-Renter">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -792,9 +800,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Basic-Renter">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>

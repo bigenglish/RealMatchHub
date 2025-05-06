@@ -894,9 +894,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        GET IT NOW
-                      </Button>
+                      <Link href="/checkout?plan=Free-Seller">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          GET IT NOW
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -938,9 +940,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        CHOOSE BASIC
-                      </Button>
+                      <Link href="/checkout?plan=Basic-Seller">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          CHOOSE BASIC
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -998,9 +1002,11 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                        CHOOSE PREMIUM
-                      </Button>
+                      <Link href="/checkout?plan=Premium-Seller">
+                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                          CHOOSE PREMIUM
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </div>

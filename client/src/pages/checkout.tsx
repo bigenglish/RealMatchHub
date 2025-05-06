@@ -61,21 +61,26 @@ const CheckoutForm = ({ clientSecret, planName, amount, planFeatures }: Checkout
     setIsProcessing(false);
   }
 
+  // Format plan name for display (remove the -Renter suffix for display)
+  const displayPlanName = planName.replace('-Renter', '');
+  const isRenterPlan = planName.includes('-Renter');
+  const planType = isRenterPlan ? 'Rental' : 'Buyer';
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Checkout: {planName} Plan</h2>
+        <h2 className="text-xl font-semibold">Checkout: {displayPlanName} {planType} Plan</h2>
         <p className="text-muted-foreground">Amount: ${amount.toFixed(2)}</p>
       </div>
       
       <Card>
         <CardHeader>
           <CardTitle>Plan Details</CardTitle>
-          <CardDescription>You're purchasing the following plan</CardDescription>
+          <CardDescription>You're purchasing the following {planType.toLowerCase()} plan</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="text-lg font-semibold">{planName}</div>
+            <div className="text-lg font-semibold">{displayPlanName} {planType} Plan</div>
             <div className="text-xl font-bold">${amount.toFixed(2)}</div>
             <ul className="list-disc pl-5 pt-2 space-y-1">
               {planFeatures.map((feature, index) => (
@@ -127,6 +132,7 @@ export default function Checkout() {
   
   // Map plan names to amounts and features
   const planData: Record<string, { amount: number, features: string[] }> = {
+    // Buyer Plans
     'Free': { 
       amount: 0,
       features: [
@@ -163,6 +169,82 @@ export default function Checkout() {
         'Assistance with due diligence checklists and processes',
         'Closing coordination assistance with 2 Expert reviewers'
       ]
+    },
+    
+    // Renter Plans
+    'Free-Renter': { 
+      amount: 0,
+      features: [
+        'Browse all available rental listings in your area',
+        'Save your favorite rental properties and searches',
+        'Access basic search filters (location, price, property type)',
+        'Connect with local property managers/landlords',
+        'Receive basic customer support'
+      ]
+    },
+    'Basic-Renter': { 
+      amount: 50,
+      features: [
+        'All Free features, plus:',
+        'Advanced search filters (size, features, pet policies, etc.)',
+        'Listing activity alerts (new rentals, price changes for saved properties)',
+        'Save and organize multiple rental lists',
+        'Access neighborhood guides and information',
+        'Priority email support'
+      ]
+    },
+    'Premium-Renter': { 
+      amount: 100,
+      features: [
+        'All Basic features, plus:',
+        'Personalized rental recommendations based on your criteria',
+        'Priority notifications for new rentals matching your needs',
+        'Detailed neighborhood insights, including commute times and local amenities',
+        'Connect with verified and responsive property managers/landlords',
+        'Priority phone and email support',
+        'Guidance on preparing strong rental applications',
+        'Dedicated rental concierge service'
+      ]
+    },
+    
+    // Seller Plans
+    'Free-Seller': { 
+      amount: 0,
+      features: [
+        'Create basic property listings',
+        'Connect with potential buyers',
+        'Access to basic seller resources and guides',
+        'Save your basic property information',
+        'Basic customer support'
+      ]
+    },
+    'Basic-Seller': { 
+      amount: 2000,
+      features: [
+        'All Free Seller features, plus:',
+        'Advanced search filters',
+        'Listing analytics and insights',
+        'Featured property listing',
+        'Customizable property page',
+        'Access to local market reports',
+        'Basic customer support'
+      ]
+    },
+    'Premium-Seller': { 
+      amount: 3500,
+      features: [
+        'All Basic Seller features, plus:',
+        'Professional photography and staging consultation',
+        'Highlighted property listing',
+        'Customizable property page with additional media options',
+        'Premium marketing services (social media promotion, email marketing)',
+        'Access to in-depth market analysis and reports',
+        'Advanced analytics and insights',
+        'Connect with verified local professionals',
+        'Priority customer support',
+        'Write up Offer & Negotiation',
+        'Handle Negotiations for Repairs and Credits'
+      ]
     }
   };
   
@@ -170,8 +252,8 @@ export default function Checkout() {
   const { amount, features } = planData[planName] || planData['Basic'];
 
   useEffect(() => {
-    // Skip payment creation for Free plan
-    if (planName === 'Free') {
+    // Skip payment creation for all Free plans
+    if (planName === 'Free' || planName === 'Free-Renter' || planName === 'Free-Seller') {
       toast({
         title: "Free Plan Selected",
         description: "You've selected the Free plan. No payment is required.",

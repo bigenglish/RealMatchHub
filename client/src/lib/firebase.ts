@@ -11,8 +11,17 @@ import {
   User as FirebaseUser,
   getIdToken
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, Firestore } from 'firebase/firestore';
 import { auth, firestore } from './firebase-config';
+
+// Helper function to safely create a document reference
+const safeDocRef = (collection: string, docId: string) => {
+  if (!firestore) {
+    console.error('Firestore is not initialized');
+    throw new Error('Firestore is not initialized');
+  }
+  return doc(firestore as Firestore, collection, docId);
+};
 
 // Interface for user data
 export interface UserData {
@@ -57,10 +66,13 @@ const getUserRole = async (uid: string): Promise<'user' | 'vendor' | 'admin'> =>
       return 'user';
     }
     
-    const userRef = doc(firestore, 'users', uid);
+    // Create a reference to the user document
     console.log('Getting role for user:', uid);
     
+    // Use our helper function to safely create a document reference
+    const userRef = safeDocRef('users', uid);
     const userDoc = await getDoc(userRef);
+    
     if (userDoc.exists()) {
       const userData = userDoc.data();
       console.log('Found user data:', userData);
@@ -104,9 +116,15 @@ export const signInWithEmail = async (email: string, password: string) => {
     setToken(token);
     
     // Update last login time
-    await updateDoc(doc(firestore, 'users', userData.uid), {
-      lastLoginAt: Date.now()
-    });
+    try {
+      await updateDoc(safeDocRef('users', userData.uid), {
+        lastLoginAt: Date.now()
+      });
+      console.log('Last login time updated');
+    } catch (error) {
+      console.error('Failed to update last login time:', error);
+      // Continue even if this fails
+    }
     
     return { user: userData, error: null };
   } catch (error: any) {
@@ -122,7 +140,12 @@ export const signInWithEmail = async (email: string, password: string) => {
 
 export const createAccount = async (fullName: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
   try {
-    console.log('Creating account for:', email);
+    console.log('Creating account for:', email, 'with role:', role);
+    
+    // Validate inputs
+    if (!email || !password || !fullName) {
+      return { user: null, error: 'All fields are required' };
+    }
     
     // Create user with Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -130,20 +153,30 @@ export const createAccount = async (fullName: string, email: string, password: s
     
     console.log('Firebase account created successfully for UID:', user.uid);
     
+    // Prepare user data
+    const timestamp = Date.now();
+    const userData: UserData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: fullName,
+      role,
+      createdAt: timestamp,
+      lastLoginAt: timestamp
+    };
+    
     // Create user document in Firestore
     try {
-      await setDoc(doc(firestore, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: fullName,
-        role,
-        createdAt: Date.now(),
-        lastLoginAt: Date.now(),
+      const userToSave = {
+        ...userData,
         selectedPlan: null // We'll update this when they select a plan
-      });
+      };
+      
+      console.log('Saving user to Firestore:', userToSave);
+      await setDoc(safeDocRef('users', user.uid), userToSave);
       console.log('Firestore user document created successfully');
-    } catch (firestoreError) {
+    } catch (firestoreError: any) {
       console.error('Error creating user document in Firestore:', firestoreError);
+      console.error('Error details:', firestoreError.code, firestoreError.message);
       // Even if Firestore fails, we can still proceed with the created Firebase auth account
     }
     
@@ -157,16 +190,6 @@ export const createAccount = async (fullName: string, email: string, password: s
       // Continue even if token generation fails
     }
     
-    // Return user data
-    const userData: UserData = {
-      uid: user.uid,
-      email: user.email,
-      displayName: fullName,
-      role,
-      createdAt: Date.now(),
-      lastLoginAt: Date.now()
-    };
-    
     return { user: userData, error: null };
   } catch (error: any) {
     console.error('Registration error:', error);
@@ -178,6 +201,10 @@ export const createAccount = async (fullName: string, email: string, password: s
       errorMessage = 'Invalid email address.';
     } else if (error.code === 'auth/weak-password') {
       errorMessage = 'Password is too weak. Please use a stronger password.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Network error. Please check your internet connection and try again.';
+    } else if (error.code === 'auth/operation-not-allowed') {
+      errorMessage = 'Email/password registration is not enabled. Please contact support.';
     } else if (error.code) {
       errorMessage = `Registration error: ${error.code}`;
     } else if (error.message) {
@@ -198,25 +225,34 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     
-    // Check if user exists in Firestore
-    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-    
-    if (!userDoc.exists()) {
-      // Create new user document if first time login
-      await setDoc(doc(firestore, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'user', // Default role for social login
-        createdAt: Date.now(),
-        lastLoginAt: Date.now()
-      });
-    } else {
-      // Update last login time
-      await updateDoc(doc(firestore, 'users', user.uid), {
-        lastLoginAt: Date.now()
-      });
+    try {
+      // Check if user exists in Firestore
+      const userRef = safeDocRef('users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // Create new user document if first time login
+        console.log('Creating new user document for Google sign-in:', user.uid);
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'user', // Default role for social login
+          createdAt: Date.now(),
+          lastLoginAt: Date.now()
+        });
+        console.log('User document created successfully');
+      } else {
+        // Update last login time
+        console.log('Updating last login time for existing user:', user.uid);
+        await updateDoc(userRef, {
+          lastLoginAt: Date.now()
+        });
+      }
+    } catch (error) {
+      console.error('Error handling Firestore document for Google sign-in:', error);
+      // Continue even if Firestore operations fail
     }
     
     // Get user data with role
@@ -246,25 +282,34 @@ export const signInWithFacebook = async () => {
     const result = await signInWithPopup(auth, facebookProvider);
     const user = result.user;
     
-    // Check if user exists in Firestore
-    const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-    
-    if (!userDoc.exists()) {
-      // Create new user document if first time login
-      await setDoc(doc(firestore, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'user', // Default role for social login
-        createdAt: Date.now(),
-        lastLoginAt: Date.now()
-      });
-    } else {
-      // Update last login time
-      await updateDoc(doc(firestore, 'users', user.uid), {
-        lastLoginAt: Date.now()
-      });
+    try {
+      // Check if user exists in Firestore
+      const userRef = safeDocRef('users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // Create new user document if first time login
+        console.log('Creating new user document for Facebook sign-in:', user.uid);
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'user', // Default role for social login
+          createdAt: Date.now(),
+          lastLoginAt: Date.now()
+        });
+        console.log('User document created successfully for Facebook login');
+      } else {
+        // Update last login time
+        console.log('Updating last login time for existing Facebook user:', user.uid);
+        await updateDoc(userRef, {
+          lastLoginAt: Date.now()
+        });
+      }
+    } catch (error) {
+      console.error('Error handling Firestore document for Facebook sign-in:', error);
+      // Continue even if Firestore operations fail
     }
     
     // Get user data with role
@@ -357,7 +402,9 @@ export const getCurrentUser = async (): Promise<UserData | null> => {
 export const updateUserRole = async (userId: string, role: 'user' | 'vendor' | 'admin') => {
   try {
     // Update role in Firestore
-    await updateDoc(doc(firestore, 'users', userId), { role });
+    const userRef = safeDocRef('users', userId);
+    await updateDoc(userRef, { role });
+    console.log(`Updated user ${userId} to role: ${role}`);
     
     // If it's the current user, refresh the token to update claims
     if (auth.currentUser?.uid === userId) {
@@ -366,6 +413,7 @@ export const updateUserRole = async (userId: string, role: 'user' | 'vendor' | '
     
     return { success: true, error: null };
   } catch (error: any) {
+    console.error('Failed to update user role:', error);
     return { success: false, error: error.message || 'Failed to update role' };
   }
 };

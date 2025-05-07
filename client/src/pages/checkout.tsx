@@ -323,19 +323,40 @@ export default function Checkout() {
   if (error || !clientSecret) {
     return (
       <div className="container max-w-3xl mx-auto py-12 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-destructive">Payment Setup Failed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{error || "Unable to initialize payment. Please try again later."}</p>
-          </CardContent>
-          <CardFooter>
-            <Button onClick={() => navigate("/")} variant="outline">
-              Return to Home
-            </Button>
-          </CardFooter>
-        </Card>
+        <div className="space-y-6">
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-destructive">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Payment Setup Failed
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">{error || "Unable to initialize payment. Please try again later."}</p>
+              
+              <div className="mt-4 bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Common issues:</h4>
+                <ul className="text-sm space-y-1 list-disc pl-4 text-muted-foreground">
+                  <li>Missing or invalid payment configuration</li>
+                  <li>Temporary service interruption</li>
+                  <li>Invalid plan selection</li>
+                </ul>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button onClick={() => navigate("/")} variant="outline">
+                Return to Home
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="default">
+                Try Again
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     );
   }

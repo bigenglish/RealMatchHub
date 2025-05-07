@@ -110,23 +110,40 @@ export const signInWithEmail = async (email: string, password: string) => {
 
 export const createAccount = async (fullName: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
   try {
+    console.log('Creating account for:', email);
+    
     // Create user with Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
+    console.log('Firebase account created successfully for UID:', user.uid);
+    
     // Create user document in Firestore
-    await setDoc(doc(firestore, 'users', user.uid), {
-      uid: user.uid,
-      email: user.email,
-      displayName: fullName,
-      role,
-      createdAt: Date.now(),
-      lastLoginAt: Date.now()
-    });
+    try {
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: fullName,
+        role,
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+        selectedPlan: null // We'll update this when they select a plan
+      });
+      console.log('Firestore user document created successfully');
+    } catch (firestoreError) {
+      console.error('Error creating user document in Firestore:', firestoreError);
+      // Even if Firestore fails, we can still proceed with the created Firebase auth account
+    }
     
     // Get ID token for API requests
-    const token = await getIdToken(user);
-    setToken(token);
+    try {
+      const token = await getIdToken(user);
+      setToken(token);
+      console.log('User token generated and stored successfully');
+    } catch (tokenError) {
+      console.error('Error generating user token:', tokenError);
+      // Continue even if token generation fails
+    }
     
     // Return user data
     const userData: UserData = {
@@ -140,6 +157,7 @@ export const createAccount = async (fullName: string, email: string, password: s
     
     return { user: userData, error: null };
   } catch (error: any) {
+    console.error('Registration error:', error);
     let errorMessage = 'Registration failed';
     
     if (error.code === 'auth/email-already-in-use') {
@@ -148,6 +166,10 @@ export const createAccount = async (fullName: string, email: string, password: s
       errorMessage = 'Invalid email address.';
     } else if (error.code === 'auth/weak-password') {
       errorMessage = 'Password is too weak. Please use a stronger password.';
+    } else if (error.code) {
+      errorMessage = `Registration error: ${error.code}`;
+    } else if (error.message) {
+      errorMessage = error.message;
     }
     
     return { user: null, error: errorMessage };

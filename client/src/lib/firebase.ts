@@ -52,10 +52,22 @@ apiClient.interceptors.request.use(
 // Helper function to get user role from Firestore
 const getUserRole = async (uid: string): Promise<'user' | 'vendor' | 'admin'> => {
   try {
-    const userDoc = await getDoc(doc(firestore, 'users', uid));
-    if (userDoc.exists()) {
-      return userDoc.data().role || 'user';
+    if (!firestore) {
+      console.error('Firestore not initialized');
+      return 'user';
     }
+    
+    const userRef = doc(firestore, 'users', uid);
+    console.log('Getting role for user:', uid);
+    
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      console.log('Found user data:', userData);
+      return userData.role || 'user';
+    }
+    
+    console.log('User document does not exist, returning default role');
     return 'user'; // Default role
   } catch (error) {
     console.error('Error getting user role:', error);

@@ -45,9 +45,9 @@ try {
 }
 
 // Initialize Firebase services with error handling
-let auth;
-let firestore: Firestore | null;
-let storage;
+let auth: any;
+let firestore: Firestore | null = null;
+let storage: any;
 
 try {
   auth = getAuth(app);

@@ -52,28 +52,59 @@ const Register = () => {
   // Handle form submission
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
+    
+    console.log('Form submission values:', values);
+    
     try {
-      const { success, error } = await register(
+      // Show loading toast
+      toast({
+        title: 'Creating your account...',
+        description: 'Please wait while we set up your account.',
+      });
+      
+      const result = await register(
         values.fullName,
         values.email, 
         values.password,
         values.role
       );
       
-      if (success) {
+      console.log('Registration result:', result);
+      
+      if (result.success) {
         toast({
           title: 'Welcome to Realty.AI!',
           description: 'Your account has been created successfully.',
         });
-        setLocation('/'); // Navigate to home page
+        
+        // Short delay before redirect to show success message
+        setTimeout(() => {
+          setLocation('/'); // Navigate to home page
+        }, 1000);
       } else {
+        console.error('Registration failed:', result.error);
         toast({
           title: 'Registration Failed',
-          description: error || 'Failed to create account. Please try again.',
+          description: result.error || 'Failed to create account. Please try again.',
           variant: 'destructive',
         });
+        
+        // Add error message to the bottom of the form
+        const errorElement = document.createElement('div');
+        errorElement.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-md text-center';
+        errorElement.textContent = 'Registration failed: ' + (result.error || 'Unknown error');
+        
+        const form = document.querySelector('form');
+        if (form) {
+          const existingError = form.querySelector('.bg-red-100');
+          if (existingError) {
+            form.removeChild(existingError);
+          }
+          form.appendChild(errorElement);
+        }
       }
     } catch (error: any) {
+      console.error('Unexpected error during registration:', error);
       toast({
         title: 'Error',
         description: error.message || 'An unexpected error occurred. Please try again.',

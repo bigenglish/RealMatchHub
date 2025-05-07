@@ -130,14 +130,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register a new user
   const register = async (name: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
     try {
-      const { user, error } = await createAccount(name, email, password, role);
-      if (user) {
+      console.log('AuthContext register called with:', { name, email, role });
+      const result = await createAccount(name, email, password, role);
+      console.log('createAccount result:', result);
+      
+      if (result.user) {
         return { success: true };
       } else {
-        setError(error);
-        return { success: false, error };
+        setError(result.error || 'Unknown registration error');
+        return { success: false, error: result.error };
       }
     } catch (err: any) {
+      console.error('Registration error in AuthContext:', err);
       const errorMessage = err.message || 'An error occurred during registration';
       setError(errorMessage);
       return { success: false, error: errorMessage };

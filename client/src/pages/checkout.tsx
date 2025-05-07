@@ -57,7 +57,7 @@ const CheckoutForm = ({ clientSecret, planName, amount, planFeatures }: Checkout
         description: "Your payment is being processed.",
       });
     }
-    
+
     setIsProcessing(false);
   }
 
@@ -65,14 +65,14 @@ const CheckoutForm = ({ clientSecret, planName, amount, planFeatures }: Checkout
   const displayPlanName = planName.replace('-Renter', '');
   const isRenterPlan = planName.includes('-Renter');
   const planType = isRenterPlan ? 'Rental' : 'Buyer';
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Checkout: {displayPlanName} {planType} Plan</h2>
         <p className="text-muted-foreground">Amount: ${amount.toFixed(2)}</p>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Plan Details</CardTitle>
@@ -90,7 +90,7 @@ const CheckoutForm = ({ clientSecret, planName, amount, planFeatures }: Checkout
           </div>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Payment Information</CardTitle>
@@ -125,11 +125,11 @@ export default function Checkout() {
   const [error, setError] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  
+
   // Parse the query parameters to get the plan information
   const query = new URLSearchParams(window.location.search);
   const planName = query.get('plan') || 'Basic';
-  
+
   // Map plan names to amounts and features
   const planData: Record<string, { amount: number, features: string[] }> = {
     // Buyer Plans
@@ -170,7 +170,7 @@ export default function Checkout() {
         'Closing coordination assistance with 2 Expert reviewers'
       ]
     },
-    
+
     // Renter Plans
     'Free-Renter': { 
       amount: 0,
@@ -206,7 +206,7 @@ export default function Checkout() {
         'Dedicated rental concierge service'
       ]
     },
-    
+
     // Seller Plans
     'Free-Seller': { 
       amount: 0,
@@ -247,7 +247,7 @@ export default function Checkout() {
       ]
     }
   };
-  
+
   // Get the plan details or default to Basic
   const { amount, features } = planData[planName] || planData['Basic'];
 
@@ -266,13 +266,13 @@ export default function Checkout() {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Create PaymentIntent
         const response = await apiRequest('POST', '/api/create-payment-intent', { 
           amount: amount / 100, // Convert from cents to dollars for the API
           planName
         });
-        
+
         if (!response.ok) {
           let errorMessage = 'Failed to create payment intent';
           try {
@@ -283,13 +283,13 @@ export default function Checkout() {
           }
           throw new Error(errorMessage);
         }
-        
+
         const data = await response.json();
-        
+
         if (!data.clientSecret) {
           throw new Error('No client secret received from server');
         }
-        
+
         setClientSecret(data.clientSecret);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
@@ -337,7 +337,7 @@ export default function Checkout() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{error || "Unable to initialize payment. Please try again later."}</p>
-              
+
               <div className="mt-4 bg-muted/50 p-4 rounded-lg">
                 <h4 className="font-medium mb-2">Common issues:</h4>
                 <ul className="text-sm space-y-1 list-disc pl-4 text-muted-foreground">

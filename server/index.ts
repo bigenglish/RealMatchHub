@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from 'http'; // Added import statement
 
 // Check for IDX Broker API key at startup
 if (process.env.IDX_BROKER_API_KEY) {
@@ -67,12 +68,24 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   // Using a higher port to avoid conflicts
-  const port = 5000;
+  const PORT = process.env.PORT || 5000; // Use environment variable or default
   server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+      port: PORT,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${PORT}`);
+    });
+
+  // Handle server errors
+  server.on('error', (e: any) => {
+    if (e.code === 'EADDRINUSE') {
+      console.log(`Port ${PORT} is busy, retrying on port ${PORT + 1}...`);
+      setTimeout(() => {
+        server.close();
+        server.listen(PORT + 1, '0.0.0.0');
+      }, 1000);
+    }
   });
+
 })();

@@ -608,7 +608,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Free">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -651,7 +651,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Basic">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -714,7 +714,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Premium">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>

@@ -267,21 +267,28 @@ export default function Checkout() {
         setIsLoading(true);
         setError(null);
 
-        // Create PaymentIntent
-        const response = await apiRequest('POST', '/api/create-payment-intent', { 
-          amount: amount / 100, // Convert from cents to dollars for the API
-          planName
-        });
+        // Validate amount before making request
+        if (!amount || amount <= 0) {
+          throw new Error('Invalid payment amount');
+        }
 
-        if (!response.ok) {
-          let errorMessage = 'Failed to create payment intent';
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (e) {
-            // If JSON parsing fails, use the default error message
-          }
-          throw new Error(errorMessage);
+        // Create PaymentIntent with retry
+        const retryCount = 3;
+        let response;
+
+        for (let i = 0; i < retryCount; i++) {
+          response = await apiRequest('POST', '/api/create-payment-intent', { 
+            amount: amount / 100, // Convert from cents to dollars for the API
+            planName
+          });
+
+          if (response.ok) break;
+
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        if (!response?.ok) {
+          throw new Error('Failed to initialize payment after multiple attempts');
         }
 
         const data = await response.json();

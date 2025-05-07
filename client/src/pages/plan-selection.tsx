@@ -126,7 +126,9 @@ const PlanSelection = () => {
         <div className="bg-card rounded-lg border p-6">
           <h3 className="text-xl font-medium mb-4">Payment Information</h3>
           <PaymentForm 
-            onSuccess={handlePaymentSuccess} 
+            onSuccess={handlePaymentSuccess}
+            amount={selectedBundle.price}
+            planId={selectedBundle.id}
           />
         </div>
       </div>

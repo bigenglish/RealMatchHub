@@ -1,133 +1,47 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/contexts/AuthContext';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { CardElement, useStripe, useElements, Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-// Form schema
-const paymentFormSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z.string().email('Valid email is required'),
-});
-
-type PaymentFormValues = z.infer<typeof paymentFormSchema>;
-
-interface PaymentFormProps {
-  onSuccess: () => void;
-}
-
-// The wrapper component that provides Stripe Elements context
-const PaymentForm = ({ onSuccess }: PaymentFormProps) => {
-  const { user } = useAuth();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  
-  // Initial form values from the user context
-  const defaultValues: Partial<PaymentFormValues> = {
-    name: user?.displayName || '',
-    email: user?.email || '',
-  };
-  
-  const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(paymentFormSchema),
-    defaultValues,
-  });
-
-  const onSubmit = async (data: PaymentFormValues) => {
-    try {
-      setIsLoading(true);
-      
-      // Create a payment intent
-      const response = await apiRequest('POST', '/api/create-payment-intent', {
-        amount: 99.99, // This would normally come from the selected plan
-        userId: user?.uid,
-        email: data.email,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent');
-      }
-      
-      const { clientSecret } = await response.json();
-      setClientSecret(clientSecret);
-      
-    } catch (error) {
-      console.error('Payment form error:', error);
-      toast({
-        title: 'Payment Setup Error',
-        description: 'There was a problem setting up the payment. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      {!clientSecret ? (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="Your email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Processing...' : 'Continue to Payment'}
-            </Button>
-          </form>
-        </Form>
-      ) : (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <StripePaymentForm onSuccess={onSuccess} />
-        </Elements>
-      )}
-    </div>
-  );
+// Card element styling
+const cardStyle = {
+  style: {
+    base: {
+      color: '#32325d',
+      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontSmoothing: 'antialiased',
+      fontSize: '16px',
+      '::placeholder': {
+        color: '#aab7c4',
+      },
+    },
+    invalid: {
+      color: '#fa755a',
+      iconColor: '#fa755a',
+    },
+  },
 };
 
-// The inner component that handles the actual Stripe payment
-const StripePaymentForm = ({ onSuccess }: PaymentFormProps) => {
+interface PaymentFormProps {
+  onSuccess?: () => void;
+  amount?: number;
+  planId?: number;
+}
+
+const PaymentFormContent = ({ onSuccess, amount = 99.99, planId }: PaymentFormProps) => {
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
-  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,61 +50,131 @@ const StripePaymentForm = ({ onSuccess }: PaymentFormProps) => {
       return;
     }
 
-    setIsProcessing(true);
+    if (!cardComplete) {
+      setError('Please complete your card details');
+      return;
+    }
+
+    setProcessing(true);
+    setError(null);
 
     try {
-      const { error } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: window.location.origin + '/payment-confirmation',
-        },
-        redirect: 'if_required',
+      // Create payment intent on the server
+      const paymentIntentResponse = await apiRequest('POST', '/api/create-payment-intent', {
+        amount: amount,
+        planId: planId,
+        userId: user?.uid || '',
+        email: user?.email || ''
       });
 
-      if (error) {
-        toast({
-          title: 'Payment Failed',
-          description: error.message || 'An error occurred during payment processing.',
-          variant: 'destructive',
-        });
-      } else {
-        // Payment succeeded
-        toast({
-          title: 'Payment Successful',
-          description: 'Your payment was processed successfully.',
-        });
-        onSuccess();
+      if (!paymentIntentResponse.ok) {
+        const errorData = await paymentIntentResponse.json();
+        throw new Error(errorData.error || 'Failed to create payment intent');
       }
-    } catch (err) {
-      console.error('Payment error:', err);
+
+      const paymentIntentData = await paymentIntentResponse.json();
+      
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error('Card element not found');
+      }
+
+      // Confirm the payment
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+        paymentIntentData.clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: user?.displayName || 'Unknown',
+              email: user?.email || '',
+            },
+          },
+        }
+      );
+
+      if (confirmError) {
+        throw new Error(confirmError.message || 'Payment confirmation failed');
+      }
+
+      if (paymentIntent.status === 'succeeded') {
+        toast({
+          title: 'Payment Successful!',
+          description: 'Your payment has been processed successfully.',
+        });
+        if (onSuccess) onSuccess();
+      } else if (paymentIntent.status === 'processing') {
+        toast({
+          title: 'Payment Processing',
+          description: 'Your payment is being processed. We\'ll update you once it\'s complete.',
+        });
+        if (onSuccess) onSuccess();
+      } else {
+        throw new Error(`Payment status: ${paymentIntent.status}`);
+      }
+    } catch (error: any) {
+      setError(error.message || 'An error occurred while processing your payment');
       toast({
-        title: 'Payment Error',
-        description: 'An unexpected error occurred. Please try again.',
+        title: 'Payment Failed',
+        description: error.message || 'There was a problem processing your payment',
         variant: 'destructive',
       });
     } finally {
-      setIsProcessing(false);
+      setProcessing(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-6">
-        <PaymentElement />
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="card-element" className="text-sm font-medium">
+            Credit or Debit Card
+          </label>
+          <div className="rounded-md border border-input p-3 shadow-sm">
+            <CardElement
+              id="card-element"
+              options={cardStyle}
+              onChange={(e) => {
+                setError(e.error ? e.error.message : '');
+                setCardComplete(e.complete);
+              }}
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
+        </div>
       </div>
       
       <Button 
         type="submit" 
         className="w-full" 
-        disabled={!stripe || !elements || isProcessing}
+        disabled={!stripe || processing || !cardComplete}
       >
-        {isProcessing ? 'Processing...' : 'Pay Now'}
+        {processing ? (
+          <span className="flex items-center">
+            <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full"></span>
+            Processing...
+          </span>
+        ) : (
+          `Pay ${amount ? `$${amount.toFixed(2)}` : ''}`
+        )}
       </Button>
       
-      <p className="text-center text-muted-foreground text-sm mt-4">
-        Your payment is secure and encrypted. We don't store your card details.
+      <p className="text-xs text-center text-muted-foreground">
+        Your payment is secured through Stripe's encrypted payment processing.
       </p>
     </form>
+  );
+};
+
+// Wrapper component that provides Stripe context
+const PaymentForm = (props: PaymentFormProps) => {
+  return (
+    <Elements stripe={stripePromise}>
+      <PaymentFormContent {...props} />
+    </Elements>
   );
 };
 

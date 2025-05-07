@@ -757,7 +757,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Free-Renter">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -800,7 +800,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Basic-Renter">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -851,7 +851,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Premium-Renter">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -894,7 +894,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Free-Seller">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -940,7 +940,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Basic-Seller">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           CHOOSE BASIC
                         </Button>
@@ -1002,7 +1002,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/checkout?plan=Premium-Seller">
+                      <Link href="/auth/welcome">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           CHOOSE PREMIUM
                         </Button>
@@ -1048,9 +1048,11 @@ export default function HomePage() {
                 >
                   See How It Works
                 </Button>
-                <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
-                  Start For Free
-                </Button>
+                <Link href="/auth/welcome">
+                  <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
+                    Start For Free
+                  </Button>
+                </Link>
               </div>
             </div>
             <div className="lg:w-1/2">
@@ -1151,9 +1153,11 @@ export default function HomePage() {
             >
               See How It Works
             </Button>
-            <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2">
-              Start For Free
-            </Button>
+            <Link href="/auth/welcome">
+              <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2">
+                Start For Free
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -1336,9 +1340,11 @@ export default function HomePage() {
                     >
                       <Play className="h-5 w-5" /> See How It Works
                     </Button>
-                    <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
-                      Start For Free
-                    </Button>
+                    <Link href="/auth/welcome">
+                      <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
+                        Start For Free
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>

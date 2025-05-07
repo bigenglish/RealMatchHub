@@ -223,8 +223,11 @@ export default function HowItWorks() {
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </Link>
-        <div className="mt-4"> {/* Added div for spacing */}
-          <Button asChild size="lg" variant="secondary">
+        <div className="mt-4 space-y-4">
+          <Button asChild size="lg" variant="default" className="w-full bg-blue-600 hover:bg-blue-700">
+            <Link href="/auth/welcome">Get Started Today</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="w-full">
             <Link href="/auth/welcome">Create Your Free Account</Link>
           </Button>
         </div>

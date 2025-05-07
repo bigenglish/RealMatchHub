@@ -81,14 +81,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { user, error } = await signInWithEmail(email, password);
       if (user) {
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back${user.displayName ? ', ' + user.displayName : ''}!`,
+          variant: 'default',
+        });
         return { success: true };
       } else {
         setError(error);
+        toast({
+          title: 'Login Failed',
+          description: error || 'Invalid email or password',
+          variant: 'destructive',
+        });
         return { success: false, error };
       }
     } catch (err: any) {
+      console.error('Login error:', err);
       const errorMessage = err.message || 'An error occurred during login';
       setError(errorMessage);
+      toast({
+        title: 'Login Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };

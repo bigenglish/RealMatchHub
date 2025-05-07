@@ -20,7 +20,9 @@ const safeDocRef = (collection: string, docId: string) => {
     console.error('Firestore is not initialized');
     throw new Error('Firestore is not initialized');
   }
-  return doc(firestore as Firestore, collection, docId);
+  // Type assertion to handle the Firestore | null type
+  const db = firestore as Firestore;
+  return doc(db, collection, docId);
 };
 
 // Interface for user data
@@ -417,3 +419,6 @@ export const updateUserRole = async (userId: string, role: 'user' | 'vendor' | '
     return { success: false, error: error.message || 'Failed to update role' };
   }
 };
+
+// Export the API client for use in other files
+export { apiClient };

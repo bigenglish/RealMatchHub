@@ -199,7 +199,7 @@ export default function HomePage() {
           {/* Call to action buttons below video */}
           <div className="mt-32 mb-24 text-center">
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
-              <Link href="/auth/welcome">
+              <Link href="/plan-selection">
                 <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg w-full sm:w-auto">
                   GET STARTED FREE
                 </Button>
@@ -608,7 +608,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -651,7 +651,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -714,7 +714,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -757,7 +757,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -800,7 +800,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -851,7 +851,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -894,7 +894,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           GET IT NOW
                         </Button>
@@ -940,7 +940,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           CHOOSE BASIC
                         </Button>
@@ -1002,7 +1002,7 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/auth/welcome">
+                      <Link href="/plan-selection">
                         <Button className="w-full bg-olive-600 hover:bg-olive-700">
                           CHOOSE PREMIUM
                         </Button>
@@ -1048,7 +1048,7 @@ export default function HomePage() {
                 >
                   See How It Works
                 </Button>
-                <Link href="/auth/welcome">
+                <Link href="/plan-selection">
                   <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
                     Start For Free
                   </Button>
@@ -1153,7 +1153,7 @@ export default function HomePage() {
             >
               See How It Works
             </Button>
-            <Link href="/auth/welcome">
+            <Link href="/plan-selection">
               <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2">
                 Start For Free
               </Button>
@@ -1340,7 +1340,7 @@ export default function HomePage() {
                     >
                       <Play className="h-5 w-5" /> See How It Works
                     </Button>
-                    <Link href="/auth/welcome">
+                    <Link href="/plan-selection">
                       <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
                         Start For Free
                       </Button>
@@ -1554,7 +1554,7 @@ export default function HomePage() {
 
           <div className="mb-10">
             <Button asChild className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
-              <Link href="/auth/welcome">Create Your Free Account</Link>
+              <Link href="/plan-selection">Create Your Free Account</Link>
             </Button>
           </div>
 

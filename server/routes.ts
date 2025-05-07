@@ -11,6 +11,7 @@ import {
   insertServiceBundleSchema
 } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
+import paymentRoutes from "./routes/payment-routes"; // Import payment routes
 import {
   predictPropertyPrice,
   generatePropertyDescription,
@@ -2042,6 +2043,10 @@ app.post("/api/chatbot", async (req, res) => {
     // Register Property Communication routes
     app.use("/api", communicationRoutes);
     console.log("[express] Property communication routes registered");
+    
+    // Register Payment routes
+    app.use("/api", paymentRoutes);
+    console.log("[express] Payment routes registered");
     
     // ----- Neighborhood Explorer Routes -----
     

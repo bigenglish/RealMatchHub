@@ -1,58 +1,73 @@
-import React, { useState } from 'react';
-import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useAuth } from '@/contexts/AuthContext';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { LockClosedIcon } from 'lucide-react';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+// Form schema
+const paymentFormSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  email: z.string().email('Valid email is required'),
+});
+
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 interface PaymentFormProps {
   onSuccess: () => void;
 }
 
-const PaymentForm: React.FC<PaymentFormProps> = ({ onSuccess }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const { toast } = useToast();
+// The wrapper component that provides Stripe Elements context
+const PaymentForm = ({ onSuccess }: PaymentFormProps) => {
+  const { user } = useAuth();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  // Initial form values from the user context
+  const defaultValues: Partial<PaymentFormValues> = {
+    name: user?.displayName || '',
+    email: user?.email || '',
+  };
+  
+  const form = useForm<PaymentFormValues>({
+    resolver: zodResolver(paymentFormSchema),
+    defaultValues,
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
+  const onSubmit = async (data: PaymentFormValues) => {
     try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: window.location.origin, // Backup return URL in case the flow is interrupted
-        },
-        redirect: 'if_required',
+      setIsLoading(true);
+      
+      // Create a payment intent
+      const response = await apiRequest('POST', '/api/create-payment-intent', {
+        amount: 99.99, // This would normally come from the selected plan
+        userId: user?.uid,
+        email: data.email,
       });
-
-      if (error) {
-        setErrorMessage(error.message || 'An error occurred with your payment');
-        toast({
-          title: 'Payment Failed',
-          description: error.message || 'Your payment could not be processed. Please try again.',
-          variant: 'destructive',
-        });
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        toast({
-          title: 'Payment Successful',
-          description: 'Your payment has been processed successfully!',
-        });
-        onSuccess();
+      
+      if (!response.ok) {
+        throw new Error('Failed to create payment intent');
       }
-    } catch (error: any) {
-      setErrorMessage(error.message || 'An unexpected error occurred');
+      
+      const { clientSecret } = await response.json();
+      setClientSecret(clientSecret);
+      
+    } catch (error) {
+      console.error('Payment form error:', error);
       toast({
-        title: 'Error',
-        description: error.message || 'An unexpected error occurred. Please try again.',
+        title: 'Payment Setup Error',
+        description: 'There was a problem setting up the payment. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -61,42 +76,120 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-gray-50 p-4 rounded-lg mb-6">
-        <PaymentElement options={{ 
-          layout: { 
-            type: 'tabs',
-            defaultCollapsed: false 
-          }
-        }} />
-      </div>
-
-      {errorMessage && (
-        <div className="text-red-500 bg-red-50 p-3 rounded-md text-sm mb-4">
-          {errorMessage}
-        </div>
+    <div>
+      {!clientSecret ? (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Your email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Processing...' : 'Continue to Payment'}
+            </Button>
+          </form>
+        </Form>
+      ) : (
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          <StripePaymentForm onSuccess={onSuccess} />
+        </Elements>
       )}
+    </div>
+  );
+};
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center text-sm text-gray-500">
-          <LockClosedIcon className="h-4 w-4 mr-1" />
-          Secure payment
-        </div>
-        <Button 
-          type="submit" 
-          disabled={!stripe || !elements || isLoading}
-          className="bg-blue-600 hover:bg-blue-700 px-6"
-        >
-          {isLoading ? 'Processing...' : 'Complete Payment'}
-        </Button>
-      </div>
+// The inner component that handles the actual Stripe payment
+const StripePaymentForm = ({ onSuccess }: PaymentFormProps) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
-      <div className="text-xs text-gray-500 text-center">
-        By completing this purchase, you agree to our 
-        <a href="/terms" className="text-blue-600 hover:underline mx-1">Terms of Service</a> 
-        and acknowledge our 
-        <a href="/privacy" className="text-blue-600 hover:underline mx-1">Privacy Policy</a>.
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.location.origin + '/payment-confirmation',
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        toast({
+          title: 'Payment Failed',
+          description: error.message || 'An error occurred during payment processing.',
+          variant: 'destructive',
+        });
+      } else {
+        // Payment succeeded
+        toast({
+          title: 'Payment Successful',
+          description: 'Your payment was processed successfully.',
+        });
+        onSuccess();
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      toast({
+        title: 'Payment Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="mb-6">
+        <PaymentElement />
       </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={!stripe || !elements || isProcessing}
+      >
+        {isProcessing ? 'Processing...' : 'Pay Now'}
+      </Button>
+      
+      <p className="text-center text-muted-foreground text-sm mt-4">
+        Your payment is secure and encrypted. We don't store your card details.
+      </p>
     </form>
   );
 };

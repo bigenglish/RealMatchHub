@@ -1,373 +1,182 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useRoute } from 'wouter';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CheckCircle } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { Check, Info, ArrowRight } from 'lucide-react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import PaymentForm from '@/components/payment-form';
-import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { firestore } from '../lib/firebase-config';
+import PaymentForm from '../components/payment-form';
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Bundle interface definition
+interface Bundle {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  type: 'buyer' | 'seller' | 'agent' | 'provider';
+  features: string[];
+  highlighted?: boolean;
+  priceDisplay?: string;
+  recommendedFor?: string;
+  services?: Service[];
+}
+
+interface Service {
+  id: number;
+  name: string;
+  description: string;
+}
 
 const PlanSelection = () => {
-  const [match, params] = useRoute('/plan-selection/:type?');
-  const [location, setLocation] = useLocation();
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [initialPlanType, setInitialPlanType] = useState<string | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('buyer');
+  const [_, setLocation] = useLocation();
+  const { toast } = useToast();
 
-  // Get the plan type from the URL
-  const planType = params?.type || 'buyer';
+  const { data: bundles, isLoading: bundlesLoading } = useQuery({
+    queryKey: ['/api/service-bundles'],
+    select: (data: Bundle[]) => {
+      // Group bundles by type
+      const groupedBundles = data.reduce((acc, bundle) => {
+        const type = bundle.type || 'buyer';
+        if (!acc[type]) {
+          acc[type] = [];
+        }
+        acc[type].push(bundle);
+        return acc;
+      }, {} as Record<string, Bundle[]>);
+      return groupedBundles;
+    }
+  });
 
   useEffect(() => {
-    if (params?.type) {
-      setInitialPlanType(params.type);
+    if (!user) {
+      // Redirect to login if not authenticated
+      setLocation('/auth/login');
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to select a plan.',
+        variant: 'destructive'
+      });
     }
-  }, [params]);
+  }, [user, setLocation, toast]);
 
-  // Pricing plans
-  const buyerPlans = [
-    {
-      id: 'Basic-Buyer',
-      name: 'Basic',
-      price: 'Free',
-      priceValue: 0,
-      description: 'Perfect for exploring properties and initial research',
-      features: [
-        'Property Search',
-        'Save Favorites',
-        'Market Reports',
-        'Basic AI Recommendations'
-      ],
-      popular: false
-    },
-    {
-      id: 'Standard-Buyer',
-      name: 'Standard',
-      price: '$199',
-      priceValue: 199,
-      description: 'Enhanced support for serious property seekers',
-      features: [
-        'All Basic Features',
-        'Priority Customer Support',
-        'Advanced AI Property Matching',
-        'Neighborhood Analysis',
-        'Document Review (up to 2)'
-      ],
-      popular: true
-    },
-    {
-      id: 'Premium-Buyer',
-      name: 'Premium',
-      price: '$499',
-      priceValue: 499,
-      description: 'Full-service support for your property purchase',
-      features: [
-        'All Standard Features',
-        'Dedicated Real Estate Expert',
-        'Unlimited Document Reviews',
-        'Virtual Property Tours',
-        'Negotiation Assistance',
-        'Closing Support'
-      ],
-      popular: false
-    }
-  ];
-
-  const sellerPlans = [
-    {
-      id: 'Basic-Seller',
-      name: 'Basic',
-      price: 'Free',
-      priceValue: 0,
-      description: 'List your property and receive initial guidance',
-      features: [
-        'Basic Property Listing',
-        'Simple Market Analysis',
-        'DIY Sale Guidance',
-        'Selling Checklist'
-      ],
-      popular: false
-    },
-    {
-      id: 'Standard-Seller',
-      name: 'Standard',
-      price: '$299',
-      priceValue: 299,
-      description: 'Enhanced support for a smooth selling experience',
-      features: [
-        'All Basic Features',
-        'Premium Property Listing',
-        'Professional Photography',
-        'Virtual Staging',
-        'Basic Marketing Package',
-        'Document Review (up to 3)'
-      ],
-      popular: true
-    },
-    {
-      id: 'Premium-Seller',
-      name: 'Premium',
-      price: '$799',
-      priceValue: 799,
-      description: 'Full-service support for maximum sale value',
-      features: [
-        'All Standard Features',
-        'Dedicated Listing Agent',
-        'Advanced Marketing Package',
-        'Open House Coordination',
-        'Offer Evaluation Assistance',
-        'Closing Support',
-        'Professional Negotiation'
-      ],
-      popular: false
-    }
-  ];
-
-  const renterPlans = [
-    {
-      id: 'Basic-Renter',
-      name: 'Basic',
-      price: 'Free',
-      priceValue: 0,
-      description: 'Search rentals and get initial guidance',
-      features: [
-        'Rental Search',
-        'Save Favorites',
-        'Basic Neighborhood Info',
-        'Rental Application Checklist'
-      ],
-      popular: false
-    },
-    {
-      id: 'Standard-Renter',
-      name: 'Standard',
-      price: '$99',
-      priceValue: 99,
-      description: 'Get additional support for finding the perfect rental',
-      features: [
-        'All Basic Features',
-        'Rental Application Assistance',
-        'Document Review',
-        'Rental Property Analysis',
-        'Neighborhood Insights'
-      ],
-      popular: true
-    },
-    {
-      id: 'Premium-Renter',
-      name: 'Premium',
-      price: '$199',
-      priceValue: 199,
-      description: 'Full-service support for your rental search',
-      features: [
-        'All Standard Features',
-        'Dedicated Rental Agent',
-        'Virtual Property Tours',
-        'Lease Review',
-        'Negotiation Assistance',
-        'Moving Coordination'
-      ],
-      popular: false
-    }
-  ];
-
-  // Get active plans based on plan type
-  const getActivePlans = () => {
-    switch (planType) {
-      case 'seller':
-        return sellerPlans;
-      case 'renter':
-        return renterPlans;
-      default:
-        return buyerPlans;
-    }
-  };
-
-  const activePlans = getActivePlans();
-
-  // Handle plan selection
-  const handleSelectPlan = async (planId: string, price: number) => {
-    setSelectedPlan(planId);
+  const handlePlanSelect = (bundle: Bundle) => {
+    setSelectedPlanId(bundle.id);
     
-    if (price === 0) {
-      // For free plans, just update the user's plan in Firestore
-      try {
-        setIsLoading(true);
-        if (user?.uid) {
-          await updateDoc(doc(firestore, 'users', user.uid), {
-            selectedPlan: planId,
-            planPurchaseDate: Date.now()
-          });
-          
-          toast({
-            title: 'Plan Selected',
-            description: 'Your free plan has been activated successfully.',
-          });
-          
-          // Redirect to home page or dashboard
-          setLocation('/');
-        }
-      } catch (error) {
-        console.error('Error updating free plan:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to activate free plan. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (bundle.price === 0) {
+      // For free plans, skip payment and redirect to home
+      setLocation('/how-it-works');
+      toast({
+        title: 'Free Plan Selected',
+        description: `You've successfully chosen the ${bundle.title} plan.`,
+      });
     } else {
-      // For paid plans, create payment intent
-      try {
-        setIsLoading(true);
-        // Create a payment intent on the server
-        const response = await fetch('/api/create-payment-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: price,
-            planId: planId,
-            userId: user?.uid
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create payment intent');
-        }
-        
-        const data = await response.json();
-        setClientSecret(data.clientSecret);
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to initialize payment. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+      // For paid plans, show payment form
+      setShowPaymentForm(true);
     }
   };
 
-  // Load user's current plan if exists
-  useEffect(() => {
-    const loadUserPlan = async () => {
-      if (user?.uid) {
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-          if (userDoc.exists() && userDoc.data().selectedPlan) {
-            setSelectedPlan(userDoc.data().selectedPlan);
-          }
-        } catch (error) {
-          console.error('Error loading user plan:', error);
-        }
-      }
-    };
-
-    loadUserPlan();
-  }, [user]);
-
-  // Handle successful payment
-  const handlePaymentSuccess = async () => {
-    try {
-      if (user?.uid && selectedPlan) {
-        // Update the user's plan in Firestore
-        await updateDoc(doc(firestore, 'users', user.uid), {
-          selectedPlan: selectedPlan,
-          planPurchaseDate: Date.now()
-        });
-        
-        toast({
-          title: 'Payment Successful',
-          description: 'Your plan has been activated successfully.',
-        });
-        
-        // Redirect to home page or dashboard
-        setLocation('/');
-      }
-    } catch (error) {
-      console.error('Error updating plan after payment:', error);
-    }
+  const handlePaymentSuccess = () => {
+    toast({
+      title: 'Payment Successful',
+      description: 'Thank you for your purchase!',
+    });
+    setLocation('/how-it-works');
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Select Your {planType.charAt(0).toUpperCase() + planType.slice(1)} Plan</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Choose the plan that best fits your needs. You can upgrade or downgrade at any time.
-          </p>
+  if (bundlesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (showPaymentForm && selectedPlanId) {
+    const allBundles = Object.values(bundles || {}).flat();
+    const selectedBundle = allBundles.find(b => b.id === selectedPlanId);
+    
+    if (!selectedBundle) {
+      return <div>Plan not found</div>;
+    }
+
+    return (
+      <div className="max-w-3xl mx-auto p-6">
+        <Button 
+          variant="outline" 
+          className="mb-6"
+          onClick={() => setShowPaymentForm(false)}
+        >
+          ← Back to Plans
+        </Button>
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
+          <h2 className="text-2xl font-semibold text-primary mb-1">{selectedBundle.title}</h2>
+          <p className="text-xl mb-4">{selectedBundle.priceDisplay || `$${selectedBundle.price}`}</p>
+          <p className="text-muted-foreground">{selectedBundle.description}</p>
         </div>
         
-        {!clientSecret ? (
-          <>
-            {/* Plan Type Selector */}
-            <div className="flex justify-center mb-10">
-              <div className="inline-flex rounded-md shadow-sm bg-white p-1 mb-8">
-                <Button
-                  variant={planType === 'buyer' ? 'default' : 'outline'}
-                  className={`rounded-l-md ${planType === 'buyer' ? 'bg-blue-600 text-white' : ''}`}
-                  onClick={() => setLocation('/plan-selection/buyer')}
-                >
-                  Buyer
-                </Button>
-                <Button
-                  variant={planType === 'seller' ? 'default' : 'outline'}
-                  className={planType === 'seller' ? 'bg-blue-600 text-white' : ''}
-                  onClick={() => setLocation('/plan-selection/seller')}
-                >
-                  Seller
-                </Button>
-                <Button
-                  variant={planType === 'renter' ? 'default' : 'outline'}
-                  className={`rounded-r-md ${planType === 'renter' ? 'bg-blue-600 text-white' : ''}`}
-                  onClick={() => setLocation('/plan-selection/renter')}
-                >
-                  Renter
-                </Button>
-              </div>
-            </div>
+        <div className="bg-card rounded-lg border p-6">
+          <h3 className="text-xl font-medium mb-4">Payment Information</h3>
+          <PaymentForm 
+            onSuccess={handlePaymentSuccess} 
+          />
+        </div>
+      </div>
+    );
+  }
 
-            {/* Plan Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {activePlans.map((plan) => (
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-2 text-center">Select Your Plan</h1>
+      <p className="text-center text-muted-foreground mb-8">
+        Choose the perfect plan that fits your real estate needs
+      </p>
+
+      <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8">
+          <TabsTrigger value="buyer">Buyer</TabsTrigger>
+          <TabsTrigger value="seller">Seller</TabsTrigger>
+          <TabsTrigger value="agent">Agent</TabsTrigger>
+          <TabsTrigger value="provider">Service Provider</TabsTrigger>
+        </TabsList>
+
+        {Object.entries(bundles || {}).map(([type, typeBundles]) => (
+          <TabsContent key={type} value={type} className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {typeBundles.map((bundle) => (
                 <Card 
-                  key={plan.id} 
-                  className={`${
-                    plan.popular ? 'border-blue-500 shadow-xl' : 'border-gray-200'
-                  } transition-all duration-300 hover:shadow-lg`}
+                  key={bundle.id}
+                  className={`flex flex-col ${bundle.highlighted ? 'border-primary shadow-lg' : ''}`}
                 >
-                  {plan.popular && (
-                    <div className="bg-blue-500 text-white text-center py-1 text-sm font-medium">
-                      Most Popular
-                    </div>
-                  )}
                   <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>{plan.name}</span>
-                      <span className="text-2xl font-bold">{plan.price}</span>
+                    <CardTitle className="text-xl">
+                      {bundle.title}
                     </CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
+                    <CardDescription>{bundle.description}</CardDescription>
+                    {bundle.recommendedFor && (
+                      <div className="bg-primary/10 text-primary text-sm py-1 px-2 rounded mt-2 inline-block">
+                        {bundle.recommendedFor}
+                      </div>
+                    )}
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-grow">
+                    <div className="mb-4">
+                      <p className="text-3xl font-bold">
+                        {bundle.priceDisplay || `$${bundle.price}`}
+                      </p>
+                    </div>
                     <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      {bundle.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -375,47 +184,19 @@ const PlanSelection = () => {
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className={`w-full ${
-                        plan.popular 
-                          ? 'bg-blue-600 hover:bg-blue-700' 
-                          : plan.priceValue === 0 
-                            ? 'bg-green-600 hover:bg-green-700' 
-                            : 'bg-gray-800 hover:bg-gray-900'
-                      }`}
-                      disabled={isLoading}
-                      onClick={() => handleSelectPlan(plan.id, plan.priceValue)}
+                      className="w-full" 
+                      onClick={() => handlePlanSelect(bundle)}
+                      variant={bundle.highlighted ? "default" : "outline"}
                     >
-                      {plan.priceValue === 0 ? 'Get Started Free' : 'Select Plan'}
+                      {bundle.price === 0 ? "Select Free Plan" : "Select Plan"}
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
-          </>
-        ) : (
-          /* Payment Form */
-          <div className="max-w-xl mx-auto bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center">Complete Your Purchase</h2>
-            <p className="text-gray-600 mb-6 text-center">
-              You've selected the <span className="font-semibold">{selectedPlan}</span> plan.
-            </p>
-            
-            <Elements stripe={stripePromise} options={{ clientSecret: clientSecret }}>
-              <PaymentForm onSuccess={handlePaymentSuccess} />
-            </Elements>
-            
-            <div className="mt-6 text-center">
-              <button 
-                className="text-blue-600 hover:underline text-sm"
-                onClick={() => setClientSecret(null)}
-                disabled={isLoading}
-              >
-                ← Go back to plan selection
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 };

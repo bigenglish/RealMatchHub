@@ -112,16 +112,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login with Google
   const loginWithGoogle = async () => {
     try {
+      console.log('Starting Google sign-in flow');
       const { user, error } = await signInWithGoogle();
       if (user) {
+        toast({
+          title: 'Google Sign-In Successful',
+          description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
+          variant: 'default',
+        });
+        console.log('Google sign-in successful:', user.uid);
         return { success: true };
       } else {
+        console.error('Google sign-in failed:', error);
         setError(error);
+        toast({
+          title: 'Google Sign-In Failed',
+          description: error || 'Could not sign in with Google',
+          variant: 'destructive',
+        });
         return { success: false, error };
       }
     } catch (err: any) {
+      console.error('Google sign-in error:', err);
       const errorMessage = err.message || 'An error occurred during Google login';
       setError(errorMessage);
+      toast({
+        title: 'Google Sign-In Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };
@@ -129,16 +148,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login with Facebook
   const loginWithFacebook = async () => {
     try {
+      console.log('Starting Facebook sign-in flow');
       const { user, error } = await signInWithFacebook();
       if (user) {
+        toast({
+          title: 'Facebook Sign-In Successful',
+          description: `Welcome${user.displayName ? ', ' + user.displayName : ''}!`,
+          variant: 'default',
+        });
+        console.log('Facebook sign-in successful:', user.uid);
         return { success: true };
       } else {
+        console.error('Facebook sign-in failed:', error);
         setError(error);
+        toast({
+          title: 'Facebook Sign-In Failed',
+          description: error || 'Could not sign in with Facebook',
+          variant: 'destructive',
+        });
         return { success: false, error };
       }
     } catch (err: any) {
+      console.error('Facebook sign-in error:', err);
       const errorMessage = err.message || 'An error occurred during Facebook login';
       setError(errorMessage);
+      toast({
+        title: 'Facebook Sign-In Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };
@@ -147,19 +185,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
     try {
       console.log('AuthContext register called with:', { name, email, role });
+      
+      // Validate inputs
+      if (!name || !email || !password) {
+        const errorMessage = 'All fields are required';
+        toast({
+          title: 'Registration Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return { success: false, error: errorMessage };
+      }
+      
       const result = await createAccount(name, email, password, role);
       console.log('createAccount result:', result);
       
       if (result.user) {
+        toast({
+          title: 'Registration Successful',
+          description: `Welcome to Realty.AI, ${name}!`,
+          variant: 'default',
+        });
         return { success: true };
       } else {
+        console.error('Registration failed with error:', result.error);
         setError(result.error || 'Unknown registration error');
+        toast({
+          title: 'Registration Failed',
+          description: result.error || 'Could not create your account',
+          variant: 'destructive',
+        });
         return { success: false, error: result.error };
       }
     } catch (err: any) {
       console.error('Registration error in AuthContext:', err);
       const errorMessage = err.message || 'An error occurred during registration';
       setError(errorMessage);
+      toast({
+        title: 'Registration Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };
@@ -167,20 +233,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Reset password
   const forgotPassword = async (email: string) => {
     try {
+      console.log('Starting password reset process for email:', email);
+      
+      // Simple validation
+      if (!email || !email.includes('@')) {
+        const errorMessage = 'Please enter a valid email address';
+        toast({
+          title: 'Password Reset Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return { success: false, error: errorMessage };
+      }
+      
       const { success, error } = await resetPassword(email);
       if (success) {
+        console.log('Password reset email sent successfully');
         toast({
           title: 'Password Reset Email Sent',
           description: 'Check your email for a link to reset your password.',
+          variant: 'default',
         });
         return { success: true };
       } else {
+        console.error('Password reset failed:', error);
         setError(error);
+        toast({
+          title: 'Password Reset Failed',
+          description: error || 'Could not send password reset email',
+          variant: 'destructive',
+        });
         return { success: false, error };
       }
     } catch (err: any) {
+      console.error('Password reset error:', err);
       const errorMessage = err.message || 'An error occurred during password reset';
       setError(errorMessage);
+      toast({
+        title: 'Password Reset Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };
@@ -188,17 +281,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Sign out
   const signOut = async () => {
     try {
+      console.log('Starting sign-out process');
       const { success, error } = await logout();
       if (success) {
         setUser(null);
+        toast({
+          title: 'Signed Out',
+          description: 'You have been successfully signed out.',
+          variant: 'default',
+        });
+        console.log('Sign-out successful');
         return { success: true };
       } else {
+        console.error('Sign-out failed:', error);
         setError(error);
+        toast({
+          title: 'Sign-Out Failed',
+          description: error || 'Could not sign you out',
+          variant: 'destructive',
+        });
         return { success: false, error };
       }
     } catch (err: any) {
+      console.error('Sign-out error:', err);
       const errorMessage = err.message || 'An error occurred during sign out';
       setError(errorMessage);
+      toast({
+        title: 'Sign-Out Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       return { success: false, error: errorMessage };
     }
   };

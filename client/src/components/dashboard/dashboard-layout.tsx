@@ -1,7 +1,6 @@
-import React, { ReactNode } from 'react';
+import * as React from 'react';
 import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserData } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,232 +10,229 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Home, 
-  Search, 
-  FileText, 
-  MessageSquare, 
-  Calendar, 
-  Settings, 
-  HelpCircle, 
-  LogOut, 
-  User,
-  Building,
-  Users,
-  DollarSign,
-  BriefcaseBusiness,
-  PieChart,
-  BarChart3
+  Home, User, MessageSquare, 
+  Calendar, FileText, LogOut, Menu,
+  Bell, Settings, ChevronDown
 } from 'lucide-react';
 
-interface SidebarItemProps {
-  icon: ReactNode;
-  label: string;
-  href: string;
-  active?: boolean;
+interface DashboardLayoutProps {
+  children: React.ReactNode;
 }
 
-const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
-  return (
-    <Link href={href}>
-      <a className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-accent ${
-        active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:text-primary'
-      }`}>
-        {icon}
-        <span>{label}</span>
-      </a>
-    </Link>
-  );
+// Define the sidebar navigation items based on user role
+const getUserNavItems = (user: UserData | null) => {
+  const baseItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+    { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
+    { name: 'Documents', href: '/dashboard/documents', icon: FileText },
+  ];
+
+  if (!user) return baseItems;
+
+  if (user.role === 'admin') {
+    return [
+      ...baseItems,
+      { name: 'User Management', href: '/dashboard/users', icon: User },
+      { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+    ];
+  }
+
+  if (user.role === 'vendor') {
+    return [
+      ...baseItems,
+      { name: 'Clients', href: '/dashboard/clients', icon: User },
+      { name: 'Services', href: '/dashboard/services', icon: Settings },
+    ];
+  }
+
+  // Default to user role
+  return [
+    ...baseItems,
+    { name: 'My Properties', href: '/dashboard/properties', icon: Home },
+    { name: 'Profile', href: '/dashboard/profile', icon: User },
+  ];
 };
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
+// Get role-specific title for the dashboard
+const getDashboardTitle = (user: UserData | null) => {
+  if (!user) return 'Dashboard';
+  
+  if (user.role === 'admin') {
+    return user.subrole === 'platform_admin' 
+      ? 'Platform Administration' 
+      : 'Support Administration';
+  }
+  
+  if (user.role === 'vendor') {
+    switch (user.subrole) {
+      case 'agent': return 'Agent Portal';
+      case 'loan_officer': return 'Loan Officer Portal';
+      case 'contractor': return 'Contractor Portal';
+      case 'designer': return 'Designer Portal';
+      default: return 'Vendor Portal';
+    }
+  }
+  
+  // User role
+  switch (user.subrole) {
+    case 'buyer': return 'Buyer Dashboard';
+    case 'seller': return 'Seller Dashboard';
+    case 'renter': return 'Renter Dashboard';
+    default: return 'User Dashboard';
+  }
+};
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, signOut } = useAuth();
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const [location] = useLocation();
+  const { user, signOut } = useAuth();
+  const navItems = getUserNavItems(user);
+  const dashboardTitle = getDashboardTitle(user);
 
   const handleSignOut = async () => {
     await signOut();
+    window.location.href = '/'; // Redirect to home page after sign out
   };
-
-  // Render different sidebar items based on user role
-  const renderSidebarItems = () => {
-    if (!user) return null;
-
-    const commonItems = [
-      { icon: <Home size={20} />, label: 'Dashboard', href: '/dashboard' },
-      { icon: <MessageSquare size={20} />, label: 'Messages', href: '/dashboard/messages' },
-      { icon: <Settings size={20} />, label: 'Settings', href: '/dashboard/settings' },
-      { icon: <HelpCircle size={20} />, label: 'Help & Support', href: '/dashboard/support' },
-    ];
-
-    // User-specific sidebar items
-    if (user.role === 'user') {
-      const userItems = [
-        { icon: <Search size={20} />, label: 'Property Search', href: '/dashboard/search' },
-        { icon: <Calendar size={20} />, label: 'Appointments', href: '/dashboard/appointments' },
-        { icon: <FileText size={20} />, label: 'My Documents', href: '/dashboard/documents' },
-      ];
-      
-      // Add specialized items based on subrole
-      if (user.subrole === 'buyer') {
-        userItems.push({ icon: <Building size={20} />, label: 'Saved Properties', href: '/dashboard/saved-properties' });
-      } else if (user.subrole === 'seller') {
-        userItems.push({ icon: <Building size={20} />, label: 'My Listings', href: '/dashboard/listings' });
-      }
-      
-      return [...userItems, ...commonItems];
-    }
-    
-    // Vendor-specific sidebar items
-    else if (user.role === 'vendor') {
-      const vendorItems = [
-        { icon: <BriefcaseBusiness size={20} />, label: 'My Services', href: '/dashboard/my-services' },
-        { icon: <Calendar size={20} />, label: 'Appointments', href: '/dashboard/appointments' },
-        { icon: <DollarSign size={20} />, label: 'Earnings', href: '/dashboard/earnings' },
-        { icon: <Users size={20} />, label: 'Clients', href: '/dashboard/clients' },
-      ];
-      
-      // Add specialized items based on vendor type
-      if (user.subrole === 'agent') {
-        vendorItems.push({ icon: <Building size={20} />, label: 'Listings', href: '/dashboard/listings' });
-      }
-      
-      return [...vendorItems, ...commonItems];
-    }
-    
-    // Admin-specific sidebar items
-    else if (user.role === 'admin') {
-      const adminItems = [
-        { icon: <Users size={20} />, label: 'Users', href: '/dashboard/users' },
-        { icon: <BriefcaseBusiness size={20} />, label: 'Vendors', href: '/dashboard/vendors' },
-        { icon: <Building size={20} />, label: 'Properties', href: '/dashboard/properties' },
-        { icon: <PieChart size={20} />, label: 'Reports', href: '/dashboard/reports' },
-        { icon: <BarChart3 size={20} />, label: 'Analytics', href: '/dashboard/analytics' },
-      ];
-      
-      return [...adminItems, ...commonItems];
-    }
-    
-    return commonItems;
-  };
-
-  if (!user) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <Skeleton className="h-12 w-12 rounded-full mx-auto" />
-          <Skeleton className="h-4 w-[200px] mt-4" />
-          <Skeleton className="h-4 w-[160px] mt-2" />
-          <Button asChild className="mt-4">
-            <Link href="/auth/login">Sign In</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  const sidebarItems = renderSidebarItems();
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Top navigation bar */}
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <Link href="/">
-          <a className="flex items-center gap-2 font-semibold">
-            <Building className="h-6 w-6" />
-            <span className="text-xl font-bold">Realty.AI</span>
-          </a>
-        </Link>
-        <div className="ml-auto flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full" size="icon">
-                <Avatar>
-                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                  <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/profile">
-                  <a className="flex w-full cursor-pointer items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    Profile
-                  </a>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings">
-                  <a className="flex w-full cursor-pointer items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </a>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar */}
+      <aside className={`
+        ${isSidebarOpen ? 'w-64' : 'w-20'} 
+        bg-blue-900 text-white transition-all duration-300 
+        flex flex-col fixed h-full z-10
+      `}>
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between p-4 border-b border-blue-800">
+          <div className={`flex items-center ${!isSidebarOpen && 'justify-center w-full'}`}>
+            {isSidebarOpen ? (
+              <div className="font-bold text-xl tracking-tight">REALTY.AI</div>
+            ) : (
+              <div className="font-bold text-xl">R</div>
+            )}
+          </div>
+          <button 
+            className={`text-white p-1 rounded hover:bg-blue-800 ${!isSidebarOpen && 'hidden'}`}
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <Menu size={18} />
+          </button>
+          {!isSidebarOpen && (
+            <button 
+              className="text-white p-1 rounded hover:bg-blue-800 absolute left-16"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={18} />
+            </button>
+          )}
         </div>
-      </header>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <aside className="hidden w-64 flex-col border-r bg-background md:flex">
-          <nav className="flex-1 overflow-auto py-4">
-            <div className="px-4 py-2">
-              <h2 className="mb-2 text-lg font-semibold tracking-tight">
-                {user.role === 'user' && 'User Dashboard'}
-                {user.role === 'vendor' && 'Vendor Dashboard'}
-                {user.role === 'admin' && 'Admin Dashboard'}
-              </h2>
-              <div className="flex flex-col gap-1">
-                {sidebarItems?.map((item, index) => (
-                  <SidebarItem
-                    key={index}
-                    icon={item.icon}
-                    label={item.label}
-                    href={item.href}
-                    active={location === item.href}
-                  />
-                ))}
-              </div>
-            </div>
-          </nav>
-          <div className="mt-auto p-4">
-            <Separator className="mb-4" />
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{user.displayName}</p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {user.subrole ? user.subrole.replace('_', ' ') : user.role}
-                </p>
-              </div>
+        {/* Sidebar Navigation */}
+        <nav className="flex-1 pt-5">
+          <ul className="space-y-2 px-3">
+            {navItems.map((item) => {
+              const isActive = location === item.href;
+              return (
+                <li key={item.name}>
+                  <Link href={item.href}>
+                    <a className={`
+                      flex items-center p-3 rounded-lg transition-colors
+                      ${isActive 
+                        ? 'bg-blue-700 text-white' 
+                        : 'text-blue-100 hover:bg-blue-800'
+                      }
+                    `}>
+                      <item.icon size={20} className="shrink-0" />
+                      {isSidebarOpen && <span className="ml-4">{item.name}</span>}
+                    </a>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-blue-800">
+          <button 
+            onClick={handleSignOut}
+            className="flex items-center justify-center w-full p-2 text-white rounded-lg hover:bg-blue-800 transition-colors"
+          >
+            <LogOut size={20} className="shrink-0" />
+            {isSidebarOpen && <span className="ml-3">Sign Out</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className={`
+        flex-1 flex flex-col
+        ${isSidebarOpen ? 'ml-64' : 'ml-20'}
+        transition-all duration-300
+      `}>
+        {/* Top Header Bar */}
+        <header className="bg-white shadow-sm border-b h-16 flex items-center px-6 sticky top-0 z-10">
+          <div className="flex items-center justify-between w-full">
+            <h1 className="font-semibold text-xl">{dashboardTitle}</h1>
+            
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" size="icon" className="relative">
+                <Bell size={20} />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                      {user?.displayName?.charAt(0) || 'U'}
+                    </div>
+                    {user?.displayName && <span>{user.displayName}</span>}
+                    <ChevronDown size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/profile">
+                      <a className="flex items-center w-full">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/settings">
+                      <a className="flex items-center w-full">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </a>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-        </aside>
+        </header>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           {children}
         </main>
       </div>
     </div>
   );
-}
+};
+
+export default DashboardLayout;

@@ -300,12 +300,128 @@ const Register = () => {
                             I'm a service provider
                           </FormLabel>
                         </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="admin" />
+                          </FormControl>
+                          <FormLabel className="font-normal cursor-pointer">
+                            I'm an administrator
+                          </FormLabel>
+                        </FormItem>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              
+              {/* Conditionally show subrole selection based on role */}
+              {selectedRole && (
+                <FormField
+                  control={form.control}
+                  name="subrole"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>What best describes your role?</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          {selectedRole === 'user' && (
+                            <>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="buyer" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  I'm looking to buy a property
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="seller" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  I'm looking to sell my property
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="renter" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  I'm looking to rent a property
+                                </FormLabel>
+                              </FormItem>
+                            </>
+                          )}
+                          
+                          {selectedRole === 'vendor' && (
+                            <>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="agent" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Real Estate Agent
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="loan_officer" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Loan Officer
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="contractor" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Contractor
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="designer" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Interior Designer
+                                </FormLabel>
+                              </FormItem>
+                            </>
+                          )}
+
+                          {selectedRole === 'admin' && (
+                            <>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="platform_admin" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Platform Administrator
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="support_admin" />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  Support Administrator
+                                </FormLabel>
+                              </FormItem>
+                            </>
+                          )}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               
               <Button 
                 type="submit" 

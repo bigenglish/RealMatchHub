@@ -71,7 +71,7 @@ app.use((req, res, next) => {
   const PORT = process.env.PORT || 5000; // Use environment variable or default
   server.listen({
       port: PORT,
-      host: "0.0.0.0",
+      host: "0.0.0.0", // Updated to bind to 0.0.0.0
       reusePort: true,
     }, () => {
       log(`serving on port ${PORT}`);

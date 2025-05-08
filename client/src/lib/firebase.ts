@@ -25,16 +25,48 @@ const safeDocRef = (collection: string, docId: string) => {
   return doc(db, collection, docId);
 };
 
+// Define more specific user roles
+export type UserRoleType = 'user' | 'vendor' | 'admin';
+export type UserSubroleType = 'buyer' | 'seller' | 'renter' | 'agent' | 'loan_officer' | 'contractor' | 'designer' | 'platform_admin' | 'support_admin';
+
 // Interface for user data
 export interface UserData {
   uid: string;
   email: string | null;
   displayName: string | null;
   photoURL?: string | null;
-  role?: 'user' | 'vendor' | 'admin';
+  role: UserRoleType;
+  subrole?: UserSubroleType;
   phoneNumber?: string | null;
   createdAt?: number;
   lastLoginAt?: number;
+  selectedPlan?: string | null;
+  userPreferences?: {
+    location?: string;
+    priceRange?: { min: number; max: number };
+    propertyTypes?: string[];
+    notificationSettings?: {
+      email: boolean;
+      push: boolean;
+      sms: boolean;
+    };
+    savedSearches?: Array<{
+      id: string;
+      name: string;
+      criteria: Record<string, any>;
+      createdAt: number;
+    }>;
+  };
+  vendorProfile?: {
+    businessName?: string;
+    serviceTypes?: string[];
+    licenseNumber?: string;
+    yearsOfExperience?: number;
+    serviceAreas?: string[];
+    availability?: string[];
+    avgRating?: number;
+    reviewCount?: number;
+  };
 }
 
 // Store token in localStorage
@@ -60,16 +92,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Helper function to get user role from Firestore
-const getUserRole = async (uid: string): Promise<'user' | 'vendor' | 'admin'> => {
+// Helper function to get user role and data from Firestore
+const getUserRoleAndData = async (uid: string): Promise<{
+  role: UserRoleType;
+  subrole?: UserSubroleType;
+  userPreferences?: any;
+  vendorProfile?: any;
+}> => {
   try {
     if (!firestore) {
       console.error('Firestore not initialized');
-      return 'user';
+      return { role: 'user' };
     }
     
     // Create a reference to the user document
-    console.log('Getting role for user:', uid);
+    console.log('Getting user data for:', uid);
     
     // Use our helper function to safely create a document reference
     const userRef = safeDocRef('users', uid);
@@ -78,20 +115,25 @@ const getUserRole = async (uid: string): Promise<'user' | 'vendor' | 'admin'> =>
     if (userDoc.exists()) {
       const userData = userDoc.data();
       console.log('Found user data:', userData);
-      return userData.role || 'user';
+      return {
+        role: userData.role || 'user',
+        subrole: userData.subrole,
+        userPreferences: userData.userPreferences,
+        vendorProfile: userData.vendorProfile
+      };
     }
     
-    console.log('User document does not exist, returning default role');
-    return 'user'; // Default role
+    console.log('User document does not exist, returning default data');
+    return { role: 'user' }; // Default data
   } catch (error) {
-    console.error('Error getting user role:', error);
-    return 'user'; // Default role
+    console.error('Error getting user data:', error);
+    return { role: 'user' }; // Default data
   }
 };
 
 // Helper function to map Firebase user to our UserData interface
 const mapFirebaseUserToUserData = async (firebaseUser: FirebaseUser): Promise<UserData> => {
-  const role = await getUserRole(firebaseUser.uid);
+  const userData = await getUserRoleAndData(firebaseUser.uid);
   
   return {
     uid: firebaseUser.uid,
@@ -99,7 +141,10 @@ const mapFirebaseUserToUserData = async (firebaseUser: FirebaseUser): Promise<Us
     displayName: firebaseUser.displayName,
     photoURL: firebaseUser.photoURL,
     phoneNumber: firebaseUser.phoneNumber,
-    role,
+    role: userData.role,
+    subrole: userData.subrole,
+    userPreferences: userData.userPreferences,
+    vendorProfile: userData.vendorProfile,
     lastLoginAt: Date.now()
   };
 };
@@ -140,9 +185,15 @@ export const signInWithEmail = async (email: string, password: string) => {
   }
 };
 
-export const createAccount = async (fullName: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
+export const createAccount = async (
+  fullName: string, 
+  email: string, 
+  password: string, 
+  role: UserRoleType = 'user',
+  subrole?: UserSubroleType
+) => {
   try {
-    console.log('Creating account for:', email, 'with role:', role);
+    console.log('Creating account for:', email, 'with role:', role, 'and subrole:', subrole);
     
     // Validate inputs
     if (!email || !password || !fullName) {
@@ -162,8 +213,25 @@ export const createAccount = async (fullName: string, email: string, password: s
       email: user.email,
       displayName: fullName,
       role,
+      subrole,
       createdAt: timestamp,
-      lastLoginAt: timestamp
+      lastLoginAt: timestamp,
+      // Initialize empty preferences
+      userPreferences: role === 'user' ? {
+        notificationSettings: {
+          email: true,
+          push: true,
+          sms: false
+        }
+      } : undefined,
+      
+      // Initialize vendor profile if this is a vendor account
+      vendorProfile: role === 'vendor' ? {
+        businessName: '',
+        serviceTypes: [],
+        avgRating: 0,
+        reviewCount: 0
+      } : undefined
     };
     
     // Create user document in Firestore
@@ -235,15 +303,25 @@ export const signInWithGoogle = async () => {
       if (!userDoc.exists()) {
         // Create new user document if first time login
         console.log('Creating new user document for Google sign-in:', user.uid);
-        await setDoc(userRef, {
+        
+        const newUserData = {
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
-          role: 'user', // Default role for social login
+          role: 'user' as UserRoleType, // Default role for social login
           createdAt: Date.now(),
-          lastLoginAt: Date.now()
-        });
+          lastLoginAt: Date.now(),
+          userPreferences: {
+            notificationSettings: {
+              email: true,
+              push: true,
+              sms: false
+            }
+          }
+        };
+        
+        await setDoc(userRef, newUserData);
         console.log('User document created successfully');
       } else {
         // Update last login time

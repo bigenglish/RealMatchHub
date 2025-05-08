@@ -6,17 +6,17 @@ import { getAnalytics, isSupported } from 'firebase/analytics';
 
 // Check if Firebase environment variables are available
 const hasRequiredEnvVars = 
-  process.env.VITE_FIREBASE_API_KEY && 
-  process.env.VITE_FIREBASE_PROJECT_ID && 
-  process.env.VITE_FIREBASE_APP_ID;
+  import.meta.env.VITE_FIREBASE_API_KEY && 
+  import.meta.env.VITE_FIREBASE_PROJECT_ID && 
+  import.meta.env.VITE_FIREBASE_APP_ID;
 
 // Log Firebase configuration status
 if (!hasRequiredEnvVars) {
   console.error('Firebase configuration is incomplete. Missing required environment variables.');
   console.log('Available Firebase config:', {
-    apiKey: process.env.VITE_FIREBASE_API_KEY ? 'Present' : 'Missing',
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID ? 'Present' : 'Missing',
-    appId: process.env.VITE_FIREBASE_APP_ID ? 'Present' : 'Missing'
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? 'Present' : 'Missing',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? 'Present' : 'Missing',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ? 'Present' : 'Missing'
   });
 } else {
   console.log('Firebase configuration is complete. Initializing Firebase services.');
@@ -24,13 +24,13 @@ if (!hasRequiredEnvVars) {
 
 // Firebase configuration
 export const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY,
-  authDomain: `${process.env.VITE_FIREBASE_PROJECT_ID || 'default'}.firebaseapp.com`,
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${process.env.VITE_FIREBASE_PROJECT_ID || 'default'}.appspot.com`,
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.VITE_FIREBASE_APP_ID,
-  measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'default'}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'default'}.appspot.com`,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase with error handling

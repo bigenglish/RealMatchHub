@@ -7,7 +7,9 @@ import {
   createAccount, 
   resetPassword, 
   logout,
-  UserData, 
+  UserData,
+  UserRoleType,
+  UserSubroleType,
   getCurrentUser 
 } from '../lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +21,13 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   loginWithFacebook: () => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string, role?: 'user' | 'vendor' | 'admin') => Promise<{ success: boolean; error?: string }>;
+  register: (
+    name: string, 
+    email: string, 
+    password: string, 
+    role?: UserRoleType,
+    subrole?: UserSubroleType
+  ) => Promise<{ success: boolean; error?: string }>;
   forgotPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<{ success: boolean; error?: string }>;
 }
@@ -182,9 +190,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Register a new user
-  const register = async (name: string, email: string, password: string, role: 'user' | 'vendor' | 'admin' = 'user') => {
+  const register = async (
+    name: string, 
+    email: string, 
+    password: string, 
+    role: UserRoleType = 'user', 
+    subrole?: UserSubroleType
+  ) => {
     try {
-      console.log('AuthContext register called with:', { name, email, role });
+      console.log('AuthContext register called with:', { name, email, role, subrole });
       
       // Validate inputs
       if (!name || !email || !password) {
@@ -197,13 +211,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: false, error: errorMessage };
       }
       
-      const result = await createAccount(name, email, password, role);
+      const result = await createAccount(name, email, password, role, subrole);
       console.log('createAccount result:', result);
       
       if (result.user) {
+        // Generate a role-specific welcome message
+        let welcomeMessage = `Welcome to Realty.AI, ${name}!`;
+        if (role === 'vendor') {
+          welcomeMessage = `Welcome to Realty.AI Vendor Portal, ${name}!`;
+        } else if (role === 'admin') {
+          welcomeMessage = `Welcome to Realty.AI Admin Portal, ${name}!`;
+        }
+        
         toast({
           title: 'Registration Successful',
-          description: `Welcome to Realty.AI, ${name}!`,
+          description: welcomeMessage,
           variant: 'default',
         });
         return { success: true };

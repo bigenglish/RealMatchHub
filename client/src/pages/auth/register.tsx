@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { FcGoogle } from 'react-icons/fc';
 import { SiFacebook } from 'react-icons/si';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRoleType, UserSubroleType } from '@/lib/firebase';
 
 // Form validation schema
 const registerSchema = z.object({
@@ -23,7 +24,8 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
-  role: z.enum(['user', 'vendor'], { message: 'Please select a role' })
+  role: z.enum(['user', 'vendor', 'admin'], { message: 'Please select a role' }),
+  subrole: z.string().optional()
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -37,6 +39,9 @@ const Register = () => {
   const { toast } = useToast();
   const { register, loginWithGoogle, loginWithFacebook } = useAuth();
 
+  // State to track which subroles to show based on selected role
+  const [selectedRole, setSelectedRole] = useState<UserRoleType>('user');
+  
   // Initialize form
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -46,8 +51,19 @@ const Register = () => {
       password: '',
       confirmPassword: '',
       role: 'user',
+      subrole: undefined,
     },
   });
+
+  // Watch for role changes to update the subrole options
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'role' && value.role) {
+        setSelectedRole(value.role as UserRoleType);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   // Handle form submission
   const onSubmit = async (values: RegisterFormValues) => {
@@ -66,7 +82,8 @@ const Register = () => {
         values.fullName,
         values.email, 
         values.password,
-        values.role
+        values.role as UserRoleType,
+        values.subrole as UserSubroleType | undefined
       );
       
       console.log('Registration result:', result);

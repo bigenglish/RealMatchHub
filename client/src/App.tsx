@@ -42,6 +42,9 @@ import Register from "@/pages/auth/register";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import { AuthProvider } from "./contexts/AuthContext";
 
+// Dashboard
+import Dashboard from "@/pages/dashboard";
+
 // Placeholder components for new pages
 const Resources = () => <div className="py-20 text-center"><h1 className="text-3xl font-bold">Resources</h1><p className="mt-4">Coming soon</p></div>;
 const Demo = () => <div className="py-20 text-center"><h1 className="text-3xl font-bold">Watch a Demo</h1><p className="mt-4">Coming soon</p></div>;
@@ -51,18 +54,22 @@ function Router() {
   const [location] = useLocation();
   const isHomePage = location === '/';
   const isAuthPage = location.startsWith('/auth/');
+  const isDashboardPage = location.startsWith('/dashboard');
 
-  // Don't show Navbar or Footer on auth pages
+  // Don't show Navbar or Footer on auth pages or dashboard pages
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {!isAuthPage && <Navbar />}
-      <main className={`flex-grow ${!isHomePage && !isAuthPage ? 'container mx-auto px-4 py-20' : ''}`}>
+      {!isAuthPage && !isDashboardPage && <Navbar />}
+      <main className={`flex-grow ${!isHomePage && !isAuthPage && !isDashboardPage ? 'container mx-auto px-4 py-20' : ''}`}>
         <Switch>
           {/* Auth Routes */}
           <Route path="/auth/welcome" component={Welcome} />
           <Route path="/auth/login" component={Login} />
           <Route path="/auth/register" component={Register} />
           <Route path="/auth/forgot-password" component={ForgotPassword} />
+
+          {/* Dashboard Routes */}
+          <Route path="/dashboard/:rest*" component={Dashboard} />
 
           {/* Main Routes */}
           <Route path="/" component={Home} />
@@ -101,7 +108,7 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      {!isHomePage && !isAuthPage && (
+      {!isHomePage && !isAuthPage && !isDashboardPage && (
         <footer className="bg-muted py-6 mt-auto">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

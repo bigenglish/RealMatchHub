@@ -478,13 +478,25 @@ export const getCurrentUser = async (): Promise<UserData | null> => {
   }
 };
 
-// Update user role
-export const updateUserRole = async (userId: string, role: 'user' | 'vendor' | 'admin') => {
+// Update user role and/or subrole
+export const updateUserRole = async (
+  userId: string, 
+  role: UserRoleType,
+  subrole?: UserSubroleType
+) => {
   try {
-    // Update role in Firestore
+    // Update role/subrole in Firestore
     const userRef = safeDocRef('users', userId);
-    await updateDoc(userRef, { role });
-    console.log(`Updated user ${userId} to role: ${role}`);
+    
+    const updateData: { role: UserRoleType; subrole?: UserSubroleType } = { role };
+    
+    // Only add subrole to the update if it's provided
+    if (subrole) {
+      updateData.subrole = subrole;
+    }
+    
+    await updateDoc(userRef, updateData);
+    console.log(`Updated user ${userId} to role: ${role}${subrole ? `, subrole: ${subrole}` : ''}`);
     
     // If it's the current user, refresh the token to update claims
     if (auth.currentUser?.uid === userId) {

@@ -94,7 +94,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     csrf({ 
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
       }
     })(req, res, next);
   });

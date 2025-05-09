@@ -77,12 +77,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Security headers
   app.use(helmet());
 
-  // CORS configuration
+  // Enhanced CORS and monitoring
   app.use(cors({
     origin: process.env.FRONTEND_URL || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+    credentials: true,
+    maxAge: 86400 // 24 hours
   }));
+
+  // Health check endpoint
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
+  // Error monitoring
+  app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+      error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message 
+    });
+    next(err);
+  });
 
   // CSRF protection with proper configuration
   app.use((req, res, next) => {
@@ -90,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (req.path === '/api/healthcheck') {
       return next();
     }
-    
+
     csrf({ 
       cookie: {
         httpOnly: true,
@@ -857,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (coordinates) {
         console.log(`[express] Successfully geocoded to: ${coordinates}`);
         res.json({ coordinates, success: true });
-      } else {
+      }       } else {
         console.log(`[express] Failed to geocode address: "${address}"`);
         res.status(400).json({ 
           message: "Could not geocode the provided address",

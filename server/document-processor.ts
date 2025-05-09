@@ -330,3 +330,32 @@ export async function processDocumentStream(
     });
   });
 }
+
+const processDocument = async (buffer: Buffer) => {
+  try {
+    // Process in chunks to avoid memory issues
+    const chunkSize = 5 * 1024 * 1024; // 5MB chunks
+
+    // Mock processor object with a processDocument function
+    const processor = {
+        processDocument: async (chunk: Buffer) => {
+            // Simulate processing delay
+            await new Promise(resolve => setTimeout(resolve, 50));
+            return `Processed chunk of size: ${chunk.length}`;
+        }
+    };
+
+    const chunks = [];
+
+    for (let i = 0; i < buffer.length; i += chunkSize) {
+      const chunk = buffer.slice(i, i + chunkSize);
+      const result = await processor.processDocument(chunk);
+      chunks.push(result);
+    }
+
+    return chunks.flat();
+  } catch (error) {
+    console.error('Document processing error:', error);
+    throw error;
+  }
+};

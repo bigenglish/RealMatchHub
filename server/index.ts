@@ -11,8 +11,20 @@ if (process.env.IDX_BROKER_API_KEY) {
 }
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Security middleware
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+
+app.use(helmet()); // Add security headers
+app.use('/api/', limiter); // Apply rate limiting to all API routes
+app.use(express.json({ limit: '10kb' })); // Limit request size
+app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
 // Add cookie parser before CSRF
 import cookieParser from 'cookie-parser';

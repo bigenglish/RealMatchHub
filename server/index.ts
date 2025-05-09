@@ -1,7 +1,11 @@
+import dotenv from 'dotenv';
+dotenv.config(); // Load environment variables from .env file
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from 'http'; // Added import statement
+import cors from 'cors';
 
 // Check for IDX Broker API key at startup
 if (process.env.IDX_BROKER_API_KEY) {
@@ -21,6 +25,16 @@ const limiter = rateLimit({
   max: 100 // limit each IP to 100 requests per windowMs
 });
 
+// Configure CORS
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://workspace.replit.app'] 
+    : '*', // In development, allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // If you need to handle cookies across origins
+};
+
+app.use(cors(corsOptions));
 app.use(helmet()); // Add security headers
 app.use('/api/', limiter); // Apply rate limiting to all API routes
 app.use(express.json({ limit: '10kb' })); // Limit request size
@@ -96,10 +110,11 @@ app.use((req, res, next) => {
   // Handle server errors
   server.on('error', (e: any) => {
     if (e.code === 'EADDRINUSE') {
-      console.log(`Port ${PORT} is busy, retrying on port ${PORT + 1}...`);
+      const portNumber = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
+      console.log(`Port ${PORT} is busy, retrying on port ${portNumber + 1}...`);
       setTimeout(() => {
         server.close();
-        server.listen(PORT + 1, '0.0.0.0');
+        server.listen(portNumber + 1, '0.0.0.0');
       }, 1000);
     }
   });

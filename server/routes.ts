@@ -114,8 +114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     csrf({ 
       cookie: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
+        secure: process.env.NODE_ENV === 'production', // Only set 'secure' in production
+        sameSite: 'strict',
+        path: '/'
       }
     })(req, res, next);
   });
@@ -877,7 +878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (coordinates) {
         console.log(`[express] Successfully geocoded to: ${coordinates}`);
         res.json({ coordinates, success: true });
-      }       } else {
+      } else {
         console.log(`[express] Failed to geocode address: "${address}"`);
         res.status(400).json({ 
           message: "Could not geocode the provided address",

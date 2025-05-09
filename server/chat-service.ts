@@ -47,23 +47,39 @@ const connectedClients: ConnectedClient[] = [];
 // Initialize WebSocket server
 export function initializeChat(httpServer: HTTPServer) {
   console.log('[chat-service] Initializing chat service');
-  
+
   // Create WebSocket server on a different path than Vite's WebSocket
   const wss = new WebSocketServer({ 
     server: httpServer,
     path: '/ws',
   });
-  
+
+  const heartbeat = (ws) => {
+    ws.isAlive = true;
+  };
+
   wss.on('connection', (ws: WebSocket) => {
+    ws.isAlive = true;
+    ws.on('pong', () => heartbeat(ws));
+
+    // Reconnection logic
+    ws.on('close', () => {
+      setTimeout(() => {
+        if (ws.readyState === WebSocket.CLOSED) {
+          ws.close();
+        }
+      }, 3000);
+    });
+
     console.log('[chat-service] New client connected');
-    
+
     // Initial connection doesn't register user until auth message is sent
     let client: ConnectedClient | null = null;
-    
+
     ws.on('message', async (message: string) => {
       try {
         const data = JSON.parse(message);
-        
+
         // Handle authentication message first
         if (data.type === 'auth') {
           console.log(`[chat-service] Client authenticated: ${data.userId}, ${data.userName}`);
@@ -74,16 +90,16 @@ export function initializeChat(httpServer: HTTPServer) {
             userType: data.userType,
             conversations: data.conversations || []
           };
-          
+
           // Add client to connected clients
           connectedClients.push(client);
-          
+
           // Notify client of successful connection
           sendToClient(ws, {
             type: 'system',
             content: 'Connected to chat server'
           });
-          
+
           // Send unread messages for this user
           const unreadMessages = await storage.getChatUnreadMessages(data.userId);
           if (unreadMessages && unreadMessages.length > 0) {
@@ -92,10 +108,10 @@ export function initializeChat(httpServer: HTTPServer) {
               conversations: unreadMessages
             });
           }
-          
+
           return;
         }
-        
+
         // Ensure client is authenticated
         if (!client) {
           sendToClient(ws, {
@@ -104,25 +120,25 @@ export function initializeChat(httpServer: HTTPServer) {
           });
           return;
         }
-        
+
         // Handle different message types
         switch(data.type) {
           case 'chat_message':
             await handleChatMessage(client, data);
             break;
-            
+
           case 'join_conversation':
             joinConversation(client, data.conversationId);
             break;
-            
+
           case 'leave_conversation':
             leaveConversation(client, data.conversationId);
             break;
-            
+
           case 'read_messages':
             await markMessagesAsRead(client, data.conversationId);
             break;
-            
+
           default:
             console.log(`[chat-service] Unknown message type: ${data.type}`);
         }
@@ -134,12 +150,12 @@ export function initializeChat(httpServer: HTTPServer) {
         });
       }
     });
-    
+
     // Handle client disconnect
     ws.on('close', () => {
       if (client) {
         console.log(`[chat-service] Client disconnected: ${client.userId}`);
-        
+
         // Remove client from connected clients
         const index = connectedClients.findIndex(c => c.userId === client?.userId);
         if (index !== -1) {
@@ -150,7 +166,16 @@ export function initializeChat(httpServer: HTTPServer) {
       }
     });
   });
-  
+
+  // Heartbeat interval
+  const interval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.isAlive === false) return ws.terminate();
+      ws.isAlive = false;
+      ws.ping(() => {});
+    });
+  }, 30000);
+
   console.log('[chat-service] Chat service initialized');
   return wss;
 }
@@ -165,7 +190,7 @@ function sendToClient(ws: WebSocket, data: any) {
 // Helper function to handle chat messages
 async function handleChatMessage(sender: ConnectedClient, data: any) {
   const { conversationId, content } = data;
-  
+
   // Create message object
   const message: Omit<ChatMessage, 'id'> = {
     conversationId,
@@ -177,10 +202,10 @@ async function handleChatMessage(sender: ConnectedClient, data: any) {
     timestamp: new Date().toISOString(),
     isRead: false
   };
-  
+
   // Store message in database
   const savedMessage = await storage.saveChatMessage(message);
-  
+
   // Broadcast to all connected clients in the conversation
   broadcastToConversation(conversationId, {
     type: 'new_message',
@@ -192,7 +217,7 @@ async function handleChatMessage(sender: ConnectedClient, data: any) {
 function joinConversation(client: ConnectedClient, conversationId: string) {
   if (!client.conversations.includes(conversationId)) {
     client.conversations.push(conversationId);
-    
+
     // Notify other participants
     broadcastToConversation(conversationId, {
       type: 'user_joined',
@@ -209,7 +234,7 @@ function leaveConversation(client: ConnectedClient, conversationId: string) {
   const index = client.conversations.indexOf(conversationId);
   if (index !== -1) {
     client.conversations.splice(index, 1);
-    
+
     // Notify other participants
     broadcastToConversation(conversationId, {
       type: 'user_left',
@@ -224,7 +249,7 @@ function leaveConversation(client: ConnectedClient, conversationId: string) {
 async function markMessagesAsRead(client: ConnectedClient, conversationId: string) {
   // Update messages in database
   await storage.markChatMessagesAsRead(conversationId, client.userId);
-  
+
   // Broadcast status update to conversation participants
   broadcastToConversation(conversationId, {
     type: 'messages_read',

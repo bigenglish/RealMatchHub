@@ -14,7 +14,7 @@ import {
 
 export interface IStorage {
   // Properties
-  getProperties(): Promise<Property[]> | Property[];
+  getProperties(page?: number, limit?: number): Promise<Property[]> | Property[];
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   getPropertiesWithGeo(): Promise<PropertyWithGeo[]>;
@@ -548,8 +548,13 @@ export class MemStorage implements IStorage {
     this.addServiceToBundle(bundle3.id, offering6.id);
   }
 
-  async getProperties(): Promise<Property[]> {
-    return Array.from(this.properties.values());
+  async getProperties(page = 1, limit = 20): Promise<Property[]> {
+    // Simulate pagination and relations inclusion for memory storage
+    const offset = (page - 1) * limit;
+    const propertiesArray = Array.from(this.properties.values());
+    const paginatedProperties = propertiesArray.slice(offset, offset + limit);
+
+    return paginatedProperties;
   }
 
   // Non-promise version for AI search

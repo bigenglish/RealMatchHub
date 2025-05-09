@@ -1,3 +1,4 @@
+// Implementing server-side performance optimizations, security enhancements, and error handling.
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
@@ -44,9 +45,62 @@ import { communicationRoutes } from "./routes/communication-routes"; // Import c
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
 import { idxBrokerRoutes } from "./idx-broker-api"; // Import IDX Broker API routes
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
+import responseTime from 'response-time';
+import apicache from 'apicache';
+import helmet from 'helmet';
+import sanitize from 'sanitize-html';
+import csrf from 'csurf';
+import cors from 'cors';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+
+  // Enable compression
+  app.use(compression());
+
+  // Add response time headers
+  app.use(responseTime());
+
+  // Setup rate limiting
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+  });
+  app.use('/api/', limiter);
+
+  // Setup caching
+  const cache = apicache.middleware;
+  app.use(cache('5 minutes'));
+
+  // Security headers
+  app.use(helmet());
+
+  // CORS configuration
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+
+  // CSRF protection
+  app.use(csrf({ cookie: true }));
+
+  // Input sanitization middleware
+  app.use((req, res, next) => {
+    if (req.body) {
+      Object.keys(req.body).forEach(key => {
+        if (typeof req.body[key] === 'string') {
+          req.body[key] = sanitize(req.body[key]);
+        }
+      });
+    }
+    next();
+  });
+
+  app.use(express.json({ limit: '10kb' }));
+  app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
   // Configure multer for file uploads
   const upload = multer({ 
@@ -1005,22 +1059,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Error handling middleware
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Global error handler
+  const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+    console.error(`[${new Date().toISOString()}] Error:`, {
+      path: req.path,
+      method: req.method,
+      error: err.message,
+      stack: err.stack
+    });
+
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
 
-    // Only log 500 errors since they indicate server issues
-    if (status >= 500) {
-      console.error(`[express] Server error (${status}):`, err);
-    }
-
-    res.status(status).json({ 
-      status,
-      message,
-      timestamp: new Date().toISOString()
+    res.status(status).json({
+      error: {
+        message,
+        code: err.code || 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString()
+      }
     });
+  };
+
+  // Add error monitoring
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (duration > 1000) {
+        console.warn(`[${new Date().toISOString()}] Slow request:`, {
+          path: req.path,
+          method: req.method,
+          duration,
+          status: res.statusCode
+        });
+      }
+    });
+    next();
   });
+
+  app.use(errorHandler);
 
   // Service Bundles Routes
   app.get("/api/service-bundles", async (_req, res) => {
@@ -1247,21 +1324,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/property/description-suggestions", async (req, res) => {
   try {
     const { features, propertyType, location } = req.body;
-    
+
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
+
     const prompt = `Write an engaging property description for a ${propertyType} with the following features:
     ${features.join(", ")}
     Location: ${location || "Not specified"}
-    
+
     Keep it professional, highlight key features, and make it appealing to potential buyers.
     Format the response as a single paragraph, approximately 100-150 words.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    
+
     res.json({ 
       suggestion: response.text(),
       success: true 
@@ -1286,7 +1363,7 @@ app.post("/api/chatbot", async (req, res) => {
     try {
       const adminKey = process.env.FIREBASE_ADMIN_KEY;
       const hasKey = !!adminKey;
-      
+
       if (!hasKey) {
         return res.json({
           configured: false,
@@ -1298,7 +1375,7 @@ app.post("/api/chatbot", async (req, res) => {
       try {
         const decodedKey = Buffer.from(adminKey, 'base64').toString('utf-8');
         const keyObj = JSON.parse(decodedKey);
-        
+
         // Check for required fields in the key
         const isValid = keyObj.type === 'service_account' && 
                        keyObj.project_id && 
@@ -1556,7 +1633,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "missing_amount"
           });
         }
-        
+
         if (typeof amount !== 'number' || isNaN(amount)) {
           console.warn(`[express] Invalid amount type in payment intent request: ${typeof amount}`);
           return res.status(400).json({ 
@@ -1565,7 +1642,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "invalid_amount_format"
           });
         }
-        
+
         if (amount < 0.5) {
           console.warn(`[express] Amount too small in payment intent request: ${amount}`);
           return res.status(400).json({ 
@@ -1606,7 +1683,7 @@ app.post("/api/chatbot", async (req, res) => {
             );
 
             validServices = services.filter(s => s !== null);
-            
+
             if (validServices.length === 0) {
               console.warn('[express] No valid services found for payment intent');
             } else {
@@ -1704,7 +1781,7 @@ app.post("/api/chatbot", async (req, res) => {
           code: 'server_error'
         });
       }
-    });
+});
 
     // Webhook to handle Stripe events
     app.post("/api/stripe-webhook", async (req, res) => {
@@ -1757,11 +1834,11 @@ app.post("/api/chatbot", async (req, res) => {
     try {
       const { city, id } = req.params;
       const neighborhood = getNeighborhoodById(city, id);
-      
+
       if (!neighborhood) {
         return res.status(404).json({ message: "Neighborhood not found" });
       }
-      
+
       res.json(neighborhood);
     } catch (error) {
       console.error(`[express] Error fetching neighborhood ${req.params.id}:`, error);
@@ -1772,11 +1849,11 @@ app.post("/api/chatbot", async (req, res) => {
   app.post("/api/neighborhoods/personalized", async (req, res) => {
     try {
       const { city, responses } = req.body;
-      
+
       if (!city || !responses) {
         return res.status(400).json({ message: "City and questionnaire responses are required" });
       }
-      
+
       const scoredNeighborhoods = calculatePersonalizedNeighborhoodScores(city, responses);
       res.json(scoredNeighborhoods);
     } catch (error) {
@@ -1801,7 +1878,7 @@ app.post("/api/chatbot", async (req, res) => {
   app.get('/idx-data', async (req, res) => {
     try {
       console.log('[express] IDX-data endpoint called');
-      
+
       // Get filters from query parameters
       const city = req.query.city as string;
       const minPrice = req.query.minPrice ? Number(req.query.minPrice) : undefined;
@@ -1809,9 +1886,9 @@ app.post("/api/chatbot", async (req, res) => {
       const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
       const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
       const limit = req.query.limit ? Number(req.query.limit) : 20;
-      
+
       console.log(`[express] Fetching IDX data with filters: city=${city}, price=${minPrice}-${maxPrice}, beds=${bedrooms}, baths=${bathrooms}`);
-      
+
       // Fetch listings from IDX Broker
       const listings = await fetchIdxListings({
         limit,
@@ -1821,9 +1898,9 @@ app.post("/api/chatbot", async (req, res) => {
         bedrooms,
         bathrooms
       });
-      
+
       console.log(`[express] Fetched ${listings.listings.length} IDX listings`);
-      
+
       res.json({
         success: true,
         count: listings.listings.length,
@@ -2015,7 +2092,7 @@ app.post("/api/chatbot", async (req, res) => {
   try {
     await initializeVisionClient();
     app.use("/api/vision", visionRoutes);
-    
+
     // Initialize Document AI processor and register document routes
     console.log("[express] Initializing Document AI processor");
     const documentProcessorInitialized = await initDocumentProcessor();
@@ -2027,35 +2104,35 @@ app.post("/api/chatbot", async (req, res) => {
       console.error("[express] Failed to initialize Document AI processor, document routes will not be available");
     }
     console.log("[express] Google Vision API routes registered");
-    
+
     // Register service request routes
     app.use("/api", serviceRequestRoutes);
     console.log("[express] Service request routes registered");
-    
+
     // Register CMA routes
     app.use("/api/cma", cmaRoutes);
     console.log("[express] CMA routes registered");
-    
+
     // Register Auth routes
     app.use("/api/auth", authRoutes);
     console.log("[express] Auth routes registered");
-    
+
     // Register Property Communication routes
     app.use("/api", communicationRoutes);
     console.log("[express] Property communication routes registered");
-    
+
     // Register Payment routes
     app.use("/api", paymentRoutes);
     console.log("[express] Payment routes registered");
-    
+
     // ----- Neighborhood Explorer Routes -----
-    
+
     // Get all neighborhoods for a city
     app.get('/api/neighborhoods/:city', (req, res) => {
       try {
         const cityName = req.params.city;
         const neighborhoods = getNeighborhoodsByCity(cityName);
-        
+
         console.log(`[express] Fetched ${neighborhoods.length} neighborhoods for ${cityName}`);
         res.json(neighborhoods);
       } catch (error) {
@@ -2066,17 +2143,17 @@ app.post("/api/chatbot", async (req, res) => {
         });
       }
     });
-    
+
     // Get a specific neighborhood by ID
     app.get('/api/neighborhoods/:city/:id', (req, res) => {
       try {
         const { city, id } = req.params;
         const neighborhood = getNeighborhoodById(city, id);
-        
+
         if (!neighborhood) {
           return res.status(404).json({ message: `Neighborhood with ID ${id} not found in ${city}` });
         }
-        
+
         console.log(`[express] Fetched neighborhood ${id} in ${city}`);
         res.json(neighborhood);
       } catch (error) {
@@ -2087,22 +2164,22 @@ app.post("/api/chatbot", async (req, res) => {
         });
       }
     });
-    
+
     // Calculate personalized neighborhood scores
     app.post('/api/neighborhoods/personalized', (req, res) => {
       try {
         const { city, responses } = req.body;
-        
+
         if (!city || !responses) {
           return res.status(400).json({ message: 'City and questionnaire responses are required' });
         }
-        
+
         // Get all neighborhoods for the city
         const neighborhoods = getNeighborhoodsByCity(city);
-        
+
         // Calculate personalized scores
         const personalizedNeighborhoods = calculatePersonalizedNeighborhoodScores(neighborhoods, responses);
-        
+
         console.log(`[express] Calculated personalized scores for ${personalizedNeighborhoods.length} neighborhoods in ${city}`);
         res.json(personalizedNeighborhoods);
       } catch (error) {
@@ -2134,9 +2211,9 @@ app.post("/api/chatbot", async (req, res) => {
   const serverUrl = process.env.REPLIT_DEPLOYMENT_URL || process.env.REPL_SLUG
     ? `https://${process.env.REPL_SLUG}.replit.dev`
     : 'http://localhost:5000';
-    
+
   console.log(`[express] Setting up keep-alive ping to server URL: ${serverUrl}`);
-  
+
   // Ping the server every 4 minutes to keep it alive (less than the typical 5-minute timeout)
   setInterval(() => {
     try {

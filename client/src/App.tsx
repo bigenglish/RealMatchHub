@@ -3,9 +3,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
-import Properties from "@/pages/properties";
-import Property from "@/pages/property";
 import Services from "@/pages/services";
 import ServiceProviderDetail from "@/pages/service-provider";
 import Documents from "@/pages/documents";
@@ -45,6 +42,12 @@ import { AuthProvider } from "./contexts/AuthContext";
 // Dashboard
 import Dashboard from "@/pages/dashboard";
 
+import { Suspense, lazy } from 'react';
+import Loading from './components/ui/spinner';
+
+const Home = lazy(() => import('./pages/home'));
+const Properties = lazy(() => import('./pages/properties'));
+
 // Placeholder components for new pages
 const Resources = () => <div className="py-20 text-center"><h1 className="text-3xl font-bold">Resources</h1><p className="mt-4">Coming soon</p></div>;
 const Demo = () => <div className="py-20 text-center"><h1 className="text-3xl font-bold">Watch a Demo</h1><p className="mt-4">Coming soon</p></div>;
@@ -72,8 +75,8 @@ function Router() {
           <Route path="/dashboard/:rest*" component={Dashboard} />
 
           {/* Main Routes */}
-          <Route path="/" component={Home} />
-          <Route path="/properties" component={Properties} />
+          <Route path="/" component={() => <Suspense fallback={<Loading />}><Home /></Suspense>} />
+          <Route path="/properties" component={() => <Suspense fallback={<Loading />}><Properties /></Suspense>} />
           <Route path="/property/:id" component={Property} />
           <Route path="/services" component={Services} />
           <Route path="/service-provider/:id" component={ServiceProviderDetail} />

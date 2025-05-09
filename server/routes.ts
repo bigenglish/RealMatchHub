@@ -1,4 +1,4 @@
-// Implementing server-side performance optimizations, security enhancements, and error handling.
+import express from 'express';
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";

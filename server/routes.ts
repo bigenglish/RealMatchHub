@@ -84,8 +84,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     allowedHeaders: ['Content-Type', 'Authorization']
   }));
 
-  // CSRF protection
-  app.use(csrf({ cookie: true }));
+  // CSRF protection with proper configuration
+  app.use((req, res, next) => {
+    // Exclude health check route from CSRF protection
+    if (req.path === '/api/healthcheck') {
+      return next();
+    }
+    
+    csrf({ 
+      cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production'
+      }
+    })(req, res, next);
+  });
+
+  // Add CSRF token endpoint
+  app.get('/api/csrf-token', (req: any, res: any) => {
+    res.json({ csrfToken: req.csrfToken() });
+  });
 
   // Input sanitization middleware
   app.use((req, res, next) => {

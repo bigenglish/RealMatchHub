@@ -1,11 +1,11 @@
 
-const esbuild = require('esbuild');
-const { nodeExternalsPlugin } = require('esbuild-node-externals');
+import * as esbuild from 'esbuild';
 
 esbuild.build({
-  entryPoints: ['./index.ts'],
+  entryPoints: ['./server/index.ts'],
   bundle: true,
   platform: 'node',
-  outfile: '../dist/server/index.js',
-  plugins: [nodeExternalsPlugin()],
+  format: 'esm',
+  outfile: './dist/server/index.js',
+  external: ['express', '@google-cloud/*', 'firebase-admin'],
 }).catch(() => process.exit(1));

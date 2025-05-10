@@ -229,7 +229,7 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
     const allProperties = storage.getProperties();
 
     // Filter and score properties based on style match and requirements
-    const matchedProperties = allProperties
+    const properties = allProperties
       .filter((property: { [key: string]: any }) => {
         // Apply basic filters (price, beds, baths, etc.)
         if (query.propertyRequirements.minPrice && property.price < query.propertyRequirements.minPrice) {
@@ -291,8 +291,10 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
           styleMatch: styleMatchScore,
           commuteTime
         } as PropertyMatch;
-      })
-      .filter(async (property: { [key: string]: any }) => {
+      });
+    
+    const propertyList = await properties;
+    const matchedProperties = propertyList.filter(async (property: { [key: string]: any }) => {
         // Filter by commute time if specified
         if (query.locationPreferences.maxCommuteTime && property.commuteTime) {
           return property.commuteTime <= query.locationPreferences.maxCommuteTime;

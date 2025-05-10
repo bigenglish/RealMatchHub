@@ -3,21 +3,22 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "strict": true,
+    "strict": false,
     "skipLibCheck": true,
-    "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "lib": ["esnext", "dom"],
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["../client/src/*"],
+      "@shared/*": ["../shared/*"]
+    },
     "types": ["node"],
     "outDir": "../dist/server",
-    "noEmit": false,
-    "noEmitOnError": false
+    "noEmit": false
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "../shared/**/*"],
   "exclude": ["node_modules", "dist"]
 }

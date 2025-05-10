@@ -1,22 +1,11 @@
-// This file provides custom JSX runtime for React
+/**
+ * Simple JSX Runtime declaration
+ * 
+ * This file provides the JSX runtime functions for the React compiler.
+ * It's intentionally simple to avoid transformation errors.
+ */
 import * as React from 'react';
 
-// JSX runtime exports
-export const Fragment = React.Fragment;
-export const jsx = React.createElement;
-export const jsxs = React.createElement;
-export const jsxDEV = React.createElement;
-
-// Export individual React components and hooks
-export const useState = React.useState;
-export const useEffect = React.useEffect;
-export const useContext = React.useContext;
-export const useReducer = React.useReducer;
-export const useCallback = React.useCallback;
-export const useMemo = React.useMemo;
-export const useRef = React.useRef;
-export const useImperativeHandle = React.useImperativeHandle;
-export const useLayoutEffect = React.useLayoutEffect;
-export const useDebugValue = React.useDebugValue;
-
-// No default export - named exports only
+export { Fragment } from 'react';
+export { jsx, jsxs } from 'react/jsx-runtime';
+export { jsxDEV } from 'react/jsx-dev-runtime';

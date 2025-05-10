@@ -44,7 +44,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 // Dashboard
 import Dashboard from "@/pages/dashboard";
 
-import { Suspense, lazy } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Spinner as Loading } from './components/ui/spinner';
 
 const Home = lazy(() => import('./pages/home'));

@@ -30,6 +30,7 @@ export interface ChatMessage {
   type: MessageType;
   timestamp: string; // ISO string
   isRead: boolean;
+  metadata?: unknown;
 }
 
 // Client data structure

@@ -38,7 +38,7 @@ export async function processRealEstateQuery(
     // Format the conversation history for the API
     const formattedHistory = chatHistory.map(msg => ({
       role: msg.role === 'bot' ? 'model' : 'user',
-      parts: msg.content
+      parts: [{ text: msg.content }]
     }));
     
     // Create a chat session with initial system context

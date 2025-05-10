@@ -1,5 +1,11 @@
 import { Server as HTTPServer } from 'http';
 import WebSocket from 'ws';
+
+declare module 'ws' {
+  interface WebSocket {
+    isAlive: boolean;
+  }
+}
 import { WebSocketServer } from 'ws';
 import { storage } from './storage';
 

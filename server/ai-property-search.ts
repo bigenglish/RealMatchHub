@@ -292,7 +292,7 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
           commuteTime
         } as PropertyMatch;
       })
-      .filter((property: { [key: string]: any }) => {
+      .filter(async (property: { [key: string]: any }) => {
         // Filter by commute time if specified
         if (query.locationPreferences.maxCommuteTime && property.commuteTime) {
           return property.commuteTime <= query.locationPreferences.maxCommuteTime;

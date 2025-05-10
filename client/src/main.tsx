@@ -1,12 +1,12 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom/client";
+// React should be globally available from the index.html script include
+import React from "react";
+import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Use explicit ReactDOM.createRoot for better compatibility
-const root = ReactDOM.createRoot(document.getElementById("root")!);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Use a simpler root creation approach
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<App />);
+}

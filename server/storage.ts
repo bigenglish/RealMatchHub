@@ -1,17 +1,19 @@
+// Import all necessary types from shared schema
 import { 
-  Property, ServiceProvider, InsertProperty, InsertServiceProvider,
+  Property, InsertProperty, InsertServiceProvider,
   ServiceExpert, InsertServiceExpert, ServiceBundle, InsertServiceBundle,
   ServiceOffering, InsertServiceOffering, BundleService, InsertBundleService,
   ServiceRequest, InsertServiceRequest, ServiceAvailability,
   MarketTrend, InsertMarketTrend, PropertyWithGeo, MarketTrendData 
-} from "@shared/schema";
+} from "../shared/schema";
 
 import {
   ChatConversation, InsertChatConversation, ChatParticipant, InsertChatParticipant,
   ChatMessage, InsertChatMessage, Appointment, InsertAppointment,
   ChatConversationWithDetails, AppointmentDetails
-} from "@shared/chat-schema";
+} from "../shared/chat-schema";
 
+// Locally define interfaces for services until schema is fixed
 export interface ServiceProvider {
   id: number;
   name: string;

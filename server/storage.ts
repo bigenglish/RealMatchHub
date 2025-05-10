@@ -646,12 +646,13 @@ export class MemStorage implements IStorage {
     return Array.from(this.serviceProviders.values());
   }
 
-  interface ServiceProvider {
+  export interface ServiceProvider {
     id: number;
     name: string;
     description: string;
     logoUrl?: string;
-    specialOffers?: any[];    userType: string;
+    specialOffers?: any[];
+    userType: string;
     verified: boolean;
     address: string;
     placeId: string;
@@ -659,9 +660,9 @@ export class MemStorage implements IStorage {
     location?: any;
     serviceArea?: any;
     availabilityJson?: any;
-  }
+}
 
-  interface ServiceType {
+export interface ServiceType {
     id: number;
     color: string;
     name: string;
@@ -677,7 +678,7 @@ export class MemStorage implements IStorage {
     requiredDocuments: string[];
     typicalTimingInTransaction: string;
     pricingUnit: string;
-  }
+}
 
   async getServiceProvider(id: number): Promise<ServiceProvider | undefined> {
     return this.serviceProviders.get(id);

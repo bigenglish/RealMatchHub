@@ -6,18 +6,6 @@ declare module 'ws' {
     isAlive: boolean;
   }
 }
-
-declare module 'ws' {
-  interface WebSocket {
-    isAlive: boolean;
-  }
-}
-
-declare module 'ws' {
-  interface WebSocket {
-    isAlive: boolean;
-  }
-}
 import { WebSocketServer } from 'ws';
 import { storage } from './storage';
 

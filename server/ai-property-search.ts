@@ -292,7 +292,7 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
           commuteTime
         } as PropertyMatch;
       });
-    
+
     const propertyList = await properties;
     const matchedProperties = propertyList.filter(async (property: { [key: string]: any }) => {
         // Filter by commute time if specified

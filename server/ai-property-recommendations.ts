@@ -222,7 +222,7 @@ async function scorePropertiesWithGeminiAI(
     return scorePropertiesRuleBased(properties, preferences);
   }
 
-  const model = 'gemini-pro-vision';
+  const modelName = 'gemini-pro-vision';
   const resultsPromises = properties.map(async (property) => {
     try {
       // Prepare the prompt
@@ -324,10 +324,11 @@ async function scorePropertiesWithGeminiAI(
       //   contents: [{ role: 'user', parts: parts }],
       // });
       const genAI = getGoogleGeminiClient();
-      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-      const result = await model.generateContent({
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const prompt = {
         contents: [{ role: 'user', parts: parts }],
-      });
+      };
+      const result = await model.generateText(prompt);
 
       const response = result.response;
       const responseText = response.text();

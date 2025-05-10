@@ -17,13 +17,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, User, Users, Phone, Video, Info } from "lucide-react";
-import { useFirestoreChat } from "@/hooks/use-firestore-chat";
+import { useFirestoreChat } from "@/hooks/use-firestore-chat-fixed";
 import type { 
   ParticipantType, 
   ChatConversation,
   ChatMessage,
   ParticipantTypeValue
-} from "@/hooks/use-firestore-chat";
+} from "@/hooks/use-firestore-chat-fixed";
 
 interface ChatInterfaceProps {
   userId: number;

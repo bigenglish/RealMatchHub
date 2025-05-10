@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import ChatInterface from './chat-interface'; // Original WebSocket version
 import ChatInterfaceFirestore from './chat-interface-firestore'; // New Firestore version
-import useFirestoreChat, { ParticipantTypeValue } from '@/hooks/use-firestore-chat-fixed';
+import { useFirestoreChat, ParticipantTypeValue } from '@/hooks/use-firestore-chat-fixed';
 
 // Configuration to control which chat implementation to use
 const USE_FIRESTORE = true; // Using Firestore implementation for chat

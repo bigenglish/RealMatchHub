@@ -1780,7 +1780,8 @@ app.post("/api/chatbot", async (req, res) => {
             });
           } else if (stripeError.type === 'StripeAuthenticationError') {
             console.error('[express] Stripe authentication error - API key may be invalid');
-            return res.status(500).json({ 
+            return res.status<replit_final_file>
+(500).json({ 
               message: "Payment service authentication error",              error: "Unable to authenticate with payment service",
               code: 'auth_error'
             });
@@ -1843,9 +1844,11 @@ app.post("/api/chatbot", async (req, res) => {
         }
 
         res.sendStatus(200);
-      } catch (error) {
-        console.error('[express] Error handling webhook:', error);
-        res.status(400).send(`Webhook Error: ${error.message}`);
+      } catch (stripeError) {
+        if (stripeError) {
+            console.error('Webhook Error:', stripeError);
+            return res.status(400).send(`Webhook Error: ${(stripeError as Error).message}`);
+          }
       }
     });
   }

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import { z } from 'zod';
 import { 
   generateCmaReport, 
@@ -25,8 +25,12 @@ const cmaRequestSchema = z.object({
   maxComparables: z.number().min(3).max(10).optional()
 });
 
+interface AuthenticatedRequest extends Request {
+  user?: any;
+}
+
 // Create a new CMA report
-router.post('/generate', async (req, res) => {
+router.post('/generate', async (req: AuthenticatedRequest, res) => {
   try {
     // For authenticated users, use their user ID
     // For demo/testing purposes, use a default ID
@@ -34,7 +38,7 @@ router.post('/generate', async (req, res) => {
 
     // Validate request data
     const validatedData = cmaRequestSchema.parse(req.body);
-    
+
     // Generate CMA report
     const report = await generateCmaReport({
       userId,
@@ -51,7 +55,7 @@ router.post('/generate', async (req, res) => {
       pricingTier: validatedData.pricingTier,
       maxComparables: validatedData.maxComparables
     });
-    
+
     res.status(201).json(report);
   } catch (error) {
     console.error('Error generating CMA report:', error);
@@ -61,7 +65,7 @@ router.post('/generate', async (req, res) => {
         errors: error.errors
       });
     }
-    
+
     res.status(500).json({
       message: 'Failed to generate CMA report',
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -70,24 +74,24 @@ router.post('/generate', async (req, res) => {
 });
 
 // Get a CMA report by ID
-router.get('/reports/:id', async (req, res) => {
+router.get('/reports/:id', async (req: AuthenticatedRequest, res) => {
   try {
     const reportId = parseInt(req.params.id);
     if (isNaN(reportId)) {
       return res.status(400).json({ message: 'Invalid report ID' });
     }
-    
+
     const report = await getCmaReportById(reportId);
     if (!report) {
       return res.status(404).json({ message: 'CMA report not found' });
     }
-    
+
     // Check if user is authorized
     // For demo/testing, skip this check
     // if (req.user?.id !== report.userId) {
     //   return res.status(403).json({ message: 'Not authorized to access this report' });
     // }
-    
+
     res.json(report);
   } catch (error) {
     console.error('Error fetching CMA report:', error);
@@ -99,21 +103,21 @@ router.get('/reports/:id', async (req, res) => {
 });
 
 // Get comparables for a CMA report
-router.get('/reports/:id/comparables', async (req, res) => {
+router.get('/reports/:id/comparables', async (req: AuthenticatedRequest, res) => {
   try {
     const reportId = parseInt(req.params.id);
     if (isNaN(reportId)) {
       return res.status(400).json({ message: 'Invalid report ID' });
     }
-    
+
     const report = await getCmaReportById(reportId);
     if (!report) {
       return res.status(404).json({ message: 'CMA report not found' });
     }
-    
+
     // Check if user is authorized
     // For demo/testing, skip this check
-    
+
     const comparables = await getCmaComparables(reportId);
     res.json(comparables);
   } catch (error) {
@@ -126,21 +130,21 @@ router.get('/reports/:id/comparables', async (req, res) => {
 });
 
 // Get market insights for a CMA report
-router.get('/reports/:id/insights', async (req, res) => {
+router.get('/reports/:id/insights', async (req: AuthenticatedRequest, res) => {
   try {
     const reportId = parseInt(req.params.id);
     if (isNaN(reportId)) {
       return res.status(400).json({ message: 'Invalid report ID' });
     }
-    
+
     const report = await getCmaReportById(reportId);
     if (!report) {
       return res.status(404).json({ message: 'CMA report not found' });
     }
-    
+
     // Check if user is authorized
     // For demo/testing, skip this check
-    
+
     const insights = await getCmaMarketInsights(reportId);
     res.json(insights);
   } catch (error) {
@@ -153,21 +157,21 @@ router.get('/reports/:id/insights', async (req, res) => {
 });
 
 // Get complete CMA report data (report, comparables, and insights)
-router.get('/reports/:id/complete', async (req, res) => {
+router.get('/reports/:id/complete', async (req: AuthenticatedRequest, res) => {
   try {
     const reportId = parseInt(req.params.id);
     if (isNaN(reportId)) {
       return res.status(400).json({ message: 'Invalid report ID' });
     }
-    
+
     const completeReport = await getCompleteCmaReport(reportId);
     if (!completeReport) {
       return res.status(404).json({ message: 'CMA report not found' });
     }
-    
+
     // Check if user is authorized
     // For demo/testing, skip this check
-    
+
     res.json(completeReport);
   } catch (error) {
     console.error('Error fetching complete CMA report:', error);
@@ -179,12 +183,12 @@ router.get('/reports/:id/complete', async (req, res) => {
 });
 
 // Get all CMA reports for a user
-router.get('/user/reports', async (req, res) => {
+router.get('/user/reports', async (req: AuthenticatedRequest, res) => {
   try {
     // For authenticated users, use their user ID
     // For demo/testing purposes, use a default ID
     const userId = req.user?.id || 1;
-    
+
     const reports = await getUserCmaReports(userId);
     res.json(reports);
   } catch (error) {

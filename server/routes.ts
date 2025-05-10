@@ -54,8 +54,9 @@ import sanitize from 'sanitize-html';
 import csrf from 'csurf';
 import cors from 'cors';
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  const httpServer = createServer(app);
+export async function registerRoutes(app: Express, httpServer?: Server): Promise<Server> {
+  // Use provided httpServer or create a new one
+  const server = httpServer || createServer(app);
 
   // Enable compression
   app.use(compression());

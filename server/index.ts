@@ -92,7 +92,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  // Create a single HTTP server instance for both Express and WebSockets
+  const httpServer = createServer(app);
+  await registerRoutes(app, httpServer);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -106,7 +108,7 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
@@ -118,18 +120,18 @@ app.use((req, res, next) => {
   const port = process.env.PORT || 5000;
   const host = '0.0.0.0';
 
-  app.listen(port, host, () => {
+  httpServer.listen(port, () => {
     console.log(`[express] Server running on http://${host}:${port}`);
   });
 
   // Handle server errors
-  server.on('error', (e: any) => {
+  httpServer.on('error', (e: any) => {
     if (e.code === 'EADDRINUSE') {
       const portNumber = typeof port === 'string' ? parseInt(port, 10) : port;
       console.log(`Port ${port} is busy, retrying on port ${portNumber + 1}...`);
       setTimeout(() => {
-        server.close();
-        server.listen(portNumber + 1, '0.0.0.0');
+        httpServer.close();
+        httpServer.listen(portNumber + 1);
       }, 1000);
     }
   });

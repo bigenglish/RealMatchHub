@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": false,
     "skipLibCheck": true,
@@ -11,14 +11,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "baseUrl": ".",
-    "paths": {
-      "@/*": ["../client/src/*"],
-      "@shared/*": ["../shared/*"]
-    },
-    "types": ["node"],
     "outDir": "../dist/server",
     "noEmit": false
   },
-  "include": ["./**/*", "../shared/**/*"],
+  "include": ["./**/*"],
   "exclude": ["node_modules", "dist"]
 }

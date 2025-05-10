@@ -122,197 +122,133 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section with Video Background */}
-      <section className="relative h-screen flex items-center text-white">
+      {/* Hero Section with Video Call Image - Updated to match original design */}
+      <section className="relative min-h-[90vh] text-white bg-gray-900">
         {/* Static Background */}
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
+        <div className="absolute inset-0 w-full h-full bg-[#1c2a36] z-0"></div>
 
-        {/* Hero Content - Restructured with heading above video */}
-        <div className="container mx-auto px-4 relative z-20 pt-16 flex flex-col">
-          {/* Title and tagline now above the video */}
+        {/* Hero Content - Matched to original design */}
+        <div className="container mx-auto px-4 relative z-20 pt-10 flex flex-col h-full">
+          {/* Title and tagline above the video - exact match to original */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Realty.AI: <span>The Future of Real Estate is Here.</span>
+            <h1 className="text-3xl md:text-4xl font-bold">
+              Realty.AI: The Future of Real Estate is Here.
             </h1>
-            <p className="text-xl mt-4 max-w-2xl mx-auto">
+            <p className="text-lg mt-4 max-w-2xl mx-auto">
               Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
             </p>
           </div>
 
-          {/* Video now takes full width - made to match search box width */}
-          <div className="w-full max-w-4xl mx-auto">
-            <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]" ref={containerRef}>
-              {/* Direct Video Element - Now even wider and taller */}
-              <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
-                <video
-                  id="heroVideo"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
-                  poster="/hero-video-poster.jpg"
-                >
-                  {/* Multiple sources for browser compatibility */}
-                  <source src="/hero-video.mp4" type="video/mp4" />
-                  <p className="text-center text-white">
-                    Your browser doesn't support HTML5 video
-                  </p>
-                </video>
-
-                {/* Sound control button - Made much larger and more visible */}
+          {/* Video call image - central placement like original */}
+          <div className="w-full max-w-lg mx-auto mb-8">
+            <div className="relative rounded-lg overflow-hidden shadow-xl w-full aspect-[4/3]">
+              {/* Static image matching the original design's video call */}
+              <div className="relative w-full h-full">
+                <img 
+                  src="/video-call-image.jpg" 
+                  alt="Professional video call consultation" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    // Fallback to embedded image if file not found
+                    target.src = "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80";
+                  }}
+                />
+                
+                {/* Sound control button - positioned exactly as in original */}
                 <button 
-                  className="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-4 z-10 transition-all shadow-lg"
+                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-10"
                   onClick={() => {
-                    const video = document.getElementById('heroVideo') as HTMLVideoElement | null;
-                    if (video) {
-                      // Toggle mute state
-                      const newMutedState = !video.muted;
-                      video.muted = newMutedState;
-                      setIsVideoMuted(newMutedState);
-                      console.log("Video mute toggled to:", newMutedState);
-                    }
+                    setIsVideoMuted(!isVideoMuted);
+                    console.log("Video mute toggled");
                   }}
                   aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
                 >
                   {isVideoMuted ? (
                     // Muted icon (volume off)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
                     </svg>
                   ) : (
                     // Unmuted icon (volume on)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
                     </svg>
                   )}
                 </button>
-
-                {/* Lighter overlay for better video visibility */}
-                <div className="absolute inset-0 bg-black/10"></div>
               </div>
             </div>
           </div>
 
-          {/* Call to action buttons below video */}
-          <div className="mt-32 mb-24 text-center">
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
-              <Link href="/plan-selection">
-                <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg w-full sm:w-auto">
-                  GET STARTED FREE
-                </Button>
-              </Link>
-              <Link href="/idx-explorer">
-                <Button size="lg" className="bg-white hover:bg-gray-100 text-olive-700 border-olive-600 border px-8 py-6 text-lg w-full sm:w-auto">
-                  EXPLORE PROPERTIES <Search className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
-            <p className="text-gray-600 mt-3">View our complete MLS listings with our IDX Property Explorer</p>
+          {/* Call to action button - single button centered as in original */}
+          <div className="text-center mb-12">
+            <Link href="/plan-selection">
+              <Button size="lg" className="bg-[#4a6c6f] hover:bg-[#3a5c5f] text-white border-none px-8 py-3 text-base">
+                GET STARTED FREE
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Property Search Bar */}
-        <div className="absolute bottom-8 left-0 right-0 mx-auto container z-20">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl mx-auto overflow-hidden">
-            <div className="flex border-b">
+        {/* Property Search Bar - Positioned exactly as in original design */}
+        <div className="absolute bottom-0 left-0 right-0 mx-auto container z-20">
+          <div className="bg-white text-black shadow-md">
+            <div className="flex justify-center border-b">
               <button 
-                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Rent')}
               >
                 Rent
               </button>
               <button 
-                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Buy')}
               >
                 Buy
               </button>
               <button 
-                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Sell')}
               >
                 Sell
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row p-4 gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
+            {/* Search Form - Simplified to match original design */}
+            <div className="p-4 space-y-4">
+              <div>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
-                    className="pl-10 w-full text-gray-900"
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      if (value.length > 2) {
-                        try {
-                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=${searchType === 'Sell' ? 'address' : ''}`);
-                          if (response.ok) {
-                            const suggestions = await response.json();
-                            const datalist = document.getElementById('location-suggestions');
-                            if (datalist) {
-                              datalist.innerHTML = suggestions.map((s: string) => 
-                                `<option value="${s}">${s}</option>`
-                              ).join('');
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Error fetching address suggestions:', error);
-                        }
-                      }
-                    }}
+                    placeholder="City, State or ZIP"
+                    className="pl-10 w-full"
                     list="location-suggestions"
                   />
                   <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
 
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <Select 
-                  defaultValue="house"
-                >
-                  <SelectTrigger className="w-full text-gray-900">
-                    <SelectValue defaultValue="house">House</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="condo">Condo</SelectItem>
-                    <SelectItem value="townhouse">Townhouse</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="What are you looking for?"
+                  className="w-full"
+                />
               </div>
 
-
-
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Select>
-                    <SelectTrigger className="pl-10 w-full">
-                      <SelectValue placeholder="Select timeline" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asap">ASAP (ready to move)</SelectItem>
-                      <SelectItem value="1-3months">1-3 months</SelectItem>
-                      <SelectItem value="3-6months">3-6 months</SelectItem>
-                      <SelectItem value="6-12months">6-12 months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Input
+                  type="text"
+                  placeholder="When"
+                  className="w-full"
+                />
               </div>
 
-              <div className="flex items-end">
-                <Link href={searchType === 'Buy' ? "/buyer-flow" : searchType === 'Sell' ? "/seller-flow/intent" : "/properties"}>
-                  <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
-                    {searchType === 'Buy' ? 'Start Buying' : searchType === 'Sell' ? 'Start Selling' : 'Browse Properties'}
+              <div>
+                <Link href="/properties">
+                  <Button className="bg-[#4a6c6f] hover:bg-[#3a5c5f] w-full md:w-auto whitespace-nowrap">
+                    Browse Properties
                   </Button>
                 </Link>
               </div>
@@ -321,10 +257,43 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Neighborhood Explorer and Reviews Section */}
-      <section className="py-20 bg-gray-50">
+      {/* Trusted By Section - Added to match original design */}
+      <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-16">Explore and Connect</h2>
+          <h2 className="text-2xl font-bold text-center mb-6">Trusted By</h2>
+          
+          <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+            <div className="flex items-center mb-4">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                ))}
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-4">
+              "I paid no agent commissions when selling my home and saved $24,000 with Realty.AI"
+            </p>
+            
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-medium">John D., Los Angeles</p>
+                <p className="text-sm text-gray-500">Home Seller</p>
+                <p className="text-sm text-gray-500">Feb 8, 2025</p>
+              </div>
+              
+              <div className="bg-olive-600 text-white p-2 rounded-full">
+                <MessageSquare className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Neighborhood Explorer and Reviews Section */}
+      <section className="py-12 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Explore and Connect</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>

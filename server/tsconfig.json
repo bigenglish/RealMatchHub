@@ -3,7 +3,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": false,
     "noImplicitAny": false,
@@ -13,7 +13,8 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "outDir": "../dist/server",
-    "noEmit": false
+    "noEmit": false,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["./**/*"],
   "exclude": ["node_modules", "dist"]

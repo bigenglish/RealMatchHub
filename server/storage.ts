@@ -777,14 +777,9 @@ export class MemStorage implements IStorage {
     return this.getServiceExperts();
   }
   async getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]> {
-    // In a real app, you would filter by GPS coordinates, zip code proximity, etc.
-    // For this prototype, we'll just filter by service type and assume all experts work in all zip codes
     return Array.from(this.serviceExperts.values())
       .filter(expert => {
-        // Check if exact service type matches
         if (expert.serviceType === serviceType) return true;
-
-        // Check if the service type is in the services offered
         return expert.servicesOffered.includes(serviceType);
       });
   }

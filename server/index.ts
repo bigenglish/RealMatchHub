@@ -6,6 +6,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from 'http'; // Added import statement
 import cors from 'cors';
+import session from 'express-session';
+import { MemoryStore } from 'express-session';
 
 // Check for IDX Broker API key at startup
 if (process.env.IDX_BROKER_API_KEY) {
@@ -42,7 +44,22 @@ app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
 // Add cookie parser before CSRF
 import cookieParser from 'cookie-parser';
-app.use(cookieParser());
+app.use(cookieParser(process.env.SESSION_SECRET || 'your-secret-key'));
+app.use(session({
+  store: new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  name: 'sessionId',
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();

@@ -112,12 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     csrf({ 
-      cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Only set 'secure' in production
-        sameSite: 'strict',
-        path: '/'
-      }
+      cookie: true // Use default signed cookie settings
     })(req, res, next);
   });
 
@@ -880,8 +875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ coordinates, success: true });
       } else {
         console.log(`[express] Failed to geocode address: "${address}"`);
-        res.status(400).json({ 
-          message: "Could not geocode the provided address",
+        res.status(400).json({           message: "Could not geocode the provided address",
           success: false
         });
       }
@@ -1364,7 +1358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const { features, propertyType, location } = req.body;
 
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const { GoogleGenerativeAI } = await import("@google/generative_ai");
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
@@ -1787,8 +1781,7 @@ app.post("/api/chatbot", async (req, res) => {
           } else if (stripeError.type === 'StripeAuthenticationError') {
             console.error('[express] Stripe authentication error - API key may be invalid');
             return res.status(500).json({ 
-              message: "Payment service authentication error", 
-              error: "Unable to authenticate with payment service",
+              message: "Payment service authentication error",              error: "Unable to authenticate with payment service",
               code: 'auth_error'
             });
           } else if (stripeError.type === 'StripeRateLimitError') {

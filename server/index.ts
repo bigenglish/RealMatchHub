@@ -115,20 +115,18 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   // Using a higher port to avoid conflicts
-  const PORT = 5000; // Fixed port for deployment
-  server.listen({
-      port: PORT,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`Server running on port ${PORT}`);
-    });
+  const port = process.env.PORT || 5000;
+  const host = '0.0.0.0';
+
+  app.listen(port, host, () => {
+    console.log(`[express] Server running on http://${host}:${port}`);
+  });
 
   // Handle server errors
   server.on('error', (e: any) => {
     if (e.code === 'EADDRINUSE') {
-      const portNumber = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
-      console.log(`Port ${PORT} is busy, retrying on port ${portNumber + 1}...`);
+      const portNumber = typeof port === 'string' ? parseInt(port, 10) : port;
+      console.log(`Port ${port} is busy, retrying on port ${portNumber + 1}...`);
       setTimeout(() => {
         server.close();
         server.listen(portNumber + 1, '0.0.0.0');

@@ -24,15 +24,22 @@ export function staticFallbackMiddleware(req, res, next) {
     return next();
   }
 
-  // Try to use client/index.html first, fall back to public/index.html
+  // First, try to use our static/index.html which has the green theme
+  const staticPath = join(__dirname, '../../static/index.html');
+  
+  // Then try client/index.html as fallback
   const clientPath = join(__dirname, '../../client/index.html');
+  
+  // Finally, fall back to public/index.html
   const publicPath = join(__dirname, '../../public/index.html');
   
-  // Check if client/index.html exists
-  if (fs.existsSync(clientPath)) {
+  // Check for files in order of preference
+  if (fs.existsSync(staticPath)) {
+    return res.sendFile(staticPath);
+  } else if (fs.existsSync(clientPath)) {
     return res.sendFile(clientPath);
   }
   
-  // Fall back to public/index.html
+  // Last fallback option
   res.sendFile(publicPath);
 }

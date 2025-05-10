@@ -1,13 +1,11 @@
 
-// Import our custom JSX runtime to help with React transformation
-import React from './jsx-runtime'
+// Import React normally instead of from our custom JSX runtime
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
-
-// Make sure React is available globally
-// @ts-ignore
-window.React = React;
+// Import our JSX runtime for transformations (don't remove this even if unused)
+import './jsx-runtime'
 
 // Find the root element and render our app
 const container = document.getElementById('root')

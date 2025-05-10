@@ -193,7 +193,7 @@ async function handleChatMessage(sender: ConnectedClient, data: any) {
   const { conversationId, content } = data;
 
   // Create message object
-  const message: Omit<ChatMessage, 'id'> = {
+  const message: Omit<{ metadata: unknown; type: string; id: number; content: string; senderId: number; timestamp: Date; isRead: boolean; conversationId: number; senderName: string; senderType: string; }, "id"> = {
     conversationId,
     senderId: sender.userId,
     senderName: sender.userName,

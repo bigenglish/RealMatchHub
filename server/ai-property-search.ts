@@ -59,7 +59,7 @@ export async function analyzeStyleFromImage(imageBase64: string): Promise<any> {
   try {
     // Remove data URL prefix if present
     const base64Content = imageBase64.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
-    
+
     // Create a multimodal model
     const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
 
@@ -86,7 +86,7 @@ export async function analyzeStyleFromImage(imageBase64: string): Promise<any> {
 
     const response = await result.response;
     const responseText = response.text();
-    
+
     // Extract JSON from the response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -95,7 +95,7 @@ export async function analyzeStyleFromImage(imageBase64: string): Promise<any> {
         return styleData;
       } catch (parseError) {
         console.error('Failed to parse JSON from Gemini response:', parseError);
-        
+
         // Fallback: extract key information from text
         return extractStyleDataFromText(responseText);
       }
@@ -119,13 +119,13 @@ function extractStyleDataFromText(text: string): any {
     colorPalette: [],
     notableElements: []
   };
-  
+
   // Extract architectural style
   const styleMatch = text.match(/style:?\s*([^,\n.]+)/i);
   if (styleMatch) {
     styleData.style = styleMatch[1].trim();
   }
-  
+
   // Extract exterior features
   const exteriorMatch = text.match(/exterior features:?\s*([^\n.]+)/i);
   if (exteriorMatch) {
@@ -134,7 +134,7 @@ function extractStyleDataFromText(text: string): any {
       .map(item => item.trim())
       .filter(item => item.length > 0);
   }
-  
+
   // Extract color palette
   const colorMatch = text.match(/color palette:?\s*([^\n.]+)/i);
   if (colorMatch) {
@@ -143,7 +143,7 @@ function extractStyleDataFromText(text: string): any {
       .map(item => item.trim())
       .filter(item => item.length > 0);
   }
-  
+
   // Extract notable elements
   const elementsMatch = text.match(/notable elements:?\s*([^\n.]+)/i);
   if (elementsMatch) {
@@ -152,7 +152,7 @@ function extractStyleDataFromText(text: string): any {
       .map(item => item.trim())
       .filter(item => item.length > 0);
   }
-  
+
   return styleData;
 }
 
@@ -172,7 +172,7 @@ export async function generateStyleProfile(
     // Analyze all provided images
     const imageAnalysisPromises = images.map(img => analyzeStyleFromImage(img));
     const imageAnalysisResults = await Promise.all(imageAnalysisPromises);
-    
+
     // Consolidate results from multiple images
     const consolidatedProfile = {
       primaryStyle: explicitStyle || mostCommonElement(imageAnalysisResults.map(r => r.style)),
@@ -181,7 +181,7 @@ export async function generateStyleProfile(
       notableElements: uniqueElements(imageAnalysisResults.flatMap(r => r.notableElements || [])),
       mustHaveFeatures: features
     };
-    
+
     return consolidatedProfile;
   } catch (error) {
     console.error('Error generating style profile:', error);
@@ -194,12 +194,12 @@ export async function generateStyleProfile(
  */
 function mostCommonElement(arr: string[]): string {
   if (!arr.length) return '';
-  
+
   const counts = arr.reduce((acc: Record<string, number>, val) => {
     acc[val] = (acc[val] || 0) + 1;
     return acc;
   }, {});
-  
+
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
 }
 
@@ -223,14 +223,14 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
       query.stylePreferences.style,
       query.stylePreferences.features
     );
-    
+
     // For demo purposes, use static property data from storage
     // In a real implementation, this would query a database or external API
     const allProperties = storage.getProperties();
-    
+
     // Filter and score properties based on style match and requirements
     const matchedProperties = allProperties
-      .filter(property => {
+      .filter((property: { [key: string]: any }) => {
         // Apply basic filters (price, beds, baths, etc.)
         if (query.propertyRequirements.minPrice && property.price < query.propertyRequirements.minPrice) {
           return false;
@@ -248,7 +248,7 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
             property.propertyType !== query.propertyRequirements.propertyType) {
           return false;
         }
-        
+
         // Apply keyword search if provided
         if (query.keywords && query.keywords.trim().length > 0) {
           const keywords = query.keywords.toLowerCase().trim().split(/\s+/);
@@ -261,21 +261,21 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
             property.propertyType,
             ...(property.features || [])
           ].filter(Boolean).join(' ').toLowerCase();
-          
+
           // Check if all keywords appear in the property text
           const keywordMatches = keywords.filter(keyword => propertyText.includes(keyword));
           if (keywordMatches.length === 0) {
             return false;
           }
         }
-        
+
         // Could add location filter here with geocoding
         return true;
       })
       .map(property => {
         // Calculate style match score (0-100)
         const styleMatchScore = calculateStyleMatch(styleProfile, property);
-        
+
         // Calculate commute time if destination provided
         let commuteTime;
         if (query.locationPreferences.commuteDestination) {
@@ -285,14 +285,14 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
             query.locationPreferences.transportationMode || 'car'
           );
         }
-        
+
         return {
           ...property,
           styleMatch: styleMatchScore,
           commuteTime
         } as PropertyMatch;
       })
-      .filter(property => {
+      .filter((property: { [key: string]: any }) => {
         // Filter by commute time if specified
         if (query.locationPreferences.maxCommuteTime && property.commuteTime) {
           return property.commuteTime <= query.locationPreferences.maxCommuteTime;
@@ -304,7 +304,7 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
         return b.styleMatch - a.styleMatch;
       })
       .slice(0, 10); // Limit to top 10 matches
-    
+
     return matchedProperties;
   } catch (error) {
     console.error('Error finding matching properties:', error);
@@ -321,47 +321,47 @@ export async function findMatchingProperties(query: PropertySearchQuery): Promis
 function calculateStyleMatch(styleProfile: any, property: any): number {
   // In a real implementation, this would be a more sophisticated algorithm
   // that compares multiple aspects of style and features
-  
+
   let score = 0;
   const maxScore = 100;
-  
+
   // Match primary style (30% of score)
   if (property.style && styleProfile.primaryStyle && 
       property.style.toLowerCase().includes(styleProfile.primaryStyle.toLowerCase())) {
     score += 30;
   }
-  
+
   // Match features (50% of score)
   const userFeatures = styleProfile.mustHaveFeatures || [];
   if (userFeatures.length > 0 && property.features) {
-    const matchedFeatures = userFeatures.filter(feature => 
+    const matchedFeatures = userFeatures.filter((feature: string) => 
       property.features.some((f: string) => 
         f.toLowerCase().includes(feature.toLowerCase())
       )
     );
-    
+
     score += Math.min(50, (matchedFeatures.length / userFeatures.length) * 50);
   } else {
     // If no specific features requested, give partial points
     score += 25;
   }
-  
+
   // Match exterior elements and color palette (20% of score)
   const exteriorMatches = (styleProfile.exteriorFeatures || []).filter((feature: string) =>
     property.description.toLowerCase().includes(feature.toLowerCase())
   );
-  
+
   const colorMatches = (styleProfile.colorPalette || []).filter((color: string) =>
     property.description.toLowerCase().includes(color.toLowerCase())
   );
-  
+
   const elementsScore = 10 * (
     exteriorMatches.length / Math.max(1, styleProfile.exteriorFeatures?.length || 1) +
     colorMatches.length / Math.max(1, styleProfile.colorPalette?.length || 1)
   );
-  
+
   score += Math.min(20, elementsScore);
-  
+
   // Ensure score is between 0-100
   return Math.min(100, Math.max(0, Math.round(score)));
 }
@@ -380,32 +380,32 @@ async function estimateCommuteTime(
 ): Promise<number> {
   try {
     console.log(`[ai-property-search] Calculating commute time from "${origin}" to "${destination}"`);
-    
+
     // Convert our transportation modes to Google Maps API format
     const googleMapsMode = mode === 'car' ? 'driving' :
                           mode === 'transit' ? 'transit' :
                           mode === 'bike' ? 'bicycling' : 'walking';
-    
+
     // Call the Google Places API to get commute time
     const commuteData = await calculateCommuteTime(
       origin,
       destination,
       googleMapsMode as 'driving' | 'transit' | 'bicycling' | 'walking'
     );
-    
+
     if (commuteData) {
       // Convert seconds to minutes and round
       return Math.round(commuteData.durationValue / 60);
     }
-    
+
     throw new Error('Failed to calculate commute time');
   } catch (error) {
     console.error('[ai-property-search] Error estimating commute time:', error);
-    
+
     // Fall back to approximation if API call fails
     console.log('[ai-property-search] Using fallback commute time calculation');
     const baseTime = Math.floor(Math.random() * 20) + 10; // 10-30 minutes base time
-    
+
     switch (mode) {
       case 'car':
         return baseTime;

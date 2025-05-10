@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 
 // Initialize Stripe
 const stripeApiKey = process.env.STRIPE_SECRET_KEY;
-const stripe = stripeApiKey ? new Stripe(stripeApiKey, { apiVersion: '2023-10-16', typescript: true }) : null;
+const stripe = stripeApiKey ? new Stripe(stripeApiKey, { apiVersion: '2025-03-31.basil', typescript: true }) : null;
 
 // Function to create a payment intent
 export async function createPaymentIntent(amount: number, metadata?: object) {

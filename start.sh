@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# This script handles the proper startup for deployment
-echo "Starting deployment process..."
-
-# Run the build process
-npm run build
-
-# Start the server with the correct path
-NODE_ENV=production node dist/server/index.js
+# Check if running in production mode
+if [ "$NODE_ENV" = "production" ]; then
+  echo "Starting server in production mode"
+  node dist/server/index.js
+else
+  echo "Starting server in development mode"
+  npm run dev
+fi

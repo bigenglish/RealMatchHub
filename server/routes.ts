@@ -2240,9 +2240,7 @@ app.post("/api/chatbot", async (req, res) => {
 
   // Set up a keep-alive mechanism to prevent the server from going to sleep
   // This will help ensure the application remains accessible to external developers
-  const serverUrl = process.env.REPLIT_DEPLOYMENT_URL || process.env.REPL_SLUG
-    ? `https://${process.env.REPL_SLUG}.replit.dev`
-    : 'http://localhost:5000';
+  const serverUrl = 'http://localhost:5000'; // Use only local URL for healthcheck
 
   console.log(`[express] Setting up keep-alive ping to server URL: ${serverUrl}`);
 

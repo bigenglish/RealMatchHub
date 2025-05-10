@@ -646,9 +646,42 @@ export class MemStorage implements IStorage {
     return Array.from(this.serviceProviders.values());
   }
 
+  interface ServiceProvider {
+    id: number;
+    name: string;
+    description: string;
+    logoUrl?: string;
+    specialOffers?: any[];    userType: string;
+    verified: boolean;
+    address: string;
+    placeId: string;
+    businessHours?: any;
+    location?: any;
+    serviceArea?: any;
+    availabilityJson?: any;
+  }
+
+  interface ServiceType {
+    id: number;
+    color: string;
+    name: string;
+    description: string;
+    icon: string;
+    serviceType: string;
+    isActive: boolean;
+    createdAt: Date;
+    minPrice: string;
+    maxPrice: string;
+    priceDisplay: string;
+    estimatedDuration: string;
+    requiredDocuments: string[];
+    typicalTimingInTransaction: string;
+    pricingUnit: string;
+  }
+
   async getServiceProvider(id: number): Promise<ServiceProvider | undefined> {
     return this.serviceProviders.get(id);
-    }
+  }
 
   async getServiceProvidersByType(type: string): Promise<ServiceProvider[]> {
     return Array.from(this.serviceProviders.values()).filter(

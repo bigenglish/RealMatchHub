@@ -648,7 +648,7 @@ export class MemStorage implements IStorage {
 
   async getServiceProvider(id: number): Promise<ServiceProvider | undefined> {
     return this.serviceProviders.get(id);
-  }
+    }
 
   async getServiceProvidersByType(type: string): Promise<ServiceProvider[]> {
     return Array.from(this.serviceProviders.values()).filter(
@@ -697,11 +697,11 @@ export class MemStorage implements IStorage {
       logoUrl: insertExpert.logoUrl || null,
       specialOffers: insertExpert.specialOffers || [],
       userType: insertExpert.userType || "vendor",
-      verified: insertExpert.verified ?? false,
-      address: insertExpert.address || null,
-      placeId: insertExpert.placeId || null,
+      verified: insertExpert?.verified || false,
+      address: insertExpert?.address || '',
+      placeId: insertExpert?.placeId || '',
       businessHours: insertExpert.businessHours || null,
-      location: insertExpert.location || null,
+      location: insertExpert?.location || null,
       serviceArea: insertExpert.serviceArea || null,
       availabilityJson: insertExpert.availabilityJson || null
     };

@@ -115,13 +115,13 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   // Using a higher port to avoid conflicts
-  const PORT = process.env.PORT || 5000; // Use environment variable or default
+  const PORT = 5000; // Fixed port for deployment
   server.listen({
       port: PORT,
-      host: "0.0.0.0", // Updated to bind to 0.0.0.0
+      host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`serving on port ${PORT}`);
+      log(`Server running on port ${PORT}`);
     });
 
   // Handle server errors

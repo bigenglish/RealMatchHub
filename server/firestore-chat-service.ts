@@ -16,7 +16,7 @@ function formatTimestamp(timestamp: admin.firestore.Timestamp): string {
 function formatMessage(doc: admin.firestore.DocumentSnapshot): ChatMessage {
   const data = doc.data();
   if (!data) throw new Error('Message data not found');
-  
+
   return {
     id: doc.id,
     conversationId: data.conversationId,
@@ -37,13 +37,13 @@ function formatMessage(doc: admin.firestore.DocumentSnapshot): ChatMessage {
 function formatConversation(doc: admin.firestore.DocumentSnapshot): ChatConversation {
   const data = doc.data();
   if (!data) throw new Error('Conversation data not found');
-  
+
   return {
     id: parseInt(doc.id),
     title: data.title,
     type: data.type,
-    createdAt: formatTimestamp(data.createdAt),
-    lastMessageAt: formatTimestamp(data.lastMessageAt),
+    createdAt: new Date(data.createdAt.toDate()).toISOString(),
+    lastMessageAt: new Date(data.lastMessageAt.toDate()).toISOString(),
     metadata: data.metadata || null,
     participants: [] // Will be populated separately
   };
@@ -54,14 +54,14 @@ function formatConversation(doc: admin.firestore.DocumentSnapshot): ChatConversa
  */
 export async function initializeChatCollections() {
   console.log('[firestore-chat] Initializing Firestore chat collections');
-  
+
   // Check if collections exist, create them if not
   const conversationsCollection = firestore.collection('chat_conversations');
   const messagesCollection = firestore.collection('chat_messages');
   const participantsCollection = firestore.collection('chat_participants');
-  
+
   // Additional setup could be done here
-  
+
   console.log('[firestore-chat] Firestore chat collections initialized');
 }
 
@@ -70,11 +70,11 @@ export async function initializeChatCollections() {
  */
 export async function migrateExistingChatData() {
   console.log('[firestore-chat] Starting migration of existing chat data to Firestore');
-  
+
   try {
     // Get all conversations from the existing storage
     const conversations = await storage.getChatConversations();
-    
+
     for (const conversation of conversations) {
       // Create conversation document in Firestore
       await firestore.collection('chat_conversations').doc(conversation.id.toString()).set({
@@ -84,7 +84,7 @@ export async function migrateExistingChatData() {
         lastMessageAt: admin.firestore.Timestamp.fromDate(new Date(conversation.lastMessageAt)),
         metadata: conversation.metadata || null
       });
-      
+
       // Add participants
       for (const participant of conversation.participants) {
         await firestore.collection('chat_participants').add({
@@ -95,7 +95,7 @@ export async function migrateExistingChatData() {
           lastReadAt: admin.firestore.Timestamp.fromDate(new Date(participant.lastReadAt))
         });
       }
-      
+
       // Get and add messages
       const messages = await storage.getChatMessages(conversation.id);
       for (const message of messages) {
@@ -112,7 +112,7 @@ export async function migrateExistingChatData() {
         });
       }
     }
-    
+
     console.log('[firestore-chat] Migration of existing chat data completed successfully');
     return true;
   } catch (error) {
@@ -130,28 +130,36 @@ export async function getUserConversations(userId: number): Promise<ChatConversa
     const participantsSnapshot = await firestore.collection('chat_participants')
       .where('userId', '==', userId)
       .get();
-    
+
     if (participantsSnapshot.empty) {
       return [];
     }
-    
+
     // Extract conversation IDs
     const conversationIds = participantsSnapshot.docs.map(doc => doc.data().conversationId);
-    
+
     // Get conversation details
     const conversations: ChatConversation[] = [];
-    
+
     for (const conversationId of conversationIds) {
       const conversationDoc = await firestore.collection('chat_conversations').doc(conversationId).get();
-      
+
       if (conversationDoc.exists) {
+        if (!conversationDoc.exists) {
+          throw new Error('Failed to create conversation');
+        }
+
         const conversation = formatConversation(conversationDoc);
-        
+        // Add required properties
+        conversation.participants = [];
+        conversation.latestMessage = undefined;
+        conversation.unreadCount = 0;
+
         // Get participants for this conversation
         const participantsSnapshot = await firestore.collection('chat_participants')
           .where('conversationId', '==', conversationId)
           .get();
-        
+
         conversation.participants = participantsSnapshot.docs.map(doc => {
           const data = doc.data();
           return {
@@ -163,31 +171,31 @@ export async function getUserConversations(userId: number): Promise<ChatConversa
             lastReadAt: formatTimestamp(data.lastReadAt)
           };
         });
-        
+
         // Get latest message
         const latestMessageSnapshot = await firestore.collection('chat_messages')
           .where('conversationId', '==', conversationId)
           .orderBy('timestamp', 'desc')
           .limit(1)
           .get();
-        
+
         if (!latestMessageSnapshot.empty) {
           conversation.latestMessage = formatMessage(latestMessageSnapshot.docs[0]);
         }
-        
+
         // Count unread messages
         const unreadSnapshot = await firestore.collection('chat_messages')
           .where('conversationId', '==', conversationId)
           .where('isRead', '==', false)
           .where('senderId', '!=', userId)
           .get();
-        
+
         conversation.unreadCount = unreadSnapshot.size;
-        
+
         conversations.push(conversation);
       }
     }
-    
+
     return conversations;
   } catch (error) {
     console.error('[firestore-chat] Error getting user conversations:', error);
@@ -204,7 +212,7 @@ export async function getConversationMessages(conversationId: number): Promise<C
       .where('conversationId', '==', conversationId.toString())
       .orderBy('timestamp', 'asc')
       .get();
-    
+
     return messagesSnapshot.docs.map(doc => formatMessage(doc));
   } catch (error) {
     console.error('[firestore-chat] Error getting conversation messages:', error);
@@ -223,25 +231,25 @@ export async function markMessagesAsRead(conversationId: number, userId: number)
       .where('senderId', '!=', userId)
       .where('isRead', '==', false)
       .get();
-    
+
     // Update each message
     const batch = firestore.batch();
     messagesSnapshot.docs.forEach(doc => {
       batch.update(doc.ref, { isRead: true });
     });
-    
+
     // Update last read timestamp for this user
     const participantsSnapshot = await firestore.collection('chat_participants')
       .where('conversationId', '==', conversationId.toString())
       .where('userId', '==', userId)
       .get();
-    
+
     if (!participantsSnapshot.empty) {
       batch.update(participantsSnapshot.docs[0].ref, { 
         lastReadAt: admin.firestore.Timestamp.now() 
       });
     }
-    
+
     await batch.commit();
     return true;
   } catch (error) {
@@ -275,14 +283,14 @@ export async function sendMessage(
       isRead: false,
       metadata
     };
-    
+
     const messageRef = await firestore.collection('chat_messages').add(messageData);
-    
+
     // Update conversation's lastMessageAt
     await firestore.collection('chat_conversations')
       .doc(conversationId.toString())
       .update({ lastMessageAt: admin.firestore.Timestamp.now() });
-    
+
     // Get the created message
     const messageDoc = await messageRef.get();
     return formatMessage(messageDoc);
@@ -305,7 +313,7 @@ export async function createConversation(
     // Generate a numeric ID (for compatibility with existing system)
     const randomId = Date.now() + Math.floor(Math.random() * 1000);
     const conversationId = randomId.toString();
-    
+
     // Create conversation document
     await firestore.collection('chat_conversations').doc(conversationId).set({
       title,
@@ -314,11 +322,11 @@ export async function createConversation(
       lastMessageAt: admin.firestore.Timestamp.now(),
       metadata
     });
-    
+
     // Add participants
     const batch = firestore.batch();
     const now = admin.firestore.Timestamp.now();
-    
+
     for (const participant of participants) {
       const participantRef = firestore.collection('chat_participants').doc();
       batch.set(participantRef, {
@@ -329,22 +337,26 @@ export async function createConversation(
         lastReadAt: now
       });
     }
-    
+
     await batch.commit();
-    
+
     // Get created conversation
     const conversationDoc = await firestore.collection('chat_conversations').doc(conversationId).get();
     if (!conversationDoc.exists) {
       throw new Error('Failed to create conversation');
     }
-    
+
     const conversation = formatConversation(conversationDoc);
-    
+    // Add required properties
+    conversation.participants = [];
+    conversation.latestMessage = undefined;
+    conversation.unreadCount = 0;
+
     // Get participants for this conversation
     const participantsSnapshot = await firestore.collection('chat_participants')
       .where('conversationId', '==', conversationId)
       .get();
-    
+
     conversation.participants = participantsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -356,7 +368,7 @@ export async function createConversation(
         lastReadAt: formatTimestamp(data.lastReadAt)
       };
     });
-    
+
     return conversation;
   } catch (error) {
     console.error('[firestore-chat] Error creating conversation:', error);

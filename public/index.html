@@ -3,128 +3,263 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Realty.AI - The Future of Real Estate is Here</title>
+  <title>Realty.AI - AI-Powered Real Estate Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    :root {
+      --primary: #283a30;
+      --primary-light: #6a9473;
+      --primary-dark: #1c2922;
+      --secondary: #84a98c;
+      --white: #ffffff;
+      --gray-100: #f9fafb;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+    
+    * {
       margin: 0;
       padding: 0;
-      background-color: #f9f9f9;
-      color: #333;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+    
+    body {
+      min-height: 100vh;
+      background-color: var(--gray-100);
+    }
+    
     .header {
-      background-color: #283a30;
-      color: white;
+      background-color: var(--primary);
       padding: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
     }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
     .logo {
       display: flex;
       align-items: center;
+      color: var(--secondary);
+      font-weight: 700;
       font-size: 1.5rem;
-      font-weight: bold;
+      text-decoration: none;
     }
+    
     .logo-icon {
+      margin-right: 0.75rem;
       width: 32px;
       height: 32px;
-      margin-right: 8px;
-      border: 2px solid #6a9473;
+    }
+    
+    .nav-links {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 6px;
+      gap: 1.5rem;
     }
+    
+    .nav-link {
+      color: var(--secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
     .hero {
-      background-color: #283a30;
-      color: white;
-      padding: 2rem 1rem;
+      background-color: var(--primary);
+      padding: 8rem 0 10rem;
+      color: var(--white);
       text-align: center;
+      margin-top: 64px;
     }
+    
     .hero h1 {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
+    
     .hero p {
       font-size: 1.1rem;
       max-width: 600px;
-      margin: 0 auto 2rem auto;
+      margin: 0 auto 2rem;
+      color: var(--gray-200);
     }
-    .cta {
-      background-color: #6a9473;
-      color: white;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 0.25rem;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    .cta:hover {
-      background-color: #5a8163;
+    
+    .btn-primary {
+      background-color: var(--secondary);
+      color: var(--white);
     }
-    .search-container {
-      background-color: white;
-      padding: 1rem;
-      margin: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    
+    .btn-primary:hover {
+      background-color: var(--primary-light);
     }
-    .tabs {
+    
+    .video-container {
+      width: 100%;
+      max-width: 640px;
+      margin: 2rem auto;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .video-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background-color: var(--gray-300);
+      position: relative;
       display: flex;
-      border-bottom: 1px solid #ddd;
-      margin-bottom: 1rem;
+      align-items: center;
+      justify-content: center;
     }
-    .tab {
-      padding: 0.5rem 1rem;
+    
+    .search-container {
+      background-color: var(--white);
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-top: -5rem;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .search-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .search-tab {
+      padding: 1rem 2rem;
+      font-weight: 500;
       cursor: pointer;
     }
-    .tab.active {
-      border-bottom: 2px solid #6a9473;
-      font-weight: bold;
-      color: #283a30;
+    
+    .search-tab.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--secondary);
     }
-    .search-form input {
-      width: 100%;
-      padding: 12px;
+    
+    .search-form {
+      padding: 2rem;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    @media (min-width: 768px) {
+      .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .form-field {
       margin-bottom: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
     }
-    .search-form button {
-      background-color: #283a30;
-      color: white;
-      padding: 12px;
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      color: var(--gray-500);
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.25rem;
+      font-size: 1rem;
+    }
+    
+    .search-button {
+      background-color: var(--primary);
+      color: var(--white);
+      width: 100%;
+      padding: 0.75rem;
       border: none;
-      border-radius: 4px;
-      width: 100%;
-      font-weight: bold;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
+      margin-top: 1rem;
     }
-    .loading-message {
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.2rem;
-      color: #666;
+    
+    .search-button:hover {
+      background-color: var(--primary-dark);
     }
-    .error-message {
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.2rem;
-      color: #d32f2f;
+    
+    .loading-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     }
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      width: 36px;
-      height: 36px;
+    
+    .loading-logo {
+      margin-bottom: 2rem;
+      color: var(--primary);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(40, 58, 48, 0.1);
+      border-left-color: var(--primary);
       border-radius: 50%;
-      border-left-color: #283a30;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin-bottom: 1.5rem;
     }
+    
+    .loading-text {
+      font-size: 1.25rem;
+      color: var(--gray-700);
+      margin-bottom: 0.5rem;
+    }
+    
+    .loading-subtext {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+    
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -132,56 +267,107 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="logo">
-      <div class="logo-icon">R</div>
-      REALTY.AI
+  <!-- Loading Screen -->
+  <div class="loading-wrapper">
+    <div class="loading-logo">REALTY.AI</div>
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading the application...</div>
+    <div class="loading-subtext">Please wait while we prepare your experience.</div>
+  </div>
+
+  <header class="header">
+    <div class="container">
+      <nav class="nav">
+        <a href="/" class="logo">
+          <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="26" height="26" rx="4" fill="#283a30" />
+            <path d="M16 7L7 14V25H25V14L16 7Z" stroke="#84a98c" stroke-width="2" fill="none" />
+            <rect x="12" y="17" width="2" height="8" fill="#84a98c" />
+            <rect x="16" y="15" width="2" height="10" fill="#84a98c" />
+            <rect x="20" y="19" width="2" height="6" fill="#84a98c" />
+          </svg>
+          REALTY.AI
+        </a>
+        <div class="nav-links">
+          <a href="/" class="nav-link">Home</a>
+          <a href="/buyer-flow" class="nav-link">Buy</a>
+          <a href="/seller-flow/intent" class="nav-link">Sell</a>
+          <a href="/idx" class="nav-link">Find Homes</a>
+        </div>
+      </nav>
     </div>
-    <div>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Realty.AI: The Future of Real Estate is Here.</h1>
+      <p>Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.</p>
+      
+      <div class="video-container">
+        <div class="video-placeholder">
+          <img src="https://img.freepik.com/premium-photo/real-estate-agent-discussing-property-video-call-virtual-meeting_482257-26697.jpg" 
+               alt="Professional real estate consultation" 
+               style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+      </div>
+      
+      <a href="/plan-selection" class="btn btn-primary">GET STARTED FREE</a>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="search-container">
+      <div class="search-tabs">
+        <div class="search-tab">Rent</div>
+        <div class="search-tab active">Buy</div>
+        <div class="search-tab">Sell</div>
+      </div>
+      
+      <div class="search-form">
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Where</label>
+            <input type="text" class="form-input" placeholder="City, State or ZIP">
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">What</label>
+            <input type="text" class="form-input" placeholder="Property type">
+          </div>
+        </div>
+        
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Price range</label>
+            <input type="text" class="form-input" placeholder="Min - Max">
+          </div>
+          
+          <div class="form-field">
+            <label class="form-label">When</label>
+            <input type="date" class="form-input">
+          </div>
+        </div>
+        
+        <button class="search-button">Browse Properties</button>
+      </div>
     </div>
   </div>
 
-  <div class="hero">
-    <h1>Realty.AI: The Future of Real Estate is Here.</h1>
-    <p>Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.</p>
-    <button class="cta">GET STARTED FREE</button>
-  </div>
-
-  <div class="search-container">
-    <div class="tabs">
-      <div class="tab active">Rent</div>
-      <div class="tab">Buy</div>
-      <div class="tab">Sell</div>
-    </div>
-    <div class="search-form">
-      <input type="text" placeholder="City, State or ZIP" />
-      <input type="text" placeholder="What are you looking for?" />
-      <input type="text" placeholder="Property features" />
-      <input type="text" placeholder="When do you need it?" />
-      <button>Browse Properties</button>
-    </div>
-  </div>
-
-  <div class="loading-message">
-    <div class="spinner"></div>
-    <p>Loading the full Realty.AI experience...</p>
-    <p>If the application doesn't load in a few seconds, try refreshing the page.</p>
-  </div>
-  
   <script>
-    // Simple redirect to the main app after a delay
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 5000);
-    
-    // Add some interactivity to the tabs
-    document.querySelectorAll('.tab').forEach(tab => {
+    // Simple tab functionality
+    document.querySelectorAll('.search-tab').forEach(tab => {
       tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.search-tab').forEach(t => {
+          t.classList.remove('active');
+        });
         tab.classList.add('active');
       });
     });
+
+    // Auto-refresh after 60 seconds
+    setTimeout(() => {
+      window.location.reload();
+    }, 60000);
   </script>
 </body>
 </html>

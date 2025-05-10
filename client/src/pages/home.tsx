@@ -122,68 +122,64 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section with Video Call Image - Updated to match original design */}
-      <section className="relative min-h-[90vh] text-white bg-gray-900">
-        {/* Static Background */}
-        <div className="absolute inset-0 w-full h-full bg-[#1c2a36] z-0"></div>
+      {/* Hero Section with Video Call Image - Exact match to original design */}
+      <section className="relative min-h-[90vh] text-white">
+        {/* Static Background - Using exact colors from screenshot */}
+        <div className="absolute inset-0 w-full h-full bg-[#283a30] z-0"></div>
 
-        {/* Hero Content - Matched to original design */}
-        <div className="container mx-auto px-4 relative z-20 pt-10 flex flex-col h-full">
+        {/* Hero Content - Matched to original design with proper spacing */}
+        <div className="container mx-auto px-4 relative z-20 pt-8 flex flex-col h-full">
           {/* Title and tagline above the video - exact match to original */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold">
-              Realty.AI: The Future of Real Estate is Here.
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">
+              Realty.AI: The Future of Real Estate is&nbsp;Here.
             </h1>
-            <p className="text-lg mt-4 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg mt-3 max-w-2xl mx-auto text-gray-200">
               Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
             </p>
           </div>
 
-          {/* Video call image - central placement like original */}
-          <div className="w-full max-w-lg mx-auto mb-8">
+          {/* Video call image - center placement just like original */}
+          <div className="w-full max-w-lg mx-auto mb-6">
             <div className="relative rounded-lg overflow-hidden shadow-xl w-full aspect-[4/3]">
               {/* Static image matching the original design's video call */}
-              <div className="relative w-full h-full">
-                <img 
-                  src="/video-call-image.jpg" 
-                  alt="Professional video call consultation" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    // Fallback to embedded image if file not found
-                    target.src = "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80";
-                  }}
-                />
-                
-                {/* Sound control button - positioned exactly as in original */}
-                <button 
-                  className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-10"
-                  onClick={() => {
-                    setIsVideoMuted(!isVideoMuted);
-                    console.log("Video mute toggled");
-                  }}
-                  aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
-                >
-                  {isVideoMuted ? (
-                    // Muted icon (volume off)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                    </svg>
-                  ) : (
-                    // Unmuted icon (volume on)
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
+              <img 
+                src="/video-call-image.jpg" 
+                alt="Professional video call consultation" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error("Video call image failed to load");
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80";
+                }}
+              />
+              
+              {/* Sound control button - bottom right just like original */}
+              <button 
+                className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-10"
+                onClick={() => {
+                  setIsVideoMuted(!isVideoMuted);
+                  console.log("Video mute toggled");
+                }}
+                aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
+              >
+                {isVideoMuted ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  </svg>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Call to action button - single button centered as in original */}
-          <div className="text-center mb-12">
+          {/* Call to action button - all caps as in original */}
+          <div className="text-center mb-10">
             <Link href="/plan-selection">
-              <Button size="lg" className="bg-[#4a6c6f] hover:bg-[#3a5c5f] text-white border-none px-8 py-3 text-base">
+              <Button size="lg" className="bg-[#84a98c] hover:bg-[#6a8870] text-white border-none px-8 py-2 text-sm uppercase tracking-wide font-semibold">
                 GET STARTED FREE
               </Button>
             </Link>
@@ -193,61 +189,91 @@ export default function HomePage() {
         {/* Property Search Bar - Positioned exactly as in original design */}
         <div className="absolute bottom-0 left-0 right-0 mx-auto container z-20">
           <div className="bg-white text-black shadow-md">
+            {/* Tabs exactly as in original design */}
             <div className="flex justify-center border-b">
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Rent')}
               >
                 Rent
               </button>
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Buy')}
               >
                 Buy
               </button>
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-[#4a6c6f] text-[#4a6c6f]' : 'text-gray-600'}`}
+                className={`py-2 px-8 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
                 onClick={() => setSearchType('Sell')}
               >
                 Sell
               </button>
             </div>
 
-            {/* Search Form - Simplified to match original design */}
+            {/* Search Form - Exactly as in original design */}
             <div className="p-4 space-y-4">
+              {/* Where field */}
               <div>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <div className="absolute left-3 top-2.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="text-xs text-gray-500 pl-3 mb-1">Where</div>
                   <Input
                     type="text"
                     placeholder="City, State or ZIP"
-                    className="pl-10 w-full"
+                    className="pl-10 w-full border-gray-300"
                     list="location-suggestions"
                   />
                   <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
 
+              {/* What field (1st) */}
               <div>
+                <div className="text-xs text-gray-500 pl-3 mb-1">What</div>
                 <Input
                   type="text"
-                  placeholder="What are you looking for?"
-                  className="w-full"
+                  placeholder=""
+                  className="w-full border-gray-300"
                 />
               </div>
 
+              {/* What field (2nd) */}
               <div>
+                <div className="text-xs text-gray-500 pl-3 mb-1">What</div>
                 <Input
                   type="text"
-                  placeholder="When"
-                  className="w-full"
+                  placeholder=""
+                  className="w-full border-gray-300"
                 />
               </div>
 
+              {/* When field with calendar icon */}
+              <div>
+                <div className="text-xs text-gray-500 pl-3 mb-1">When</div>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    placeholder=""
+                    className="w-full border-gray-300"
+                  />
+                  <div className="absolute right-3 top-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Browse Properties button - Dark green exactly as in original */}
               <div>
                 <Link href="/properties">
-                  <Button className="bg-[#4a6c6f] hover:bg-[#3a5c5f] w-full md:w-auto whitespace-nowrap">
+                  <Button className="bg-[#283a30] hover:bg-[#1c2922] w-full text-white">
                     Browse Properties
                   </Button>
                 </Link>

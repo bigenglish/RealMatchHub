@@ -4,15 +4,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#283a30" />
     <title>Realty.AI - AI-Powered Real Estate Platform</title>
     <!-- IDX Broker script for property listings -->
     <script charset="UTF-8" type="text/javascript" id="idxwidgetsrc-40938" src="//losangelesforsale.idxbroker.com/idx/quicksearchjs.php?widgetid=40938"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Add React and ReactDOM directly -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx?v=1"></script>
+    <div id="root">
+      <!-- Fallback content while React loads -->
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+        <h1 style="color: #283a30; font-family: 'Inter', sans-serif;">REALTY.AI</h1>
+        <p>Loading the application...</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

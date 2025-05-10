@@ -1,5 +1,6 @@
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,7 +11,7 @@ const __dirname = dirname(__filename);
  * even when the React app fails to load.
  */
 export function staticFallbackMiddleware(req, res, next) {
-  // Skip API routes
+  // Skip API routes and static assets
   if (req.path.startsWith('/api/') || 
       req.path.startsWith('/auth/') || 
       req.path.startsWith('/static/') ||
@@ -23,8 +24,15 @@ export function staticFallbackMiddleware(req, res, next) {
     return next();
   }
 
-  // For all other non-asset routes that aren't explicitly handled,
-  // serve the public/index.html static page
+  // Try to use client/index.html first, fall back to public/index.html
+  const clientPath = join(__dirname, '../../client/index.html');
   const publicPath = join(__dirname, '../../public/index.html');
+  
+  // Check if client/index.html exists
+  if (fs.existsSync(clientPath)) {
+    return res.sendFile(clientPath);
+  }
+  
+  // Fall back to public/index.html
   res.sendFile(publicPath);
 }

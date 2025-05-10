@@ -331,7 +331,8 @@ export async function processDocumentStream(
   });
 }
 
-const processDocumentBuffer = async (buffer: Buffer) => {
+// Export this function for internal use in this module
+export async function processDocumentBuffer(buffer: Buffer) {
   try {
     // Process in chunks to avoid memory issues
     const chunkSize = 5 * 1024 * 1024; // 5MB chunks

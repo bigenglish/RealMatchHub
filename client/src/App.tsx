@@ -31,6 +31,8 @@ import IDXWidgetDirect from "@/pages/idx-widget-direct";
 import IDXImplementationSelector from "@/pages/idx-implementation-selector";
 import IDXSimplest from "@/pages/idx-simplest";
 import IDXDataViewer from "@/pages/idx-data-viewer";
+// Lazy loaded pages
+import Property from "@/pages/property";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";

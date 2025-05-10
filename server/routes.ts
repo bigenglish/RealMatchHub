@@ -2266,5 +2266,5 @@ app.post("/api/chatbot", async (req, res) => {
     }
   }, 4 * 60 * 1000); // 4 minutes
 
-  return httpServer;
+  return server;
 }

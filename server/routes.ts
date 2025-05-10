@@ -10,7 +10,7 @@ import {
   insertServiceExpertSchema,
   insertServiceOfferingSchema,
   insertServiceBundleSchema
-} from "@shared/schema";
+} from "../shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
 import paymentRoutes from "./routes/payment-routes"; // Import payment routes
 import {
@@ -32,7 +32,7 @@ import {
   insertChatConversationSchema, 
   insertChatParticipantSchema, 
   insertChatMessageSchema 
-} from "@shared/chat-schema"; // Import chat schemas
+} from "../shared/chat-schema"; // Import chat schemas
 import chatFirestoreRoutes from "./routes/chat-firestore-routes"; // Import Firestore chat routes
 import Stripe from "stripe"; // Import Stripe
 import { registerVideoRoutes } from "./video-static"; // Import video routes handler
@@ -1358,7 +1358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const { features, propertyType, location } = req.body;
 
-    const { GoogleGenerativeAI } = await import("@google/generative_ai");
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 

@@ -1780,9 +1780,9 @@ app.post("/api/chatbot", async (req, res) => {
             });
           } else if (stripeError.type === 'StripeAuthenticationError') {
             console.error('[express] Stripe authentication error - API key may be invalid');
-            return res.status<replit_final_file>
-(500).json({ 
-              message: "Payment service authentication error",              error: "Unable to authenticate with payment service",
+            return res.status(500).json({ 
+              message: "Payment service authentication error",
+                            error: "Unable to authenticate with payment service",
               code: 'auth_error'
             });
           } else if (stripeError.type === 'StripeRateLimitError') {

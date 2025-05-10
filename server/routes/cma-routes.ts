@@ -1,4 +1,8 @@
 import express, { Request } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user?: any;
+}
 import { z } from 'zod';
 import { 
   generateCmaReport, 

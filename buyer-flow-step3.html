@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Your Dream Property | Realty.AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #283a30;
+      --primary-light: #6a9473;
+      --primary-dark: #1c2922;
+      --secondary: #84a98c;
+      --white: #ffffff;
+      --gray-100: #f9fafb;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    body {
+      min-height: 100vh;
+      background-color: var(--gray-100);
+    }
+    
+    header {
+      background-color: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.5rem;
+      text-decoration: none;
+    }
+    
+    .logo-icon {
+      margin-right: 0.75rem;
+      width: 32px;
+      height: 32px;
+    }
+
+    .hamburger {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      color: var(--primary);
+    }
+    
+    main {
+      padding-top: 5rem; /* Space for fixed header */
+      min-height: calc(100vh - 5rem);
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 6rem 1rem 3rem;
+    }
+
+    .questionnaire-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .questionnaire-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .questionnaire-header p {
+      font-size: 1rem;
+      color: var(--gray-500);
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 0.5rem;
+      background-color: var(--gray-200);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      width: 60%; /* Adjust based on step */
+    }
+
+    .step-indicator {
+      text-align: right;
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.75rem;
+    }
+
+    .step-subtitle {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-field {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(40, 58, 48, 0.1);
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row .form-field {
+      flex: 1;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+
+    /* Slider styles */
+    .range-slider {
+      margin-bottom: 1.5rem;
+    }
+
+    .range-slider-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .range-slider-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .range-slider-value {
+      font-size: 0.875rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .range-slider-track {
+      height: 0.375rem;
+      background-color: var(--gray-200);
+      border-radius: 9999px;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .range-slider-progress {
+      position: absolute;
+      height: 100%;
+      background-color: var(--primary);
+      border-radius: 9999px;
+      width: 50%;
+    }
+
+    .range-slider-thumb {
+      width: 1.25rem;
+      height: 1.25rem;
+      background-color: var(--white);
+      border: 2px solid var(--primary);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+    }
+
+    .range-slider-marks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+
+    .range-slider-mark {
+      font-size: 0.75rem;
+      color: var(--gray-500);
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 0.375rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      font-size: 0.875rem;
+      border: none;
+    }
+    
+    .btn-secondary {
+      background-color: var(--white);
+      color: var(--gray-700);
+      border: 1px solid var(--gray-300);
+    }
+    
+    .btn-secondary:hover {
+      background-color: var(--gray-100);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-primary svg {
+      margin-left: 0.5rem;
+    }
+
+    .skip-link {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .skip-link a {
+      color: var(--gray-500);
+      font-size: 0.875rem;
+      text-decoration: none;
+    }
+
+    .skip-link a:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* Checkbox styles */
+    .checkbox-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .checkbox-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .checkbox-display {
+      display: inline-block;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 2px solid var(--gray-300);
+      border-radius: 0.25rem;
+      margin-right: 0.75rem;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .checkbox-input:checked + .checkbox-display {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .checkbox-input:checked + .checkbox-display::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%) rotate(45deg);
+      width: 0.35rem;
+      height: 0.7rem;
+      border-bottom: 2px solid white;
+      border-right: 2px solid white;
+    }
+
+    .checkbox-label {
+      font-size: 0.875rem;
+      color: var(--gray-700);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="navbar">
+        <a href="/" class="logo">
+          <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="26" height="26" rx="4" fill="#283a30" />
+            <path d="M16 7L7 14V25H25V14L16 7Z" stroke="#84a98c" stroke-width="2" fill="none" />
+            <rect x="12" y="17" width="2" height="8" fill="#84a98c" />
+            <rect x="16" y="15" width="2" height="10" fill="#84a98c" />
+            <rect x="20" y="19" width="2" height="6" fill="#84a98c" />
+          </svg>
+          REALTY.AI
+        </a>
+        <div class="hamburger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="questionnaire-header">
+      <h1>Tell us about you — we'll recommend the right solution.</h1>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <div class="step-indicator">Step 3 of 5</div>
+    </div>
+
+    <div class="step-content">
+      <h2 class="step-title">What are you looking for in a home?</h2>
+      <p class="step-subtitle">This helps us personalize property search results</p>
+
+      <div class="form-field">
+        <label class="form-label">Where are you looking to buy?</label>
+        <input type="text" class="form-input" placeholder="City, ZIP, or neighborhood">
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Minimum bedrooms</label>
+          <input type="number" class="form-input" min="0" value="2">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Minimum bathrooms</label>
+          <input type="number" class="form-input" min="0" step="0.5" value="1.5">
+        </div>
+      </div>
+
+      <div class="range-slider">
+        <div class="range-slider-header">
+          <span class="range-slider-label">Price range</span>
+          <span class="range-slider-value">$750,000</span>
+        </div>
+        <div class="range-slider-track">
+          <div class="range-slider-progress"></div>
+          <div class="range-slider-thumb"></div>
+        </div>
+        <div class="range-slider-marks">
+          <span class="range-slider-mark">$100k</span>
+          <span class="range-slider-mark">$500k</span>
+          <span class="range-slider-mark">$1M</span>
+          <span class="range-slider-mark">$2M+</span>
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="form-label">Property types</label>
+        <div class="checkbox-item">
+          <input type="checkbox" id="house" class="checkbox-input" checked>
+          <span class="checkbox-display"></span>
+          <label for="house" class="checkbox-label">House</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="condo" class="checkbox-input" checked>
+          <span class="checkbox-display"></span>
+          <label for="condo" class="checkbox-label">Condo / Co-op</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="townhouse" class="checkbox-input">
+          <span class="checkbox-display"></span>
+          <label for="townhouse" class="checkbox-label">Townhouse</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="multifamily" class="checkbox-input">
+          <span class="checkbox-display"></span>
+          <label for="multifamily" class="checkbox-label">Multi-family</label>
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <label class="form-label">Must-have features</label>
+        <div class="checkbox-item">
+          <input type="checkbox" id="ac" class="checkbox-input" checked>
+          <span class="checkbox-display"></span>
+          <label for="ac" class="checkbox-label">Air Conditioning</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="garage" class="checkbox-input" checked>
+          <span class="checkbox-display"></span>
+          <label for="garage" class="checkbox-label">Garage</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="pool" class="checkbox-input">
+          <span class="checkbox-display"></span>
+          <label for="pool" class="checkbox-label">Pool</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="yard" class="checkbox-input" checked>
+          <span class="checkbox-display"></span>
+          <label for="yard" class="checkbox-label">Yard</label>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <a href="buyer-flow.html" class="btn btn-secondary">Go Back</a>
+        <a href="buyer-pricing.html" class="btn btn-primary">
+          Continue
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <div class="skip-link">
+        <a href="buyer-properties.html">Skip and continue to all properties</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Checkbox functionality is handled by native browser behavior
+    // Simplified slider behavior - in a real app would use a proper range input
+    const slider = document.querySelector('.range-slider-thumb');
+    const progress = document.querySelector('.range-slider-progress');
+    const track = document.querySelector('.range-slider-track');
+    const valueDisplay = document.querySelector('.range-slider-value');
+    
+    // This is a very simple implementation for demonstration
+    // A real implementation would use an input[type=range] with proper event handling
+    track.addEventListener('click', function(e) {
+      const trackRect = track.getBoundingClientRect();
+      const percent = (e.clientX - trackRect.left) / trackRect.width;
+      updateSlider(percent);
+    });
+    
+    function updateSlider(percent) {
+      // Constrain to 0-1 range
+      percent = Math.max(0, Math.min(1, percent));
+      
+      // Update visuals
+      progress.style.width = `${percent * 100}%`;
+      slider.style.left = `${percent * 100}%`;
+      
+      // Update value display - this is simplified
+      const value = Math.round(100000 + percent * 1900000);
+      valueDisplay.textContent = '$' + value.toLocaleString();
+    }
+  </script>
+</body>
+</html>

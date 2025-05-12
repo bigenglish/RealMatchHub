@@ -6,6 +6,7 @@
  */
 import * as React from 'react';
 
-export { Fragment } from 'react';
-export { jsx, jsxs } from 'react/jsx-runtime';
-export { jsxDEV } from 'react/jsx-dev-runtime';
+export const Fragment = React.Fragment;
+export const jsx = React.createElement;
+export const jsxs = React.createElement;
+export const jsxDEV = React.createElement;

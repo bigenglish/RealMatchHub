@@ -7,8 +7,8 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "cloudrun"
-run = ["sh", "-c", "node dist/server/index.js"]
-build = ["sh", "-c", "npm run build"]
+run = ["sh", "-c", "NODE_ENV=production node dist/server/index.js"]
+build = ["sh", "-c", "npm install && npm run build"]
 
 [[ports]]
 localPort = 5000
@@ -20,54 +20,3 @@ externalPort = 3000
 
 [workflows]
 runButton = "Start Dev Server"
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Start Dev Server"
-author = 40449480
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow]]
-name = "Buyer Questionnaire Flow"
-author = 40449480
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev -- --questionnaire-type=buyer"
-
-[[workflows.workflow]]
-name = "Seller Questionnaire Flow"
-author = 40449480
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev -- --questionnaire-type=seller"

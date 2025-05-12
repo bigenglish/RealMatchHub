@@ -385,7 +385,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold mb-6">Customer Testimonials</h3>
+              <h3 className="text-2xl font-bold mb-6">Neighborhood Reviews</h3>
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
                   <div className="flex items-start">
@@ -395,12 +395,12 @@ export default function HomePage() {
                           {'★★★★★'}
                         </div>
                       </div>
-                      <p className="text-gray-600 mb-2">"I paid no agent commissions, saved on my home and saved $25,000 on my purchase!"</p>
+                      <p className="text-gray-600 mb-2">"Park Slope offers an incredible blend of community spirit and urban convenience. The historic brownstones and proximity to Prospect Park create a perfect neighborhood atmosphere. Love gathering with neighbors along 5th Avenue!"</p>
                       <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">JD</div>
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">EM</div>
                         <div>
-                          <p className="font-semibold">John D., Los Angeles</p>
-                          <p className="text-sm text-gray-500">Feb 4, 2025</p>
+                          <p className="font-semibold">Emily M., Park Slope Resident</p>
+                          <p className="text-sm text-gray-500">March 15, 2025</p>
                         </div>
                       </div>
                     </div>
@@ -415,12 +415,12 @@ export default function HomePage() {
                           {'★★★★★'}
                         </div>
                       </div>
-                      <p className="text-gray-600 mb-2">"First time buying a home and Realty.AI was incredibly helpful. The AI simplified all the paperwork and connected me to great local experts."</p>
+                      <p className="text-gray-600 mb-2">"The vibrant arts scene and independent shops make Park Slope truly special. As a creative professional, I love being surrounded by like-minded people and the rich cultural heritage. Quick subway access to Manhattan is a huge plus!"</p>
                       <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">SJ</div>
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">AK</div>
                         <div>
-                          <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
-                          <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                          <p className="font-semibold">Alex K., Local Artist</p>
+                          <p className="text-sm text-gray-500">Feb 28, 2025</p>
                         </div>
                       </div>
                     </div>

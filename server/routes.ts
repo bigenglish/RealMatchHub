@@ -43,6 +43,16 @@ import { initDocumentProcessor } from "./document-processor"; // Import document
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
+  // Health check endpoint for deployment verification
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '1.0.0'
+    });
+  });
+
   // Configure multer for file uploads
   const upload = multer({ 
     storage: multer.memoryStorage(),

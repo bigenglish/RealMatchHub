@@ -46,8 +46,6 @@ export interface QuestionnaireResponse {
     childcareImportance: number;
     familyFriendlyLikelihood: number;
     librariesImportance: number;
-    petType: string;
-    outdoorSpaceImportance: number;
   };
   amenities: {
     groceryProximityImportance: number;
@@ -97,8 +95,6 @@ const initialResponses: QuestionnaireResponse = {
     childcareImportance: 3,
     familyFriendlyLikelihood: 5,
     librariesImportance: 3,
-    petType: 'None',
-    outdoorSpaceImportance: 3,
   },
   amenities: {
     groceryProximityImportance: 3,
@@ -139,10 +135,10 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
 }) => {
   const [currentSection, setCurrentSection] = useState(0);
   const [responses, setResponses] = useState<QuestionnaireResponse>(initialResponses);
-
+  
   // Progress calculation
   const progress = ((currentSection + 1) / sections.length) * 100;
-
+  
   // Update responses
   const updateResponse = (section: keyof QuestionnaireResponse, field: string, value: any) => {
     setResponses(prev => ({
@@ -153,7 +149,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
       }
     }));
   };
-
+  
   // Navigation
   const goToNextSection = () => {
     if (currentSection < sections.length - 1) {
@@ -163,7 +159,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
       onComplete(responses);
     }
   };
-
+  
   const goToPrevSection = () => {
     if (currentSection > 0) {
       setCurrentSection(curr => curr - 1);
@@ -202,7 +198,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
         return (
           <>
             {renderImportanceHelper()}
-
+            
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label>How important is a vibrant nightlife scene to your neighborhood choice?</Label>
@@ -213,7 +209,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is a quiet and peaceful environment?</Label>
                 <div className="pt-2">
@@ -223,7 +219,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is easy walkability to shops and restaurants?</Label>
                 <div className="pt-2">
@@ -233,7 +229,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is access to nature and green spaces (parks, trails)?</Label>
                 <div className="pt-2">
@@ -243,7 +239,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is a strong sense of community in your neighborhood?</Label>
                 <div className="pt-2">
@@ -253,9 +249,9 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               {renderLikelihoodHelper()}
-
+              
               <div className="space-y-3">
                 <Label>On a scale of 0 to 10, how likely are you to enjoy living in a neighborhood with frequent local events and festivals?</Label>
                 <div className="pt-2">
@@ -268,12 +264,12 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             </div>
           </>
         );
-
+        
       case 1: // Commute & Transportation
         return (
           <>
             {renderImportanceHelper()}
-
+            
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label>How important is a short commute to your primary destination (work, school)?</Label>
@@ -284,7 +280,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>What is your preferred mode of transportation for your primary commute?</Label>
                 <Select 
@@ -303,7 +299,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>What is your ideal maximum commute time (in minutes)?</Label>
                 <Input 
@@ -314,7 +310,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   className="w-full"
                 />
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is walkability for everyday errands (groceries, pharmacy)?</Label>
                 <div className="pt-2">
@@ -324,9 +320,9 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               {renderLikelihoodHelper()}
-
+              
               <div className="space-y-3">
                 <Label>On a scale of 0 to 10, how likely are you to consider a neighborhood with excellent public transportation options?</Label>
                 <div className="pt-2">
@@ -339,7 +335,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             </div>
           </>
         );
-
+        
       case 2: // Family & Education
         return (
           <>
@@ -365,11 +361,11 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   </div>
                 </RadioGroup>
               </div>
-
+              
               {responses.family.hasChildren !== 'No' && (
                 <>
                   {renderImportanceHelper()}
-
+                  
                   <div className="space-y-3">
                     <Label>If yes, how important are highly-rated schools in your neighborhood choice?</Label>
                     <div className="pt-2">
@@ -379,7 +375,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                       />
                     </div>
                   </div>
-
+                  
                   <div className="space-y-3">
                     <Label>If applicable, what is the age range of your children or anticipated children?</Label>
                     <Select 
@@ -398,7 +394,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                       </SelectContent>
                     </Select>
                   </div>
-
+                  
                   <div className="space-y-3">
                     <Label>How important is proximity to parks and playgrounds for children?</Label>
                     <div className="pt-2">
@@ -408,7 +404,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                       />
                     </div>
                   </div>
-
+                  
                   <div className="space-y-3">
                     <Label>How important is the availability of childcare facilities in the neighborhood?</Label>
                     <div className="pt-2">
@@ -418,49 +414,11 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                       />
                     </div>
                   </div>
-
-                  <div className="space-y-3">
-                    <Label>What kind of pet do you have?</Label>
-                    <RadioGroup 
-                      value={responses.family.petType}
-                      onValueChange={(val) => updateResponse('family', 'petType', val)}
-                      className="flex flex-col space-y-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Dog" id="pet-dog" />
-                        <Label htmlFor="pet-dog">Dog</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Cat" id="pet-cat" />
-                        <Label htmlFor="pet-cat">Cat</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="Bird" id="pet-bird" />
-                        <Label htmlFor="pet-bird">Bird</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="None" id="pet-none" />
-                        <Label htmlFor="pet-none">Don't have one</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {responses.family.petType !== 'None' && (
-                    <div className="space-y-3">
-                      <Label>How important is outdoor space (deck/garden) for your pet?</Label>
-                      <div className="pt-2">
-                        <ImportanceSlider 
-                          value={responses.family.outdoorSpaceImportance} 
-                          onChange={(val) => updateResponse('family', 'outdoorSpaceImportance', val)} 
-                        />
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
-
+              
               {renderLikelihoodHelper()}
-
+              
               <div className="space-y-3">
                 <Label>On a scale of 0 to 10, how likely are you to prioritize a neighborhood known for its family-friendly atmosphere?</Label>
                 <div className="pt-2">
@@ -473,12 +431,12 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             </div>
           </>
         );
-
+        
       case 3: // Amenities & Local Services
         return (
           <>
             {renderImportanceHelper()}
-
+            
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label>How important is proximity to grocery stores and everyday shopping?</Label>
@@ -489,7 +447,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is proximity to healthcare facilities (hospitals, clinics)?</Label>
                 <div className="pt-2">
@@ -499,7 +457,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is access to gyms and fitness centers?</Label>
                 <div className="pt-2">
@@ -509,7 +467,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is proximity to restaurants and cafes?</Label>
                 <div className="pt-2">
@@ -519,7 +477,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is proximity to entertainment venues (movie theaters, live music)?</Label>
                 <div className="pt-2">
@@ -529,9 +487,9 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               {renderLikelihoodHelper()}
-
+              
               <div className="space-y-3">
                 <Label>On a scale of 0 to 10, how likely are you to choose a neighborhood with a wide variety of local amenities within walking distance?</Label>
                 <div className="pt-2">
@@ -544,7 +502,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             </div>
           </>
         );
-
+        
       case 4: // Budget & Financial Considerations
         return (
           <>
@@ -566,9 +524,9 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   </div>
                 </RadioGroup>
               </div>
-
+              
               {renderImportanceHelper()}
-
+              
               <div className="space-y-3">
                 <Label>How comfortable are you with potential Homeowners Association (HOA) fees?</Label>
                 <div className="pt-2">
@@ -585,7 +543,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
                   />
                 </div>
               </div>
-
+              
               <div className="space-y-3">
                 <Label>How important is the potential for future property value appreciation in a neighborhood?</Label>
                 <div className="pt-2">
@@ -598,7 +556,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             </div>
           </>
         );
-
+        
       default:
         return null;
     }
@@ -618,10 +576,10 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
             Step {currentSection + 1} of {sections.length}
           </div>
         </div>
-
+        
         <div className="mt-4">
           <Progress value={progress} className="h-2" />
-
+          
           <div className="mt-2 flex justify-between text-sm">
             {sections.map((section, idx) => (
               <div 
@@ -637,12 +595,12 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
           </div>
         </div>
       </CardHeader>
-
+      
       <CardContent>
         <h3 className="text-xl font-bold mb-6">{sections[currentSection]}</h3>
         {renderSectionContent()}
       </CardContent>
-
+      
       <CardFooter className="flex justify-between pt-6 border-t">
         <Button 
           variant="outline" 
@@ -652,7 +610,7 @@ const NeighborhoodQuestionnaire: React.FC<NeighborhoodQuestionnaireProps> = ({
           <ArrowLeft className="h-4 w-4" />
           {currentSection === 0 ? 'Back to Map' : 'Previous'}
         </Button>
-
+        
         <Button 
           onClick={goToNextSection}
           className="bg-olive-600 hover:bg-olive-700 flex items-center gap-2"
@@ -689,9 +647,9 @@ const ImportanceSlider: React.FC<ImportanceSliderProps> = ({ value, onChange, la
     "Very important",
     "Extremely important"
   ];
-
+  
   const sliderLabels = labels || defaultLabels;
-
+  
   return (
     <div className="space-y-6">
       <Slider

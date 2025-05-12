@@ -122,159 +122,189 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section with Video Call Image - Exact match to original design */}
-      <section className="relative min-h-[90vh] text-white">
-        {/* Static Background - Using exact colors from screenshot */}
-        <div className="absolute inset-0 w-full h-full bg-[#283a30] z-0"></div>
+      {/* Hero Section with Video Background */}
+      <section className="relative h-screen flex items-center text-white">
+        {/* Static Background */}
+        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-olive-900 to-olive-700 z-0"></div>
 
-        {/* Hero Content - Matched to original design with proper spacing */}
-        <div className="container mx-auto px-4 relative z-20 pt-8 flex flex-col h-full">
-          {/* Title and tagline above the video - exact match to original */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">
-              Realty.AI: The Future of Real Estate is&nbsp;Here.
+        {/* Hero Content - Restructured with heading above video */}
+        <div className="container mx-auto px-4 relative z-20 pt-16 flex flex-col">
+          {/* Title and tagline now above the video */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Realty.AI: <span>The Future of Real Estate is Here.</span>
             </h1>
-            <p className="text-base md:text-lg mt-3 max-w-2xl mx-auto text-gray-200">
+            <p className="text-xl mt-4 max-w-2xl mx-auto">
               Save time and skip the fees with AI-Powered Insights, Vetted-Expert Guidance.
             </p>
           </div>
 
-          {/* Video call image - center placement just like original */}
-          <div className="w-full max-w-lg mx-auto mb-6">
-            <div className="relative rounded-lg overflow-hidden shadow-xl w-full aspect-[4/3]">
-              {/* Static image matching the original design's video call */}
-              <img 
-                src="/video-call-image.jpg" 
-                alt="Professional video call consultation" 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.error("Video call image failed to load");
-                  const target = e.target as HTMLImageElement;
-                  target.src = "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80";
-                }}
-              />
-              
-              {/* Sound control button - bottom right just like original */}
-              <button 
-                className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 z-10"
-                onClick={() => {
-                  setIsVideoMuted(!isVideoMuted);
-                  console.log("Video mute toggled");
-                }}
-                aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
-              >
-                {isVideoMuted ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  </svg>
-                )}
-              </button>
+          {/* Video now takes full width - made to match search box width */}
+          <div className="w-full max-w-4xl mx-auto">
+            <div className="relative rounded-xl overflow-hidden shadow-xl w-full min-h-[500px]" ref={containerRef}>
+              {/* Direct Video Element - Now even wider and taller */}
+              <div className="relative w-full h-full" style={{ minHeight: "500px" }}>
+                <video
+                  id="heroVideo"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  poster="/hero-video-poster.jpg"
+                >
+                  {/* Multiple sources for browser compatibility */}
+                  <source src="/hero-video.mp4" type="video/mp4" />
+                  <p className="text-center text-white">
+                    Your browser doesn't support HTML5 video
+                  </p>
+                </video>
+
+                {/* Sound control button - Made much larger and more visible */}
+                <button 
+                  className="absolute bottom-6 right-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-4 z-10 transition-all shadow-lg"
+                  onClick={() => {
+                    const video = document.getElementById('heroVideo') as HTMLVideoElement | null;
+                    if (video) {
+                      // Toggle mute state
+                      const newMutedState = !video.muted;
+                      video.muted = newMutedState;
+                      setIsVideoMuted(newMutedState);
+                      console.log("Video mute toggled to:", newMutedState);
+                    }
+                  }}
+                  aria-label={isVideoMuted ? "Unmute video" : "Mute video"}
+                >
+                  {isVideoMuted ? (
+                    // Muted icon (volume off)
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                    </svg>
+                  ) : (
+                    // Unmuted icon (volume on)
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6a7.97 7.97 0 015.657 2.343M15.54 15.54A9.97 9.97 0 0012 18a9.97 9.97 0 01-3.54-2.46M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Lighter overlay for better video visibility */}
+                <div className="absolute inset-0 bg-black/10"></div>
+              </div>
             </div>
           </div>
 
-          {/* Call to action button - all caps as in original */}
-          <div className="text-center mb-10">
-            <Link href="/plan-selection">
-              <Button size="lg" className="bg-[#84a98c] hover:bg-[#6a8870] text-white border-none px-8 py-2 text-sm uppercase tracking-wide font-semibold">
+          {/* Call to action button below video */}
+          <div className="mt-32 mb-24 text-center">
+            <Link href="/auth/welcome">
+              <Button size="lg" className="bg-olive-600 hover:bg-olive-700 text-white border-none px-8 py-6 text-lg">
                 GET STARTED FREE
               </Button>
             </Link>
           </div>
         </div>
 
-        {/* Property Search Bar - Positioned exactly as in original design */}
-        <div className="absolute bottom-0 left-0 right-0 mx-auto container z-20">
-          <div className="bg-white text-black shadow-md">
-            {/* Tabs exactly as in original design */}
-            <div className="flex justify-center border-b">
+        {/* Property Search Bar */}
+        <div className="absolute bottom-8 left-0 right-0 mx-auto container z-20">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl mx-auto overflow-hidden">
+            <div className="flex border-b">
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Rent' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
                 onClick={() => setSearchType('Rent')}
               >
                 Rent
               </button>
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Buy' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
                 onClick={() => setSearchType('Buy')}
               >
                 Buy
               </button>
               <button 
-                className={`py-2 px-8 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-[#84a98c] text-[#84a98c]' : 'text-gray-600'}`}
+                className={`flex-1 py-3 px-6 text-center font-medium ${searchType === 'Sell' ? 'border-b-2 border-olive-600 text-olive-600' : 'text-gray-500'}`}
                 onClick={() => setSearchType('Sell')}
               >
                 Sell
               </button>
             </div>
 
-            {/* Search Form - Exactly as in original design */}
-            <div className="p-4 space-y-4">
-              {/* Where field */}
-              <div>
+            <div className="flex flex-col md:flex-row p-4 gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
                 <div className="relative">
-                  <div className="absolute left-3 top-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div className="text-xs text-gray-500 pl-3 mb-1">Where</div>
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    placeholder="City, State or ZIP"
-                    className="pl-10 w-full border-gray-300"
+                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
+                    className="pl-10 w-full text-gray-900"
+                    onChange={async (e) => {
+                      const value = e.target.value;
+                      if (value.length > 2) {
+                        try {
+                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=${searchType === 'Sell' ? 'address' : ''}`);
+                          if (response.ok) {
+                            const suggestions = await response.json();
+                            const datalist = document.getElementById('location-suggestions');
+                            if (datalist) {
+                              datalist.innerHTML = suggestions.map((s: string) => 
+                                `<option value="${s}">${s}</option>`
+                              ).join('');
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Error fetching address suggestions:', error);
+                        }
+                      }
+                    }}
                     list="location-suggestions"
                   />
                   <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
 
-              {/* What field (1st) */}
-              <div>
-                <div className="text-xs text-gray-500 pl-3 mb-1">What</div>
-                <Input
-                  type="text"
-                  placeholder=""
-                  className="w-full border-gray-300"
-                />
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
+                <Select 
+                  defaultValue="house"
+                >
+                  <SelectTrigger className="w-full text-gray-900">
+                    <SelectValue defaultValue="house">House</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* What field (2nd) */}
-              <div>
-                <div className="text-xs text-gray-500 pl-3 mb-1">What</div>
-                <Input
-                  type="text"
-                  placeholder=""
-                  className="w-full border-gray-300"
-                />
-              </div>
 
-              {/* When field with calendar icon */}
-              <div>
-                <div className="text-xs text-gray-500 pl-3 mb-1">When</div>
+
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
                 <div className="relative">
-                  <Input
-                    type="date"
-                    placeholder=""
-                    className="w-full border-gray-300"
-                  />
-                  <div className="absolute right-3 top-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
+                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Select>
+                    <SelectTrigger className="pl-10 w-full">
+                      <SelectValue placeholder="Select timeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asap">ASAP (ready to move)</SelectItem>
+                      <SelectItem value="1-3months">1-3 months</SelectItem>
+                      <SelectItem value="3-6months">3-6 months</SelectItem>
+                      <SelectItem value="6-12months">6-12 months</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              {/* Browse Properties button - Dark green exactly as in original */}
-              <div>
-                <Link href="/properties">
-                  <Button className="bg-[#283a30] hover:bg-[#1c2922] w-full text-white">
-                    Browse Properties
+              <div className="flex items-end">
+                <Link href={searchType === 'Buy' ? "/buyer-flow" : searchType === 'Sell' ? "/seller-flow/intent" : "/properties"}>
+                  <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
+                    {searchType === 'Buy' ? 'Start Buying' : searchType === 'Sell' ? 'Start Selling' : 'Browse Properties'}
                   </Button>
                 </Link>
               </div>
@@ -283,44 +313,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Trusted By Section - Added to match original design */}
-      <section className="py-8 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-center mb-6">Trusted By</h2>
-          
-          <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
-            <div className="flex items-center mb-4">
-              <div className="flex">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                ))}
-              </div>
-            </div>
-            
-            <p className="text-gray-700 mb-4">
-              "I paid no agent commissions when selling my home and saved $24,000 with Realty.AI"
-            </p>
-            
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">John D., Los Angeles</p>
-                <p className="text-sm text-gray-500">Home Seller</p>
-                <p className="text-sm text-gray-500">Feb 8, 2025</p>
-              </div>
-              
-              <div className="bg-olive-600 text-white p-2 rounded-full">
-                <MessageSquare className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
       {/* Neighborhood Explorer and Reviews Section */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Explore and Connect</h2>
-
+          <h2 className="text-4xl font-bold text-center mb-16">Explore and Connect</h2>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>
               <h3 className="text-2xl font-bold mb-6">Neighborhood Explorer</h3>
@@ -336,7 +333,7 @@ export default function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                   </div>
-
+                  
                   {/* Map UI elements */}
                   <div className="absolute top-0 left-0 right-0 p-4">
                     <div className="bg-white rounded-md shadow-lg p-3 max-w-xs mx-auto">
@@ -350,7 +347,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-
+                  
                   {/* Featured Locations */}
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <div className="bg-white rounded-t-lg shadow-lg p-4">
@@ -362,21 +359,12 @@ export default function HomePage() {
                           { name: "New York", price: "$1.5M avg" },
                           { name: "Miami", price: "$950K avg" }
                         ].map((location, i) => (
-                          <div key={i} className="flex flex-col p-2 bg-gray-50 rounded-md">
-                            <div className="flex items-center mb-2">
-                              <MapPin className="h-4 w-4 text-olive-600 mr-2" />
-                              <div>
-                                <div className="font-medium text-sm">{location.name}</div>
-                                <div className="text-xs text-gray-500">{location.price}</div>
-                              </div>
+                          <div key={i} className="flex items-center p-2 bg-gray-50 rounded-md">
+                            <MapPin className="h-4 w-4 text-olive-600 mr-2" />
+                            <div>
+                              <div className="font-medium text-sm">{location.name}</div>
+                              <div className="text-xs text-gray-500">{location.price}</div>
                             </div>
-                            <Button 
-                              size="sm"
-                              className="w-full mt-1 bg-olive-600 hover:bg-olive-700 text-white"
-                              onClick={() => navigate(`/neighborhood-explorer?city=${encodeURIComponent(location.name)}`)}
-                            >
-                              Explore {location.name}
-                            </Button>
                           </div>
                         ))}
                       </div>
@@ -397,50 +385,48 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-2xl font-bold mb-6">Neighborhood Insights</h3>
+              <h3 className="text-2xl font-bold mb-6">Customer Testimonials</h3>
               <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {'★★★★★'}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2">"I paid no agent commissions, saved on my home and saved $25,000 on my purchase!"</p>
+                      <div className="flex items-center mt-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">JD</div>
+                        <div>
+                          <p className="font-semibold">John D., Los Angeles</p>
+                          <p className="text-sm text-gray-500">Feb 4, 2025</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <div className="flex text-yellow-400">
+                          {'★★★★★'}
+                        </div>
+                      </div>
+                      <p className="text-gray-600 mb-2">"First time buying a home and Realty.AI was incredibly helpful. The AI simplified all the paperwork and connected me to great local experts."</p>
+                      <div className="flex items-center mt-4">
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">SJ</div>
+                        <div>
+                          <p className="font-semibold">Sarah J., First-Time Homebuyer</p>
+                          <p className="text-sm text-gray-500">Jan 1, 2025</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
-
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <div className="flex text-yellow-400">
-                          {'★★★★★'}
-                        </div>
-                      </div>
-                      <p className="text-gray-600 mb-2">"For a quintessential San Francisco experience with Victorian charm, a lively atmosphere, and stunning views, explore Hayes Valley. You can wander through independent boutiques, catch a performance at the symphony, and grab a delicious bite at a trendy restaurant – all within a few blocks. It's got a real sophisticated yet approachable vibe."</p>
-                      <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">CE</div>
-                        <div>
-                          <p className="font-semibold">City Enthusiast, Hayes Valley</p>
-                          <p className="text-sm text-gray-500">San Francisco, CA</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <div className="flex text-yellow-400">
-                          {'★★★★★'}
-                        </div>
-                      </div>
-                      <p className="text-gray-600 mb-2">"If you're drawn to a vibrant Brooklyn neighborhood with a strong artistic spirit, independent shops, and a fantastic food scene, you have to check out Williamsburg. From its waterfront parks with Manhattan skyline views to its bustling Bedford Avenue, there's always something happening. It's got a cool, creative energy that's uniquely New York."</p>
-                      <div className="flex items-center mt-4">
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3">BN</div>
-                        <div>
-                          <p className="font-semibold">Brooklyn Native, Williamsburg</p>
-                          <p className="text-sm text-gray-500">New York City, NY</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="text-center mt-4">
                   <Button variant="outline" className="text-olive-600 border-olive-600 hover:bg-olive-50">
                     View More Reviews
@@ -449,7 +435,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-
+          
           {/* Trusted By / Reviews Title */}
           <h2 className="text-4xl font-bold text-center my-16">Trusted By</h2>
 
@@ -602,13 +588,6 @@ export default function HomePage() {
                         <span>Receive basic customer support</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
 
@@ -645,13 +624,6 @@ export default function HomePage() {
                         <span>Priority email support</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
 
@@ -708,13 +680,6 @@ export default function HomePage() {
                         <span>Closing coordination assistance with 2 Expert reviewers</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
               </>
@@ -751,13 +716,6 @@ export default function HomePage() {
                         <span>Receive basic customer support</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
 
@@ -794,13 +752,6 @@ export default function HomePage() {
                         <span>Priority email support</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
 
@@ -845,13 +796,6 @@ export default function HomePage() {
                         <span>Dedicated rental concierge service</span>
                       </li>
                     </ul>
-                    <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </div>
               </>
@@ -889,11 +833,9 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          GET IT NOW
-                        </Button>
-                      </Link>
+                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                        GET IT NOW
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -935,11 +877,9 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          CHOOSE BASIC
-                        </Button>
-                      </Link>
+                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                        CHOOSE BASIC
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -997,11 +937,9 @@ export default function HomePage() {
                       </li>
                     </ul>
                     <div className="mt-8">
-                      <Link href="/plan-selection">
-                        <Button className="w-full bg-olive-600 hover:bg-olive-700">
-                          CHOOSE PREMIUM
-                        </Button>
-                      </Link>
+                      <Button className="w-full bg-olive-600 hover:bg-olive-700">
+                        CHOOSE PREMIUM
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1043,11 +981,9 @@ export default function HomePage() {
                 >
                   See How It Works
                 </Button>
-                <Link href="/plan-selection">
-                  <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
-                    Start For Free
-                  </Button>
-                </Link>
+                <Button className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8">
+                  Start For Free
+                </Button>
               </div>
             </div>
             <div className="lg:w-1/2">
@@ -1078,7 +1014,7 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">Recommended Properties</h2>
-
+          
           {/*Property Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* User Profile */}
@@ -1140,7 +1076,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-
+          
           <div className="mt-12 text-center">
             <Button 
               className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2"
@@ -1148,11 +1084,9 @@ export default function HomePage() {
             >
               See How It Works
             </Button>
-            <Link href="/plan-selection">
-              <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2">
-                Start For Free
-              </Button>
-            </Link>
+            <Button className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2">
+              Start For Free
+            </Button>
           </div>
         </div>
       </section>
@@ -1229,7 +1163,7 @@ export default function HomePage() {
                 location: "Aspen, CO",
                 price: "$2,850,000",
                 beds: 4,
-                baths:4,
+                baths: 4,
                 sqft: 3600,
                 tag: "Exclusive"
               },
@@ -1335,11 +1269,9 @@ export default function HomePage() {
                     >
                       <Play className="h-5 w-5" /> See How It Works
                     </Button>
-                    <Link href="/plan-selection">
-                      <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
-                        Start For Free
-                      </Button>
-                    </Link>
+                    <Button className="bg-white text-gray-900 hover:bg-gray-100 px-10 py-6">
+                      Start For Free
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -1548,8 +1480,8 @@ export default function HomePage() {
           <h2 className="text-6xl font-bold mb-12 text-gray-800">READY TO GET STARTED?</h2>
 
           <div className="mb-10">
-            <Button asChild className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
-              <Link href="/plan-selection">Create Your Free Account</Link>
+            <Button className="bg-olive-600 hover:bg-olive-700 text-white px-10 py-6 text-xl rounded-full">
+              Create Your Free Account
             </Button>
           </div>
 

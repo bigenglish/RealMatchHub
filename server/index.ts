@@ -1,13 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config(); // Load environment variables from .env file
-
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { createServer } from 'http'; // Added import statement
-import cors from 'cors';
-import session from 'express-session';
-import { MemoryStore } from 'express-session';
 
 // Check for IDX Broker API key at startup
 if (process.env.IDX_BROKER_API_KEY) {
@@ -17,49 +10,8 @@ if (process.env.IDX_BROKER_API_KEY) {
 }
 
 const app = express();
-// Security middleware
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-
-// Configure CORS
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://workspace.replit.app'] 
-    : '*', // In development, allow all origins
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true, // If you need to handle cookies across origins
-};
-
-app.use(cors(corsOptions));
-app.use(helmet()); // Add security headers
-app.use('/api/', limiter); // Apply rate limiting to all API routes
-app.use(express.json({ limit: '10kb' })); // Limit request size
-app.use(express.urlencoded({ extended: false, limit: '10kb' }));
-
-// Add cookie parser before CSRF
-import cookieParser from 'cookie-parser';
-app.use(cookieParser(process.env.SESSION_SECRET || 'your-secret-key'));
-app.use(session({
-  store: new MemoryStore({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  }),
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  name: 'sessionId',
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
-}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -92,9 +44,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Create a single HTTP server instance for both Express and WebSockets
-  const httpServer = createServer(app);
-  await registerRoutes(app, httpServer);
+  const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -108,7 +58,7 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app, httpServer);
+    await setupVite(app, server);
   } else {
     serveStatic(app);
   }
@@ -117,23 +67,12 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   // Using a higher port to avoid conflicts
-  const port = process.env.PORT || 5000;
-  const host = '0.0.0.0';
-
-  httpServer.listen(port, () => {
-    console.log(`[express] Server running on http://${host}:${port}`);
+  const port = 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
   });
-
-  // Handle server errors
-  httpServer.on('error', (e: any) => {
-    if (e.code === 'EADDRINUSE') {
-      const portNumber = typeof port === 'string' ? parseInt(port, 10) : port;
-      console.log(`Port ${port} is busy, retrying on port ${portNumber + 1}...`);
-      setTimeout(() => {
-        httpServer.close();
-        httpServer.listen(portNumber + 1);
-      }, 1000);
-    }
-  });
-
 })();

@@ -8,7 +8,7 @@ import ServiceExpertCard from "@/components/service-expert-card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Info, MapPin, Search, CheckCircle2, Share2, Wallet, MessageSquare, BarChart } from "lucide-react";
+import { AlertCircle, Info, MapPin, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
@@ -334,86 +334,10 @@ const ServiceExpertsPage = () => {
 
       <Container>
         <div className="py-8">
-          <h1 className="text-4xl font-bold mb-2">Your Real Estate Dream Team Awaits</h1>
-          <p className="text-xl text-gray-600 mb-6">
-            Whether you're buying, selling, or managing a property, having the right Experts by your side can make all the difference. Reaty.ai simplifies the process, connecting you with top-vetted professionals with preferred pricing across the real estate industry, all in one convenient platform.
+          <h1 className="text-4xl font-bold mb-2">Real Estate Service Experts</h1>
+          <p className="text-xl text-gray-600 mb-4">
+            Connect with top professionals to help you with every aspect of your real estate journey.
           </p>
-          <p className="text-lg text-gray-600 mb-8">
-            Need a specialized agent for a luxury condo? Looking for a contractor to handle your dream renovation? Searching for a trusted attorney to review your contracts? Reaty.ai has you covered.
-          </p>
-          
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-lg mb-12">
-            <h2 className="text-2xl font-bold mb-6">What sets Reaty.ai apart?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold mb-1">Vetted Professionals</h3>
-                  <p className="text-gray-600">We carefully vet every expert in our network, ensuring you work with qualified and reputable professionals.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Share2 className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold mb-1">Streamlined Collaboration</h3>
-                  <p className="text-gray-600">Easily share documents and collaborate through our platform, creating comprehensive reports and shortening time to close.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <Wallet className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold mb-1">Cost-Effective Solutions</h3>
-                  <p className="text-gray-600">Pay only for the specific services you need at a fraction of traditional full-service fees.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <MessageSquare className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold mb-1">Simplified Communication</h3>
-                  <p className="text-gray-600">Stay connected with your experts through our integrated messaging system.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <BarChart className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold mb-1">Data-Driven Insights</h3>
-                  <p className="text-gray-600">Leverage AI tools for market data and analysis to make informed decisions.</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-8 text-center">
-              <Button 
-                size="lg" 
-                className="bg-primary"
-                onClick={() => {
-                  const locationInput = document.querySelector('input[placeholder*="city, ZIP"]') as HTMLInputElement;
-                  if (locationInput && !locationInput.value) {
-                    locationInput.focus();
-                    toast({
-                      title: "Location Required",
-                      description: "Please enter your location to find local experts",
-                      variant: "default"
-                    });
-                    return;
-                  }
-                  
-                  if (locationInput?.value) {
-                    const searchButton = document.querySelector('button:has(svg[class*="Search"])') as HTMLButtonElement;
-                    if (searchButton) {
-                      searchButton.click();
-                    }
-                  }
-                  
-                  const expertsSection = document.querySelector('#service-experts-list');
-                  if (expertsSection) {
-                    expertsSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                Find an Expert Now
-              </Button>
-            </div>
-          </div>
           
           {/* Location indicator */}
           <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
@@ -533,7 +457,7 @@ const ServiceExpertsPage = () => {
             </div>
           </div>
 
-          <Tabs id="service-experts-list" defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6 flex flex-wrap">
               <TabsTrigger value="all">All Services</TabsTrigger>
               {expertServiceTypes.map((type) => (
@@ -547,6 +471,26 @@ const ServiceExpertsPage = () => {
               {isLoading ? (
                 <div className="flex justify-center py-12">
                   <p>Loading service experts near {locationName}...</p>
+                </div>
+              ) : !showExperts ? (
+                <div className="text-center py-12">
+                  <h3 className="text-lg font-medium mb-4">Select a Service Type</h3>
+                  <p className="text-gray-500 mb-6">
+                    Choose a specific service type from the dropdown menu above to see available experts in your area.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {/* We're displaying the buttons for each expert type */}
+                    {Array.from(expertTypes).map((type) => (
+                      <Button 
+                        key={type} 
+                        variant="outline" 
+                        onClick={() => setExpertTypeFilter(type)}
+                        className="m-1"
+                      >
+                        {type}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               ) : filteredExperts?.length === 0 ? (
                 <div className="text-center py-12">

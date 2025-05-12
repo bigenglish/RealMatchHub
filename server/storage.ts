@@ -1,57 +1,20 @@
-// Import all necessary types from shared schema
 import { 
-  Property, InsertProperty, InsertServiceProvider,
+  Property, ServiceProvider, InsertProperty, InsertServiceProvider, 
   ServiceExpert, InsertServiceExpert, ServiceBundle, InsertServiceBundle,
   ServiceOffering, InsertServiceOffering, BundleService, InsertBundleService,
   ServiceRequest, InsertServiceRequest, ServiceAvailability,
   MarketTrend, InsertMarketTrend, PropertyWithGeo, MarketTrendData 
-} from "../shared/schema";
+} from "@shared/schema";
 
 import {
   ChatConversation, InsertChatConversation, ChatParticipant, InsertChatParticipant,
   ChatMessage, InsertChatMessage, Appointment, InsertAppointment,
   ChatConversationWithDetails, AppointmentDetails
-} from "../shared/chat-schema";
-
-// Locally define interfaces for services until schema is fixed
-export interface ServiceProvider {
-  id: number;
-  name: string;
-  description: string;
-  logoUrl?: string;
-  specialOffers?: any[];
-  userType: string;
-  verified: boolean;
-  address: string;
-  placeId: string;
-  businessHours?: any;
-  location?: any;
-  serviceArea?: any;
-  availabilityJson?: any;
-  type?: string;
-}
-
-export interface ServiceType {
-  id: number;
-  color: string;
-  name: string;
-  description: string;
-  icon: string;
-  serviceType: string;
-  isActive: boolean;
-  createdAt: Date;
-  minPrice: string;
-  maxPrice: string;
-  priceDisplay: string;
-  estimatedDuration: string;
-  requiredDocuments: string[];
-  typicalTimingInTransaction: string;
-  pricingUnit: string;
-}
+} from "@shared/chat-schema";
 
 export interface IStorage {
   // Properties
-  getProperties(page?: number, limit?: number): Promise<Property[]> | Property[];
+  getProperties(): Promise<Property[]> | Property[];
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   getPropertiesWithGeo(): Promise<PropertyWithGeo[]>;
@@ -74,34 +37,33 @@ export interface IStorage {
   getServiceExpert(id: number): Promise<ServiceExpert | undefined>;
   getServiceExpertByProviderId(providerId: string): Promise<ServiceExpert | undefined>;
   getServiceExpertsByService(service: string): Promise<ServiceExpert[]>;
-  createServiceExpert(expert: InsertServiceExpert): Promise<ServiceExpert>;
-  updateServiceExpert(id: number, expert: Partial<InsertServiceExpert>): Promise<ServiceExpert | undefined>;
+  createServiceExpert(provider: InsertServiceExpert): Promise<ServiceExpert>;
+  updateServiceExpert(id: number, provider: Partial<InsertServiceExpert>): Promise<ServiceExpert | undefined>;
   deleteServiceExpert(id: number): Promise<boolean>;
   getServiceExpertsByLocation(location: string, radius: number): Promise<ServiceExpert[]>;
   getServiceExpertsByAvailability(date: Date): Promise<ServiceExpert[]>;
-  getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]>;
 
-  // Service Bundles
+  // Service Bundles (packages)
   getServiceBundles(): Promise<ServiceBundle[]>;
   getServiceBundle(id: number): Promise<ServiceBundle | undefined>;
-  createServiceBundle(bundle: InsertServiceBundle): Promise<ServiceBundle>;
+  createServiceBundle(bundle: InsertServiceBundle): ServiceBundle; // Modified to non-Promise for sample data
   updateServiceBundle(id: number, bundle: Partial<InsertServiceBundle>): Promise<ServiceBundle | undefined>;
   deleteServiceBundle(id: number): Promise<boolean>;
 
-  // Service Offerings
+  // Service Offerings (individual services)
   getServiceOfferings(): Promise<ServiceOffering[]>;
   getServiceOffering(id: number): Promise<ServiceOffering | undefined>;
   getServiceOfferingsByType(type: string): Promise<ServiceOffering[]>;
-  createServiceOffering(offering: InsertServiceOffering): Promise<ServiceOffering>;
+  createServiceOffering(offering: InsertServiceOffering): ServiceOffering; // Modified to non-Promise for sample data
   updateServiceOffering(id: number, offering: Partial<InsertServiceOffering>): Promise<ServiceOffering | undefined>;
   deleteServiceOffering(id: number): Promise<boolean>;
 
-  // Bundle Services
+  // Bundle Services (many-to-many relationship)
   getServicesInBundle(bundleId: number): Promise<ServiceOffering[]>;
-  addServiceToBundle(bundleId: number, serviceId: number): Promise<BundleService>;
+  addServiceToBundle(bundleId: number, serviceId: number): BundleService; // Modified to non-Promise for sample data
   removeServiceFromBundle(bundleId: number, serviceId: number): Promise<boolean>;
 
-  // Service Requests
+  // Service Requests (marketplace)
   getServiceRequests(): Promise<ServiceRequest[]>;
   getServiceRequest(id: number): Promise<ServiceRequest | undefined>;
   getServiceRequestsByUser(userId: number): Promise<ServiceRequest[]>;
@@ -109,17 +71,20 @@ export interface IStorage {
   createServiceRequest(request: InsertServiceRequest): Promise<ServiceRequest>;
   updateServiceRequestStatus(id: number, status: string): Promise<ServiceRequest | undefined>;
   updateServiceRequest(id: number, updates: Partial<ServiceRequest>): Promise<ServiceRequest | undefined>;
+  getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]>;
 
-  // Chat
+  // Chat Conversations
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
   getChatConversation(id: number): Promise<ChatConversation | undefined>;
   getChatConversations(): Promise<ChatConversation[]>;
   getChatConversationsByUserId(userId: number): Promise<ChatConversationWithDetails[]>;
   addChatParticipant(participant: InsertChatParticipant): Promise<ChatParticipant>;
   removeChatParticipant(conversationId: number, userId: number): Promise<boolean>;
+
+  // Chat Messages
   saveChatMessage(message: Omit<ChatMessage, 'id'>): Promise<ChatMessage>;
   getChatMessages(conversationId: number): Promise<ChatMessage[]>;
-  getChatUnreadMessages(userId: number): Promise<{ conversationId: number; count: number }[]>;
+  getChatUnreadMessages(userId: number): Promise<{ conversationId: number, count: number }[]>;
   markChatMessagesAsRead(conversationId: number, userId: number): Promise<boolean>;
 
   // Appointments
@@ -583,13 +548,8 @@ export class MemStorage implements IStorage {
     this.addServiceToBundle(bundle3.id, offering6.id);
   }
 
-  async getProperties(page = 1, limit = 20): Promise<Property[]> {
-    // Simulate pagination and relations inclusion for memory storage
-    const offset = (page - 1) * limit;
-    const propertiesArray = Array.from(this.properties.values());
-    const paginatedProperties = propertiesArray.slice(offset, offset + limit);
-
-    return paginatedProperties;
+  async getProperties(): Promise<Property[]> {
+    return Array.from(this.properties.values());
   }
 
   // Non-promise version for AI search
@@ -732,11 +692,11 @@ export class MemStorage implements IStorage {
       logoUrl: insertExpert.logoUrl || null,
       specialOffers: insertExpert.specialOffers || [],
       userType: insertExpert.userType || "vendor",
-      verified: insertExpert?.verified || false,
-      address: insertExpert?.address || '',
-      placeId: insertExpert?.placeId || '',
+      verified: insertExpert.verified ?? false,
+      address: insertExpert.address || null,
+      placeId: insertExpert.placeId || null,
       businessHours: insertExpert.businessHours || null,
-      location: insertExpert?.location || null,
+      location: insertExpert.location || null,
       serviceArea: insertExpert.serviceArea || null,
       availabilityJson: insertExpert.availabilityJson || null
     };
@@ -777,13 +737,6 @@ export class MemStorage implements IStorage {
     // For now, just return all experts
     // In a real implementation, this would check the availabilityJson field
     return this.getServiceExperts();
-  }
-  async getServiceExpertsByTypeAndLocation(serviceType: string, zipCode: string): Promise<ServiceExpert[]> {
-    return Array.from(this.serviceExperts.values())
-      .filter(expert => {
-        if (expert.serviceType === serviceType) return true;
-        return expert.servicesOffered.includes(serviceType);
-      });
   }
 
   // Service Bundles methods

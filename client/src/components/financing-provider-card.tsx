@@ -71,7 +71,7 @@ const FinancingProviderCard: FC<FinancingProviderCardProps> = ({
             <div className="mb-3">
               <h4 className="text-sm font-medium mb-1">Areas Served</h4>
               <div className="flex flex-wrap gap-1">
-                {provider.areasServed.map((area: string) => (
+                {provider.areasServed.map((area) => (
                   <Badge key={area} variant="outline" className="text-xs">
                     {area}
                   </Badge>

@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
 
 import {
   Form,
@@ -31,10 +30,9 @@ import { Clock, MapPin, Calendar, Users, Home } from 'lucide-react';
 // Validation schema for service request
 const serviceRequestSchema = z.object({
   serviceType: z.string().min(1, { message: 'Service type is required' }),
-  serviceProviderId: z.string().optional(), // Made optional since we'll find providers on the service-experts page
-  propertyZipCode: z.string().optional(), // Made optional for easier navigation
-  preferredDate: z.string().optional(), // Made optional for easier navigation
-  preferredTime: z.string().optional(), // Made optional for easier navigation
+  propertyZipCode: z.string().min(5, { message: 'Valid ZIP code is required' }),
+  preferredDate: z.string().min(1, { message: 'Preferred date is required' }),
+  preferredTime: z.string().min(1, { message: 'Preferred time is required' }),
   notes: z.string().optional(),
 });
 
@@ -55,7 +53,6 @@ export default function ServiceRequestForm({
 }: ServiceRequestFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, navigate] = useLocation(); // Import useLocation hook for navigation
 
   // Fetch service expert types based on user type (buyer or seller)
   const { data: serviceTypes } = useQuery({
@@ -69,24 +66,11 @@ export default function ServiceRequestForm({
     },
   });
 
-  // Fetch service providers
-  const { data: serviceProviders = [] } = useQuery({
-    queryKey: ['/api/service-providers'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/service-providers`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch service providers');
-      }
-      return response.json();
-    },
-  });
-
   // Initialize form with default values
   const form = useForm<z.infer<typeof serviceRequestSchema>>({
     resolver: zodResolver(serviceRequestSchema),
     defaultValues: {
       serviceType: '',
-      serviceProviderId: '',
       propertyZipCode: defaultZipCode || '',
       preferredDate: '',
       preferredTime: '',
@@ -97,25 +81,6 @@ export default function ServiceRequestForm({
   const onSubmit = async (data: z.infer<typeof serviceRequestSchema>) => {
     setIsSubmitting(true);
     try {
-      // Get the selected service type for redirection
-      const serviceType = data.serviceType;
-      
-      // Navigate directly to service-experts with the selected service type
-      navigate(`/service-experts?service=${encodeURIComponent(serviceType)}`);
-      
-      toast({
-        title: 'Connecting to Service Experts',
-        description: 'Redirecting you to available service experts in your area.',
-      });
-      
-      // If onSuccess callback is provided, call it
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      return; // Skip the API call for now as we're navigating away
-      
-      /* Preserve the original function logic below in case we need it later
       const response = await apiRequest('POST', '/api/service-requests', {
         ...data,
         propertyId: propertyId,
@@ -136,7 +101,7 @@ export default function ServiceRequestForm({
       if (onSuccess) {
         onSuccess();
       }
-      */
+
     } catch (error) {
       toast({
         title: 'Error',
@@ -172,7 +137,6 @@ export default function ServiceRequestForm({
               name="serviceType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Service Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -188,37 +152,6 @@ export default function ServiceRequestForm({
                           {type}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="serviceProviderId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-gray-700 font-medium">Service Provider</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={!form.watch("serviceType")}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a service provider" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {serviceProviders
-                        .filter((provider: {type: string}) => provider.type === form.watch("serviceType"))
-                        .map((provider: {id: number, name: string, experience: number}) => (
-                          <SelectItem key={provider.id} value={provider.id.toString()}>
-                            {provider.name} ({provider.experience} years experience)
-                          </SelectItem>
-                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -317,19 +250,13 @@ export default function ServiceRequestForm({
               )}
             />
 
-            <div className="space-y-4">
-              <Button
-                type="submit"
-                className="w-full bg-olive-600 hover:bg-olive-700 text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Connecting...' : 'Find Matching Service Experts'}
-              </Button>
-              
-              <div className="text-center text-sm text-gray-500">
-                By clicking this button, you'll be directed to available service professionals in your area
-              </div>
-            </div>
+            <Button
+              type="submit"
+              className="w-full bg-olive-600 hover:bg-olive-700 text-white"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Service Request'}
+            </Button>
           </form>
         </Form>
       </CardContent>

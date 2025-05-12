@@ -1,191 +1,158 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+import { useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useToast } from '@/hooks/use-toast';
+import { Link, useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, XCircle } from 'lucide-react';
 
-// Initialize Stripe
+// Make sure to call `loadStripe` outside of a component's render to avoid
+// recreating the `Stripe` object on every render.
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+}
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-const PaymentConfirmation = () => {
-  const [paymentStatus, setPaymentStatus] = useState<'success' | 'error' | 'processing' | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [_, setLocation] = useLocation();
+export default function PaymentConfirmation() {
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string>('');
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-
+  
   useEffect(() => {
-    const checkPaymentStatus = async () => {
-      // Get the query parameters from the URL
-      const query = new URLSearchParams(window.location.search);
-      const paymentIntentId = query.get('payment_intent');
-      const paymentIntentClientSecret = query.get('payment_intent_client_secret');
-      const redirectStatus = query.get('redirect_status');
-
-      // If there's no payment intent, we can't check status
-      if (!paymentIntentId || !paymentIntentClientSecret) {
-        setPaymentStatus('error');
-        setPaymentError('Invalid payment information');
+    // Get current URL and extract query parameters
+    const query = new URLSearchParams(window.location.search);
+    const paymentIntent = query.get('payment_intent');
+    const paymentIntentClientSecret = query.get('payment_intent_client_secret');
+    const redirectStatus = query.get('redirect_status');
+    
+    const initialize = async () => {
+      if (!paymentIntent || !paymentIntentClientSecret) {
+        setStatus('error');
+        setMessage('Missing payment information');
         return;
       }
-
-      try {
-        // Use Stripe to confirm the payment result
-        const stripe = await stripePromise;
-        if (!stripe) {
-          throw new Error('Could not initialize Stripe');
-        }
-
-        if (redirectStatus === 'succeeded') {
-          setPaymentStatus('success');
-          toast({
-            title: 'Payment Successful',
-            description: 'Your payment has been processed successfully.',
-          });
-        } else if (redirectStatus === 'processing') {
-          setPaymentStatus('processing');
-        } else {
-          // Try to retrieve the payment intent directly
-          const { paymentIntent, error } = await stripe.retrievePaymentIntent(paymentIntentClientSecret);
-          
-          if (error) {
-            throw new Error(error.message);
-          }
-          
-          if (paymentIntent.status === 'succeeded') {
-            setPaymentStatus('success');
-            toast({
-              title: 'Payment Confirmed',
-              description: 'Your payment has been processed successfully.',
-            });
-          } else if (paymentIntent.status === 'processing') {
-            setPaymentStatus('processing');
-          } else {
-            setPaymentStatus('error');
-            setPaymentError(`Payment status: ${paymentIntent.status}`);
-          }
-        }
-      } catch (error: any) {
-        setPaymentStatus('error');
-        setPaymentError(error.message || 'An error occurred while confirming your payment');
+      
+      setPaymentIntentId(paymentIntent);
+      
+      // Check the redirect status from Stripe
+      if (redirectStatus === 'succeeded') {
+        setStatus('success');
+        setMessage('Your payment was successful! Thank you for your purchase.');
+        toast({
+          title: 'Payment Successful',
+          description: 'Thank you for your purchase!',
+        });
+      } else if (redirectStatus === 'processing') {
+        setStatus('success');
+        setMessage('Your payment is processing. We\'ll update you when it completes.');
+        toast({
+          title: 'Payment Processing',
+          description: 'Your payment is being processed.',
+        });
+      } else if (redirectStatus === 'requires_payment_method') {
+        setStatus('error');
+        setMessage('Your payment was not successful, please try again.');
+        toast({
+          title: 'Payment Failed',
+          description: 'Your payment was not successful, please try again.',
+          variant: 'destructive',
+        });
+      } else {
+        setStatus('error');
+        setMessage('Something went wrong with your payment. Please try again.');
         toast({
           title: 'Payment Error',
-          description: error.message || 'There was a problem with your payment',
+          description: 'Something went wrong with your payment.',
           variant: 'destructive',
         });
       }
     };
-
-    checkPaymentStatus();
+    
+    initialize();
   }, [toast]);
-
-  const renderContent = () => {
-    switch (paymentStatus) {
-      case 'success':
-        return (
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Payment Successful!</h1>
-            <p className="text-lg mb-8">
-              Thank you for your purchase. Your subscription is now active.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button 
-                onClick={() => setLocation('/how-it-works')} 
-                size="lg"
-                className="px-8"
-              >
-                Get Started
-              </Button>
-              <Button 
-                onClick={() => setLocation('/')} 
-                variant="outline" 
-                size="lg"
-              >
-                Return to Homepage
-              </Button>
-            </div>
-          </div>
-        );
-      
-      case 'processing':
-        return (
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-6">
-              <div className="animate-spin w-10 h-10 border-4 border-yellow-600 border-t-transparent rounded-full" />
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Payment Processing</h1>
-            <p className="text-lg mb-8">
-              Your payment is being processed. This may take a moment.
-            </p>
-            <Button 
-              onClick={() => setLocation('/')} 
-              variant="outline" 
-              size="lg"
-            >
-              Return to Homepage
-            </Button>
-          </div>
-        );
-      
-      case 'error':
-        return (
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6">
-              <AlertTriangle className="w-10 h-10 text-red-600" />
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Payment Failed</h1>
-            <p className="text-lg mb-6">
-              There was an issue processing your payment.
-            </p>
-            {paymentError && (
-              <p className="text-red-600 mb-8">
-                {paymentError}
-              </p>
-            )}
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button 
-                onClick={() => window.history.back()} 
-                size="lg"
-                className="px-8"
-              >
-                Try Again
-              </Button>
-              <Button 
-                onClick={() => setLocation('/')} 
-                variant="outline" 
-                size="lg"
-              >
-                Return to Homepage
-              </Button>
-            </div>
-          </div>
-        );
-      
-      default:
-        return (
-          <div className="text-center">
-            <div className="mx-auto w-16 h-16 flex items-center justify-center mb-6">
-              <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-            <h1 className="text-3xl font-bold mb-4">Verifying Payment</h1>
-            <p className="text-lg">
-              Please wait while we verify your payment...
-            </p>
-          </div>
-        );
-    }
-  };
-
+  
   return (
-    <div className="max-w-3xl mx-auto p-6 md:py-20">
-      <div className="bg-card rounded-lg border p-8 md:p-12 shadow-sm">
-        {renderContent()}
+    <div className="max-w-md mx-auto py-12">
+      <div className="bg-card rounded-lg shadow-lg p-8 text-center">
+        {status === 'loading' && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mb-4" />
+            <h1 className="text-2xl font-bold">Processing Payment</h1>
+            <p className="text-muted-foreground mt-2">Please wait while we confirm your payment...</p>
+          </div>
+        )}
+        
+        {status === 'success' && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="bg-green-100 p-6 rounded-full mb-4">
+              <CheckCircle className="w-16 h-16 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-green-700">Payment Successful</h1>
+            <div className="my-4 w-24 h-1 bg-green-200 rounded mx-auto"></div>
+            <p className="text-muted-foreground my-4">{message}</p>
+            
+            {paymentIntentId && (
+              <div className="bg-muted/50 rounded-lg py-3 px-4 mb-6 w-full">
+                <p className="text-sm flex items-center justify-center">
+                  <span className="text-muted-foreground mr-2">Transaction ID:</span>
+                  <span className="font-mono">{paymentIntentId.slice(0, 12)}...</span>
+                </p>
+              </div>
+            )}
+            
+            <div className="space-y-4 w-full mt-2">
+              <Button className="w-full" asChild>
+                <Link href="/services">Browse More Services</Link>
+              </Button>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/">Return to Home</Link>
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mt-6">
+              A confirmation email has been sent to your registered email address.
+              If you have any questions, please contact our support team.
+            </p>
+          </div>
+        )}
+        
+        {status === 'error' && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="bg-red-100 p-6 rounded-full mb-4">
+              <XCircle className="w-16 h-16 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-red-700">Payment Failed</h1>
+            <div className="my-4 w-24 h-1 bg-red-200 rounded mx-auto"></div>
+            <p className="text-muted-foreground my-4">{message}</p>
+            
+            <div className="bg-muted/50 rounded-lg py-4 px-5 mb-6 w-full">
+              <h3 className="text-sm font-medium mb-2">Common reasons for payment failure:</h3>
+              <ul className="text-sm text-muted-foreground text-left list-disc pl-5 space-y-1">
+                <li>Incorrect card information</li>
+                <li>Insufficient funds</li>
+                <li>Temporary authorization issue</li>
+                <li>Card declined by issuing bank</li>
+              </ul>
+            </div>
+            
+            <div className="space-y-4 w-full">
+              <Button className="w-full" asChild>
+                <Link href="/services">Try Again</Link>
+              </Button>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/">Return to Home</Link>
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground mt-6">
+              Need help? Contact our support team at support@realty.ai
+              or call 1-800-555-REAL.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default PaymentConfirmation;
+}

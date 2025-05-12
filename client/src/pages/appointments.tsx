@@ -171,7 +171,7 @@ export default function AppointmentsPage() {
               <div className="space-y-2">
                 <div className="flex items-center text-sm">
                   <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{formatAppointmentDate(new Date(appointment.date).toISOString())}</span>
+                  <span>{formatAppointmentDate(appointment.date)}</span>
                 </div>
                 <div className="flex items-center text-sm">
                   <ClockIcon className="h-4 w-4 mr-2 text-muted-foreground" />

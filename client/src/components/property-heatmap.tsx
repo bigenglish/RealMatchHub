@@ -58,17 +58,11 @@ type HeatmapData = {
   };
 };
 
-interface PropertyHeatmapProps {
-  location?: string;
-  zoom?: number;
-  data: any; // Add proper type
-}
-
-const PropertyHeatmap: React.FC<PropertyHeatmapProps> = ({ location = "Los Angeles, CA", zoom = 12, data }) => {
+export default function PropertyHeatmap() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [center, setCenter] = useState(DEFAULT_CENTER);
-  const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [heatmapVisible, setHeatmapVisible] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<PropertyPoint | null>(null);
   const [properties, setProperties] = useState<PropertyPoint[]>([]);
@@ -478,7 +472,7 @@ const PropertyHeatmap: React.FC<PropertyHeatmapProps> = ({ location = "Los Angel
                     <GoogleMap
                       mapContainerStyle={mapContainerStyle}
                       center={center}
-                      zoom={zoomLevel}
+                      zoom={zoom}
                       onLoad={onMapLoad}
                     >
                       {/* Heatmap Layer */}
@@ -732,18 +726,33 @@ const PropertyHeatmap: React.FC<PropertyHeatmapProps> = ({ location = "Los Angel
           )}
         </CardContent>
       </Card>
-      <Card className="w-full h-[400px] overflow-hidden">
-        <iframe
-          src={`https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&q=${encodeURIComponent(location)}&zoom=${zoomLevel}`}
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </Card>
     </div>
+  );
+}
+import React from 'react';
+import { Card } from './ui/card';
+
+interface PropertyHeatmapProps {
+  location?: string;
+  zoom?: number;
+}
+
+export const PropertyHeatmap: React.FC<PropertyHeatmapProps> = ({
+  location = "Los Angeles, CA",
+  zoom = 12
+}) => {
+  return (
+    <Card className="w-full h-[400px] overflow-hidden">
+      <iframe
+        src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${encodeURIComponent(location)}&zoom=${zoom}`}
+        width="100%"
+        height="100%"
+        style={{ border: 0 }}
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    </Card>
   );
 };
 

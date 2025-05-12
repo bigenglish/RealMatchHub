@@ -1,3 +1,4 @@
+
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
@@ -23,7 +24,7 @@ if (!hasRequiredEnvVars) {
 }
 
 // Firebase configuration
-export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID || 'default'}.firebaseapp.com`,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -44,9 +45,9 @@ try {
 }
 
 // Initialize Firebase services with error handling
-let auth: any;
-let firestore: Firestore | null = null;
-let storage: any;
+let auth;
+let firestore: Firestore | null;
+let storage;
 
 try {
   auth = getAuth(app);

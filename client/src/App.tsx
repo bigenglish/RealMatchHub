@@ -3,6 +3,9 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
+import Home from "@/pages/home";
+import Properties from "@/pages/properties";
+import Property from "@/pages/property";
 import Services from "@/pages/services";
 import ServiceProviderDetail from "@/pages/service-provider";
 import Documents from "@/pages/documents";
@@ -18,21 +21,8 @@ import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
 import HowItWorks from "@/pages/how-it-works";
 import PaymentConfirmation from "@/pages/payment-confirmation";
-import Checkout from "@/pages/checkout";
-import PlanSelection from "@/pages/plan-selection";
 import BundleDetails from "./pages/bundle-details"; // Added import
 import NeighborhoodExplorer from "@/pages/neighborhood-explorer";
-import IdxExplorer from "@/pages/idx-explorer";
-import IDXTroubleshoot from "@/pages/idx-troubleshoot";
-import IDXIframe from "@/pages/idx-iframe";
-import IDXDirect from "@/pages/idx-direct";
-import IDXEmbed from "@/pages/idx-embed";
-import IDXWidgetDirect from "@/pages/idx-widget-direct";
-import IDXImplementationSelector from "@/pages/idx-implementation-selector";
-import IDXSimplest from "@/pages/idx-simplest";
-import IDXDataViewer from "@/pages/idx-data-viewer";
-// Lazy loaded pages
-import Property from "@/pages/property";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -40,15 +30,6 @@ import Login from "@/pages/auth/login";
 import Register from "@/pages/auth/register";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import { AuthProvider } from "./contexts/AuthContext";
-
-// Dashboard
-import Dashboard from "@/pages/dashboard";
-
-import React, { Suspense, lazy } from 'react';
-import { Spinner as Loading } from './components/ui/spinner';
-
-const Home = lazy(() => import('./pages/home'));
-const Properties = lazy(() => import('./pages/properties'));
 
 // Placeholder components for new pages
 const Resources = () => <div className="py-20 text-center"><h1 className="text-3xl font-bold">Resources</h1><p className="mt-4">Coming soon</p></div>;
@@ -59,13 +40,12 @@ function Router() {
   const [location] = useLocation();
   const isHomePage = location === '/';
   const isAuthPage = location.startsWith('/auth/');
-  const isDashboardPage = location.startsWith('/dashboard');
 
-  // Don't show Navbar or Footer on auth pages or dashboard pages
+  // Don't show Navbar or Footer on auth pages
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {!isAuthPage && !isDashboardPage && <Navbar />}
-      <main className={`flex-grow ${!isHomePage && !isAuthPage && !isDashboardPage ? 'container mx-auto px-4 py-20' : ''}`}>
+      {!isAuthPage && <Navbar />}
+      <main className={`flex-grow ${!isHomePage && !isAuthPage ? 'container mx-auto px-4 py-20' : ''}`}>
         <Switch>
           {/* Auth Routes */}
           <Route path="/auth/welcome" component={Welcome} />
@@ -73,12 +53,9 @@ function Router() {
           <Route path="/auth/register" component={Register} />
           <Route path="/auth/forgot-password" component={ForgotPassword} />
 
-          {/* Dashboard Routes */}
-          <Route path="/dashboard/:rest*" component={Dashboard} />
-
           {/* Main Routes */}
-          <Route path="/" component={() => <Suspense fallback={<Loading />}><Home /></Suspense>} />
-          <Route path="/properties" component={() => <Suspense fallback={<Loading />}><Properties /></Suspense>} />
+          <Route path="/" component={Home} />
+          <Route path="/properties" component={Properties} />
           <Route path="/property/:id" component={Property} />
           <Route path="/services" component={Services} />
           <Route path="/service-provider/:id" component={ServiceProviderDetail} />
@@ -97,23 +74,12 @@ function Router() {
           <Route path="/request-service" component={RequestService} />
           <Route path="/cma" component={CMAAnalysis} />
           <Route path="/payment-confirmation" component={PaymentConfirmation} />
-          <Route path="/checkout" component={Checkout} />
-          <Route path="/plan-selection" component={PlanSelection} />
           <Route path="/marketplace/bundle/:id" component={BundleDetails} /> {/* Updated route pattern */}
           <Route path="/neighborhood-explorer" component={NeighborhoodExplorer} />
-          <Route path="/idx-explorer" component={IdxExplorer} />
-          <Route path="/idx-troubleshoot" component={IDXTroubleshoot} />
-          <Route path="/idx-iframe" component={IDXIframe} />
-          <Route path="/idx-direct" component={IDXDirect} />
-          <Route path="/idx-embed" component={IDXEmbed} />
-          <Route path="/idx-widget-direct" component={IDXWidgetDirect} />
-          <Route path="/idx-simplest" component={IDXSimplest} />
-          <Route path="/idx-data" component={IDXDataViewer} />
-          <Route path="/idx" component={IDXImplementationSelector} />
           <Route component={NotFound} />
         </Switch>
       </main>
-      {!isHomePage && !isAuthPage && !isDashboardPage && (
+      {!isHomePage && !isAuthPage && (
         <footer className="bg-muted py-6 mt-auto">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

@@ -19,7 +19,7 @@ export default function ServiceCard({ service, compact = false }: ServiceCardPro
       </CardHeader>
       <CardContent className={`flex-grow ${compact ? "p-4 pt-0" : ""}`}>
         <div className="flex justify-between mb-2">
-          <span className="font-semibold">{service.minPrice}</span>
+          <span className="font-semibold">{service.price}</span>
           {!compact && (
             <span className="text-muted-foreground text-sm">
               {service.estimatedDuration}

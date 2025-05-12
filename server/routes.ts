@@ -1,8 +1,6 @@
-import express from 'express';
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import http from "http";
 import { storage } from "./storage";
 import { 
   insertPropertySchema, 
@@ -10,9 +8,8 @@ import {
   insertServiceExpertSchema,
   insertServiceOfferingSchema,
   insertServiceBundleSchema
-} from "../shared/schema";
+} from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
-import paymentRoutes from "./routes/payment-routes"; // Import payment routes
 import {
   predictPropertyPrice,
   generatePropertyDescription,
@@ -26,13 +23,12 @@ import { processRealEstateQuery } from "./chatbot-ai"; // Import chatbot functio
 import { analyzeStyleFromImage, generateStyleProfile, findMatchingProperties, PropertySearchQuery } from "./ai-property-search"; // Import AI property search functions
 import { generatePropertyRecommendations } from "./ai-property-recommendations"; // Import AI property recommendations
 import { initializeChat } from "./chat-service"; // Import websocket chat service
-import { calculatePersonalizedNeighborhoodScores, getNeighborhoodsByCity, getNeighborhoodById } from "./neighborhood-service"; // Import neighborhood service
 import { 
   insertAppointmentSchema, 
   insertChatConversationSchema, 
   insertChatParticipantSchema, 
   insertChatMessageSchema 
-} from "../shared/chat-schema"; // Import chat schemas
+} from "@shared/chat-schema"; // Import chat schemas
 import chatFirestoreRoutes from "./routes/chat-firestore-routes"; // Import Firestore chat routes
 import Stripe from "stripe"; // Import Stripe
 import { registerVideoRoutes } from "./video-static"; // Import video routes handler
@@ -41,101 +37,11 @@ import documentRoutes from "./routes/document-routes"; // Import document routes
 import serviceRequestRoutes from "./routes/service-request-routes"; // Import service request routes
 import cmaRoutes from "./routes/cma-routes"; // Import CMA routes
 import authRoutes from "./routes/auth-routes"; // Import auth routes
-import { communicationRoutes } from "./routes/communication-routes"; // Import communication routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
-import { idxBrokerRoutes } from "./idx-broker-api"; // Import IDX Broker API routes
-import compression from 'compression';
-import rateLimit from 'express-rate-limit';
-import responseTime from 'response-time';
-import apicache from 'apicache';
-import helmet from 'helmet';
-import sanitize from 'sanitize-html';
-import csrf from 'csurf';
-import cors from 'cors';
 
-export async function registerRoutes(app: Express, httpServer?: Server): Promise<Server> {
-  // Use provided httpServer or create a new one
-  const server = httpServer || createServer(app);
-
-  // Enable compression
-  app.use(compression());
-
-  // Add response time headers
-  app.use(responseTime());
-
-  // Setup rate limiting
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
-  });
-  app.use('/api/', limiter);
-
-  // Setup caching
-  const cache = apicache.middleware;
-  app.use(cache('5 minutes'));
-
-  // Security headers
-  app.use(helmet());
-
-  // Enhanced CORS and monitoring
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
-    credentials: true,
-    maxAge: 86400 // 24 hours
-  }));
-
-  // Health check endpoint
-  app.get('/health', (_req, res) => {
-    res.status(200).json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime()
-    });
-  });
-
-  // Error monitoring
-  app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ 
-      error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message 
-    });
-    next(err);
-  });
-
-  // CSRF protection with proper configuration
-  app.use((req, res, next) => {
-    // Exclude health check route from CSRF protection
-    if (req.path === '/api/healthcheck') {
-      return next();
-    }
-
-    csrf({ 
-      cookie: true // Use default signed cookie settings
-    })(req, res, next);
-  });
-
-  // Add CSRF token endpoint
-  app.get('/api/csrf-token', (req: any, res: any) => {
-    res.json({ csrfToken: req.csrfToken() });
-  });
-
-  // Input sanitization middleware
-  app.use((req, res, next) => {
-    if (req.body) {
-      Object.keys(req.body).forEach(key => {
-        if (typeof req.body[key] === 'string') {
-          req.body[key] = sanitize(req.body[key]);
-        }
-      });
-    }
-    next();
-  });
-
-  app.use(express.json({ limit: '10kb' }));
-  app.use(express.urlencoded({ extended: false, limit: '10kb' }));
+export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
 
   // Configure multer for file uploads
   const upload = multer({ 
@@ -876,7 +782,8 @@ export async function registerRoutes(app: Express, httpServer?: Server): Promise
         res.json({ coordinates, success: true });
       } else {
         console.log(`[express] Failed to geocode address: "${address}"`);
-        res.status(400).json({           message: "Could not geocode the provided address",
+        res.status(400).json({ 
+          message: "Could not geocode the provided address",
           success: false
         });
       }
@@ -1013,53 +920,50 @@ export async function registerRoutes(app: Express, httpServer?: Server): Promise
       console.log("[express] Checking Google Places API status");
       console.log("[express] API key present:", hasApiKey);
 
-      if (!hasApiKey) {
-        return res.status(200).json({
-          enabled: false,
-          message: "Google Places API key is not configured"
-        });
-      }
+      if (hasApiKey) {
+        console.log("[express] API key first 4 chars:", apiKey!.substring(0, 4) + "...");
 
-      // Make a test API call to verify the API key works
-      try {
-        // Default location: San Francisco City Hall
-        const testLocation = "37.7793,-122.4193";
-        const testRadius = 1000;
-        const testQuery = "cafe";
+        // Make a test API call to verify the API key works
+        try {
+          // Default location: San Francisco City Hall
+          const testLocation = "37.7793,-122.4193";
+          const testRadius = 1000;
+          const testQuery = "cafe";
 
-        console.log("[express] Making test API call to Google Places API");
-        const testResult = await searchNearbyPlaces({
-          query: testQuery,
-          location: testLocation,
-          radius: testRadius
-        });
-
-        // Check if we got valid results
-        if (!testResult || !Array.isArray(testResult)) {
-          throw new Error("Invalid response format from Google Places API");
-        }
-
-        // Check the specific error that might be in the response
-        // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
-        if (Array.isArray(testResult)) {
-          console.log("[express] Test API call successful, got", testResult.length, "results");
-          res.json({
-            enabled: true,
-            message: "Google Places API is configured and working",
-            results_count: testResult.length
+          console.log("[express] Making test API call to Google Places API");
+          const testResult = await searchNearbyPlaces({
+            query: testQuery,
+            location: testLocation,
+            radius: testRadius
           });
-        } else {
-          console.log("[express] Test API call failed, didn't get array response");
+
+          // Check the specific error that might be in the response
+          // Errors like REQUEST_DENIED, INVALID_REQUEST, etc. can be detected this way
+          if (Array.isArray(testResult)) {
+            console.log("[express] Test API call successful, got", testResult.length, "results");
+            res.json({
+              enabled: true,
+              message: "Google Places API is configured and working",
+              results_count: testResult.length
+            });
+          } else {
+            console.log("[express] Test API call failed, didn't get array response");
+            res.json({
+              enabled: false,
+              message: "Google Places API returned unexpected response format"
+            });
+          }
+        } catch (error: any) {
+          console.error("[express] Test API call to Google Places failed:", error.message);
           res.json({
             enabled: false,
-            message: "Google Places API returned unexpected response format"
+            message: `Google Places API key is present but failed: ${error.message}`
           });
         }
-      } catch (error: any) {
-        console.error("[express] Test API call to Google Places failed:", error.message);
+      } else {
         res.json({
           enabled: false,
-          message: `Google Places API key is present but failed: ${error.message}`
+          message: "Google Places API key is not configured"
         });
       }
     } catch (error) {
@@ -1093,45 +997,22 @@ export async function registerRoutes(app: Express, httpServer?: Server): Promise
     }
   });
 
-  // Global error handler
-  const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(`[${new Date().toISOString()}] Error:`, {
-      path: req.path,
-      method: req.method,
-      error: err.message,
-      stack: err.stack
-    });
-
+  // Error handling middleware
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
 
-    res.status(status).json({
-      error: {
-        message,
-        code: err.code || 'INTERNAL_ERROR',
-        timestamp: new Date().toISOString()
-      }
-    });
-  };
+    // Only log 500 errors since they indicate server issues
+    if (status >= 500) {
+      console.error(`[express] Server error (${status}):`, err);
+    }
 
-  // Add error monitoring
-  app.use((req, res, next) => {
-    const start = Date.now();
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      if (duration > 1000) {
-        console.warn(`[${new Date().toISOString()}] Slow request:`, {
-          path: req.path,
-          method: req.method,
-          duration,
-          status: res.statusCode
-        });
-      }
+    res.status(status).json({ 
+      status,
+      message,
+      timestamp: new Date().toISOString()
     });
-    next();
   });
-
-  app.use(errorHandler);
 
   // Service Bundles Routes
   app.get("/api/service-bundles", async (_req, res) => {
@@ -1358,21 +1239,19 @@ export async function registerRoutes(app: Express, httpServer?: Server): Promise
   app.post("/api/property/description-suggestions", async (req, res) => {
   try {
     const { features, propertyType, location } = req.body;
-
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
+    
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
+    
     const prompt = `Write an engaging property description for a ${propertyType} with the following features:
     ${features.join(", ")}
     Location: ${location || "Not specified"}
-
+    
     Keep it professional, highlight key features, and make it appealing to potential buyers.
     Format the response as a single paragraph, approximately 100-150 words.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-
+    
     res.json({ 
       suggestion: response.text(),
       success: true 
@@ -1397,7 +1276,7 @@ app.post("/api/chatbot", async (req, res) => {
     try {
       const adminKey = process.env.FIREBASE_ADMIN_KEY;
       const hasKey = !!adminKey;
-
+      
       if (!hasKey) {
         return res.json({
           configured: false,
@@ -1409,7 +1288,7 @@ app.post("/api/chatbot", async (req, res) => {
       try {
         const decodedKey = Buffer.from(adminKey, 'base64').toString('utf-8');
         const keyObj = JSON.parse(decodedKey);
-
+        
         // Check for required fields in the key
         const isValid = keyObj.type === 'service_account' && 
                        keyObj.project_id && 
@@ -1667,7 +1546,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "missing_amount"
           });
         }
-
+        
         if (typeof amount !== 'number' || isNaN(amount)) {
           console.warn(`[express] Invalid amount type in payment intent request: ${typeof amount}`);
           return res.status(400).json({ 
@@ -1676,7 +1555,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "invalid_amount_format"
           });
         }
-
+        
         if (amount < 0.5) {
           console.warn(`[express] Amount too small in payment intent request: ${amount}`);
           return res.status(400).json({ 
@@ -1717,7 +1596,7 @@ app.post("/api/chatbot", async (req, res) => {
             );
 
             validServices = services.filter(s => s !== null);
-
+            
             if (validServices.length === 0) {
               console.warn('[express] No valid services found for payment intent');
             } else {
@@ -1782,8 +1661,8 @@ app.post("/api/chatbot", async (req, res) => {
           } else if (stripeError.type === 'StripeAuthenticationError') {
             console.error('[express] Stripe authentication error - API key may be invalid');
             return res.status(500).json({ 
-              message: "Payment service authentication error",
-                            error: "Unable to authenticate with payment service",
+              message: "Payment service authentication error", 
+              error: "Unable to authenticate with payment service",
               code: 'auth_error'
             });
           } else if (stripeError.type === 'StripeRateLimitError') {
@@ -1815,7 +1694,7 @@ app.post("/api/chatbot", async (req, res) => {
           code: 'server_error'
         });
       }
-});
+    });
 
     // Webhook to handle Stripe events
     app.post("/api/stripe-webhook", async (req, res) => {
@@ -1845,58 +1724,12 @@ app.post("/api/chatbot", async (req, res) => {
         }
 
         res.sendStatus(200);
-      } catch (stripeError) {
-        if (stripeError) {
-            console.error('Webhook Error:', stripeError);
-            return res.status(400).send(`Webhook Error: ${(stripeError as Error).message}`);
-          }
+      } catch (error) {
+        console.error('[express] Error handling webhook:', error);
+        res.status(400).send(`Webhook Error: ${error.message}`);
       }
     });
   }
-
-  // Neighborhood API endpoints
-  app.get("/api/neighborhoods/:city", async (req, res) => {
-    try {
-      const city = req.params.city;
-      const neighborhoods = getNeighborhoodsByCity(city);
-      res.json(neighborhoods);
-    } catch (error) {
-      console.error(`[express] Error fetching neighborhoods for ${req.params.city}:`, error);
-      res.status(500).json({ message: "Error fetching neighborhood data" });
-    }
-  });
-
-  app.get("/api/neighborhoods/:city/:id", async (req, res) => {
-    try {
-      const { city, id } = req.params;
-      const neighborhood = getNeighborhoodById(city, id);
-
-      if (!neighborhood) {
-        return res.status(404).json({ message: "Neighborhood not found" });
-      }
-
-      res.json(neighborhood);
-    } catch (error) {
-      console.error(`[express] Error fetching neighborhood ${req.params.id}:`, error);
-      res.status(500).json({ message: "Error fetching neighborhood details" });
-    }
-  });
-
-  app.post("/api/neighborhoods/personalized", async (req, res) => {
-    try {
-      const { city, responses } = req.body;
-
-      if (!city || !responses) {
-        return res.status(400).json({ message: "City and questionnaire responses are required" });
-      }
-
-      const scoredNeighborhoods = calculatePersonalizedNeighborhoodScores(city, responses);
-      res.json(scoredNeighborhoods);
-    } catch (error) {
-      console.error("[express] Error calculating personalized neighborhood scores:", error);
-      res.status(500).json({ message: "Error calculating neighborhood scores" });
-    }
-  });
 
   // Initialize WebSocket chat service (legacy)
   const wss = initializeChat(httpServer);
@@ -1905,54 +1738,6 @@ app.post("/api/chatbot", async (req, res) => {
   // Register Firestore chat routes
   app.use('/api/chat', chatFirestoreRoutes);
   console.log('[express] Firestore chat routes registered');
-
-  // Register IDX Broker routes
-  app.use('/', idxBrokerRoutes);
-  console.log('[express] IDX Broker routes registered');
-
-  // Specific IDX Data endpoint for frontend
-  app.get('/idx-data', async (req, res) => {
-    try {
-      console.log('[express] IDX-data endpoint called');
-
-      // Get filters from query parameters
-      const city = req.query.city as string;
-      const minPrice = req.query.minPrice ? Number(req.query.minPrice) : undefined;
-      const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : undefined;
-      const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
-      const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
-      const limit = req.query.limit ? Number(req.query.limit) : 20;
-
-      console.log(`[express] Fetching IDX data with filters: city=${city}, price=${minPrice}-${maxPrice}, beds=${bedrooms}, baths=${bathrooms}`);
-
-      // Fetch listings from IDX Broker
-      const listings = await fetchIdxListings({
-        limit,
-        city,
-        minPrice,
-        maxPrice,
-        bedrooms,
-        bathrooms
-      });
-
-      console.log(`[express] Fetched ${listings.listings.length} IDX listings`);
-
-      res.json({
-        success: true,
-        count: listings.listings.length,
-        totalCount: listings.totalCount,
-        hasMore: listings.hasMoreListings,
-        listings: listings.listings
-      });
-    } catch (error) {
-      console.error('[express] Error fetching IDX data:', error);
-      res.status(500).json({ 
-        success: false,
-        message: 'Failed to fetch IDX data',
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   // Legacy Chat conversation routes (will be migrated to Firestore)
   app.post("/api/legacy-chat/conversations", async (req, res) => {
@@ -2128,7 +1913,7 @@ app.post("/api/chatbot", async (req, res) => {
   try {
     await initializeVisionClient();
     app.use("/api/vision", visionRoutes);
-
+    
     // Initialize Document AI processor and register document routes
     console.log("[express] Initializing Document AI processor");
     const documentProcessorInitialized = await initDocumentProcessor();
@@ -2140,131 +1925,23 @@ app.post("/api/chatbot", async (req, res) => {
       console.error("[express] Failed to initialize Document AI processor, document routes will not be available");
     }
     console.log("[express] Google Vision API routes registered");
-
+    
     // Register service request routes
     app.use("/api", serviceRequestRoutes);
     console.log("[express] Service request routes registered");
-
+    
     // Register CMA routes
     app.use("/api/cma", cmaRoutes);
     console.log("[express] CMA routes registered");
-
+    
     // Register Auth routes
     app.use("/api/auth", authRoutes);
     console.log("[express] Auth routes registered");
-
-    // Register Property Communication routes
-    app.use("/api", communicationRoutes);
-    console.log("[express] Property communication routes registered");
-
-    // Register Payment routes
-    app.use("/api", paymentRoutes);
-    console.log("[express] Payment routes registered");
-
-    // ----- Neighborhood Explorer Routes -----
-
-    // Get all neighborhoods for a city
-    app.get('/api/neighborhoods/:city', (req, res) => {
-      try {
-        const cityName = req.params.city;
-        const neighborhoods = getNeighborhoodsByCity(cityName);
-
-        console.log(`[express] Fetched ${neighborhoods.length} neighborhoods for ${cityName}`);
-        res.json(neighborhoods);
-      } catch (error) {
-        console.error('[express] Error fetching neighborhoods:', error);
-        res.status(500).json({ 
-          message: 'Failed to fetch neighborhoods',
-          error: error instanceof Error ? error.message : String(error) 
-        });
-      }
-    });
-
-    // Get a specific neighborhood by ID
-    app.get('/api/neighborhoods/:city/:id', (req, res) => {
-      try {
-        const { city, id } = req.params;
-        const neighborhood = getNeighborhoodById(city, id);
-
-        if (!neighborhood) {
-          return res.status(404).json({ message: `Neighborhood with ID ${id} not found in ${city}` });
-        }
-
-        console.log(`[express] Fetched neighborhood ${id} in ${city}`);
-        res.json(neighborhood);
-      } catch (error) {
-        console.error('[express] Error fetching neighborhood:', error);
-        res.status(500).json({ 
-          message: 'Failed to fetch neighborhood',
-          error: error instanceof Error ? error.message : String(error) 
-        });
-      }
-    });
-
-    // Calculate personalized neighborhood scores
-    app.post('/api/neighborhoods/personalized', (req, res) => {
-      try {
-        const { city, responses } = req.body;
-
-        if (!city || !responses) {
-          return res.status(400).json({ message: 'City and questionnaire responses are required' });
-        }
-
-        // Get all neighborhoods for the city
-        const neighborhoods = getNeighborhoodsByCity(city);
-
-        // Calculate personalized scores
-        const personalizedNeighborhoods = calculatePersonalizedNeighborhoodScores(neighborhoods, responses);
-
-        console.log(`[express] Calculated personalized scores for ${personalizedNeighborhoods.length} neighborhoods in ${city}`);
-        res.json(personalizedNeighborhoods);
-      } catch (error) {
-        console.error('[express] Error calculating personalized neighborhood scores:', error);
-        res.status(500).json({ 
-          message: 'Failed to calculate personalized neighborhood scores',
-          error: error instanceof Error ? error.message : String(error) 
-        });
-      }
-    });
   } catch (error) {
     console.error("[express] Failed to initialize Google Vision API:", error);
   }
 
   // Server is started in server/index.ts - removed duplicate listen call
 
-  // Add a health check endpoint specifically for the keep-alive mechanism
-  app.get('/api/healthcheck', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-      message: 'Server is running properly'
-    });
-  });
-
-  // Set up a keep-alive mechanism to prevent the server from going to sleep
-  // This will help ensure the application remains accessible to external developers
-  const serverUrl = 'http://localhost:5000'; // Use only local URL for healthcheck
-
-  console.log(`[express] Setting up keep-alive ping to server URL: ${serverUrl}`);
-
-  // Ping the server every 4 minutes to keep it alive (less than the typical 5-minute timeout)
-  setInterval(() => {
-    try {
-      http.get(`${serverUrl}/api/healthcheck`, (res) => {
-        const { statusCode } = res;
-        if (statusCode === 200) {
-          console.log(`[keep-alive] Server healthcheck successful at ${new Date().toISOString()}`);
-        } else {
-          console.warn(`[keep-alive] Server healthcheck returned non-200 status: ${statusCode}`);
-        }
-      }).on('error', (err) => {
-        console.error(`[keep-alive] Failed to ping server: ${err.message}`);
-      });
-    } catch (error) {
-      console.error(`[keep-alive] Error in keep-alive mechanism: ${error}`);
-    }
-  }, 4 * 60 * 1000); // 4 minutes
-
-  return server;
+  return httpServer;
 }

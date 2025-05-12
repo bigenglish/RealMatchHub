@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -14,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { FcGoogle } from 'react-icons/fc';
 import { SiFacebook } from 'react-icons/si';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRoleType, UserSubroleType } from '@/lib/firebase';
 
 // Form validation schema
 const registerSchema = z.object({
@@ -25,8 +23,7 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain at least one number' }),
   confirmPassword: z.string(),
-  role: z.enum(['user', 'vendor', 'admin'], { message: 'Please select a role' }),
-  subrole: z.string().optional()
+  role: z.enum(['user', 'vendor'], { message: 'Please select a role' })
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -40,9 +37,6 @@ const Register = () => {
   const { toast } = useToast();
   const { register, loginWithGoogle, loginWithFacebook } = useAuth();
 
-  // State to track which subroles to show based on selected role
-  const [selectedRole, setSelectedRole] = useState<UserRoleType>('user');
-  
   // Initialize form
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -52,77 +46,34 @@ const Register = () => {
       password: '',
       confirmPassword: '',
       role: 'user',
-      subrole: undefined,
     },
   });
-
-  // Watch for role changes to update the subrole options
-  React.useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'role' && value.role) {
-        setSelectedRole(value.role as UserRoleType);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
 
   // Handle form submission
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
-    
-    console.log('Form submission values:', values);
-    
     try {
-      // Show loading toast
-      toast({
-        title: 'Creating your account...',
-        description: 'Please wait while we set up your account.',
-      });
-      
-      const result = await register(
+      const { success, error } = await register(
         values.fullName,
         values.email, 
         values.password,
-        values.role as UserRoleType,
-        values.subrole as UserSubroleType | undefined
+        values.role
       );
       
-      console.log('Registration result:', result);
-      
-      if (result.success) {
+      if (success) {
         toast({
           title: 'Welcome to Realty.AI!',
           description: 'Your account has been created successfully.',
         });
-        
-        // Short delay before redirect to show success message
-        setTimeout(() => {
-          setLocation('/'); // Navigate to home page
-        }, 1000);
+        setLocation('/'); // Navigate to home page
       } else {
-        console.error('Registration failed:', result.error);
         toast({
           title: 'Registration Failed',
-          description: result.error || 'Failed to create account. Please try again.',
+          description: error || 'Failed to create account. Please try again.',
           variant: 'destructive',
         });
-        
-        // Add error message to the bottom of the form
-        const errorElement = document.createElement('div');
-        errorElement.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-md text-center';
-        errorElement.textContent = 'Registration failed: ' + (result.error || 'Unknown error');
-        
-        const form = document.querySelector('form');
-        if (form) {
-          const existingError = form.querySelector('.bg-red-100');
-          if (existingError) {
-            form.removeChild(existingError);
-          }
-          form.appendChild(errorElement);
-        }
       }
     } catch (error: any) {
-      console.error('Unexpected error during registration:', error);
       toast({
         title: 'Error',
         description: error.message || 'An unexpected error occurred. Please try again.',
@@ -169,19 +120,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="flex items-center justify-center">
-            <div className="text-olive-600">
-              <svg width="48" height="48" viewBox="0 0 58 58" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M29 2L2 17.5V56H56V17.5L29 2Z" stroke="#606C38" strokeWidth="4" fill="none" />
-                <rect x="17" y="25" width="5" height="20" fill="#606C38" />
-                <rect x="26" y="20" width="5" height="25" fill="#606C38" />
-                <rect x="35" y="30" width="5" height="15" fill="#606C38" />
-              </svg>
-            </div>
-            <div className="ml-2 text-xl tracking-wider font-bold">
-              <div className="text-olive-600">REALTY.AI</div>
-            </div>
-          </div>
+          <img src="/images/logos/RealtyAI/logo.svg" alt="Realty.AI" className="h-12 mx-auto" />
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-800 text-transparent bg-clip-text">
             Create your Realty.AI Account
           </CardTitle>
@@ -300,128 +239,12 @@ const Register = () => {
                             I'm a service provider
                           </FormLabel>
                         </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="admin" />
-                          </FormControl>
-                          <FormLabel className="font-normal cursor-pointer">
-                            I'm an administrator
-                          </FormLabel>
-                        </FormItem>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              {/* Conditionally show subrole selection based on role */}
-              {selectedRole && (
-                <FormField
-                  control={form.control}
-                  name="subrole"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>What best describes your role?</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          {selectedRole === 'user' && (
-                            <>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="buyer" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  I'm looking to buy a property
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="seller" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  I'm looking to sell my property
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="renter" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  I'm looking to rent a property
-                                </FormLabel>
-                              </FormItem>
-                            </>
-                          )}
-                          
-                          {selectedRole === 'vendor' && (
-                            <>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="agent" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Real Estate Agent
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="loan_officer" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Loan Officer
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="contractor" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Contractor
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="designer" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Interior Designer
-                                </FormLabel>
-                              </FormItem>
-                            </>
-                          )}
-
-                          {selectedRole === 'admin' && (
-                            <>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="platform_admin" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Platform Administrator
-                                </FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="support_admin" />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  Support Administrator
-                                </FormLabel>
-                              </FormItem>
-                            </>
-                          )}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
               
               <Button 
                 type="submit" 

@@ -46,6 +46,9 @@ export default function Navbar() {
             <Link href="/appointments" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Appointments
             </Link>
+            <Link href="/idx-listings" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              IDX Listings
+            </Link>
             <Link href="/resources" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Resources
             </Link>
@@ -94,6 +97,9 @@ export default function Navbar() {
             </Link>
             <Link href="/appointments" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Appointments
+            </Link>
+            <Link href="/idx-listings" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
+              IDX Listings
             </Link>
             <Link href="/resources" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Resources

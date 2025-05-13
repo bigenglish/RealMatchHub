@@ -21,8 +21,9 @@ import CMAAnalysis from "@/components/cma-analysis";
 import Navbar from "@/components/navbar";
 import HowItWorks from "@/pages/how-it-works";
 import PaymentConfirmation from "@/pages/payment-confirmation";
-import BundleDetails from "./pages/bundle-details"; // Added import
+import BundleDetails from "./pages/bundle-details";
 import NeighborhoodExplorer from "@/pages/neighborhood-explorer";
+import IdxListingPage from "@/pages/idx-listing";
 
 // Auth Pages
 import Welcome from "@/pages/auth/welcome";
@@ -76,6 +77,7 @@ function Router() {
           <Route path="/payment-confirmation" component={PaymentConfirmation} />
           <Route path="/marketplace/bundle/:id" component={BundleDetails} /> {/* Updated route pattern */}
           <Route path="/neighborhood-explorer" component={NeighborhoodExplorer} />
+          <Route path="/idx-listings" component={IdxListingPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

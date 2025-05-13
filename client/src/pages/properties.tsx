@@ -231,6 +231,9 @@ export default function PropertiesPage() {
 
   return (
     <div className="space-y-8">
+      {/* Required IDX Broker markers */}
+      <div id="idxStart" style={{ display: 'none' }}></div>
+      <div id="idxStop" style={{ display: 'none' }}></div>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-3xl font-bold">Find Your Dream Property</h1>
         <div className="flex items-center gap-4">

@@ -1,76 +1,155 @@
 /* 
- * IDX Reset CSS
- * This file removes styling conflicts with IDX Broker content
- * It specifically targets IDX elements to ensure they display correctly
+ * IDX Broker CSS Reset
+ * This file explicitly restores all IDX elements to their browser defaults
+ * and ensures they're visible regardless of any site-wide CSS
  */
 
-/* Reset IDX-related elements to browser defaults */
+/* Target all IDX elements */
+[id*="idx-"], 
+[id*="IDX-"], 
+[class*="idx-"], 
 [class*="IDX-"],
-[class*="idx-"],
-[id*="IDX-"],
-[id*="idx-"],
-.IDX-hide,
-.idx-hide,
-div[data-idxid],
-.idxbrokerphonenumber,
-div[data-idxbroker] {
-  all: revert !important;
-  box-sizing: content-box !important;
-}
-
-/* Additional resets for common elements within IDX content */
-[class*="IDX-"] *,
-[class*="idx-"] *,
-[id*="IDX-"] *,
-[id*="idx-"] *,
-div[data-idxid] *,
-div[data-idxbroker] * {
-  all: revert !important;
-  box-sizing: inherit !important;
-}
-
-/* Ensure IDX tables display correctly */
-[class*="IDX-"] table,
-[class*="idx-"] table,
-[id*="IDX-"] table,
-[id*="idx-"] table,
-div[data-idxid] table,
-div[data-idxbroker] table {
-  display: table !important;
-  border-collapse: separate !important;
-  border-spacing: 2px !important;
-}
-
-/* Ensure IDX form elements display correctly */
-[class*="IDX-"] input,
-[class*="idx-"] input,
-[id*="IDX-"] input,
-[id*="idx-"] input,
-div[data-idxid] input,
-div[data-idxbroker] input,
-[class*="IDX-"] select,
-[class*="idx-"] select,
-[id*="IDX-"] select,
-[id*="idx-"] select,
-div[data-idxid] select,
-div[data-idxbroker] select,
-[class*="IDX-"] textarea,
-[class*="idx-"] textarea,
-[id*="IDX-"] textarea,
-[id*="idx-"] textarea,
-div[data-idxid] textarea,
-div[data-idxbroker] textarea {
-  display: inline-block !important;
-  box-sizing: border-box !important;
-}
-
-/* Make sure IDX content isn't hidden */
-.IDX-hide, 
-.idx-hide, 
-.idxHide,
-[class*="IDX-hide"],
-[class*="idx-hide"] {
+div[style*="idxbroker"],
+#idxStart,
+#idxStop,
+#IDX-main,
+.IDX-wrapper,
+.IDX-wrapper *,
+#middleware-wrapper,
+#IDX-mapContainer,
+.IDX-mapContainer {
+  /* Reset all properties */
+  all: initial !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: static !important;
+  z-index: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  border: none !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  clip: auto !important;
+  box-sizing: content-box !important;
+}
+
+/* Explicitly handle elements typically hidden */
+.IDX-hide,
+.idx-hide,
+.IDX-hidden,
+.idx-hidden,
+[class*="IDX-"][class*="-hide"],
+[class*="idx-"][class*="-hide"],
+[class*="IDX-"][class*="-hidden"],
+[class*="idx-"][class*="-hidden"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Reset any table elements */
+[id*="idx-"] table,
+[id*="IDX-"] table,
+[class*="idx-"] table,
+[class*="IDX-"] table {
+  display: table !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+}
+
+/* Reset any form elements */
+[id*="idx-"] input,
+[id*="IDX-"] input,
+[class*="idx-"] input,
+[class*="IDX-"] input,
+[id*="idx-"] select,
+[id*="IDX-"] select,
+[class*="idx-"] select,
+[class*="IDX-"] select,
+[id*="idx-"] textarea,
+[id*="IDX-"] textarea,
+[class*="idx-"] textarea,
+[class*="IDX-"] textarea,
+[id*="idx-"] button,
+[id*="IDX-"] button,
+[class*="idx-"] button,
+[class*="IDX-"] button {
+  display: inline-block !important;
+  background-color: white !important;
+  color: black !important;
+  border: 1px solid #ccc !important;
+  padding: 5px !important;
+  margin: 5px 0 !important;
+  font-size: 16px !important;
+}
+
+/* Ensure links work */
+[id*="idx-"] a,
+[id*="IDX-"] a,
+[class*="idx-"] a,
+[class*="IDX-"] a {
+  color: blue !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+  display: inline !important;
+}
+
+/* Ensure images display */
+[id*="idx-"] img,
+[id*="IDX-"] img,
+[class*="idx-"] img,
+[class*="IDX-"] img {
+  display: inline-block !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Special handling for IDX container elements */
+#IDX-wrapper,
+.IDX-wrapper,
+#IDX-main,
+#middleware-wrapper {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+  background: white !important;
+  color: black !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+}
+
+/* Ensure IDX maps display properly */
+#IDX-mapContainer,
+.IDX-mapContainer,
+[id*="IDX-map"],
+[class*="IDX-map"] {
+  display: block !important;
+  width: 100% !important;
+  height: 400px !important;
+  position: relative !important;
+}
+
+/* IDX containers need to be displayed */
+#idxStart,
+#idxStop {
+  display: block !important;
+  width: 100% !important;
 }

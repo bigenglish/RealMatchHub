@@ -15,6 +15,8 @@ const NativeIDXWidget: React.FC<NativeIDXWidgetProps> = ({ widgetId, activeTab }
             const iframe = document.createElement('iframe');
             iframe.style.width = '100%';
             iframe.style.height = '600px'; // Adjust height as needed
+            iframe.style.border = 'none';
+            iframe.className = 'idx-iframe';
             containerRef.current.appendChild(iframe);
 
             iframe.onload = () => {
@@ -30,7 +32,7 @@ const NativeIDXWidget: React.FC<NativeIDXWidgetProps> = ({ widgetId, activeTab }
         }
     }, [activeTab, widgetId]);
 
-    return <div ref={containerRef} style={{ minHeight: '600px' }} />;
+    return <div ref={containerRef} className="idx-isolated" style={{ minHeight: '600px' }} />;
 };
 
 export default NativeIDXWidget;

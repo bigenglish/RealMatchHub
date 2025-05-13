@@ -2,9 +2,19 @@
  * IDX Broker CSS Reset
  * This file explicitly restores all IDX elements to their browser defaults
  * and ensures they're visible regardless of any site-wide CSS
+ * Updated to address all known potential conflicts
  */
 
-/* Target all IDX elements */
+/* Global body style modification for IDX content */
+body {
+  /* Disable features that could interfere with IDX rendering */
+  text-size-adjust: none !important;
+  -webkit-text-size-adjust: none !important;
+  /* Ensure proper positioning context for IDX elements */
+  position: relative !important;
+}
+
+/* Create a clean rendering context for all IDX elements */
 [id*="idx-"], 
 [id*="IDX-"], 
 [class*="idx-"], 
@@ -17,12 +27,20 @@ div[style*="idxbroker"],
 .IDX-wrapper *,
 #middleware-wrapper,
 #IDX-mapContainer,
-.IDX-mapContainer {
-  /* Reset all properties */
-  all: initial !important;
+.IDX-mapContainer,
+.idxbrs-wrapper,
+.idxbrs-wrapper *,
+[id^="IDX"],
+[class^="IDX"],
+.mw-wrapper,
+.mw-wrapper * {
+  /* Hard reset of all CSS properties to browser defaults */
+  all: revert !important;
+  /* Critical display properties */
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  /* Positioning and box model reset */
   position: static !important;
   z-index: auto !important;
   margin: 0 !important;
@@ -31,19 +49,29 @@ div[style*="idxbroker"],
   max-width: none !important;
   height: auto !important;
   max-height: none !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  /* Visual effects reset */
   transform: none !important;
   transition: none !important;
   animation: none !important;
   border: none !important;
+  outline: none !important;
   background: transparent !important;
+  /* Typography reset */
   font-family: inherit !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   text-align: left !important;
   text-decoration: none !important;
+  /* Layout and overflow reset */
+  float: none !important;
+  clear: none !important;
   box-shadow: none !important;
   overflow: visible !important;
   clip: auto !important;
+  clip-path: none !important;
+  /* Box sizing to predictable model */
   box-sizing: content-box !important;
 }
 

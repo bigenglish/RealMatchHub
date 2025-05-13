@@ -216,18 +216,19 @@ export default function IdxWidget({ widgetId = "40942", className = "", onSearch
           </TabsContent>
           
           <TabsContent value="native">
-            {/* Using the standalone NativeIDXWidget component */}
+            {/* Using the enhanced NativeIDXWidget component with debug mode */}
             <NativeIDXWidget 
               widgetId={widgetId} 
-              activeTab={activeTab} 
+              activeTab={activeTab}
+              debug={true} 
             />
             
             <div className="text-sm text-muted-foreground mt-4">
-              <p>If the IDX widget does not load, please note:</p>
+              <p>IDX Broker Integration Notes:</p>
               <ul className="list-disc pl-5 mt-1">
-                <li>Some browsers block 3rd-party content in iframes</li>
-                <li>The IDX widget requires direct website integration</li>
-                <li>You may need to view this on your live website</li>
+                <li>IDX integration markers (idxStart/idxStop) are present on this page</li>
+                <li>We've implemented a special reset CSS to prevent style conflicts</li>
+                <li>If you experience display issues, please contact support</li>
               </ul>
             </div>
           </TabsContent>

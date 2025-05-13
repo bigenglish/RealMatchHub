@@ -19,6 +19,8 @@ import CostComparison from "@/components/cost-comparison";
 import { colors } from "@/lib/colors";
 
 export default function HomePage() {
+  // Note: IDX Broker markers are already present at the document level in index.html
+  // There's no need to add them here as they're already in the body element
   const [searchType, setSearchType] = useState("Buy");
   const [userType, setUserType] = useState("Buyers");
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);

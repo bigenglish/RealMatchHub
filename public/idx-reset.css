@@ -1,0 +1,76 @@
+/* 
+ * IDX Reset CSS
+ * This file removes styling conflicts with IDX Broker content
+ * It specifically targets IDX elements to ensure they display correctly
+ */
+
+/* Reset IDX-related elements to browser defaults */
+[class*="IDX-"],
+[class*="idx-"],
+[id*="IDX-"],
+[id*="idx-"],
+.IDX-hide,
+.idx-hide,
+div[data-idxid],
+.idxbrokerphonenumber,
+div[data-idxbroker] {
+  all: revert !important;
+  box-sizing: content-box !important;
+}
+
+/* Additional resets for common elements within IDX content */
+[class*="IDX-"] *,
+[class*="idx-"] *,
+[id*="IDX-"] *,
+[id*="idx-"] *,
+div[data-idxid] *,
+div[data-idxbroker] * {
+  all: revert !important;
+  box-sizing: inherit !important;
+}
+
+/* Ensure IDX tables display correctly */
+[class*="IDX-"] table,
+[class*="idx-"] table,
+[id*="IDX-"] table,
+[id*="idx-"] table,
+div[data-idxid] table,
+div[data-idxbroker] table {
+  display: table !important;
+  border-collapse: separate !important;
+  border-spacing: 2px !important;
+}
+
+/* Ensure IDX form elements display correctly */
+[class*="IDX-"] input,
+[class*="idx-"] input,
+[id*="IDX-"] input,
+[id*="idx-"] input,
+div[data-idxid] input,
+div[data-idxbroker] input,
+[class*="IDX-"] select,
+[class*="idx-"] select,
+[id*="IDX-"] select,
+[id*="idx-"] select,
+div[data-idxid] select,
+div[data-idxbroker] select,
+[class*="IDX-"] textarea,
+[class*="idx-"] textarea,
+[id*="IDX-"] textarea,
+[id*="idx-"] textarea,
+div[data-idxid] textarea,
+div[data-idxbroker] textarea {
+  display: inline-block !important;
+  box-sizing: border-box !important;
+}
+
+/* Make sure IDX content isn't hidden */
+.IDX-hide, 
+.idx-hide, 
+.idxHide,
+[class*="IDX-hide"],
+[class*="idx-hide"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

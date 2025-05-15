@@ -46,15 +46,6 @@ export default function Navbar() {
             <a href="https://losangelesforsale.idxbroker.com/idx/map/mapsearch" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Map Search
             </a>
-            <Link href="/idx-listings" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
-              IDX Listings
-            </Link>
-            <Link href="/resources" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
-              Resources
-            </Link>
-            <Link href="/demo" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
-              Demo
-            </Link>
             <Link href="/get-started">
               <Button className="bg-olive-600 hover:bg-olive-700 text-white px-4 py-1 text-sm whitespace-nowrap">
                 Get Started Today
@@ -98,15 +89,6 @@ export default function Navbar() {
             <a href="https://losangelesforsale.idxbroker.com/idx/map/mapsearch" target="_blank" rel="noopener noreferrer" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Map Search
             </a>
-            <Link href="/idx-listings" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              IDX Listings
-            </Link>
-            <Link href="/resources" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Resources
-            </Link>
-            <Link href="/demo" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Demo
-            </Link>
             <Link href="/get-started" className="block">
               <Button className="w-full bg-olive-600 hover:bg-olive-700 text-white">
                 GET STARTED

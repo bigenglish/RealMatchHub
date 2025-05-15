@@ -234,7 +234,7 @@ export default function HomePage() {
 
             <div className="p-4">
               {/* This is a container for the IDX Addons search widget that will be populated automatically by the script */}
-              <div id="idx-search-addon-container"></div>
+              <div id="location-input" data-idx-omnibox-input="true" data-idx-omnibox-form="true"></div>
             </div>
 
             <div className="flex justify-center p-4">

@@ -242,9 +242,11 @@ export default function HomePage() {
                     id="location-input"
                     placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
                     className="pl-10 w-full text-gray-900 border border-gray-300 rounded-md py-2 px-3"
-                    list="location-suggestions"
+                    onChange={(e) => {
+                      // This field will now get autocomplete functionality from the IDX Addons script
+                      console.log("Location input changed:", e.target.value);
+                    }}
                   />
-                  <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
 

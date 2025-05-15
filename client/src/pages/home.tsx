@@ -356,10 +356,10 @@ export default function HomePage() {
                       <h4 className="text-lg font-semibold mb-3">Popular Neighborhoods</h4>
                       <div className="grid grid-cols-2 gap-2">
                         {[
-                          { name: "Los Angeles", price: "$1.2M avg" },
-                          { name: "San Francisco", price: "$1.8M avg" },
-                          { name: "New York", price: "$1.5M avg" },
-                          { name: "Miami", price: "$950K avg" }
+                          { name: "Westside", price: "$1.2M avg" },
+                          { name: "San Fernando Valley", price: "$1.8M avg" },
+                          { name: "South Bay", price: "$1.5M avg" },
+                          { name: "San Gabriel Valley", price: "$950K avg" }
                         ].map((location, i) => (
                           <div key={i} className="flex items-center p-2 bg-gray-50 rounded-md">
                             <MapPin className="h-4 w-4 text-olive-600 mr-2" />

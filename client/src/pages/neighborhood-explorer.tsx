@@ -35,10 +35,10 @@ const NeighborhoodExplorer: React.FC = () => {
 
   // Popular cities data
   const popularCities = [
-    { name: "Los Angeles", price: "$1.2M avg" },
-    { name: "San Francisco", price: "$1.8M avg" },
-    { name: "New York", price: "$1.5M avg" },
-    { name: "Miami", price: "$950K avg" }
+    { name: "Westside", price: "$1.2M avg" },
+    { name: "San Fernando Valley", price: "$1.8M avg" },
+    { name: "South Bay", price: "$1.5M avg" },
+    { name: "San Gabriel Valley", price: "$950K avg" }
   ];
 
   // Handler for city selection

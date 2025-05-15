@@ -234,14 +234,16 @@ export default function HomePage() {
 
             <div className="flex flex-col md:flex-row p-4 gap-4">
               <div className="flex-1">
-                <script 
-                  charset="UTF-8" 
-                  type="text/javascript" 
-                  id="idxaddons-autocomplete-script" 
-                  src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
-                  data-disable="bd,tb,lp,hp" 
-                  data-fieldlabels="n" 
-                />
+                <div id="idx-search-container">
+                  <script 
+                    charSet="UTF-8" 
+                    type="text/javascript" 
+                    id="idxaddons-autocomplete-script" 
+                    src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
+                    data-disable="bd,tb,lp,hp" 
+                    data-fieldlabels="n"
+                  ></script>
+                </div>
               </div>
 
               <div className="flex-1">

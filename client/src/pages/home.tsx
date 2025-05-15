@@ -234,36 +234,14 @@ export default function HomePage() {
 
             <div className="flex flex-col md:flex-row p-4 gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    type="text"
-                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
-                    className="pl-10 w-full text-gray-900"
-                    onChange={async (e) => {
-                      const value = e.target.value;
-                      if (value.length > 2) {
-                        try {
-                          const response = await fetch(`/api/places/autocomplete?query=${encodeURIComponent(value)}&types=${searchType === 'Sell' ? 'address' : ''}`);
-                          if (response.ok) {
-                            const suggestions = await response.json();
-                            const datalist = document.getElementById('location-suggestions');
-                            if (datalist) {
-                              datalist.innerHTML = suggestions.map((s: string) => 
-                                `<option value="${s}">${s}</option>`
-                              ).join('');
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Error fetching address suggestions:', error);
-                        }
-                      }
-                    }}
-                    list="location-suggestions"
-                  />
-                  <datalist id="location-suggestions"></datalist>
-                </div>
+                <script 
+                  charset="UTF-8" 
+                  type="text/javascript" 
+                  id="idxaddons-autocomplete-script" 
+                  src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
+                  data-disable="bd,tb,lp,hp" 
+                  data-fieldlabels="n" 
+                />
               </div>
 
               <div className="flex-1">

@@ -240,6 +240,8 @@ export default function HomePage() {
                   <input
                     type="text"
                     id="location-input"
+                    data-idx-omnibox-input="true"
+                    data-idx-omnibox-form="true"
                     placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
                     className="pl-10 w-full text-gray-900 border border-gray-300 rounded-md py-2 px-3"
                     onChange={(e) => {

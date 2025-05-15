@@ -252,7 +252,7 @@ export default function HomePage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16">Explore and Connect</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div>
               <h3 className="text-2xl font-bold mb-6">Neighborhood Explorer</h3>
@@ -268,7 +268,7 @@ export default function HomePage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                   </div>
-                  
+
                   {/* Map UI elements */}
                   <div className="absolute top-0 left-0 right-0 p-4">
                     <div className="bg-white rounded-md shadow-lg p-3 max-w-xs mx-auto">
@@ -282,7 +282,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Featured Locations */}
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <div className="bg-white rounded-t-lg shadow-lg p-4">
@@ -361,7 +361,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-center mt-4">
                   <Button variant="outline" className="text-olive-600 border-olive-600 hover:bg-olive-50">
                     View More Reviews
@@ -370,7 +370,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          
+
           {/* Trusted By / Reviews Title */}
           <h2 className="text-4xl font-bold text-center my-16">Trusted By</h2>
 
@@ -949,7 +949,7 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12">Recommended Properties</h2>
-          
+
           {/*Property Recommendations */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* User Profile */}
@@ -1011,11 +1011,11 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          
+
           <div className="mt-12 text-center">
             <Button 
               className="bg-olive-600 hover:bg-olive-700 py-6 px-8 mx-2"
-              onClick={() => openVideoDialog("/pay-your-way.mp4")}
+              onClick={() => openVideoDialog("/PAY YOUR WAY.mp4")}
             >
               See How It Works
             </Button>
@@ -1042,7 +1042,7 @@ export default function HomePage() {
             <div className="mt-6 md:mt-0">
               <Button 
                 className="bg-realGreen-dark hover:bg-realGreen-dark/90 text-white flex items-center gap-2"
-                onClick={() => openVideoDialog("/pay-your-way.mp4")}
+                onClick={() => openVideoDialog("/PAY YOUR WAY.mp4")}
               >
                 <Play className="h-5 w-5" /> Play Demo
               </Button>
@@ -1224,6 +1224,7 @@ export default function HomePage() {
               <Tabs defaultValue="buying" className="mb-10">
                 <TabsList className="flex w-full mb-8">
                   <TabsTrigger value="buying" className="flex-1 py-3 rounded-full">Buying</TabsTrigger>
+                  ```python
                   <TabsTrigger value="selling" className="flex-1 py-3 rounded-full">Selling</TabsTrigger>
                   <TabsTrigger value="renting" className="flex-1 py-3 rounded-full">Renting</TabsTrigger>
                 </TabsList>

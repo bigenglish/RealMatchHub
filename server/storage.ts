@@ -434,13 +434,13 @@ export class MemStorage implements IStorage {
       isActive: true,
       features: [
         "All 'Free' features",
-        "Professional Photography with high-quality property photos",
-        "Expert Staging Consultation and Tips",
-        "Regular CMA Updates and Market Analysis",
-        "Seller Disclosure Preparation Support",
-        "MLS Listing with Major Portal Syndication",
-        "Due Diligence Checklist and Guidance",
-        "2 Expert Reviews with Detailed Notes"
+        "Professional Photography - High-resolution photos to showcase your property's best features",
+        "Expert Staging Consultation - Personalized recommendations to maximize your home's appeal",
+        "Regular Market Analysis Updates - Ongoing CMA reports to keep your pricing strategy competitive",
+        "Seller Disclosure Support - Step-by-step guidance and digital tools for required documentation",
+        "Enhanced MLS Listing - Premium listing placement with syndication to major real estate portals",
+        "Due Diligence Assistance - Comprehensive checklist and expert guidance through the process",
+        "2 Expert Reviews - Detailed property assessments with professional recommendations"
       ]
     });
 

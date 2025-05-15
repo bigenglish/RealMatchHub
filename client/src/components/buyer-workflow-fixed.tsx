@@ -277,7 +277,7 @@ export default function BuyerWorkflow({
             <div>
               <h2 className="text-xl font-semibold mb-4">Important Amenities</h2>
               <p className="text-gray-500 mb-6">Select the amenities that matter most to you</p>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
                   { icon: 'Pool', label: 'Swimming Pool' },
@@ -324,8 +324,8 @@ export default function BuyerWorkflow({
               <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
               <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
 
-            {/* Image Upload Section */}
-            <div className="space-y-4">
+              {/* Image Upload Section */}
+              <div className="space-y-4">
               <Label>Upload Inspiration Images</Label>
               <div 
                 className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"

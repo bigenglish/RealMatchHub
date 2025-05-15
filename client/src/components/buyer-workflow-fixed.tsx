@@ -36,6 +36,7 @@ export default function BuyerWorkflow({
     type?: string | null;
     architecturalStyles?: string[];
     interiorStyles?: string[];
+    amenities?: string[];
   } | null>(null);
 
   // Handle down payment change
@@ -272,9 +273,56 @@ export default function BuyerWorkflow({
 
       case 'design':
         return (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
-            <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Important Amenities</h2>
+              <p className="text-gray-500 mb-6">Select the amenities that matter most to you</p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { icon: 'Pool', label: 'Swimming Pool' },
+                  { icon: 'Trees', label: 'Garden/Yard' },
+                  { icon: 'Car', label: 'Garage' },
+                  { icon: 'UtensilsCrossed', label: 'Updated Kitchen' },
+                  { icon: 'Dumbbell', label: 'Fitness Center' },
+                  { icon: 'Wifi', label: 'Smart Home Features' },
+                  { icon: 'Sun', label: 'Natural Light' },
+                  { icon: 'Warehouse', label: 'Storage Space' },
+                  { icon: 'Wind', label: 'Central Air' },
+                  { icon: 'Sofa', label: 'Open Floor Plan' },
+                  { icon: 'PawPrint', label: 'Pet Friendly' },
+                  { icon: 'Fence', label: 'Fenced Yard' }
+                ].map((amenity) => (
+                  <Card 
+                    key={amenity.label}
+                    className={`cursor-pointer hover:border-primary transition-colors ${
+                      selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
+                    }`}
+                    onClick={() => {
+                      const currentAmenities = selection?.amenities || [];
+                      const updatedAmenities = currentAmenities.includes(amenity.label)
+                        ? currentAmenities.filter(a => a !== amenity.label)
+                        : [...currentAmenities, amenity.label];
+                      setSelection({
+                        ...selection,
+                        amenities: updatedAmenities
+                      });
+                    }}
+                  >
+                    <CardContent className="flex items-center gap-3 p-4">
+                      <div className="text-gray-600">
+                        <Home className="h-5 w-5" />
+                      </div>
+                      <span className="text-sm font-medium">{amenity.label}</span>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t pt-8">
+              <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
+              <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
 
             {/* Image Upload Section */}
             <div className="space-y-4">

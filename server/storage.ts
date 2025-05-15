@@ -428,7 +428,7 @@ export class MemStorage implements IStorage {
       name: "BASIC",
       description: "Expert virtual guidance on offers and due diligence",
       price: "As low as $1,500",
-      savings: "Save time and money",
+      savings: "Save Save time and money",
       popularityRank: 2,
       featuredImage: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3",
       isActive: true,

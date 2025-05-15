@@ -232,54 +232,9 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row p-4 gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    id="location-input"
-                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
-                    className="pl-10 w-full text-gray-900 border border-gray-300 rounded-md py-2 px-3"
-                  />
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <Select 
-                  defaultValue="house"
-                >
-                  <SelectTrigger className="w-full text-gray-900">
-                    <SelectValue defaultValue="house">House</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="condo">Condo</SelectItem>
-                    <SelectItem value="townhouse">Townhouse</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Select>
-                    <SelectTrigger className="pl-10 w-full">
-                      <SelectValue placeholder="Select timeline" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asap">ASAP (ready to move)</SelectItem>
-                      <SelectItem value="1-3months">1-3 months</SelectItem>
-                      <SelectItem value="3-6months">3-6 months</SelectItem>
-                      <SelectItem value="6-12months">6-12 months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div className="p-4">
+              {/* This is a container for the IDX Addons search widget that will be populated automatically by the script */}
+              <div id="idx-search-addon-container"></div>
             </div>
 
             <div className="flex justify-center p-4">

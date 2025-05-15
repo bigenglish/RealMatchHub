@@ -434,13 +434,13 @@ export class MemStorage implements IStorage {
       isActive: true,
       features: [
         "All 'Free' features",
-        "Craft competitive offers and navigate negotiations with Realty AI tools and guidance",
-        "Market analysis reports (comparable sales data) and purchase strategies",
-        "Offer negotiation guidance (email/chat support) with a real estate expert",
-        "Document review, digital signing and AI assistant to simplify and explain all terms and conditions",
-        "Neighborhood insights",
-        "Due Diligence Checklist & Support (guidance through the due diligence process)",
-        "2 expert sign offs (detailed notes)"
+        "Professional Photography with high-quality property photos",
+        "Expert Staging Consultation and Tips",
+        "Regular CMA Updates and Market Analysis",
+        "Seller Disclosure Preparation Support",
+        "MLS Listing with Major Portal Syndication",
+        "Due Diligence Checklist and Guidance",
+        "2 Expert Reviews with Detailed Notes"
       ]
     });
 

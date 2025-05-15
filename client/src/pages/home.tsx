@@ -234,15 +234,17 @@ export default function HomePage() {
 
             <div className="flex flex-col md:flex-row p-4 gap-4">
               <div className="flex-1">
-                <div id="idx-search-container">
-                  <script 
-                    charSet="UTF-8" 
-                    type="text/javascript" 
-                    id="idxaddons-autocomplete-script" 
-                    src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
-                    data-disable="bd,tb,lp,hp" 
-                    data-fieldlabels="n"
-                  ></script>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    id="location-input"
+                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
+                    className="pl-10 w-full text-gray-900 border border-gray-300 rounded-md py-2 px-3"
+                    list="location-suggestions"
+                  />
+                  <datalist id="location-suggestions"></datalist>
                 </div>
               </div>
 

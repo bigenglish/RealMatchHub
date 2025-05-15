@@ -1,0 +1,68 @@
+Instructions for Replit Agent:
+
+"Please integrate the following script into this React component to enable IDX Addons autocomplete functionality for the 'Where' input field within the 'Dynamic Search Bar' section.
+
+HTML
+
+<script id="idxaddons-autocomplete-script" src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/" data-fieldlabels="n" data-dropdown="n"></script>
+Here's how to do it:
+
+Locate the 'Dynamic Search Bar' section in the code. This section contains the <label>Where</label> and the associated <Input> component.
+
+Assign a unique id to the <Input> component that you want the IDX Addons autocomplete to target. For example, modify the <Input> tag like this:
+
+JavaScript
+
+<Input
+  type="text"
+  id="location-input"  // Add this unique ID
+  placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
+  className="pl-10 w-full text-gray-900"
+  onChange={async (e) => {
+    // ... your existing onChange logic ...
+  }}
+  list="location-suggestions"
+/>
+Place the <script> tag within the <head> section of the main HTML file (index.html or _document.js if you are using Next.js's custom document). This ensures the script is loaded when the page loads.
+
+If you are in a standard Create React App or similar Replit environment: Navigate to the public folder and edit the index.html file. Place the <script> tag within the <head> tags.
+
+If you are in a Next.js Replit environment: Navigate to the pages directory and look for a _document.js file (or create one if it doesn't exist). Within the render() method of the MyDocument component, place the <script> tag inside the <Head> component.
+
+<!-- end list -->
+
+JavaScript
+
+// Example _document.js in Next.js
+import { Html, Head, Main, NextScript } from 'next/document';
+
+class MyDocument extends Document {
+  render() {
+    return (
+      <Html>
+        <Head>
+          <script
+            id="idxaddons-autocomplete-script"
+            src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/"
+            data-fieldlabels="n"
+            data-dropdown="n"
+          />
+          {/* Other head elements */}
+        </Head>
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+
+export default MyDocument;
+Verify the Integration: After placing the script and assigning the ID, run the Replit application. Type in the 'Where' input field. You should now see autocomplete suggestions provided by the IDX Addons script instead of (or in addition to, depending on how the IDX Addons script works) the suggestions from your existing /api/places/autocomplete logic.
+
+Important Considerations for the Replit Agent:
+
+Potential Conflicts: Be aware that the IDX Addons script might have its own styling and behavior that could conflict with the existing styling and the <datalist> implementation. You might need to adjust CSS or the IDX Addons script's configuration (if possible) to achieve the desired look and feel.
+Redundant Autocomplete: You currently have two autocomplete mechanisms (your API call and the IDX Addons script). You might want to disable or remove your existing /api/places/autocomplete logic for the 'Where' field if you intend to solely rely on the IDX Addons script.
+IDX Addons Configuration: The data-fieldlabels="n" and data-dropdown="n" attributes on the <script> tag suggest some configuration. Ensure these settings are appropriate for your needs. You might need to consult the IDX Addons documentation for further configuration options.

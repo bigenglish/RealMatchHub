@@ -912,7 +912,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 mt-8">
                 <Button 
                   className="bg-white text-gray-900 hover:bg-gray-100 py-6 px-8"
-                  onClick={() => openVideoDialog("/pay-your-way.mp4")}
+                  onClick={() => openVideoDialog("/PAY YOUR WAY.mp4")}
                 >
                   See How It Works
                 </Button>

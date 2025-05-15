@@ -396,6 +396,7 @@ export default function BuyerWorkflow({
                 ))}
               </div>
             </div>
+          </div>
 
             {/* Interior Style */}
             <div className="space-y-4">

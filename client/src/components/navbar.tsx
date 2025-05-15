@@ -43,9 +43,9 @@ export default function Navbar() {
             <Link href="/service-experts" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               Experts
             </Link>
-            <Link href="/appointments" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
-              Appointments
-            </Link>
+            <a href="https://losangelesforsale.idxbroker.com/idx/map/mapsearch" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
+              Map Search
+            </a>
             <Link href="/idx-listings" className="text-sm font-medium text-gray-700 hover:text-olive-600 whitespace-nowrap">
               IDX Listings
             </Link>
@@ -95,9 +95,9 @@ export default function Navbar() {
             <Link href="/service-experts" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               Experts
             </Link>
-            <Link href="/appointments" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
-              Appointments
-            </Link>
+            <a href="https://losangelesforsale.idxbroker.com/idx/map/mapsearch" target="_blank" rel="noopener noreferrer" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
+              Map Search
+            </a>
             <Link href="/idx-listings" className="block px-2 py-2 text-gray-700 hover:bg-gray-100 rounded">
               IDX Listings
             </Link>

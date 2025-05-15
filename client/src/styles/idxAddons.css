@@ -1,0 +1,62 @@
+/* Custom styles for IDX Addons widget */
+#idxaddons-searchtool {
+  width: 100%;
+  margin: 0 auto;
+  /* Style overrides to match the screenshot */
+  --omnibox-input-height: 52px;
+  --omnibox-border-radius: 6px;
+  --omnibox-input-padding: 0 12px 0 40px;
+  --omnibox-background-color: white;
+  --omnibox-text-color: #374151;
+  --omnibox-placeholder-color: #9CA3AF;
+  --omnibox-border-color: #E5E7EB;
+  --omnibox-highlight-color: #606C38;
+  --omnibox-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Override tab style to match the design in the screenshot */
+.idx-tabs-container {
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 16px;
+}
+
+.idx-tab {
+  padding: 12px 24px;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+}
+
+.idx-tab.active {
+  border-bottom: 2px solid #606C38;
+  color: #606C38;
+}
+
+/* Style the input to match the screenshot */
+.idx-search-field {
+  position: relative;
+}
+
+.idx-location-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+}
+
+.idx-input {
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  padding: 10px 12px 10px 40px;
+  width: 100%;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+  #idxaddons-searchtool {
+    width: 100%;
+  }
+}

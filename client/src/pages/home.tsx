@@ -232,70 +232,18 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div className="flex flex-col md:flex-row p-4 gap-4">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Where</label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    id="location-input"
-                    data-idx-omnibox-input="true"
-                    data-idx-omnibox-form="true"
-                    placeholder={searchType === 'Sell' ? "Enter your property address" : "City, State or ZIP"}
-                    className="pl-10 w-full text-gray-900 border border-gray-300 rounded-md py-2 px-3"
-                    onChange={(e) => {
-                      // This field will now get autocomplete functionality from the IDX Addons script
-                      console.log("Location input changed:", e.target.value);
-                    }}
-                  />
-                </div>
-              </div>
+            <div className="p-4">
+              {/* This entire space is reserved for the IDX Addons search widget */}
+              <div id="idxaddons-searchtool" className="w-full"></div>
+            </div>
 
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <Select 
-                  defaultValue="house"
-                >
-                  <SelectTrigger className="w-full text-gray-900">
-                    <SelectValue defaultValue="house">House</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="condo">Condo</SelectItem>
-                    <SelectItem value="townhouse">Townhouse</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-
-
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">When</label>
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Select>
-                    <SelectTrigger className="pl-10 w-full">
-                      <SelectValue placeholder="Select timeline" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asap">ASAP (ready to move)</SelectItem>
-                      <SelectItem value="1-3months">1-3 months</SelectItem>
-                      <SelectItem value="3-6months">3-6 months</SelectItem>
-                      <SelectItem value="6-12months">6-12 months</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-end">
-                <Link href={searchType === 'Buy' ? "/buyer-flow" : searchType === 'Sell' ? "/seller-flow/intent" : "/properties"}>
-                  <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
-                    {searchType === 'Buy' ? 'Start Buying' : searchType === 'Sell' ? 'Start Selling' : 'Browse Properties'}
-                  </Button>
-                </Link>
-              </div>
+            <div className="flex justify-center p-4">
+              <Link href={searchType === 'Buy' ? "/buyer-flow" : searchType === 'Sell' ? "/seller-flow/intent" : "/properties"}>
+                <Button className="bg-olive-600 hover:bg-olive-700 w-full md:w-auto whitespace-nowrap">
+                  {searchType === 'Buy' ? 'Start Buying' : searchType === 'Sell' ? 'Start Selling' : 'Browse Properties'}
+                </Button>
+              </Link>
+            </div>
             </div>
           </div>
         </div>

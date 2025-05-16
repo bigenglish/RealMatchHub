@@ -102,7 +102,12 @@ export async function fetchIdxListings({
   minPrice = 0, 
   maxPrice = 0,
   bedrooms,
-  bathrooms
+  bathrooms,
+  propertyType = '',
+  sqft_min = 0,
+  sqft_max = 0,
+  keywords = [],
+  amenities = []
 }: { 
   limit?: number; 
   offset?: number; 

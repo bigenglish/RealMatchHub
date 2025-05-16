@@ -51,6 +51,14 @@ export default function IdxWidget({ widgetId = "40942", className = "", onSearch
   
   // Handle the form submission (for fallback UI)
   const handleSearch = () => {
+    // Map design preferences to IDX keywords
+    const styleKeywords = {
+      modern: ["modern", "contemporary", "updated"],
+      traditional: ["traditional", "classic", "conventional"],
+      craftsman: ["craftsman", "artisan", "handcrafted"],
+      mediterranean: ["mediterranean", "spanish", "tuscan"]
+    };
+
     // Build search criteria for display in toast
     const criteria = [];
     

@@ -75,3 +75,21 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Buyer Flow"
+author = 40449480
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- --questionnaire-type=buyer"
+
+[[workflows.workflow]]
+name = "Seller Flow"
+author = 40449480
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- --questionnaire-type=seller"

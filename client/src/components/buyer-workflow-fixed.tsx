@@ -12,6 +12,9 @@ import { useToast } from '@/hooks/use-toast';
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
+// Get questionnaire type from URL params
+const questionnaireType = new URLSearchParams(window.location.search).get('questionnaire-type');
+
 interface BuyerWorkflowProps {
   currentStep: Step;
   onStepChange: (step: Step) => void;

@@ -233,9 +233,16 @@ export default function HomePage() {
             </div>
 
             <div className="p-4">
-              {/* This is a container for the IDX Addons search widget that will be populated automatically by the script */}
+              <script 
+                charset="UTF-8" 
+                type="text/javascript" 
+                id="idxaddons-autocomplete-script" 
+                src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
+                data-disable="bd,tb,lp,hp" 
+                data-fieldlabels="n"
+              ></script>
               <div id="location-input" data-idx-omnibox-input="true" data-idx-omnibox-form="true"></div>
-            </div>
+          </div>
 
             <div className="flex justify-center p-4">
               <Link href={searchType === 'Buy' ? "/buyer-flow" : searchType === 'Sell' ? "/seller-flow/intent" : "/properties"}>
@@ -1224,7 +1231,6 @@ export default function HomePage() {
               <Tabs defaultValue="buying" className="mb-10">
                 <TabsList className="flex w-full mb-8">
                   <TabsTrigger value="buying" className="flex-1 py-3 rounded-full">Buying</TabsTrigger>
-                  ```python
                   <TabsTrigger value="selling" className="flex-1 py-3 rounded-full">Selling</TabsTrigger>
                   <TabsTrigger value="renting" className="flex-1 py-3 rounded-full">Renting</TabsTrigger>
                 </TabsList>

@@ -116,6 +116,11 @@ export async function fetchIdxListings({
   maxPrice?: number;
   bedrooms?: number;
   bathrooms?: number;
+  propertyType?: string;
+  sqft_min?: number;
+  sqft_max?: number;
+  keywords?: string[];
+  amenities?: string[];
 }): Promise<IdxListingsResponse> {
   try {
     // Check if API key is available
@@ -131,8 +136,9 @@ export async function fetchIdxListings({
       
       // Primary endpoints for property data
       const possibleEndpoints = [
-        'https://api.idxbroker.com/clients/properties',
-        'https://api.idxbroker.com/mls/propertylist'
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/mls/searchfieldvalues',
+        'https://api.idxbroker.com/mls/searchfields'
       ];
       
       // Different header combinations to try

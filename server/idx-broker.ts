@@ -107,7 +107,9 @@ export async function fetchIdxListings({
   sqft_min = 0,
   sqft_max = 0,
   keywords = [],
-  amenities = []
+  amenities = [],
+  architecturalStyle = '',
+  interiorStyle = ''
 }: { 
   limit?: number; 
   offset?: number; 
@@ -121,7 +123,48 @@ export async function fetchIdxListings({
   sqft_max?: number;
   keywords?: string[];
   amenities?: string[];
+  architecturalStyle?: string;
+  interiorStyle?: string;
 }): Promise<IdxListingsResponse> {
+  // Define additional search parameters mapping
+  const styleToIdxMapping = {
+    modern: 'contemporary',
+    traditional: 'traditional',
+    craftsman: 'craftsman',
+    mediterranean: 'mediterranean',
+    colonial: 'colonial',
+    farmhouse: 'farmhouse',
+    ranch: 'ranch',
+    victorian: 'victorian'
+  };
+
+  const amenityToIdxMapping = {
+    pool: 'pool',
+    garage: 'garage',
+    yard: 'yard',
+    'updated-kitchen': 'updated_kitchen',
+    'fitness-center': 'fitness',
+    'smart-home': 'smart_home',
+    'natural-light': 'natural_light',
+    'storage-space': 'storage',
+    'central-air': 'central_air',
+    'open-floor-plan': 'open_floor_plan',
+    'pet-friendly': 'pets_allowed',
+    'fenced-yard': 'fenced_yard'
+  };
+
+  // Map interior styles to IDX features
+  const interiorToIdxMapping = {
+    minimalist: 'modern',
+    contemporary: 'contemporary',
+    traditional: 'traditional',
+    rustic: 'rustic',
+    industrial: 'industrial',
+    coastal: 'coastal',
+    bohemian: 'eclectic',
+    scandinavian: 'modern'  
+  };
+
   try {
     // Check if API key is available
     const apiKey = process.env.IDX_BROKER_API_KEY;
@@ -387,4 +430,35 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
     hasMoreListings: hasNext
   };
 }
-`
+
+async function searchProperties(params) {
+  // Base parameters
+  const searchParams = new URLSearchParams({
+    propertyType: params.propertyType,
+    minPrice: params.minPrice,
+    maxPrice: params.maxPrice,
+    location: params.location,
+    beds: params.bedrooms,
+    baths: params.bathrooms,
+    sqft: params.squareFootage
+  });
+
+  // Add architectural style
+  if (params.architecturalStyle && styleToIdxMapping[params.architecturalStyle]) {
+    searchParams.append('style', styleToIdxMapping[params.architecturalStyle]);
+  }
+
+  // Add interior style features
+  if (params.interiorStyle && interiorToIdxMapping[params.interiorStyle]) {
+    searchParams.append('features', interiorToIdxMapping[params.interiorStyle]);
+  }
+
+  // Add amenities
+  if (params.amenities && Array.isArray(params.amenities)) {
+    params.amenities.forEach(amenity => {
+      if (amenityToIdxMapping[amenity]) {
+        searchParams.append('features', amenityToIdxMapping[amenity]);
+      }
+    });
+  }
+}

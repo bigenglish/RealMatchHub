@@ -165,6 +165,16 @@ export default function MarketplacePage() {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-8">
+      {/* Service Type Tabs */}
+      <div className="mb-8">
+        <Tabs defaultValue="bundles" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="bundles">Service Bundles</TabsTrigger>
+            <TabsTrigger value="services">Individual Services</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* User Type Tabs */}
       <div className="mb-8">
         <Tabs defaultValue="buyers" className="w-full" onValueChange={setUserType}>

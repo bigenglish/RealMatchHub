@@ -8,14 +8,14 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
   try {
     // Check if API key is available
     const apiKey = process.env.IDX_BROKER_API_KEY;
-    
+
     if (!apiKey) {
       return { 
         success: false, 
         message: "IDX Broker API key is not configured" 
       };
     }
-    
+
     // Make a simple request to test the connection
     try {
       // We'll make a simple call to get account information
@@ -26,7 +26,7 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
           'accesskey': apiKey
         }
       });
-      
+
       return { 
         success: true, 
         message: "Successfully connected to IDX Broker API",
@@ -125,7 +125,7 @@ export async function fetchIdxListings({
   try {
     // Check if API key is available
     const apiKey = process.env.IDX_BROKER_API_KEY;
-    
+
     if (!apiKey) {
       console.warn('IDX_BROKER_API_KEY not found in environment variables');
       throw new Error('IDX Broker API key is required to fetch listings');
@@ -133,20 +133,22 @@ export async function fetchIdxListings({
 
     try {
       console.log('Fetching listings from IDX Broker API - trying multiple endpoints and formats');
-      
+
       // Primary endpoints for property data
       const possibleEndpoints = [
         'https://api.idxbroker.com/clients/featured',
         'https://api.idxbroker.com/mls/searchfieldvalues',
         'https://api.idxbroker.com/mls/searchfields'
       ];
-      
+
       // Different header combinations to try
       const possibleHeaders = [
         // Standard headers format
         {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'accesskey': apiKey
+          'accesskey': apiKey,
+          'Cache-Control': 'no-cache',
+          'Accept': 'application/json'
         },
         // Alternate format 1
         {
@@ -165,22 +167,22 @@ export async function fetchIdxListings({
           'Authorization': `Bearer ${apiKey}`
         }
       ];
-      
+
       // Log that we're trying multiple combinations
       console.log(`Trying ${possibleEndpoints.length} different IDX API endpoints with ${possibleHeaders.length} header variations`);
-      
+
       let response;
       let foundData = false;
-      
+
       // Try each endpoint with each header combination until we find data
       for (const endpoint of possibleEndpoints) {
         // If we already found data, don't try more endpoints
         if (foundData) break;
-        
+
         for (const headers of possibleHeaders) {
           try {
             console.log(`Trying IDX endpoint with headers variation:`, endpoint);
-            
+
             // Make the API call to IDX Broker
             response = await axios.get(endpoint, {
               headers,
@@ -194,7 +196,7 @@ export async function fetchIdxListings({
                 ...(bathrooms !== undefined && { bathrooms })
               }
             });
-            
+
             // If we got a successful response with data, flag success and break
             if (response.status === 200 && response.data) {
               // Check different ways data might be structured
@@ -202,7 +204,7 @@ export async function fetchIdxListings({
                 (Array.isArray(response.data) && response.data.length > 0) ||
                 (response.data && typeof response.data === 'object' && Object.keys(response.data).length > 0) ||
                 (response.data && typeof response.data === 'string' && response.data.length > 20); // Arbitrary 20 char min for string data
-              
+
               if (hasData) {
                 console.log(`Success! Endpoint ${endpoint} returned data with headers:`, Object.keys(headers));
                 foundData = true;
@@ -218,22 +220,22 @@ export async function fetchIdxListings({
           }
         }
       }
-      
+
       // If we didn't get a successful response, create an empty one
       if (!response) {
         console.log('All IDX endpoints failed, creating empty response');
         response = { status: 404, data: [] };
       }
-      
+
       console.log('Successfully received response from IDX Broker API:', response.status);
       console.log('Response data type:', typeof response.data);
-      
+
       if (Array.isArray(response.data)) {
         console.log('Number of listings received:', response.data.length);
       } else {
         console.log('Response data is not an array. Structure:', Object.keys(response.data || {}));
       }
-      
+
       // Transform the real API response
       return transformIdxResponse(response.data);
     } catch (apiError) {
@@ -253,24 +255,24 @@ export async function fetchIdxListings({
  */
 function transformIdxResponse(apiResponse: any): IdxListingsResponse {
   console.log('Transforming IDX API response');
-  
+
   // Handle different response formats from IDX Broker API
   let data: any[] = [];
   let totalCount = 0;
   let hasNext = false;
-  
+
   // If response is empty or null, return empty response
   if (!apiResponse) {
     console.log('API response is empty');
     return { listings: [], totalCount: 0, hasMoreListings: false };
   }
-  
+
   // Log the structure for debugging
   const responsePreview = typeof apiResponse === 'string' 
     ? apiResponse.substring(0, 200)
     : JSON.stringify(apiResponse).substring(0, 200);
   console.log('API Response structure:', responsePreview + '...');
-  
+
   try {
     // Handle array response
     if (Array.isArray(apiResponse)) {
@@ -289,7 +291,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
     // Handle direct object response
     else if (apiResponse && typeof apiResponse === 'object') {
       console.log('Response is an object, properties:', Object.keys(apiResponse));
-      
+
       // Special case for listing IDs endpoint
       if (apiResponse.ids && Array.isArray(apiResponse.ids)) {
         console.log('Found IDs array with', apiResponse.ids.length, 'items');
@@ -326,7 +328,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
   } catch (error) {
     console.error('Error processing IDX API response:', error);
   }
-  
+
   // Create demo properties if no data was found
   if (data.length === 0) {
     console.log('No properties found in IDX response, creating example property for debugging');
@@ -348,7 +350,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
     }];
     totalCount = data.length;
   }
-  
+
   console.log('Processing', data.length, 'listings');
 
   // Map the IDX data to our format
@@ -358,7 +360,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
       console.log('Sample listing:', JSON.stringify(item).substring(0, 200) + '...');
       console.log('Available fields:', Object.keys(item));
     }
-    
+
     // Create a consistent property object from various possible IDX structures
     return {
       listingId: item.idxID || item.listingId || `idx-${index}`,
@@ -378,10 +380,11 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
       listedDate: item.listDate || item.listedDate || new Date().toISOString().split('T')[0]
     };
   });
-  
+
   return {
     listings,
     totalCount,
     hasMoreListings: hasNext
   };
 }
+`

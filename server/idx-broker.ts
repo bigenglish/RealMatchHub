@@ -109,7 +109,16 @@ export async function fetchIdxListings({
   keywords = [],
   amenities = [],
   architecturalStyle = '',
-  interiorStyle = ''
+  interiorStyle = '',
+  features = [],
+  yearBuiltMin,
+  yearBuiltMax,
+  lotSizeMin,
+  lotSizeMax,
+  waterfront,
+  pool,
+  garage,
+  basement
 }: { 
   limit?: number; 
   offset?: number; 

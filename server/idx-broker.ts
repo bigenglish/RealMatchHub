@@ -478,15 +478,17 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
 }
 
 async function searchProperties(params) {
+  const IDX_BASE_URL = 'https://losangelesforsale.idxbroker.com/idx/results/listings';
+  
   // Base parameters
   const searchParams = new URLSearchParams({
-    propertyType: params.propertyType,
-    minPrice: params.minPrice,
-    maxPrice: params.maxPrice,
-    location: params.location,
-    beds: params.bedrooms,
-    baths: params.bathrooms,
-    sqft: params.squareFootage
+    propertyType: params.propertyType || '',
+    minPrice: params.minPrice || '',
+    maxPrice: params.maxPrice || '',
+    location: params.location || '',
+    beds: params.bedrooms || '',
+    baths: params.bathrooms || '',
+    sqft: params.squareFootage || ''
   });
 
   // Add architectural style

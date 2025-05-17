@@ -139,6 +139,43 @@ export async function fetchIdxListings({
   };
 
   const amenityToIdxMapping = {
+    // Property Features
+    basement: 'basement',
+    attic: 'attic',
+    'wine-cellar': 'wine_cellar',
+    'home-theater': 'media_room',
+    'outdoor-kitchen': 'outdoor_kitchen',
+    'security-system': 'security_system',
+    'solar-panels': 'solar_panels',
+    generator: 'generator',
+    'laundry-room': 'laundry_room',
+    'walk-in-closets': 'walk_in_closets',
+
+    // Outdoor Amenities
+    patio: 'patio',
+    deck: 'deck',
+    balcony: 'balcony',
+    garden: 'garden',
+    'sprinkler-system': 'sprinkler_system',
+    'outdoor-lighting': 'outdoor_lighting',
+    'fire-pit': 'fire_pit',
+    'bbq-area': 'bbq_area',
+    'tennis-court': 'tennis_court',
+    'basketball-court': 'basketball_court',
+
+    // Community Features
+    'gated-community': 'gated_community',
+    'club-house': 'club_house',
+    'community-pool': 'community_pool',
+    'tennis-courts': 'tennis_courts',
+    'golf-course': 'golf_course',
+    'walking-trails': 'walking_trails',
+    'park-access': 'park_access',
+    'security-patrol': 'security_patrol',
+    'guest-parking': 'guest_parking',
+    'package-service': 'package_service',
+
+    // Existing amenities
     pool: 'pool',
     garage: 'garage',
     yard: 'yard',

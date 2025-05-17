@@ -6,7 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { 
   Home, Check, ChevronsRight, Landmark,
-  Square, Bed, Bath, ImageIcon
+  Square, Bed, Bath, ImageIcon,
+  Stairs, Wine, Video, Utensils, Shield, Sun, Power, Washing, Wardrobe,
+  Layout, Mountain, Flower, Droplets, Flame, Activity, Circle,
+  Lock, Flag, Map, Tree, ParkingSquare, Package
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -70,6 +73,17 @@ export default function BuyerWorkflow({
       default:
         break;
     }
+  };
+
+  const handleAmenitySelection = (amenityLabel: string) => {
+    const currentAmenities = selection?.amenities || [];
+    const updatedAmenities = currentAmenities.includes(amenityLabel)
+      ? currentAmenities.filter(a => a !== amenityLabel)
+      : [...currentAmenities, amenityLabel];
+    setSelection({
+      ...selection,
+      amenities: updatedAmenities
+    });
   };
 
   // Render content based on current step
@@ -281,45 +295,105 @@ export default function BuyerWorkflow({
               <h2 className="text-xl font-semibold mb-4">Important Amenities</h2>
               <p className="text-gray-500 mb-6">Select the amenities that matter most to you</p>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { icon: 'Pool', label: 'Swimming Pool' },
-                  { icon: 'Trees', label: 'Garden/Yard' },
-                  { icon: 'Car', label: 'Garage' },
-                  { icon: 'UtensilsCrossed', label: 'Updated Kitchen' },
-                  { icon: 'Dumbbell', label: 'Fitness Center' },
-                  { icon: 'Wifi', label: 'Smart Home Features' },
-                  { icon: 'Sun', label: 'Natural Light' },
-                  { icon: 'Warehouse', label: 'Storage Space' },
-                  { icon: 'Wind', label: 'Central Air' },
-                  { icon: 'Sofa', label: 'Open Floor Plan' },
-                  { icon: 'PawPrint', label: 'Pet Friendly' },
-                  { icon: 'Fence', label: 'Fenced Yard' }
-                ].map((amenity) => (
-                  <Card 
-                    key={amenity.label}
-                    className={`cursor-pointer hover:border-primary transition-colors ${
-                      selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
-                    }`}
-                    onClick={() => {
-                      const currentAmenities = selection?.amenities || [];
-                      const updatedAmenities = currentAmenities.includes(amenity.label)
-                        ? currentAmenities.filter(a => a !== amenity.label)
-                        : [...currentAmenities, amenity.label];
-                      setSelection({
-                        ...selection,
-                        amenities: updatedAmenities
-                      });
-                    }}
-                  >
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div className="text-gray-600">
-                        <Home className="h-5 w-5" />
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Property Features</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      { icon: 'Home', label: "Basement" },
+                      { icon: 'Stairs', label: "Attic" },
+                      { icon: 'Wine', label: "Wine Cellar" },
+                      { icon: 'Video', label: "Home Theater" },
+                      { icon: 'Utensils', label: "Outdoor Kitchen" },
+                      { icon: 'Shield', label: "Security System" },
+                      { icon: 'Sun', label: "Solar Panels" },
+                      { icon: 'Power', label: "Generator" },
+                      { icon: 'Washing', label: "Laundry Room" },
+                      { icon: 'Wardrobe', label: "Walk-in Closets" }
+                    ].map((amenity) => (
+                      <div
+                        key={amenity.label}
+                        className={`cursor-pointer hover:border-primary transition-colors ${
+                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
+                        }`}
+                        onClick={() => handleAmenitySelection(amenity.label)}
+                      >
+                        <CardContent className="flex items-center gap-3 p-4">
+                          <div className="text-gray-600">
+                            <Home className="h-5 w-5" />
+                          </div>
+                          <span className="text-sm font-medium">{amenity.label}</span>
+                        </CardContent>
                       </div>
-                      <span className="text-sm font-medium">{amenity.label}</span>
-                    </CardContent>
-                  </Card>
-                ))}
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Outdoor Amenities</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      { icon: 'Square', label: "Patio" },
+                      { icon: 'Layout', label: "Deck" },
+                      { icon: 'Mountain', label: "Balcony" },
+                      { icon: 'Flower', label: "Garden" },
+                      { icon: 'Droplets', label: "Sprinkler System" },
+                      { icon: 'Sun', label: "Outdoor Lighting" },
+                      { icon: 'Flame', label: "Fire Pit" },
+                      { icon: 'Utensils', label: "BBQ Area" },
+                      { icon: 'Activity', label: "Tennis Court" },
+                      { icon: 'Circle', label: "Basketball Court" }
+                    ].map((amenity) => (
+                      <div
+                        key={amenity.label}
+                        className={`cursor-pointer hover:border-primary transition-colors ${
+                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
+                        }`}
+                        onClick={() => handleAmenitySelection(amenity.label)}
+                      >
+                        <CardContent className="flex items-center gap-3 p-4">
+                          <div className="text-gray-600">
+                            <Home className="h-5 w-5" />
+                          </div>
+                          <span className="text-sm font-medium">{amenity.label}</span>
+                        </CardContent>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Community Features</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      { icon: 'Lock', label: "Gated Community" },
+                      { icon: 'Home', label: "Club House" },
+                      { icon: 'Pool', label: "Community Pool" },
+                      { icon: 'Activity', label: "Tennis Courts" },
+                      { icon: 'Flag', label: "Golf Course" },
+                      { icon: 'Map', label: "Walking Trails" },
+                      { icon: 'Tree', label: "Park Access" },
+                      { icon: 'Shield', label: "Security Patrol" },
+                      { icon: 'ParkingSquare', label: "Guest Parking" },
+                      { icon: 'Package', label: "Package Service" }
+                    ].map((amenity) => (
+                      <div
+                        key={amenity.label}
+                        className={`cursor-pointer hover:border-primary transition-colors ${
+                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
+                        }`}
+                        onClick={() => handleAmenitySelection(amenity.label)}
+                      >
+                        <CardContent className="flex items-center gap-3 p-4">
+                          <div className="text-gray-600">
+                            <Home className="h-5 w-5" />
+                          </div>
+                          <span className="text-sm font-medium">{amenity.label}</span>
+                        </CardContent>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

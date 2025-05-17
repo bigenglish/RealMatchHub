@@ -1,0 +1,81 @@
+Before providing the instructions, let's reiterate the key components:
+
+Realty AI Buyer-Flow: This is the user interface (likely on your realtyai.app site) where users input their property search criteria (location, price, etc.).
+
+IDX System: This is Realty Candy's system, which holds the actual property listing data. It receives search requests and returns results.
+
+Static Wrapper: This is the HTML page created by Realty Candy, which displays your website's header and footer and embeds the IDX results.
+
+The goal is to make sure the data flows correctly:
+
+User enters search criteria in the Realty AI buyer-flow.
+
+Those criteria are sent to the IDX system.
+
+The IDX system displays the matching properties within the static wrapper.
+
+Step-by-Step Instructions
+
+Here's a combined set of instructions for your Replit developer and Realty Candy developer, broken down by responsibility:
+
+Instructions for Your Replit Developer (Focus: Sending Data to IDX)
+
+These instructions focus on the code within your realtyai.app that handles the buyer-flow and sends the search request.
+
+Identify Search Parameters:
+
+Carefully document all the data points collected from the user in your buyer-flow (e.g., city, state, zip code, price range, property type, number of beds/baths).
+
+Ensure that the names of these parameters are consistent and well-defined (e.g., city, zipcode, minPrice, maxPrice).
+
+Prepare Data for IDX:
+
+Determine the exact format and parameter names that the Realty Candy IDX system expects to receive search requests. This is crucial and requires clear communication with Realty Candy.  Ask Realty Candy for their API documentation or the specific URL and parameters they require.
+
+Modify your buyer-flow code to format the user's search criteria into the format expected by the IDX system. This might involve creating a URL query string or a JSON object.
+
+Example (assuming Realty Candy expects a query string like this: https://realtycandy.com/idx/search?city=LosAngeles&zip=90210&minprice=500000):
+
+Your Replit code should construct this URL using the values from your buyer-flow.
+
+Send the Request to IDX:
+
+Use JavaScript (e.g., fetch(), XMLHttpRequest) to send the search request to the Realty Candy IDX system's URL.
+
+The request should include the formatted search parameters from the previous step.
+
+Specify the correct HTTP method (usually GET).
+
+Handle Responses (Initial):
+
+Your Replit code doesn't necessarily need to display the search results (that's the wrapper's job), but it does need to handle the initial response from the IDX system.
+
+Check for success (e.g., HTTP status code 200).
+
+Log any errors or error messages from the IDX system to the console. This is essential for debugging.
+
+Instructions for Realty Candy Developer (Focus: Receiving Data and Displaying Results)
+
+These instructions are for the developer who created the static wrapper.
+
+Receive Search Parameters:
+
+Ensure the static wrapper is correctly configured to receive the search parameters sent from the Realty AI buyer-flow (from the Replit application).
+
+This usually involves reading the parameters from the URL query string or the request body.
+
+Query IDX Data:
+
+Use the received search parameters to query their IDX database and retrieve the relevant property listings.
+
+Display Results within Wrapper:
+
+Format the IDX search results (property data) into HTML and CSS that fits seamlessly within the static wrapper page.
+
+Ensure the results are displayed in a user-friendly and visually appealing manner.
+
+Consider pagination, sorting, and other features to enhance the user experience.
+
+Communicate Success/Failure:
+
+Provide clear feedback to the Replit application (if needed) indicating whether the search was successful or if there were any errors. This could be an HTTP status code or a specific message in the response.

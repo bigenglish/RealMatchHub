@@ -479,7 +479,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
 
 async function searchProperties(params) {
   const IDX_BASE_URL = 'https://losangelesforsale.idxbroker.com/idx/results/listings';
-  
+
   // Base parameters
   const searchParams = new URLSearchParams({
     propertyType: params.propertyType || '',

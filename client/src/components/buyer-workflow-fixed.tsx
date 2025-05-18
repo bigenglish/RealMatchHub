@@ -521,7 +521,26 @@ export default function BuyerWorkflow({
 
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
-              <Button onClick={() => onStepChange('properties')}>
+              <Button onClick={() => {
+                // Create IDX Broker URL with search parameters based on user selections
+                const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
+                const params = new URLSearchParams();
+                
+                // Add architectural styles if selected
+                if (selection?.architecturalStyles?.length) {
+                  params.append("a_style", selection.architecturalStyles.join(","));
+                }
+                
+                // Add amenities if selected
+                if (selection?.amenities?.length) {
+                  selection.amenities.forEach(amenity => {
+                    params.append("fea", amenity);
+                  });
+                }
+                
+                // Redirect to IDX Broker with search parameters
+                window.location.href = idxBaseUrl + params.toString();
+              }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

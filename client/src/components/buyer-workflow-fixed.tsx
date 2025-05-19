@@ -43,6 +43,7 @@ export default function BuyerWorkflow({
     architecturalStyles?: string[];
     interiorStyles?: string[];
     amenities?: string[];
+    neighborhoods?: string[];
   } | null>(null);
 
   // Handle down payment change
@@ -354,9 +355,23 @@ export default function BuyerWorkflow({
                             ? "bg-primary/10 border-primary"
                             : "border-gray-200 hover:border-primary"
                         }`}
-                        onClick={() => handleNeighborhoodSelection(neighborhood)}
+                        onClick={() => {
+                          const currentNeighborhoods = selection?.neighborhoods || [];
+                          const newNeighborhoods = currentNeighborhoods.includes(neighborhood)
+                            ? currentNeighborhoods.filter(n => n !== neighborhood)
+                            : [...currentNeighborhoods, neighborhood];
+                          setSelection(prev => ({
+                            ...prev,
+                            neighborhoods: newNeighborhoods
+                          }));
+                        }}
                       >
-                        <span className="text-sm">{neighborhood}</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">{neighborhood}</span>
+                          {selection?.neighborhoods?.includes(neighborhood) && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

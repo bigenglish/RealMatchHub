@@ -297,6 +297,72 @@ export default function BuyerWorkflow({
 
               <div className="space-y-6">
                 <div>
+                  <h3 className="text-lg font-semibold mb-3">Important Amenities</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[
+                      { icon: 'Pool', label: "Pool" },
+                      { icon: 'Car', label: "Garage" },
+                      { icon: 'TreePalm', label: "Yard" },
+                      { icon: 'Balcony', label: "Balcony/Patio" },
+                      { icon: 'Flame', label: "Fireplace" },
+                      { icon: 'Chef', label: "Updated Kitchen" },
+                      { icon: 'Bath', label: "Updated Bathrooms" },
+                      { icon: 'Home', label: "Central AC" },
+                      { icon: 'Sun', label: "Natural Light" },
+                      { icon: 'Layout', label: "Open Floor Plan" },
+                      { icon: 'Dog', label: "Pet Friendly" },
+                      { icon: 'Fence', label: "Fenced Yard" }
+                    ].map((amenity) => (
+                      <div
+                        key={amenity.label}
+                        className={`cursor-pointer p-3 rounded-lg border ${
+                          selection?.amenities?.includes(amenity.label) 
+                            ? "bg-primary/10 border-primary" 
+                            : "border-gray-200 hover:border-primary"
+                        }`}
+                        onClick={() => handleAmenitySelection(amenity.label)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="text-gray-600">
+                            <Icon name={amenity.icon} className="h-4 w-4" />
+                          </div>
+                          <span className="text-sm">{amenity.label}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Preferred Neighborhoods</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      "Santa Monica",
+                      "Venice",
+                      "Marina Del Rey",
+                      "Culver City",
+                      "Beverly Hills",
+                      "West Hollywood",
+                      "Manhattan Beach",
+                      "Hermosa Beach",
+                      "Redondo Beach"
+                    ].map((neighborhood) => (
+                      <div
+                        key={neighborhood}
+                        className={`cursor-pointer p-3 rounded-lg border ${
+                          selection?.neighborhoods?.includes(neighborhood)
+                            ? "bg-primary/10 border-primary"
+                            : "border-gray-200 hover:border-primary"
+                        }`}
+                        onClick={() => handleNeighborhoodSelection(neighborhood)}
+                      >
+                        <span className="text-sm">{neighborhood}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
                   <h3 className="text-lg font-semibold mb-3">Property Features</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {[

@@ -24,7 +24,6 @@ import { Separator } from "@/components/ui/separator"
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
-// Get questionnaire type from URL params
 const questionnaireType = new URLSearchParams(window.location.search).get('questionnaire-type');
 
 interface BuyerWorkflowProps {
@@ -60,13 +59,11 @@ export default function BuyerWorkflow({
     priceRange?: number[];
   } | null>(null);
 
-  // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/[^0-9]/g, '');
     setDownPaymentAmount(Number(value) || 0);
   };
 
-  // Handler for loan pre-approval
   const handleLoanPreApproval = () => {
     window.location.href = '/fast-online-application';
   };
@@ -101,7 +98,17 @@ export default function BuyerWorkflow({
     });
   };
 
-  // Render content based on current step
+  const handleNeighborhoodSelection = (neighborhood: string) => {
+    const currentNeighborhoods = selection?.neighborhoods || [];
+    const newNeighborhoods = currentNeighborhoods.includes(neighborhood)
+      ? currentNeighborhoods.filter(n => n !== neighborhood)
+      : [...currentNeighborhoods, neighborhood];
+    setSelection(prev => ({
+      ...prev,
+      neighborhoods: newNeighborhoods
+    }));
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 'situation':
@@ -703,23 +710,19 @@ export default function BuyerWorkflow({
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => {
-                // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
 
-                // Add architectural styles if selected
                 if (selection?.architecturalStyles?.length) {
                   params.append("a_style", selection.architecturalStyles.join(","));
                 }
 
-                // Add amenities if selected
                 if (selection?.amenities?.length) {
                   selection.amenities.forEach(amenity => {
                     params.append("fea", amenity);
                   });
                 }
 
-                // Redirect to IDX Broker with search parameters
                 window.location.href = idxBaseUrl + params.toString();
               }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
@@ -812,7 +815,6 @@ export default function BuyerWorkflow({
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Step indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-center">
@@ -860,7 +862,6 @@ export default function BuyerWorkflow({
         </div>
       </div>
 
-      {/* Step content */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         {renderStepContent()}
       </div>

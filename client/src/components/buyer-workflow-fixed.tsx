@@ -809,8 +809,7 @@ export default function BuyerWorkflow({
         );
 
       default:
-        return null;
-    }
+        return null;    }
   };
 
   return (

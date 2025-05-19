@@ -35,10 +35,10 @@ const NeighborhoodExplorer: React.FC = () => {
 
   // Popular cities data
   const popularCities = [
-    { name: "Westside", price: "$1.2M avg" },
-    { name: "San Fernando Valley", price: "$1.8M avg" },
-    { name: "South Bay", price: "$1.5M avg" },
-    { name: "San Gabriel Valley", price: "$950K avg" }
+    { name: "Westside", price: "$1.2M avg", link: "#" },
+    { name: "San Fernando Valley", price: "$1.8M avg", link: "#" },
+    { name: "South Bay", price: "$1.5M avg", link: "#" },
+    { name: "San Gabriel Valley", price: "$950K avg", link: "https://losangelesforsale.idxbroker.com/i/san-gabriel-valley" }
   ];
 
   // Handler for city selection
@@ -102,7 +102,7 @@ const NeighborhoodExplorer: React.FC = () => {
                   <div 
                     key={index}
                     className="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-                    onClick={() => handleCitySelect(city.name)}
+                    onClick={() => city.link === "#" ? handleCitySelect(city.name) : window.open(city.link, '_blank')}
                   >
                     <div className="flex items-center">
                       <div className="bg-olive-50 p-3 rounded-full mr-4">

@@ -808,9 +808,9 @@ export default function BuyerWorkflow({
           </div>
         );
 
-      ```text
       default:
-        return null;    }
+        return null;
+    }
   };
 
   return (

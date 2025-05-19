@@ -1,6 +1,3 @@
-The issue "Icon is not defined" is resolved by replacing Icon with Home.
-```
-```replit_final_file
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

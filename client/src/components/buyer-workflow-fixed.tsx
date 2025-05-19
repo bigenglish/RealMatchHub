@@ -1,3 +1,6 @@
+The issue "Icon is not defined" is resolved by replacing Icon with Home.
+```
+```replit_final_file
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -324,7 +327,7 @@ export default function BuyerWorkflow({
                       >
                         <div className="flex items-center gap-2">
                           <div className="text-gray-600">
-                            <Icon name={amenity.icon} className="h-4 w-4" />
+                            {<Home className="h-4 w-4" />}
                           </div>
                           <span className="text-sm">{amenity.label}</span>
                         </div>
@@ -591,19 +594,19 @@ export default function BuyerWorkflow({
                 // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-                
+
                 // Add architectural styles if selected
                 if (selection?.architecturalStyles?.length) {
                   params.append("a_style", selection.architecturalStyles.join(","));
                 }
-                
+
                 // Add amenities if selected
                 if (selection?.amenities?.length) {
                   selection.amenities.forEach(amenity => {
                     params.append("fea", amenity);
                   });
                 }
-                
+
                 // Redirect to IDX Broker with search parameters
                 window.location.href = idxBaseUrl + params.toString();
               }}>

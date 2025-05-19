@@ -861,10 +861,3 @@ export default function BuyerWorkflow({
           </div>
         </div>
       </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        {renderStepContent()}
-      </div>
-    </div>
-  );
-}

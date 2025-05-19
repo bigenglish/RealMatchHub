@@ -12,6 +12,15 @@ import {
   Lock, Flag, Map, Tree, ParkingSquare, Package
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Separator } from "@/components/ui/separator"
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
@@ -44,6 +53,11 @@ export default function BuyerWorkflow({
     interiorStyles?: string[];
     amenities?: string[];
     neighborhoods?: string[];
+    bedrooms?: string;
+    bathrooms?: string;
+    propertyType?: string;
+    sqft?: string;
+    priceRange?: number[];
   } | null>(null);
 
   // Handle down payment change
@@ -479,7 +493,93 @@ export default function BuyerWorkflow({
             </div>
 
             <div className="border-t pt-8">
-              <h2 className="text-xl font-semibold">Tell us about your design preferences</h2>
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold">Property Requirements</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <Label>Bedrooms</Label>
+                  <Select value={selection?.bedrooms?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, bedrooms: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bedrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="studio">Studio</SelectItem>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="5">5+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Bathrooms</Label>
+                  <Select value={selection?.bathrooms?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, bathrooms: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bathrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1+</SelectItem>
+                      <SelectItem value="1.5">1.5+</SelectItem>
+                      <SelectItem value="2">2+</SelectItem>
+                      <SelectItem value="3">3+</SelectItem>
+                      <SelectItem value="4">4+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Home Type</Label>
+                  <Select value={selection?.propertyType || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, propertyType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select home type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="apartment">Apartment/Condo</SelectItem>
+                      <SelectItem value="townhouse">Townhouse</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>Square Feet</Label>
+                  <Select value={selection?.sqft?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, sqft: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select square feet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="500">Under 500</SelectItem>
+                      <SelectItem value="1000">500-1000</SelectItem>
+                      <SelectItem value="1500">1000-1500</SelectItem>
+                      <SelectItem value="2000">1500-2000</SelectItem>
+                      <SelectItem value="2500">2000+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Price Range</Label>
+                <div className="px-3">
+                  <Slider
+                    defaultValue={[200000, 800000]}
+                    max={2000000}
+                    step={50000}
+                    onValueChange={(value) => setSelection(prev => ({ ...prev, priceRange: value }))}
+                  />
+                  <div className="flex justify-between mt-2 text-sm text-gray-500">
+                    <span>${selection?.priceRange?.[0]?.toLocaleString() || '200,000'}</span>
+                    <span>${selection?.priceRange?.[1]?.toLocaleString() || '800,000'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-8" />
+
+              <h2 className="text-xl font-semibold">Design Preferences</h2>
               <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
 
               {/* Image Upload Section */}

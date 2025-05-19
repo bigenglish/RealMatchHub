@@ -868,3 +868,5 @@ export default function BuyerWorkflow({
     </div>
   );
 }
+  );
+}

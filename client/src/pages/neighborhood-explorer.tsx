@@ -36,7 +36,7 @@ const NeighborhoodExplorer: React.FC = () => {
   // Popular cities data
   const popularCities = [
     { name: "Westside", price: "$1.2M avg", link: "#" },
-    { name: "San Fernando Valley", price: "$1.8M avg", link: "#" },
+    { name: "San Fernando Valley", price: "$1.8M avg", link: "https://losangelesforsale.idxbroker.com/i/san-fernando-valley" },
     { name: "South Bay", price: "$1.5M avg", link: "#" },
     { name: "San Gabriel Valley", price: "$950K avg", link: "https://losangelesforsale.idxbroker.com/i/san-gabriel-valley" }
   ];

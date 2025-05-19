@@ -6,25 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { 
   Home, Check, ChevronsRight, Landmark,
-  Square, Bed, Bath, ImageIcon,
-  Stairs, Wine, Video, Utensils, Shield, Sun, Power, Washing, Wardrobe,
-  Layout, Mountain, Flower, Droplets, Flame, Activity, Circle,
-  Lock, Flag, Map, Tree, ParkingSquare, Package
+  Square, Bed, Bath, ImageIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Separator } from "@/components/ui/separator"
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
-
-const questionnaireType = new URLSearchParams(window.location.search).get('questionnaire-type');
 
 interface BuyerWorkflowProps {
   currentStep: Step;
@@ -46,24 +32,19 @@ export default function BuyerWorkflow({
   setNeedsMortgage
 }: BuyerWorkflowProps) {
   const { toast } = useToast();
-  const [selection, setSelection] = useState<{
-    type?: string | null;
-    architecturalStyles?: string[];
-    interiorStyles?: string[];
-    amenities?: string[];
-    neighborhoods?: string[];
-    bedrooms?: string;
-    bathrooms?: string;
-    propertyType?: string;
-    sqft?: string;
-    priceRange?: number[];
-  } | null>(null);
+  const [selection, setSelection] = useState<any>({
+    architecturalStyles: [],
+    interiorStyles: [],
+    amenities: []
+  });
 
+  // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/[^0-9]/g, '');
     setDownPaymentAmount(Number(value) || 0);
   };
 
+  // Handler for loan pre-approval
   const handleLoanPreApproval = () => {
     window.location.href = '/fast-online-application';
   };
@@ -88,27 +69,48 @@ export default function BuyerWorkflow({
   };
 
   const handleAmenitySelection = (amenityLabel: string) => {
-    const currentAmenities = selection?.amenities || [];
-    const updatedAmenities = currentAmenities.includes(amenityLabel)
-      ? currentAmenities.filter(a => a !== amenityLabel)
-      : [...currentAmenities, amenityLabel];
-    setSelection({
-      ...selection,
-      amenities: updatedAmenities
+    setSelection(prev => {
+      const currentAmenities = prev.amenities || [];
+      const updatedAmenities = currentAmenities.includes(amenityLabel)
+        ? currentAmenities.filter((a: string) => a !== amenityLabel)
+        : [...currentAmenities, amenityLabel];
+      
+      return {
+        ...prev,
+        amenities: updatedAmenities
+      };
+    });
+  };
+  
+  const handleArchitecturalStyleSelection = (styleId: string) => {
+    setSelection(prev => {
+      const currentStyles = prev.architecturalStyles || [];
+      const newStyles = currentStyles.includes(styleId)
+        ? currentStyles.filter((s: string) => s !== styleId)
+        : [...currentStyles, styleId];
+      
+      return {
+        ...prev,
+        architecturalStyles: newStyles
+      };
+    });
+  };
+  
+  const handleInteriorStyleSelection = (styleId: string) => {
+    setSelection(prev => {
+      const currentStyles = prev.interiorStyles || [];
+      const newStyles = currentStyles.includes(styleId)
+        ? currentStyles.filter((s: string) => s !== styleId)
+        : [...currentStyles, styleId];
+      
+      return {
+        ...prev,
+        interiorStyles: newStyles
+      };
     });
   };
 
-  const handleNeighborhoodSelection = (neighborhood: string) => {
-    const currentNeighborhoods = selection?.neighborhoods || [];
-    const newNeighborhoods = currentNeighborhoods.includes(neighborhood)
-      ? currentNeighborhoods.filter(n => n !== neighborhood)
-      : [...currentNeighborhoods, neighborhood];
-    setSelection(prev => ({
-      ...prev,
-      neighborhoods: newNeighborhoods
-    }));
-  };
-
+  // Render content based on current step
   const renderStepContent = () => {
     switch (currentStep) {
       case 'situation':
@@ -313,416 +315,90 @@ export default function BuyerWorkflow({
       case 'design':
         return (
           <div className="space-y-8">
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Important Amenities</h2>
-              <p className="text-gray-500 mb-6">Select the amenities that matter most to you</p>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Important Amenities</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { icon: 'Pool', label: "Pool" },
-                      { icon: 'Car', label: "Garage" },
-                      { icon: 'TreePalm', label: "Yard" },
-                      { icon: 'Balcony', label: "Balcony/Patio" },
-                      { icon: 'Flame', label: "Fireplace" },
-                      { icon: 'Chef', label: "Updated Kitchen" },
-                      { icon: 'Bath', label: "Updated Bathrooms" },
-                      { icon: 'Home', label: "Central AC" },
-                      { icon: 'Sun', label: "Natural Light" },
-                      { icon: 'Layout', label: "Open Floor Plan" },
-                      { icon: 'Dog', label: "Pet Friendly" },
-                      { icon: 'Fence', label: "Fenced Yard" }
-                    ].map((amenity) => (
-                      <div
-                        key={amenity.label}
-                        className={`cursor-pointer p-3 rounded-lg border ${
-                          selection?.amenities?.includes(amenity.label) 
-                            ? "bg-primary/10 border-primary" 
-                            : "border-gray-200 hover:border-primary"
-                        }`}
-                        onClick={() => handleAmenitySelection(amenity.label)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="text-gray-600">
-                            {<Home className="h-4 w-4" />}
-                          </div>
-                          <span className="text-sm">{amenity.label}</span>
-                        </div>
-                      </div>
-                    ))}
+            <h2 className="text-xl font-semibold mb-4">Architectural Style (Select all that apply)</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { id: "modern", label: "Modern/Contemporary", icon: Square },
+                { id: "traditional", label: "Traditional", icon: Home },
+                { id: "craftsman", label: "Craftsman", icon: Home },
+                { id: "mediterranean", label: "Mediterranean", icon: Home },
+                { id: "colonial", label: "Colonial", icon: ImageIcon },
+                { id: "farmhouse", label: "Modern Farmhouse", icon: Home },
+                { id: "ranch", label: "Ranch", icon: Home },
+                { id: "victorian", label: "Victorian", icon: ImageIcon }
+              ].map((style) => (
+                <div
+                  key={style.id}
+                  onClick={() => handleArchitecturalStyleSelection(style.id)}
+                  className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                    selection.architecturalStyles?.includes(style.id)
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    {<style.icon className="h-6 w-6 text-primary" />}
                   </div>
+                  <p className="text-sm font-medium">{style.label}</p>
+                  {selection.architecturalStyles?.includes(style.id) && (
+                    <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                  )}
                 </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Preferred Neighborhoods</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      "Santa Monica",
-                      "Venice",
-                      "Marina Del Rey",
-                      "Culver City",
-                      "Beverly Hills",
-                      "West Hollywood",
-                      "Manhattan Beach",
-                      "Hermosa Beach",
-                      "Redondo Beach"
-                    ].map((neighborhood) => (
-                      <div
-                        key={neighborhood}
-                        className={`cursor-pointer p-3 rounded-lg border ${
-                          selection?.neighborhoods?.includes(neighborhood)
-                            ? "bg-primary/10 border-primary"
-                            : "border-gray-200 hover:border-primary"
-                        }`}
-                        onClick={() => {
-                          const currentNeighborhoods = selection?.neighborhoods || [];
-                          const newNeighborhoods = currentNeighborhoods.includes(neighborhood)
-                            ? currentNeighborhoods.filter(n => n !== neighborhood)
-                            : [...currentNeighborhoods, neighborhood];
-                          setSelection(prev => ({
-                            ...prev,
-                            neighborhoods: newNeighborhoods
-                          }));
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">{neighborhood}</span>
-                          {selection?.neighborhoods?.includes(neighborhood) && (
-                            <Check className="h-4 w-4 text-primary" />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Property Features</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { icon: 'Home', label: "Basement" },
-                      { icon: 'Stairs', label: "Attic" },
-                      { icon: 'Wine', label: "Wine Cellar" },
-                      { icon: 'Video', label: "Home Theater" },
-                      { icon: 'Utensils', label: "Outdoor Kitchen" },
-                      { icon: 'Shield', label: "Security System" },
-                      { icon: 'Sun', label: "Solar Panels" },
-                      { icon: 'Power', label: "Generator" },
-                      { icon: 'Washing', label: "Laundry Room" },
-                      { icon: 'Wardrobe', label: "Walk-in Closets" }
-                    ].map((amenity) => (
-                      <div
-                        key={amenity.label}
-                        className={`cursor-pointer hover:border-primary transition-colors ${
-                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
-                        }`}
-                        onClick={() => handleAmenitySelection(amenity.label)}
-                      >
-                        <CardContent className="flex items-center gap-3 p-4">
-                          <div className="text-gray-600">
-                            <Home className="h-5 w-5" />
-                          </div>
-                          <span className="text-sm font-medium">{amenity.label}</span>
-                        </CardContent>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Outdoor Amenities</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { icon: 'Square', label: "Patio" },
-                      { icon: 'Layout', label: "Deck" },
-                      { icon: 'Mountain', label: "Balcony" },
-                      { icon: 'Flower', label: "Garden" },
-                      { icon: 'Droplets', label: "Sprinkler System" },
-                      { icon: 'Sun', label: "Outdoor Lighting" },
-                      { icon: 'Flame', label: "Fire Pit" },
-                      { icon: 'Utensils', label: "BBQ Area" },
-                      { icon: 'Activity', label: "Tennis Court" },
-                      { icon: 'Circle', label: "Basketball Court" }
-                    ].map((amenity) => (
-                      <div
-                        key={amenity.label}
-                        className={`cursor-pointer hover:border-primary transition-colors ${
-                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
-                        }`}
-                        onClick={() => handleAmenitySelection(amenity.label)}
-                      >
-                        <CardContent className="flex items-center gap-3 p-4">
-                          <div className="text-gray-600">
-                            <Home className="h-5 w-5" />
-                          </div>
-                          <span className="text-sm font-medium">{amenity.label}</span>
-                        </CardContent>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Community Features</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { icon: 'Lock', label: "Gated Community" },
-                      { icon: 'Home', label: "Club House" },
-                      { icon: 'Pool', label: "Community Pool" },
-                      { icon: 'Activity', label: "Tennis Courts" },
-                      { icon: 'Flag', label: "Golf Course" },
-                      { icon: 'Map', label: "Walking Trails" },
-                      { icon: 'Tree', label: "Park Access" },
-                      { icon: 'Shield', label: "Security Patrol" },
-                      { icon: 'ParkingSquare', label: "Guest Parking" },
-                      { icon: 'Package', label: "Package Service" }
-                    ].map((amenity) => (
-                      <div
-                        key={amenity.label}
-                        className={`cursor-pointer hover:border-primary transition-colors ${
-                          selection?.amenities?.includes(amenity.label) ? "bg-primary/10 border-primary" : ""
-                        }`}
-                        onClick={() => handleAmenitySelection(amenity.label)}
-                      >
-                        <CardContent className="flex items-center gap-3 p-4">
-                          <div className="text-gray-600">
-                            <Home className="h-5 w-5" />
-                          </div>
-                          <span className="text-sm font-medium">{amenity.label}</span>
-                        </CardContent>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="border-t pt-8">
-            <div className="space-y-6">
-              <h2 className="text-xl font-semibold">Property Requirements</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <Label>Bedrooms</Label>
-                  <Select value={selection?.bedrooms?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, bedrooms: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bedrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="studio">Studio</SelectItem>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4</SelectItem>
-                      <SelectItem value="5">5+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Bathrooms</Label>
-                  <Select value={selection?.bathrooms?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, bathrooms: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bathrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1+</SelectItem>
-                      <SelectItem value="1.5">1.5+</SelectItem>
-                      <SelectItem value="2">2+</SelectItem>
-                      <SelectItem value="3">3+</SelectItem>
-                      <SelectItem value="4">4+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Home Type</Label>
-                  <Select value={selection?.propertyType || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, propertyType: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select home type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="house">House</SelectItem>
-                      <SelectItem value="apartment">Apartment/Condo</SelectItem>
-                      <SelectItem value="townhouse">Townhouse</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Square Feet</Label>
-                  <Select value={selection?.sqft?.toString() || ""} onValueChange={(value) => setSelection(prev => ({ ...prev, sqft: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select square feet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="500">Under 500</SelectItem>
-                      <SelectItem value="1000">500-1000</SelectItem>
-                      <SelectItem value="1500">1000-1500</SelectItem>
-                      <SelectItem value="2000">1500-2000</SelectItem>
-                      <SelectItem value="2500">2000+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label>Price Range</Label>
-                <div className="px-3">
-                  <Slider
-                    defaultValue={[200000, 800000]}
-                    max={2000000}
-                    step={50000}
-                    onValueChange={(value) => setSelection(prev => ({ ...prev, priceRange: value }))}
-                  />
-                  <div className="flex justify-between mt-2 text-sm text-gray-500">
-                    <span>${selection?.priceRange?.[0]?.toLocaleString() || '200,000'}</span>
-                    <span>${selection?.priceRange?.[1]?.toLocaleString() || '800,000'}</span>
+            <h2 className="text-xl font-semibold mb-4">Interior Style (Select all that apply)</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { id: "minimalist", label: "Minimalist", icon: Square },
+                { id: "contemporary", label: "Contemporary", icon: Bed },
+                { id: "traditional", label: "Traditional", icon: Home },
+                { id: "rustic", label: "Rustic", icon: Home },
+                { id: "industrial", label: "Industrial", icon: Square },
+                { id: "coastal", label: "Coastal", icon: Home },
+                { id: "bohemian", label: "Bohemian", icon: ImageIcon },
+                { id: "scandinavian", label: "Scandinavian", icon: Square }
+              ].map((style) => (
+                <div
+                  key={style.id}
+                  onClick={() => handleInteriorStyleSelection(style.id)}
+                  className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                    selection.interiorStyles?.includes(style.id)
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    {<style.icon className="h-6 w-6 text-primary" />}
                   </div>
+                  <p className="text-sm font-medium">{style.label}</p>
+                  {selection.interiorStyles?.includes(style.id) && (
+                    <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                  )}
                 </div>
-              </div>
-
-              <Separator className="my-8" />
-
-              <h2 className="text-xl font-semibold">Design Preferences</h2>
-              <p className="text-gray-500">Help us understand your style to find properties that match your taste</p>
-
-              {/* Image Upload Section */}
-              <div className="space-y-4">
-              <Label>Upload Inspiration Images</Label>
-              <div 
-                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                onClick={() => document.getElementById('imageUpload')?.click()}
-              >
-                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-500">Click to upload or drag and drop</p>
-                <p className="text-xs text-gray-500">JPG, PNG or WEBP (max 5MB)</p>
-                <input 
-                  type="file" 
-                  id="imageUpload" 
-                  className="hidden" 
-                  accept="image/*"
-                  multiple
-                />
-              </div>
-
-              {/* URL Input */}
-              <div className="space-y-2">
-                <Label>Add Inspiration URLs</Label>
-                <div className="flex gap-2">
-                  <Input placeholder="https://example.com/inspiration" />
-                  <Button variant="secondary">Add</Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Architectural Style */}
-            <div className="space-y-4">
-              <Label className="text-lg font-medium">Architectural Style (Select all that apply)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { id: 'modern', label: 'Modern/Contemporary', icon: Square },
-                  { id: 'traditional', label: 'Traditional', icon: Home },
-                  { id: 'craftsman', label: 'Craftsman', icon: Home },
-                  { id: 'mediterranean', label: 'Mediterranean', icon: Home },
-                  { id: 'colonial', label: 'Colonial', icon: Landmark },
-                  { id: 'farmhouse', label: 'Modern Farmhouse', icon: Home },
-                  { id: 'ranch', label: 'Ranch', icon: Home },
-                  { id: 'victorian', label: 'Victorian', icon: Landmark }
-                ].map((style) => (
-                  <div
-                    key={style.id}
-                    onClick={() => {
-                      const current = selection?.architecturalStyles || [];
-                      const newStyles = current.includes(style.id)
-                        ? current.filter(id => id !== style.id)
-                        : [...current, style.id];
-                      setSelection(prev => ({
-                        ...prev,
-                        architecturalStyles: newStyles
-                      }));
-                    }}
-                    className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
-                      selection?.architecturalStyles?.includes(style.id)
-                        ? 'border-primary bg-primary/5'
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                      {<style.icon className="h-6 w-6 text-primary" />}
-                    </div>
-                    <p className="text-sm font-medium">{style.label}</p>
-                    {selection?.architecturalStyles?.includes(style.id) && (
-                      <Check className="h-4 w-4 text-primary mx-auto mt-2" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-            {/* Interior Style */}
-            <div className="space-y-4">
-              <Label className="text-lg font-medium">Interior Style (Select all that apply)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { id: 'minimalist', label: 'Minimalist', icon: Square },
-                  { id: 'contemporary', label: 'Contemporary', icon: Bed },
-                  { id: 'traditional', label: 'Traditional', icon: Home },
-                  { id: 'rustic', label: 'Rustic', icon: Home },
-                  { id: 'industrial', label: 'Industrial', icon: Square },
-                  { id: 'coastal', label: 'Coastal', icon: Home },
-                  { id: 'bohemian', label: 'Bohemian', icon: ImageIcon },
-                  { id: 'scandinavian', label: 'Scandinavian', icon: Square }
-                ].map((style) => (
-                  <div
-                    key={style.id}
-                    onClick={() => {
-                      const current = selection?.interiorStyles || [];
-                      const newStyles = current.includes(style.id)
-                        ? current.filter(id => id !== style.id)
-                        : [...current, style.id];
-                      setSelection(prev => ({
-                        ...prev,
-                        interiorStyles: newStyles
-                      }));
-                    }}
-                    className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
-                      selection?.interiorStyles?.includes(style.id)
-                        ? 'border-primary bg-primary/5'
-                        : 'hover:border-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                      {<style.icon className="h-6 w-6 text-primary" />}
-                    </div>
-                    <p className="text-sm font-medium">{style.label}</p>
-                    {selection?.interiorStyles?.includes(style.id) && (
-                      <Check className="h-4 w-4 text-primary mx-auto mt-2" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
 
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => {
+                // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-
-                if (selection?.architecturalStyles?.length) {
+                
+                // Add architectural styles if selected
+                if (selection.architecturalStyles?.length) {
                   params.append("a_style", selection.architecturalStyles.join(","));
                 }
-
-                if (selection?.amenities?.length) {
-                  selection.amenities.forEach(amenity => {
+                
+                // Add amenities if selected
+                if (selection.amenities?.length) {
+                  selection.amenities.forEach((amenity: string) => {
                     params.append("fea", amenity);
                   });
                 }
-
+                
+                // Redirect to IDX Broker with search parameters
                 window.location.href = idxBaseUrl + params.toString();
               }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
@@ -753,55 +429,7 @@ export default function BuyerWorkflow({
                 Request Professional Services <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
-            <div className="flex justify-between pt-6">
-              <Button variant="outline" onClick={handleBack}>Back</Button>
-            </div>
-          </div>
-        );
 
-      case 'service':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Request Professional Services</h2>
-            <p className="text-gray-500">Connect with real estate professionals who can help with your home buying journey</p>
-
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <h3 className="font-medium mb-2">Available Services:</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  <span>Real Estate Agents to guide your property search</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  <span>Home Inspectors to evaluate properties</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  <span>Mortgage Lenders to finance your purchase</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-primary mr-2">•</span>
-                  <span>Insurance Agents to protect your investment</span>
-                </li>
-              </ul>
-            </div>
-
-            <Button 
-              className="w-full"
-              onClick={() => window.location.href = '/request-service?type=buyer'}
-            >
-              Connect with a Professional <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
-
-            <div className="text-center mt-2">
-              <button
-                onClick={onComplete}
-                className="text-gray-500 text-sm hover:underline"
-              >
-                Skip and continue to properties
-              </button>
-            </div>
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
             </div>
@@ -861,3 +489,10 @@ export default function BuyerWorkflow({
           </div>
         </div>
       </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        {renderStepContent()}
+      </div>
+    </div>
+  );
+}

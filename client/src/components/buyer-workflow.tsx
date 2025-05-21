@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export type Step = 'situation' | 'financing' | 'properties' | 'preferences';
+export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'services';
 
 interface BuyerWorkflowProps {
   currentStep: Step;

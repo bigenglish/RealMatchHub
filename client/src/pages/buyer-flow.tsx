@@ -7,7 +7,6 @@ export default function BuyerFlow() {
   const [currentStep, setCurrentStep] = useState<Step>('situation');
   const [downPaymentAmount, setDownPaymentAmount] = useState<number>(100000);
   const [needsMortgage, setNeedsMortgage] = useState<boolean>(false);
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
 
   const handleStepChange = (step: Step) => {
     setCurrentStep(step);

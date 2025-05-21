@@ -313,6 +313,68 @@ export default function BuyerWorkflow({
             <p className="text-gray-500">Select the amenities that matter most to you</p>
 
             <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div>
+                  <Label>Bedrooms</Label>
+                  <Select 
+                    onValueChange={(value) => setSelection(prev => ({...prev, bedrooms: parseInt(value)}))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bedrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1+ Bedrooms</SelectItem>
+                      <SelectItem value="2">2+ Bedrooms</SelectItem>
+                      <SelectItem value="3">3+ Bedrooms</SelectItem>
+                      <SelectItem value="4">4+ Bedrooms</SelectItem>
+                      <SelectItem value="5">5+ Bedrooms</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Bathrooms</Label>
+                  <Select
+                    onValueChange={(value) => setSelection(prev => ({...prev, bathrooms: parseFloat(value)}))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select bathrooms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1+ Bathrooms</SelectItem>
+                      <SelectItem value="1.5">1.5+ Bathrooms</SelectItem>
+                      <SelectItem value="2">2+ Bathrooms</SelectItem>
+                      <SelectItem value="2.5">2.5+ Bathrooms</SelectItem>
+                      <SelectItem value="3">3+ Bathrooms</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Price Range</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      className="w-1/2"
+                      onChange={(e) => setSelection(prev => ({
+                        ...prev, 
+                        priceRange: {...prev.priceRange, min: parseInt(e.target.value)}
+                      }))}
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      className="w-1/2"
+                      onChange={(e) => setSelection(prev => ({
+                        ...prev,
+                        priceRange: {...prev.priceRange, max: parseInt(e.target.value)}
+                      }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <h3 className="text-lg font-medium mb-4">Must-Have Features</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

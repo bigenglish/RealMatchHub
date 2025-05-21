@@ -10,7 +10,7 @@ export default function BuyerFlow() {
 
   const handleStepChange = (step: Step) => {
     setCurrentStep(step);
-    
+
     // Scroll to top on step change
     window.scrollTo({
       top: 0,

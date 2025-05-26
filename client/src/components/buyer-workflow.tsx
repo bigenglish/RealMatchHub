@@ -454,7 +454,20 @@ export default function BuyerWorkflow({
 
             <Button 
               className="w-full"
-              onClick={onComplete}
+              onClick={() => {
+                // Build search parameters based on selection
+                const params = new URLSearchParams();
+                if (selection.bedrooms) params.append('beds', selection.bedrooms.toString());
+                if (selection.bathrooms) params.append('baths', selection.bathrooms.toString());
+                if (selection.priceRange?.min) params.append('minPrice', selection.priceRange.min.toString());
+                if (selection.priceRange?.max) params.append('maxPrice', selection.priceRange.max.toString());
+                
+                // Call onComplete with the search parameters
+                onComplete();
+                
+                // Redirect to properties with search parameters
+                window.location.href = `/properties?${params.toString()}`;
+              }}
             >
               Complete & View Properties <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>

@@ -127,17 +127,10 @@ export async function processDocument(
     };
   } catch (error) {
     console.error(`[document-processor] Error processing ${documentType}:`, error);
-    
-    // Return a fallback success response with basic file info
     return {
-      success: true,
+      success: false,
       documentType,
-      data: {
-        fileName: 'Document uploaded',
-        status: 'received',
-        note: 'Document received and will be processed manually if needed'
-      },
-      message: 'Document uploaded successfully'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

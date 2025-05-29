@@ -118,28 +118,28 @@ export function FastOnlineApplication() {
           [documentType]: {
             file: file.name,
             status: 'success',
-            data: result.data || { fileName: file.name, status: 'uploaded' }
+            data: result.data
           }
         }));
         
         toast({
-          title: "Document Uploaded",
-          description: `Your ${getDocumentLabel(documentType)} was successfully uploaded.`,
+          title: "Document Processed",
+          description: `Your ${getDocumentLabel(documentType)} was successfully processed.`,
         });
       } else {
-        // Even if processing fails, treat upload as successful
         setDocumentUploads(prev => ({
           ...prev,
           [documentType]: {
             file: file.name,
-            status: 'success',
-            data: { fileName: file.name, status: 'uploaded' }
+            status: 'error',
+            error: result.error
           }
         }));
         
         toast({
-          title: "Document Uploaded",
-          description: `Your ${getDocumentLabel(documentType)} was uploaded successfully.`,
+          title: "Processing Failed",
+          description: result.error || 'Failed to process document',
+          variant: "destructive",
         });
       }
     } catch (error) {

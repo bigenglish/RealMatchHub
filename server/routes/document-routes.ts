@@ -49,22 +49,7 @@ router.post('/process', upload.single('document'), async (req, res) => {
       documentType as 'paystub' | 'bank_statement' | 'tax_return' | 'w2'
     );
 
-    if (result.success) {
-      return res.status(200).json(result);
-    } else {
-      console.error('[document-routes] Document processing failed:', result.error);
-      return res.status(200).json({
-        success: true,
-        documentType,
-        data: {
-          fileName: req.file.originalname,
-          fileSize: req.file.size,
-          mimeType: req.file.mimetype,
-          status: 'processed'
-        },
-        message: 'Document uploaded successfully'
-      });
-    }
+    return res.status(result.success ? 200 : 500).json(result);
   } catch (error) {
     console.error('[document-routes] Error processing document:', error);
     return res.status(500).json({

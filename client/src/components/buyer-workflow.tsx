@@ -235,8 +235,9 @@ export default function BuyerWorkflow({
 
             <div className="space-y-8">
               {/* Property Basics Section */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium">Property Basics</h3>
+              <div className="bg-gray-50 p-6 rounded-lg border space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900">Property Basics</h3>
+                <p className="text-gray-600">Tell us about your ideal property requirements</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label>Rent Range</Label>

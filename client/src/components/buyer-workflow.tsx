@@ -41,7 +41,7 @@ export default function BuyerWorkflow({
     budgetAmount: 3000,
     bedrooms: '',
     bathrooms: '',
-    homeType: '',
+    homeTypes: [],
     exactMatchBedrooms: false
   });
 
@@ -426,11 +426,37 @@ export default function BuyerWorkflow({
                 {/* Home Type */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Home Type</Label>
-                  <Input 
-                    placeholder="e.g. Condo, House, Townhome"
-                    value={selection.homeType || ''}
-                    onChange={(e) => setSelection({...selection, homeType: e.target.value})}
-                  />
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="deselect-all-home-types"
+                        checked={!selection.homeTypes || selection.homeTypes.length === 0}
+                        onChange={() => setSelection({...selection, homeTypes: []})}
+                        className="rounded text-blue-600"
+                      />
+                      <Label htmlFor="deselect-all-home-types" className="text-sm text-blue-600 font-medium">Deselect All</Label>
+                    </div>
+                    
+                    {['Houses', 'Apartments/Condos/Co-ops', 'Townhomes'].map((homeType) => (
+                      <div key={homeType} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`home-type-${homeType}`}
+                          checked={selection.homeTypes?.includes(homeType) || false}
+                          onChange={(e) => {
+                            const currentTypes = selection.homeTypes || [];
+                            const updatedTypes = e.target.checked
+                              ? [...currentTypes, homeType]
+                              : currentTypes.filter(type => type !== homeType);
+                            setSelection({...selection, homeTypes: updatedTypes});
+                          }}
+                          className="rounded text-blue-600"
+                        />
+                        <Label htmlFor={`home-type-${homeType}`} className="text-sm">{homeType}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -523,8 +549,8 @@ export default function BuyerWorkflow({
                 if (selection.bathrooms) {
                   params.append("baths", selection.bathrooms);
                 }
-                if (selection.homeType) {
-                  params.append("type", selection.homeType);
+                if (selection.homeTypes?.length) {
+                  params.append("type", selection.homeTypes.join(","));
                 }
 
                 // Add architectural styles if selected

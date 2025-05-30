@@ -529,7 +529,7 @@ export default function BuyerWorkflow({
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => {
                 // Create IDX Broker URL with search parameters based on user selections
-                const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
+                const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
 
                 // Add property basics if filled
@@ -537,25 +537,43 @@ export default function BuyerWorkflow({
                   if (selection.propertyIntent === 'rent') {
                     params.append("rent_max", selection.budgetAmount.toString());
                   } else {
-                    params.append("price_max", selection.budgetAmount.toString());
+                    params.append("pt", "1"); // Property type for sale
+                    params.append("hp", selection.budgetAmount.toString()); // High price
                   }
                 }
-                if (selection.bedrooms) {
-                  params.append("beds", selection.bedrooms);
-                  if (selection.exactMatchBedrooms) {
-                    params.append("beds_exact", "true");
+                if (selection.bedrooms && selection.bedrooms !== 'Studio') {
+                  if (selection.bedrooms === '5+') {
+                    params.append("bd", "5");
+                  } else {
+                    params.append("bd", selection.bedrooms);
                   }
                 }
-                if (selection.bathrooms) {
-                  params.append("baths", selection.bathrooms);
+                if (selection.bathrooms && selection.bathrooms !== 'Any') {
+                  // Convert bathroom format (e.g., "2+" to "2")
+                  const bathValue = selection.bathrooms.replace('+', '');
+                  params.append("tb", bathValue);
                 }
                 if (selection.homeTypes?.length) {
-                  params.append("type", selection.homeTypes.join(","));
+                  // Map home types to IDX property type codes
+                  const typeMapping: { [key: string]: string } = {
+                    'Houses': 'SFR',
+                    'Apartments/Condos/Co-ops': 'CONDO',
+                    'Townhomes': 'TWNHS'
+                  };
+                  const idxTypes = selection.homeTypes.map(type => typeMapping[type]).filter(Boolean);
+                  if (idxTypes.length > 0) {
+                    params.append("pt", idxTypes.join(','));
+                  }
                 }
 
                 // Add architectural styles if selected
                 if (selection.architecturalStyles?.length) {
-                  params.append("a_style", selection.architecturalStyles.join(","));
+                  params.append("style", selection.architecturalStyles.join(","));
+                }
+
+                // Add interior styles if selected
+                if (selection.interiorStyles?.length) {
+                  params.append("interior", selection.interiorStyles.join(","));
                 }
 
                 // Add amenities if selected

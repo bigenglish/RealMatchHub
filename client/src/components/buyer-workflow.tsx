@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,7 +33,10 @@ export default function BuyerWorkflow({
   const [selection, setSelection] = useState<any>({
     architecturalStyles: [],
     interiorStyles: [],
-    amenities: []
+    amenities: [],
+    bedrooms: null,
+    bathrooms: null,
+    priceRange: { min: null, max: null }
   });
 
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +82,7 @@ export default function BuyerWorkflow({
       <div className="mb-8">
         <div className="flex items-center justify-between">
           {['situation', 'financing', 'design', 'properties', 'services'].map((step, index) => (
-            <React.Fragment key={step}>
+            <div key={step} className="flex items-center">
               <div className="flex flex-col items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                   currentStep === step ? 'bg-primary text-white' : 'bg-gray-200'
@@ -90,7 +94,7 @@ export default function BuyerWorkflow({
                 </p>
               </div>
               {index < 4 && <div className="flex-1 h-1 bg-gray-200 mx-2"></div>}
-            </React.Fragment>
+            </div>
           ))}
         </div>
       </div>

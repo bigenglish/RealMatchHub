@@ -36,7 +36,9 @@ export default function BuyerWorkflow({
     amenities: [],
     bedrooms: null,
     bathrooms: null,
-    priceRange: { min: null, max: null }
+    priceRange: { min: null, max: null },
+    rentRange: { min: null, max: null },
+    homeType: null
   });
 
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,6 +234,89 @@ export default function BuyerWorkflow({
             <p className="text-gray-500">Help us understand your style</p>
 
             <div className="space-y-8">
+              {/* Property Basics Section */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Rent Range</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        placeholder="Min"
+                        className="w-1/2"
+                        onChange={(e) => setSelection(prev => ({
+                          ...prev, 
+                          rentRange: {...(prev.rentRange || {}), min: parseInt(e.target.value) || null}
+                        }))}
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Max"
+                        className="w-1/2"
+                        onChange={(e) => setSelection(prev => ({
+                          ...prev,
+                          rentRange: {...(prev.rentRange || {}), max: parseInt(e.target.value) || null}
+                        }))}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Bedrooms</Label>
+                    <Select 
+                      onValueChange={(value) => setSelection(prev => ({...prev, bedrooms: parseInt(value)}))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select bedrooms" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1+ Bedrooms</SelectItem>
+                        <SelectItem value="2">2+ Bedrooms</SelectItem>
+                        <SelectItem value="3">3+ Bedrooms</SelectItem>
+                        <SelectItem value="4">4+ Bedrooms</SelectItem>
+                        <SelectItem value="5">5+ Bedrooms</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Bathrooms</Label>
+                    <Select
+                      onValueChange={(value) => setSelection(prev => ({...prev, bathrooms: parseFloat(value)}))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select bathrooms" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1+ Bathrooms</SelectItem>
+                        <SelectItem value="1.5">1.5+ Bathrooms</SelectItem>
+                        <SelectItem value="2">2+ Bathrooms</SelectItem>
+                        <SelectItem value="2.5">2.5+ Bathrooms</SelectItem>
+                        <SelectItem value="3">3+ Bathrooms</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Home Type</Label>
+                    <Select
+                      onValueChange={(value) => setSelection(prev => ({...prev, homeType: value}))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="house">House</SelectItem>
+                        <SelectItem value="apartment">Apartment</SelectItem>
+                        <SelectItem value="condo">Condo</SelectItem>
+                        <SelectItem value="townhouse">Townhouse</SelectItem>
+                        <SelectItem value="studio">Studio</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <h3 className="text-lg font-medium mb-4">Architectural Style</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -466,6 +551,9 @@ export default function BuyerWorkflow({
                 if (selection.bathrooms) params.append('baths', selection.bathrooms.toString());
                 if (selection.priceRange?.min) params.append('minPrice', selection.priceRange.min.toString());
                 if (selection.priceRange?.max) params.append('maxPrice', selection.priceRange.max.toString());
+                if (selection.rentRange?.min) params.append('minRent', selection.rentRange.min.toString());
+                if (selection.rentRange?.max) params.append('maxRent', selection.rentRange.max.toString());
+                if (selection.homeType) params.append('homeType', selection.homeType);
 
                 // Call onComplete with the search parameters
                 onComplete();

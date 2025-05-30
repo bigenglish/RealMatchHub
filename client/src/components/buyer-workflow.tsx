@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Home, Check, ChevronsRight, Landmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'services';
 
@@ -461,10 +462,10 @@ export default function BuyerWorkflow({
                 if (selection.bathrooms) params.append('baths', selection.bathrooms.toString());
                 if (selection.priceRange?.min) params.append('minPrice', selection.priceRange.min.toString());
                 if (selection.priceRange?.max) params.append('maxPrice', selection.priceRange.max.toString());
-                
+
                 // Call onComplete with the search parameters
                 onComplete();
-                
+
                 // Redirect to properties with search parameters
                 window.location.href = `/properties?${params.toString()}`;
               }}

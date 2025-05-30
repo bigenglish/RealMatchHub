@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,7 +36,11 @@ export default function BuyerWorkflow({
   const [selection, setSelection] = useState<any>({
     architecturalStyles: [],
     interiorStyles: [],
-    amenities: []
+    amenities: [],
+    rentRange: '',
+    bedrooms: '',
+    bathrooms: '',
+    homeType: ''
   });
 
   // Handle down payment change
@@ -315,6 +320,47 @@ export default function BuyerWorkflow({
       case 'design':
         return (
           <div className="space-y-8">
+            {/* Property Basics Section */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Property Basics</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <Label>Rent Range</Label>
+                    <Input 
+                      placeholder="e.g. $2000-3000"
+                      value={selection.rentRange}
+                      onChange={(e) => setSelection({...selection, rentRange: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Bedrooms</Label>
+                    <Input 
+                      placeholder="e.g. 2-3"
+                      value={selection.bedrooms}
+                      onChange={(e) => setSelection({...selection, bedrooms: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Bathrooms</Label>
+                    <Input 
+                      placeholder="e.g. 2+"
+                      value={selection.bathrooms}
+                      onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Home Type</Label>
+                    <Input 
+                      placeholder="e.g. Condo, House"
+                      value={selection.homeType}
+                      onChange={(e) => setSelection({...selection, homeType: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <h2 className="text-xl font-semibold mb-4">Architectural Style (Select all that apply)</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -385,6 +431,20 @@ export default function BuyerWorkflow({
                 // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
+
+                // Add property basics if filled
+                if (selection.rentRange) {
+                  params.append("rent", selection.rentRange);
+                }
+                if (selection.bedrooms) {
+                  params.append("beds", selection.bedrooms);
+                }
+                if (selection.bathrooms) {
+                  params.append("baths", selection.bathrooms);
+                }
+                if (selection.homeType) {
+                  params.append("type", selection.homeType);
+                }
 
                 // Add architectural styles if selected
                 if (selection.architecturalStyles?.length) {

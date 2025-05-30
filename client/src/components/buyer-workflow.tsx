@@ -37,10 +37,12 @@ export default function BuyerWorkflow({
     architecturalStyles: [],
     interiorStyles: [],
     amenities: [],
-    rentRange: '',
+    propertyIntent: 'rent',
+    budgetAmount: 3000,
     bedrooms: '',
     bathrooms: '',
-    homeType: ''
+    homeType: '',
+    exactMatchBedrooms: false
   });
 
   // Handle down payment change
@@ -323,40 +325,112 @@ export default function BuyerWorkflow({
             {/* Property Basics Section */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Property Basics</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <Label>Rent Range</Label>
-                    <Input 
-                      placeholder="e.g. $2000-3000"
-                      value={selection.rentRange}
-                      onChange={(e) => setSelection({...selection, rentRange: e.target.value})}
-                    />
+              <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+                {/* Rent or Buy Toggle */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Looking to</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={selection.propertyIntent === 'rent' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelection({...selection, propertyIntent: 'rent'})}
+                    >
+                      Rent
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selection.propertyIntent === 'buy' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelection({...selection, propertyIntent: 'buy'})}
+                    >
+                      Buy
+                    </Button>
                   </div>
-                  <div>
-                    <Label>Bedrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2-3"
-                      value={selection.bedrooms}
-                      onChange={(e) => setSelection({...selection, bedrooms: e.target.value})}
+                </div>
+
+                {/* Budget Slider */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
+                    {selection.propertyIntent === 'rent' ? 'Monthly Rent Budget' : 'Purchase Budget'}
+                  </Label>
+                  <div className="space-y-4">
+                    <input
+                      type="range"
+                      min={selection.propertyIntent === 'rent' ? 1000 : 100000}
+                      max={selection.propertyIntent === 'rent' ? 10000 : 2000000}
+                      step={selection.propertyIntent === 'rent' ? 100 : 10000}
+                      value={selection.budgetAmount || (selection.propertyIntent === 'rent' ? 3000 : 500000)}
+                      onChange={(e) => setSelection({...selection, budgetAmount: Number(e.target.value)})}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>${selection.propertyIntent === 'rent' ? '1,000' : '100K'}</span>
+                      <span className="font-medium text-primary">
+                        ${(selection.budgetAmount || (selection.propertyIntent === 'rent' ? 3000 : 500000)).toLocaleString()}
+                        {selection.propertyIntent === 'rent' ? '/month' : ''}
+                      </span>
+                      <span>${selection.propertyIntent === 'rent' ? '10,000' : '2M'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Bathrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2+"
-                      value={selection.bathrooms}
-                      onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
+                </div>
+
+                {/* Bedrooms */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Number of Bedrooms</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['Studio', '1', '2', '3', '4', '5+'].map((bedroom) => (
+                      <Button
+                        key={bedroom}
+                        type="button"
+                        variant={selection.bedrooms === bedroom ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelection({...selection, bedrooms: bedroom})}
+                        className="min-w-[60px]"
+                      >
+                        {bedroom}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="exact-match-bedrooms"
+                      checked={selection.exactMatchBedrooms || false}
+                      onChange={(e) => setSelection({...selection, exactMatchBedrooms: e.target.checked})}
+                      className="rounded"
                     />
+                    <Label htmlFor="exact-match-bedrooms" className="text-sm">Use exact match</Label>
                   </div>
-                  <div>
-                    <Label>Home Type</Label>
-                    <Input 
-                      placeholder="e.g. Condo, House"
-                      value={selection.homeType}
-                      onChange={(e) => setSelection({...selection, homeType: e.target.value})}
-                    />
+                </div>
+
+                {/* Bathrooms */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Number of Bathrooms</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {['Any', '1+', '1.5+', '2+', '3+', '4+'].map((bathroom) => (
+                      <Button
+                        key={bathroom}
+                        type="button"
+                        variant={selection.bathrooms === bathroom ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelection({...selection, bathrooms: bathroom})}
+                        className="min-w-[60px]"
+                      >
+                        {bathroom}
+                      </Button>
+                    ))}
                   </div>
+                </div>
+
+                {/* Home Type */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Home Type</Label>
+                  <Input 
+                    placeholder="e.g. Condo, House, Townhome"
+                    value={selection.homeType || ''}
+                    onChange={(e) => setSelection({...selection, homeType: e.target.value})}
+                  />
                 </div>
               </div>
             </div>
@@ -433,11 +507,18 @@ export default function BuyerWorkflow({
                 const params = new URLSearchParams();
 
                 // Add property basics if filled
-                if (selection.rentRange) {
-                  params.append("rent", selection.rentRange);
+                if (selection.propertyIntent && selection.budgetAmount) {
+                  if (selection.propertyIntent === 'rent') {
+                    params.append("rent_max", selection.budgetAmount.toString());
+                  } else {
+                    params.append("price_max", selection.budgetAmount.toString());
+                  }
                 }
                 if (selection.bedrooms) {
                   params.append("beds", selection.bedrooms);
+                  if (selection.exactMatchBedrooms) {
+                    params.append("beds_exact", "true");
+                  }
                 }
                 if (selection.bathrooms) {
                   params.append("baths", selection.bathrooms);

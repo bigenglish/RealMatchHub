@@ -1,14 +1,16 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Home, Check, ChevronsRight, Landmark } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { 
+  Home, Check, ChevronsRight, Landmark,
+  Square, Bed, Bath, ImageIcon
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'services';
+export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
 interface BuyerWorkflowProps {
   currentStep: Step;
@@ -33,19 +35,16 @@ export default function BuyerWorkflow({
   const [selection, setSelection] = useState<any>({
     architecturalStyles: [],
     interiorStyles: [],
-    amenities: [],
-    bedrooms: null,
-    bathrooms: null,
-    priceRange: { min: null, max: null },
-    rentRange: { min: null, max: null },
-    homeType: null
+    amenities: []
   });
 
+  // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/[^0-9]/g, '');
     setDownPaymentAmount(Number(value) || 0);
   };
 
+  // Handler for loan pre-approval
   const handleLoanPreApproval = () => {
     window.location.href = '/fast-online-application';
   };
@@ -61,7 +60,7 @@ export default function BuyerWorkflow({
       case 'properties':
         onStepChange('design');
         break;
-      case 'services':
+      case 'service':
         onStepChange('properties');
         break;
       default:
@@ -69,82 +68,125 @@ export default function BuyerWorkflow({
     }
   };
 
-  return (
-    <div className="max-w-3xl mx-auto">
-      <button 
-        onClick={handleBack}
-        className="mb-4 flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-      >
-        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back
-      </button>
+  const handleAmenitySelection = (amenityLabel: string) => {
+    setSelection(prev => {
+      const currentAmenities = prev.amenities || [];
+      const updatedAmenities = currentAmenities.includes(amenityLabel)
+        ? currentAmenities.filter((a: string) => a !== amenityLabel)
+        : [...currentAmenities, amenityLabel];
 
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {['situation', 'financing', 'design', 'properties', 'services'].map((step, index) => (
-            <div key={step} className="flex items-center">
-              <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep === step ? 'bg-primary text-white' : 'bg-gray-200'
-                }`}>
-                  {index + 1}
-                </div>
-                <p className="mt-2 text-xs text-center">
-                  {step.charAt(0).toUpperCase() + step.slice(1)}
-                </p>
-              </div>
-              {index < 4 && <div className="flex-1 h-1 bg-gray-200 mx-2"></div>}
-            </div>
-          ))}
-        </div>
-      </div>
+      return {
+        ...prev,
+        amenities: updatedAmenities
+      };
+    });
+  };
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        {currentStep === 'situation' && (
+  const handleArchitecturalStyleSelection = (styleId: string) => {
+    setSelection(prev => {
+      const currentStyles = prev.architecturalStyles || [];
+      const newStyles = currentStyles.includes(styleId)
+        ? currentStyles.filter((s: string) => s !== styleId)
+        : [...currentStyles, styleId];
+
+      return {
+        ...prev,
+        architecturalStyles: newStyles
+      };
+    });
+  };
+
+  const handleInteriorStyleSelection = (styleId: string) => {
+    setSelection(prev => {
+      const currentStyles = prev.interiorStyles || [];
+      const newStyles = currentStyles.includes(styleId)
+        ? currentStyles.filter((s: string) => s !== styleId)
+        : [...currentStyles, styleId];
+
+      return {
+        ...prev,
+        interiorStyles: newStyles
+      };
+    });
+  };
+
+  // Render content based on current step
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 'situation':
+        return (
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Tell us about your situation</h2>
-            <p className="text-gray-500">Select all that apply to you</p>
+            <p className="text-gray-500">Select one of the options below to continue</p>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card 
-                className={`p-4 cursor-pointer hover:border-primary ${selection === 'need_mortgage' ? 'border-primary bg-primary/5' : ''}`}
-                onClick={() => setSelection('need_mortgage')}
+                className={`cursor-pointer border-2 ${selection === 'down_payment' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
+                onClick={() => setSelection('down_payment')}
               >
-                <div className="flex items-center gap-3">
-                  <Landmark className="h-5 w-5 text-gray-600" />
-                  <div className="flex-1">
-                    <p className="font-medium">I need a mortgage</p>
-                    <p className="text-sm text-gray-500">Get pre-approved today</p>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full flex items-center justify-center w-10 h-10 ${selection === 'down_payment' ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+                      <Home className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">I Have a Down Payment</p>
+                      <p className="text-sm text-gray-500">I have money saved for a down payment</p>
+                    </div>
+                    {selection === 'down_payment' && <Check className="ml-auto text-primary h-5 w-5" />}
                   </div>
-                  {selection === 'need_mortgage' && (
-                    <Check className="h-5 w-5 text-primary" />
-                  )}
-                </div>
+                </CardContent>
               </Card>
 
               <Card 
-                className={`p-4 cursor-pointer hover:border-primary ${selection === 'down_payment' ? 'border-primary bg-primary/5' : ''}`}
-                onClick={() => setSelection('down_payment')}
+                className={`cursor-pointer border-2 ${selection === 'need_mortgage' ? 'border-primary bg-primary/5' : 'border-gray-200'}`}
+                onClick={() => setSelection('need_mortgage')}
               >
-                <div className="flex items-center gap-3">
-                  <Home className="h-5 w-5 text-gray-600" />
-                  <div className="flex-1">
-                    <p className="font-medium">I have a down payment</p>
-                    <p className="text-sm text-gray-500">Ready to make an offer</p>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full flex items-center justify-center w-10 h-10 ${selection === 'need_mortgage' ? 'bg-primary text-white' : 'bg-gray-100'}`}>
+                      <Landmark className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Need Mortgage Financing</p>
+                      <p className="text-sm text-gray-500">I need to apply for mortgage financing</p>
+                    </div>
+                    {selection === 'need_mortgage' && <Check className="ml-auto text-primary h-5 w-5" />}
                   </div>
-                  {selection === 'down_payment' && (
-                    <Check className="h-5 w-5 text-primary" />
-                  )}
-                </div>
+                </CardContent>
               </Card>
             </div>
+
+            {selection === 'down_payment' && (
+              <div className="mt-4 p-4 border rounded-lg">
+                <Label className="block mb-2">Adjust your down payment amount</Label>
+                <div className="space-y-4">
+                  <input
+                    type="range"
+                    min={0}
+                    max={500000}
+                    step={5000}
+                    value={downPaymentAmount}
+                    onChange={(e) => setDownPaymentAmount(Number(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>$0</span>
+                    <span>${downPaymentAmount.toLocaleString()}</span>
+                    <span>$500,000</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Button 
               className="w-full md:w-auto"
               onClick={() => {
-                if (selection) {
-                  setNeedsMortgage(selection === 'need_mortgage');
+                if (selection === 'down_payment') {
+                  setNeedsMortgage(false);
+                  onStepChange('financing');
+                } else if (selection === 'need_mortgage') {
+                  setNeedsMortgage(true);
                   onStepChange('financing');
                 } else {
                   toast({
@@ -158,416 +200,298 @@ export default function BuyerWorkflow({
               Continue <ChevronsRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
-        )}
+        );
 
-        {currentStep === 'financing' && (
+      case 'financing':
+        return needsMortgage ? (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">
-              {needsMortgage ? 'Mortgage Financing Options' : 'Down Payment Amount'}
-            </h2>
+            <h2 className="text-xl font-semibold">Mortgage Financing Options</h2>
 
-            {needsMortgage ? (
-              <>
-                <div className="space-y-4">
-                  <Card className="p-6">
-                    <h3 className="text-lg font-medium mb-2">Get Pre-Approved Today</h3>
-                    <p className="text-gray-600 mb-4">
-                      Complete our fast online application to get matched with the right mortgage options for you.
-                    </p>
-                    <Button 
-                      className="w-full bg-green-600 hover:bg-green-700" 
-                      onClick={handleLoanPreApproval}
-                    >
-                      Start Pre-Approval
-                    </Button>
-                  </Card>
-                </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-medium mb-3">Available Options:</h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Conventional Loans (3-20% down)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>FHA Loans (3.5% down)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>VA Loans (0% down for veterans)</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-primary mr-2">•</span>
+                  <span>Jumbo Loans (10-20% down)</span>
+                </li>
+              </ul>
+            </div>
 
-                <div className="flex gap-4">
-                  <Button 
-                    variant="outline"
-                    onClick={() => onStepChange('situation')}
-                  >
-                    Back
-                  </Button>
-                  <Button 
-                    className="flex-1"
-                    onClick={() => onStepChange('design')}
-                  >
-                    Skip Pre-Approval <ChevronsRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Enter your down payment amount</Label>
-                    <div className="relative mt-1">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
-                      </div>
-                      <Input
-                        type="text"
-                        className="pl-7 pr-12"
-                        value={downPaymentAmount.toLocaleString()}
-                        onChange={handleDownPaymentChange}
-                      />
-                    </div>
-                  </div>
-                </div>
+            <Card className="border-2 border-green-100 bg-green-50">
+              <CardContent className="p-4">
+                <h3 className="font-medium text-green-800 mb-2">Quick Pre-Approval Process:</h3>
+                <ul className="space-y-1 text-sm text-green-700">
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Fast online application</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Soft credit check</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">✓</span>
+                    <span>Pre-approval letter in 24hrs</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
 
-                <Button 
-                  className="w-full md:w-auto"
-                  onClick={() => onStepChange('design')}
-                >
-                  Continue <ChevronsRight className="ml-2 h-4 w-4" />
-                </Button>
-              </>
-            )}
+            <div className="flex flex-col md:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+              >
+                Back
+              </Button>
+              <Button 
+                className="flex-1 bg-green-600 hover:bg-green-700" 
+                onClick={handleLoanPreApproval}
+              >
+                Pre-Approve for a Loan Today
+              </Button>
+
+              <Button 
+                className="flex-1" 
+                variant="outline"
+                onClick={() => onStepChange('design')}
+              >
+                Skip and Continue to Design Preferences
+              </Button>
+            </div>
           </div>
-        )}
-
-        {currentStep === 'design' && (
+        ) : (
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Design Preferences</h2>
-            <p className="text-gray-500">Help us understand your style</p>
+            <h2 className="text-xl font-semibold">Down Payment Amount</h2>
 
-            <div className="space-y-8">
-              {/* Property Basics Section */}
-              <div className="bg-gray-50 p-6 rounded-lg border space-y-6">
-                <h3 className="text-xl font-semibold text-gray-900">Property Basics</h3>
-                <p className="text-gray-600">Tell us about your ideal property requirements</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <Label>Rent Range</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        placeholder="Min"
-                        className="w-1/2"
-                        onChange={(e) => setSelection(prev => ({
-                          ...prev, 
-                          rentRange: {...(prev.rentRange || {}), min: parseInt(e.target.value) || null}
-                        }))}
-                      />
-                      <Input
-                        type="number"
-                        placeholder="Max"
-                        className="w-1/2"
-                        onChange={(e) => setSelection(prev => ({
-                          ...prev,
-                          rentRange: {...(prev.rentRange || {}), max: parseInt(e.target.value) || null}
-                        }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Bedrooms</Label>
-                    <Select 
-                      onValueChange={(value) => setSelection(prev => ({...prev, bedrooms: parseInt(value)}))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select bedrooms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1+ Bedrooms</SelectItem>
-                        <SelectItem value="2">2+ Bedrooms</SelectItem>
-                        <SelectItem value="3">3+ Bedrooms</SelectItem>
-                        <SelectItem value="4">4+ Bedrooms</SelectItem>
-                        <SelectItem value="5">5+ Bedrooms</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Bathrooms</Label>
-                    <Select
-                      onValueChange={(value) => setSelection(prev => ({...prev, bathrooms: parseFloat(value)}))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select bathrooms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1+ Bathrooms</SelectItem>
-                        <SelectItem value="1.5">1.5+ Bathrooms</SelectItem>
-                        <SelectItem value="2">2+ Bathrooms</SelectItem>
-                        <SelectItem value="2.5">2.5+ Bathrooms</SelectItem>
-                        <SelectItem value="3">3+ Bathrooms</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>Home Type</Label>
-                    <Select
-                      onValueChange={(value) => setSelection(prev => ({...prev, homeType: value}))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="house">House</SelectItem>
-                        <SelectItem value="apartment">Apartment</SelectItem>
-                        <SelectItem value="condo">Condo</SelectItem>
-                        <SelectItem value="townhouse">Townhouse</SelectItem>
-                        <SelectItem value="studio">Studio</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">Architectural Style</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    'Modern',
-                    'Traditional',
-                    'Craftsman',
-                    'Colonial',
-                    'Mediterranean',
-                    'Ranch',
-                    'Victorian',
-                    'Contemporary'
-                  ].map((style) => (
-                    <Card 
-                      key={style}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selection.architecturalStyles.includes(style) ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => {
-                        setSelection(prev => ({
-                          ...prev,
-                          architecturalStyles: prev.architecturalStyles.includes(style)
-                            ? prev.architecturalStyles.filter(s => s !== style)
-                            : [...prev.architecturalStyles, style]
-                        }));
-                      }}
-                    >
-                      <CardContent className="flex items-center justify-center p-4 text-center">
-                        <p className="text-sm font-medium">{style}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">Interior Style</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    'Minimalist',
-                    'Modern',
-                    'Traditional',
-                    'Industrial',
-                    'Rustic',
-                    'Coastal',
-                    'Bohemian',
-                    'Scandinavian'
-                  ].map((style) => (
-                    <Card 
-                      key={style}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selection.interiorStyles.includes(style) ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => {
-                        setSelection(prev => ({
-                          ...prev,
-                          interiorStyles: prev.interiorStyles.includes(style)
-                            ? prev.interiorStyles.filter(s => s !== style)
-                            : [...prev.interiorStyles, style]
-                        }));
-                      }}
-                    >
-                      <CardContent className="flex items-center justify-center p-4 text-center">
-                        <p className="text-sm font-medium">{style}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+            <div className="space-y-3">
+              <Label htmlFor="downPayment">Adjust your down payment amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                <Input 
+                  id="downPayment"
+                  className="pl-8"
+                  value={downPaymentAmount.toLocaleString()}
+                  onChange={handleDownPaymentChange}
+                />
               </div>
             </div>
 
-            <Button 
-              className="w-full md:w-auto"
-              onClick={() => onStepChange('properties')}
-            >
-              Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
-        {currentStep === 'properties' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Property Preferences</h2>
-            <p className="text-gray-500">Select the amenities that matter most to you</p>
-
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div>
-                  <Label>Bedrooms</Label>
-                  <Select 
-                    onValueChange={(value) => setSelection(prev => ({...prev, bedrooms: parseInt(value)}))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bedrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1+ Bedrooms</SelectItem>
-                      <SelectItem value="2">2+ Bedrooms</SelectItem>
-                      <SelectItem value="3">3+ Bedrooms</SelectItem>
-                      <SelectItem value="4">4+ Bedrooms</SelectItem>
-                      <SelectItem value="5">5+ Bedrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Bathrooms</Label>
-                  <Select
-                    onValueChange={(value) => setSelection(prev => ({...prev, bathrooms: parseFloat(value)}))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bathrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1+ Bathrooms</SelectItem>
-                      <SelectItem value="1.5">1.5+ Bathrooms</SelectItem>
-                      <SelectItem value="2">2+ Bathrooms</SelectItem>
-                      <SelectItem value="2.5">2.5+ Bathrooms</SelectItem>
-                      <SelectItem value="3">3+ Bathrooms</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Price Range</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      placeholder="Min"
-                      className="w-1/2"
-                      onChange={(e) => setSelection(prev => ({
-                        ...prev, 
-                        priceRange: {...prev.priceRange, min: parseInt(e.target.value)}
-                      }))}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Max"
-                      className="w-1/2"
-                      onChange={(e) => setSelection(prev => ({
-                        ...prev,
-                        priceRange: {...prev.priceRange, max: parseInt(e.target.value)}
-                      }))}
-                    />
-                  </div>
-                </div>
+            <RadioGroup defaultValue="conventional">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="conventional" id="conventional" />
+                <Label htmlFor="conventional">Conventional purchase (cash)</Label>
               </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">Must-Have Features</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {[
-                    'Garage',
-                    'Pool',
-                    'Garden',
-                    'Basement',
-                    'Modern Kitchen',
-                    'Home Office',
-                    'Smart Home',
-                    'Security System',
-                    'Solar Panels'
-                  ].map((amenity) => (
-                    <Card 
-                      key={amenity}
-                      className={`cursor-pointer hover:border-primary transition-colors ${
-                        selection.amenities.includes(amenity) ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => {
-                        setSelection(prev => ({
-                          ...prev,
-                          amenities: prev.amenities.includes(amenity)
-                            ? prev.amenities.filter(a => a !== amenity)
-                            : [...prev.amenities, amenity]
-                        }));
-                      }}
-                    >
-                      <CardContent className="flex items-center justify-center p-4 text-center">
-                        <p className="text-sm font-medium">{amenity}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="partial" id="partial" />
+                <Label htmlFor="partial">I may need additional financing</Label>
               </div>
+            </RadioGroup>
+
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+              <Button 
+                className="w-full md:w-auto"
+                onClick={() => onStepChange('design')}
+              >
+                Continue to Design Preferences <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
-
-            <Button 
-              className="w-full md:w-auto"
-              onClick={() => onStepChange('services')}
-            >
-              Continue to Services <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
           </div>
-        )}
+        );
 
-        {currentStep === 'services' && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Additional Services</h2>
-            <p className="text-gray-500">Select any additional services you may need</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      case 'design':
+        return (
+          <div className="space-y-8">
+            <h2 className="text-xl font-semibold mb-4">Architectural Style (Select all that apply)</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                'Home Inspection',
-                'Moving Services',
-                'Home Insurance',
-                'Legal Services',
-                'Home Warranty',
-                'Property Management'
-              ].map((service) => (
-                <Card 
-                  key={service}
-                  className="p-4 cursor-pointer hover:border-primary"
-                  onClick={() => {
-                    // Handle service selection
-                  }}
+                { id: "modern", label: "Modern/Contemporary", icon: Square },
+                { id: "traditional", label: "Traditional", icon: Home },
+                { id: "craftsman", label: "Craftsman", icon: Home },
+                { id: "mediterranean", label: "Mediterranean", icon: Home },
+                { id: "colonial", label: "Colonial", icon: ImageIcon },
+                { id: "farmhouse", label: "Modern Farmhouse", icon: Home },
+                { id: "ranch", label: "Ranch", icon: Home },
+                { id: "victorian", label: "Victorian", icon: ImageIcon }
+              ].map((style) => (
+                <div
+                  key={style.id}
+                  onClick={() => handleArchitecturalStyleSelection(style.id)}
+                  className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                    selection.architecturalStyles?.includes(style.id)
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary hover:bg-primary/5'
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Home className="h-5 w-5 text-gray-600" />
-                    <div className="flex-1">
-                      <p className="font-medium">{service}</p>
-                    </div>
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    {<style.icon className="h-6 w-6 text-primary" />}
                   </div>
-                </Card>
+                  <p className="text-sm font-medium">{style.label}</p>
+                  {selection.architecturalStyles?.includes(style.id) && (
+                    <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                  )}
+                </div>
               ))}
             </div>
 
-            <Button 
-              className="w-full"
-              onClick={() => {
-                // Build search parameters based on selection
+            <h2 className="text-xl font-semibold mb-4">Interior Style (Select all that apply)</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { id: "minimalist", label: "Minimalist", icon: Square },
+                { id: "contemporary", label: "Contemporary", icon: Bed },
+                { id: "traditional", label: "Traditional", icon: Home },
+                { id: "rustic", label: "Rustic", icon: Home },
+                { id: "industrial", label: "Industrial", icon: Square },
+                { id: "coastal", label: "Coastal", icon: Home },
+                { id: "bohemian", label: "Bohemian", icon: ImageIcon },
+                { id: "scandinavian", label: "Scandinavian", icon: Square }
+              ].map((style) => (
+                <div
+                  key={style.id}
+                  onClick={() => handleInteriorStyleSelection(style.id)}
+                  className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-all ${
+                    selection.interiorStyles?.includes(style.id)
+                      ? 'border-primary bg-primary/5'
+                      : 'hover:border-primary hover:bg-primary/5'
+                  }`}
+                >
+                  <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    {<style.icon className="h-6 w-6 text-primary" />}
+                  </div>
+                  <p className="text-sm font-medium">{style.label}</p>
+                  {selection.interiorStyles?.includes(style.id) && (
+                    <Check className="h-4 w-4 text-primary mx-auto mt-2" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+              <Button onClick={() => {
+                // Create IDX Broker URL with search parameters based on user selections
+                const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-                if (selection.bedrooms) params.append('beds', selection.bedrooms.toString());
-                if (selection.bathrooms) params.append('baths', selection.bathrooms.toString());
-                if (selection.priceRange?.min) params.append('minPrice', selection.priceRange.min.toString());
-                if (selection.priceRange?.max) params.append('maxPrice', selection.priceRange.max.toString());
-                if (selection.rentRange?.min) params.append('minRent', selection.rentRange.min.toString());
-                if (selection.rentRange?.max) params.append('maxRent', selection.rentRange.max.toString());
-                if (selection.homeType) params.append('homeType', selection.homeType);
 
-                // Call onComplete with the search parameters
-                onComplete();
+                // Add architectural styles if selected
+                if (selection.architecturalStyles?.length) {
+                  params.append("a_style", selection.architecturalStyles.join(","));
+                }
 
-                // Redirect to properties with search parameters
-                window.location.href = `/properties?${params.toString()}`;
-              }}
-            >
-              Complete & View Properties <ChevronsRight className="ml-2 h-4 w-4" />
-            </Button>
+                // Add amenities if selected
+                if (selection.amenities?.length) {
+                  selection.amenities.forEach((amenity: string) => {
+                    params.append("fea", amenity);
+                  });
+                }
+
+                // Redirect to IDX Broker with search parameters
+                window.location.href = idxBaseUrl + params.toString();
+              }}>
+                Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        )}
+        );
+
+      case 'properties':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold">View Available Properties</h2>
+            <p className="text-gray-500">Browse properties that match your criteria</p>
+
+            <div className="flex flex-col space-y-4">
+              <Button 
+                className="w-full"
+                onClick={onComplete}
+              >
+                Browse All Properties <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full border-primary text-primary"
+                onClick={() => onStepChange('service')}
+              >
+                Request Professional Services <ChevronsRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex justify-between pt-6">
+              <Button variant="outline" onClick={handleBack}>Back</Button>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'situation' ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+              1
+            </div>
+            <p className="mt-2 text-xs text-center">Your Situation</p>
+          </div>
+
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'financing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              2
+            </div>
+            <p className="mt-2 text-xs text-center">Financing</p>
+          </div>
+
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'design' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              3
+            </div>
+            <p className="mt-2 text-xs text-center">Design Preferences</p>
+          </div>
+
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'properties' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              4
+            </div>
+            <p className="mt-2 text-xs text-center">Properties</p>
+          </div>
+
+          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'service' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+              5
+            </div>
+            <p className="mt-2 text-xs text-center">Services</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        {renderStepContent()}
       </div>
     </div>
   );

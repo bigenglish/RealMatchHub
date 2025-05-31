@@ -35,25 +35,8 @@ export async function processRealEstateQuery(
     // Set up the model
     const model = genAI.getGenerativeModel({ model: modelName });
     
-    // Format the conversation history for the API
-    const formattedHistory = chatHistory.map(msg => ({
-      role: msg.role === 'bot' ? 'model' : 'user',
-      parts: msg.content
-    }));
-    
-    // Create a chat session with initial system context
-    const chat = model.startChat({
-      history: formattedHistory,
-      generationConfig: {
-        temperature: 0.4,
-        topK: 32,
-        topP: 0.95,
-        maxOutputTokens: 500,
-      }
-    });
-
-    // Set the initial prompt
-    const initialPrompt = `You are an AI assistant for a real estate platform called REALTY.AI. 
+    // Create the system context as part of the user's message
+    const systemContext = `You are an AI assistant for a real estate platform called REALTY.AI. 
     Focus on providing helpful, accurate information about real estate topics, property listings, 
     buying/selling processes, and our services. Our platform offers FREE, BASIC ($1,500), and PREMIUM ($2,500) 
     plans with various levels of support and features.
@@ -67,11 +50,39 @@ export async function processRealEstateQuery(
     Keep responses concise, friendly, and focused on real estate. If you don't know something specific about 
     REALTY.AI's offerings, recommend the user contact our customer support or check the pricing page.
     
-    Always suggest ways that REALTY.AI can save the user money compared to traditional real estate services.`;
+    Always suggest ways that REALTY.AI can save the user money compared to traditional real estate services.
+
+    User query: ${query}`;
+
+    // Format the conversation history for the API - ensure first message is from user
+    let formattedHistory = chatHistory.map(msg => ({
+      role: msg.role === 'bot' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    // If there's no history, start with a user message
+    if (formattedHistory.length === 0) {
+      formattedHistory = [
+        { role: 'user', parts: [{ text: systemContext }] }
+      ];
+    } else {
+      // Add the system context to the current query
+      formattedHistory.push({ role: 'user', parts: [{ text: systemContext }] });
+    }
     
-    // Send the initial prompt and user's message
-    await chat.sendMessage(initialPrompt);
-    const result = await chat.sendMessage(query);
+    // Create a chat session with the properly formatted history
+    const chat = model.startChat({
+      history: formattedHistory.slice(0, -1), // All but the last message
+      generationConfig: {
+        temperature: 0.4,
+        topK: 32,
+        topP: 0.95,
+        maxOutputTokens: 500,
+      }
+    });
+
+    // Send the current message (last item in formatted history)
+    const result = await chat.sendMessage(formattedHistory[formattedHistory.length - 1].parts[0].text);
     const response = result.response;
     const text = response.text();
     

@@ -531,49 +531,35 @@ export default function BuyerWorkflow({
                 // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-
-                // Add property basics if filled
-                if (selection.propertyIntent && selection.budgetAmount) {
-                  if (selection.propertyIntent === 'rent') {
-                    params.append("rent_max", selection.budgetAmount.toString());
-                  } else {
-                    params.append("pt", "1"); // Property type for sale
-                    params.append("hp", selection.budgetAmount.toString()); // High price
-                  }
+                
+                // Add required IDX parameters for property search
+                params.append("idxID", "d025");
+                params.append("pt", "1"); // Property Type Residential
+                
+                // Add price range parameters
+                if (selection.priceRange?.min) {
+                  params.append("lp", selection.priceRange.min.toString()); // Low Price
                 }
-                if (selection.bedrooms && selection.bedrooms !== 'Studio') {
-                  if (selection.bedrooms === '5+') {
-                    params.append("bd", "5");
-                  } else {
-                    params.append("bd", selection.bedrooms);
-                  }
+                if (selection.priceRange?.max) {
+                  params.append("hp", selection.priceRange.max.toString()); // High Price
                 }
-                if (selection.bathrooms && selection.bathrooms !== 'Any') {
-                  // Convert bathroom format (e.g., "2+" to "2")
-                  const bathValue = selection.bathrooms.replace('+', '');
-                  params.append("tb", bathValue);
+                
+                // Add default price range if none specified
+                if (!selection.priceRange?.min && !selection.priceRange?.max) {
+                  params.append("lp", "200000"); // Default low price 200K
+                  params.append("hp", "800000"); // Default high price 800K
                 }
-                if (selection.homeTypes?.length) {
-                  // Map home types to IDX property type codes
-                  const typeMapping: { [key: string]: string } = {
-                    'Houses': 'SFR',
-                    'Apartments/Condos/Co-ops': 'CONDO',
-                    'Townhomes': 'TWNHS'
-                  };
-                  const idxTypes = selection.homeTypes.map(type => typeMapping[type]).filter(Boolean);
-                  if (idxTypes.length > 0) {
-                    params.append("pt", idxTypes.join(','));
-                  }
+                
+                if (selection.bedrooms) {
+                  params.append("beds", selection.bedrooms);
+                }
+                if (selection.bathrooms) {
+                  params.append("baths", selection.bathrooms);
                 }
 
                 // Add architectural styles if selected
                 if (selection.architecturalStyles?.length) {
-                  params.append("style", selection.architecturalStyles.join(","));
-                }
-
-                // Add interior styles if selected
-                if (selection.interiorStyles?.length) {
-                  params.append("interior", selection.interiorStyles.join(","));
+                  params.append("a_style", selection.architecturalStyles.join(","));
                 }
 
                 // Add amenities if selected
@@ -583,8 +569,15 @@ export default function BuyerWorkflow({
                   });
                 }
 
-                // Redirect to IDX Broker with search parameters
-                window.location.href = idxBaseUrl + params.toString();
+                // Create final URL
+                const finalUrl = `${idxBaseUrl}${params.toString()}`;
+                console.log('Redirecting to IDX Broker:', finalUrl);
+                
+                // Open in new window to preserve user's place in our app
+                window.open(finalUrl, '_blank');
+                
+                // Also call onComplete to mark workflow as done
+                onComplete();
               }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>

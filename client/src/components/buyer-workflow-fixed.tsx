@@ -429,21 +429,32 @@ export default function BuyerWorkflow({
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => {
                 // Create IDX Broker URL with search parameters based on user selections
-                const idxBaseUrl = "https://losangelesforsale.idxbroker.com/idx/results/listings?";
+                const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
+                
+                // Add required IDX parameters for property search
+                params.append("idxID", "d025");
+                params.append("pt", "1"); // Property Type Residential
 
-                // Add property basics if filled
-                if (selection.rentRange) {
-                  params.append("rent", selection.rentRange);
+                // Add price range parameters
+                if (selection.priceRange?.min) {
+                  params.append("lp", selection.priceRange.min.toString()); // Low Price
                 }
+                if (selection.priceRange?.max) {
+                  params.append("hp", selection.priceRange.max.toString()); // High Price
+                }
+                
+                // Add default price range if none specified
+                if (!selection.priceRange?.min && !selection.priceRange?.max) {
+                  params.append("lp", "200000"); // Default low price 200K
+                  params.append("hp", "800000"); // Default high price 800K
+                }
+                
                 if (selection.bedrooms) {
                   params.append("beds", selection.bedrooms);
                 }
                 if (selection.bathrooms) {
                   params.append("baths", selection.bathrooms);
-                }
-                if (selection.homeType) {
-                  params.append("type", selection.homeType);
                 }
 
                 // Add architectural styles if selected

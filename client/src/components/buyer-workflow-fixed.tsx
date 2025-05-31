@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,14 +32,16 @@ export default function BuyerWorkflow({
   setNeedsMortgage
 }: BuyerWorkflowProps) {
   const { toast } = useToast();
-  const [selection, setSelection] = useState<any>({
-    architecturalStyles: [],
-    interiorStyles: [],
-    amenities: [],
+  const [selection, setSelection] = useState({
     rentRange: '',
     bedrooms: '',
     bathrooms: '',
-    homeType: ''
+    homeType: '',
+    city: '',
+    neighborhood: '',
+    architecturalStyles: [],
+    interiorStyles: [],
+    amenities: [],
   });
 
   // Handle down payment change
@@ -349,6 +350,22 @@ export default function BuyerWorkflow({
                       onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
                     />
                   </div>
+                   <div>
+                    <Label>City</Label>
+                    <Input 
+                      placeholder="e.g. San Francisco"
+                      value={selection.city}
+                      onChange={(e) => setSelection({...selection, city: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Neighborhood</Label>
+                    <Input 
+                      placeholder="e.g. Pacific Heights"
+                      value={selection.neighborhood}
+                      onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
+                    />
+                  </div>
                   <div>
                     <Label>Home Type</Label>
                     <Input 
@@ -431,7 +448,7 @@ export default function BuyerWorkflow({
                 // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-                
+
                 // Add required IDX parameters for property search
                 params.append("idxID", "d025");
                 params.append("pt", "1"); // Property Type Residential
@@ -443,18 +460,25 @@ export default function BuyerWorkflow({
                 if (selection.priceRange?.max) {
                   params.append("hp", selection.priceRange.max.toString()); // High Price
                 }
-                
+
                 // Add default price range if none specified
                 if (!selection.priceRange?.min && !selection.priceRange?.max) {
                   params.append("lp", "200000"); // Default low price 200K
                   params.append("hp", "800000"); // Default high price 800K
                 }
-                
+
                 if (selection.bedrooms) {
                   params.append("beds", selection.bedrooms);
                 }
                 if (selection.bathrooms) {
                   params.append("baths", selection.bathrooms);
+                }
+
+                 if (selection.city) {
+                  params.append("city", selection.city);
+                }
+                 if (selection.neighborhood) {
+                  params.append("neighborhood", selection.neighborhood);
                 }
 
                 // Add architectural styles if selected

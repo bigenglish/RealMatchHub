@@ -420,23 +420,85 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
 
   // Create demo properties if no data was found
   if (data.length === 0) {
-    console.log('No properties found in IDX response, creating example property for debugging');
-    // We'll create a simple property object to test the UI rendering
-    data = [{
-      idxID: 'test-id-1',
-      listingId: 'idx-test-1',
-      address: '123 Test Street',
-      city: 'Test City',
-      state: 'TS',
-      zipCode: '12345',
-      price: 299000,
-      bedrooms: 3,
-      bathrooms: 2,
-      sqft: 1800,
-      propertyType: 'Single Family',
-      description: 'This is a test property to verify the UI is working correctly.',
-      images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
-    }];
+    console.log('No properties found in IDX response, creating sample properties for debugging with proper city/state data');
+    // Create sample properties with realistic city and state data
+    data = [
+      {
+        idxID: 'test-ca-1',
+        listingId: 'idx-test-ca-1',
+        address: '123 Pacific Street',
+        city: 'San Francisco',
+        state: 'CA',
+        zipCode: '94102',
+        price: 1299000,
+        bedrooms: 3,
+        bathrooms: 2,
+        sqft: 1800,
+        propertyType: 'Single Family',
+        description: 'Beautiful San Francisco home with city views.',
+        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
+      },
+      {
+        idxID: 'test-ca-2',
+        listingId: 'idx-test-ca-2',
+        address: '456 Hollywood Blvd',
+        city: 'Los Angeles',
+        state: 'CA',
+        zipCode: '90028',
+        price: 899000,
+        bedrooms: 2,
+        bathrooms: 2,
+        sqft: 1400,
+        propertyType: 'Condo',
+        description: 'Modern condo in the heart of Hollywood.',
+        images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80']
+      },
+      {
+        idxID: 'test-tx-1',
+        listingId: 'idx-test-tx-1',
+        address: '789 Austin Avenue',
+        city: 'Austin',
+        state: 'TX',
+        zipCode: '73301',
+        price: 675000,
+        bedrooms: 4,
+        bathrooms: 3,
+        sqft: 2400,
+        propertyType: 'Single Family',
+        description: 'Spacious family home in Austin with large backyard.',
+        images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80']
+      },
+      {
+        idxID: 'test-ny-1',
+        listingId: 'idx-test-ny-1',
+        address: '321 Broadway',
+        city: 'New York',
+        state: 'NY',
+        zipCode: '10007',
+        price: 1950000,
+        bedrooms: 2,
+        bathrooms: 2,
+        sqft: 1200,
+        propertyType: 'Condo',
+        description: 'Luxury Manhattan condo with stunning views.',
+        images: ['https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80']
+      },
+      {
+        idxID: 'test-fl-1',
+        listingId: 'idx-test-fl-1',
+        address: '654 Ocean Drive',
+        city: 'Miami',
+        state: 'FL',
+        zipCode: '33139',
+        price: 825000,
+        bedrooms: 3,
+        bathrooms: 2.5,
+        sqft: 1900,
+        propertyType: 'Townhouse',
+        description: 'Beachfront townhouse with ocean access.',
+        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
+      }
+    ];
     totalCount = data.length;
   }
 

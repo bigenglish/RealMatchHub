@@ -420,6 +420,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add endpoint to get property counts by state
+  app.get("/api/properties/state-counts", async (req, res) => {
+    try {
+      console.log("[express] Fetching property counts by state");
+
+      // Get IDX listings
+      const idxResponse = await fetchIdxListings({ limit: 100 }); // Get more listings for better count
+      
+      // Count properties by state
+      const stateCounts: { [key: string]: number } = {};
+      
+      idxResponse.listings.forEach(listing => {
+        const state = listing.state || 'Unknown';
+        stateCounts[state] = (stateCounts[state] || 0) + 1;
+      });
+
+      // Also include local database properties if any
+      const localProperties = await storage.getProperties();
+      localProperties.forEach(property => {
+        const state = property.state || 'Unknown';
+        stateCounts[state] = (stateCounts[state] || 0) + 1;
+      });
+
+      // Convert to array format for easier consumption
+      const stateCountsArray = Object.entries(stateCounts)
+        .map(([state, count]) => ({ state, count }))
+        .sort((a, b) => b.count - a.count); // Sort by count descending
+
+      console.log("[express] State counts:", stateCountsArray);
+
+      res.json({
+        totalProperties: idxResponse.listings.length + localProperties.length,
+        stateCounts: stateCountsArray,
+        stateCountsObject: stateCounts
+      });
+    } catch (error) {
+      console.error("[express] Error fetching state counts:", error);
+      res.status(500).json({ 
+        message: "Error fetching property state counts",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // ----- Vertex AI Integration Routes -----
 
   // Predict property price

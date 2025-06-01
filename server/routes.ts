@@ -1508,6 +1508,55 @@ app.post("/api/chatbot", async (req, res) => {
     }
   });
 
+  // Get neighborhoods for a city
+  app.get("/api/neighborhoods", async (req, res) => {
+    try {
+      const { city } = req.query;
+      
+      if (!city || typeof city !== 'string') {
+        return res.status(400).json({ error: "City parameter is required" });
+      }
+
+      console.log(`[express] Fetching neighborhoods for city: ${city}`);
+
+      // Use Google Places API to search for neighborhoods
+      const { searchNearbyPlaces, geocodeAddress } = await import('./google-places');
+      
+      // First geocode the city to get coordinates
+      const coordinates = await geocodeAddress(city);
+      
+      if (!coordinates) {
+        console.log(`[express] Could not geocode city: ${city}`);
+        return res.json([]);
+      }
+
+      // Search for neighborhoods/localities near the city
+      const places = await searchNearbyPlaces({
+        query: 'neighborhood',
+        location: coordinates,
+        radius: 50000, // 50km radius
+        category: 'locality'
+      });
+
+      // Extract unique neighborhood names
+      const neighborhoods = places
+        .filter(place => place.types.includes('neighborhood') || place.types.includes('sublocality'))
+        .map(place => place.name)
+        .filter((name, index, array) => array.indexOf(name) === index)
+        .slice(0, 5);
+
+      console.log(`[express] Found ${neighborhoods.length} neighborhoods for ${city}:`, neighborhoods);
+      
+      res.json(neighborhoods);
+    } catch (error) {
+      console.error("[express] Error fetching neighborhoods:", error);
+      res.status(500).json({ 
+        message: "Error fetching neighborhoods",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // AI property recommendations endpoint based on user preferences
   app.post("/api/ai-property-recommendations", async (req, res) => {
     try {

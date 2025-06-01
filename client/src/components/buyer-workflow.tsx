@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -9,6 +9,90 @@ import {
   Square, Bed, Bath, ImageIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// City Autocomplete Component
+interface CityAutocompleteProps {
+  value: string;
+  onChange: (city: string) => void;
+  placeholder: string;
+}
+
+const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ value, onChange, placeholder }) => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const fetchCitySuggestions = async (input: string) => {
+    if (input.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}&types=place&country=US&limit=5`);
+      if (response.ok) {
+        const data = await response.json();
+        const cities = data.features?.map((feature: any) => feature.place_name) || [];
+        setSuggestions(cities);
+      }
+    } catch (error) {
+      // Fallback to popular US cities
+      const popularCities = [
+        'Los Angeles, CA',
+        'San Francisco, CA', 
+        'New York, NY',
+        'Chicago, IL',
+        'Houston, TX',
+        'Phoenix, AZ',
+        'Philadelphia, PA',
+        'San Antonio, TX',
+        'San Diego, CA',
+        'Dallas, TX'
+      ];
+      const filtered = popularCities.filter(city => 
+        city.toLowerCase().includes(input.toLowerCase())
+      );
+      setSuggestions(filtered);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    fetchCitySuggestions(newValue);
+    setShowSuggestions(true);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    onChange(suggestion);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+      />
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Add custom styles for range sliders
 const sliderStyles = `
@@ -67,9 +151,61 @@ export default function BuyerWorkflow({
     exactMatchBedrooms: false,
     city: '',
     neighborhood: '',
+    availableNeighborhoods: [],
     priceMin: 200000,
     priceMax: 800000
   });
+
+  // Function to fetch neighborhoods based on selected city
+  const fetchNeighborhoods = useCallback(async (cityName: string) => {
+    if (!cityName || cityName.length < 3) {
+      setSelection(prev => ({...prev, availableNeighborhoods: []}));
+      return;
+    }
+
+    try {
+      // Try to get neighborhoods from your Google Places API
+      const response = await fetch(`/api/neighborhoods?city=${encodeURIComponent(cityName)}`);
+      if (response.ok) {
+        const neighborhoods = await response.json();
+        setSelection(prev => ({
+          ...prev, 
+          availableNeighborhoods: neighborhoods.slice(0, 5)
+        }));
+      } else {
+        // Fallback neighborhoods based on popular cities
+        const neighborhoodMap: { [key: string]: string[] } = {
+          'Los Angeles': ['Hollywood', 'Beverly Hills', 'Santa Monica', 'Venice', 'West Hollywood'],
+          'San Francisco': ['Mission District', 'Pacific Heights', 'Castro', 'Nob Hill', 'SOMA'],
+          'New York': ['Manhattan', 'Brooklyn Heights', 'SoHo', 'Upper East Side', 'Williamsburg'],
+          'Chicago': ['Lincoln Park', 'Wicker Park', 'Gold Coast', 'River North', 'Lakeview'],
+          'Houston': ['Montrose', 'Heights', 'Midtown', 'River Oaks', 'Galleria'],
+          'Phoenix': ['Scottsdale', 'Tempe', 'Ahwatukee', 'Arcadia', 'Biltmore'],
+          'Philadelphia': ['Center City', 'Old City', 'Northern Liberties', 'Fishtown', 'Society Hill'],
+          'San Antonio': ['Alamo Heights', 'Southtown', 'Pearl District', 'Stone Oak', 'Riverwalk'],
+          'San Diego': ['Gaslamp Quarter', 'La Jolla', 'Mission Beach', 'Hillcrest', 'Pacific Beach'],
+          'Dallas': ['Deep Ellum', 'Bishop Arts', 'Uptown', 'Highland Park', 'Knox-Henderson']
+        };
+
+        // Extract city name from the full city string
+        const cityKey = Object.keys(neighborhoodMap).find(key => 
+          cityName.toLowerCase().includes(key.toLowerCase())
+        );
+
+        if (cityKey) {
+          setSelection(prev => ({
+            ...prev, 
+            availableNeighborhoods: neighborhoodMap[cityKey]
+          }));
+        } else {
+          setSelection(prev => ({...prev, availableNeighborhoods: []}));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching neighborhoods:', error);
+      setSelection(prev => ({...prev, availableNeighborhoods: []}));
+    }
+  }, []);
 
   // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,19 +491,37 @@ export default function BuyerWorkflow({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label>City</Label>
-                    <Input 
-                      placeholder="e.g. San Francisco"
+                    <CityAutocomplete 
                       value={selection.city || ''}
-                      onChange={(e) => setSelection({...selection, city: e.target.value})}
+                      onChange={(city) => {
+                        setSelection({...selection, city, neighborhood: ''});
+                        fetchNeighborhoods(city);
+                      }}
+                      placeholder="e.g. San Francisco"
                     />
                   </div>
                   <div>
                     <Label>Neighborhood</Label>
-                    <Input 
-                      placeholder="e.g. Pacific Heights"
-                      value={selection.neighborhood || ''}
-                      onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
-                    />
+                    {selection.availableNeighborhoods && selection.availableNeighborhoods.length > 0 ? (
+                      <select 
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        value={selection.neighborhood || ''}
+                        onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
+                      >
+                        <option value="">Select a neighborhood</option>
+                        {selection.availableNeighborhoods.map((neighborhood, index) => (
+                          <option key={index} value={neighborhood}>
+                            {neighborhood}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input 
+                        placeholder="e.g. Pacific Heights"
+                        value={selection.neighborhood || ''}
+                        onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
+                      />
+                    )}
                   </div>
                 </div>
 

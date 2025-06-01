@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -755,11 +754,22 @@ export default function BuyerWorkflow({
                   params.append("baths", selection.bathrooms);
                 }
 
+                // Add city and neighborhood if specified
                 if (selection.city) {
-                  params.append("city", selection.city);
+                  // Clean city name and ensure proper formatting
+                  const cleanCity = selection.city.trim();
+                  params.append("city", cleanCity);
+
+                  // For IDX Broker, we may need to use specific field names
+                  params.append("a_addressCity", cleanCity);
                 }
                 if (selection.neighborhood) {
-                  params.append("neighborhood", selection.neighborhood);
+                  // Clean neighborhood name
+                  const cleanNeighborhood = selection.neighborhood.trim();
+                  params.append("neighborhood", cleanNeighborhood);
+
+                  // Also try subdivision field which IDX often uses
+                  params.append("a_subdivision", cleanNeighborhood);
                 }
 
                 // Add architectural styles if selected

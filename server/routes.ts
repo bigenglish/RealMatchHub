@@ -1603,33 +1603,97 @@ app.post("/api/chatbot", async (req, res) => {
       const { searchNearbyPlaces, geocodeAddress } = await import('./google-places');
 
       // First geocode the city to get coordinates
-      const coordinates = await geocodeAddress(city);
+      const coordinates = await geocodeAddress(`${city}, CA, USA`);
 
       if (!coordinates) {
         console.log(`[express] Could not geocode city: ${city}`);
         return res.json([]);
       }
 
-      // Search for neighborhoods/localities near the city
-      const places = await searchNearbyPlaces({
-        query: 'neighborhood',
-        location: coordinates,
-        radius: 50000, // 50km radius
-        category: 'locality'
-      });
+      console.log(`[express] City coordinates: ${coordinates}`);
 
-      // Extract unique neighborhood names - include more place types
-      const neighborhoods = places
-        .filter(place => 
-          place.types.includes('neighborhood') || 
-          place.types.includes('sublocality') || 
-          place.types.includes('sublocality_level_1') ||
-          place.types.includes('locality') ||
-          place.types.includes('political')
-        )
+      // Search for multiple types of locations within the city
+      const searchQueries = [
+        `neighborhoods in ${city}`,
+        `districts in ${city}`,
+        `areas in ${city}`,
+        `communities in ${city}`
+      ];
+
+      let allPlaces: any[] = [];
+
+      // Try multiple search approaches
+      for (const query of searchQueries) {
+        try {
+          const places = await searchNearbyPlaces({
+            query,
+            location: coordinates,
+            radius: 25000, // 25km radius - more focused
+            category: 'neighborhood'
+          });
+          allPlaces = [...allPlaces, ...places];
+        } catch (error) {
+          console.log(`[express] Search failed for query: ${query}`);
+        }
+      }
+
+      // Also try locality-based search
+      try {
+        const localityPlaces = await searchNearbyPlaces({
+          query: city,
+          location: coordinates,
+          radius: 30000,
+          category: 'sublocality'
+        });
+        allPlaces = [...allPlaces, ...localityPlaces];
+      } catch (error) {
+        console.log(`[express] Locality search failed`);
+      }
+
+      // Extract and filter neighborhood names
+      const neighborhoods = allPlaces
+        .filter(place => {
+          // More comprehensive filtering for neighborhood types
+          const relevantTypes = [
+            'neighborhood', 'sublocality', 'sublocality_level_1', 
+            'sublocality_level_2', 'political', 'locality'
+          ];
+          return place.types && place.types.some(type => relevantTypes.includes(type));
+        })
         .map(place => place.name)
-        .filter((name, index, array) => array.indexOf(name) === index)
-        .slice(0, 5);
+        .filter((name, index, array) => {
+          // Remove duplicates and filter out the city name itself
+          return array.indexOf(name) === index && 
+                 name.toLowerCase() !== city.toLowerCase() &&
+                 !name.toLowerCase().includes('county') &&
+                 !name.toLowerCase().includes('state');
+        })
+        .sort()
+        .slice(0, 15); // Increase limit to 15 neighborhoods
+
+      // If we don't have enough from Google Places, add some known Los Angeles neighborhoods
+      if (city.toLowerCase().includes('los angeles') && neighborhoods.length < 10) {
+        const knownLANeighborhoods = [
+          'Beverly Hills', 'Hollywood', 'Santa Monica', 'West Hollywood', 
+          'Malibu', 'Manhattan Beach', 'Hermosa Beach', 'Redondo Beach',
+          'Venice', 'Brentwood', 'Westwood', 'Century City', 'Culver City',
+          'Marina del Rey', 'El Segundo', 'Inglewood', 'Hawthorne',
+          'Torrance', 'Palos Verdes', 'San Pedro', 'Long Beach',
+          'Pasadena', 'Glendale', 'Burbank', 'Studio City', 'Sherman Oaks',
+          'Van Nuys', 'North Hollywood', 'Woodland Hills', 'Calabasas',
+          'Hidden Hills', 'Encino', 'Tarzana', 'Reseda'
+        ];
+
+        // Add known neighborhoods that aren't already in our list
+        knownLANeighborhoods.forEach(neighborhood => {
+          if (!neighborhoods.some(n => n.toLowerCase() === neighborhood.toLowerCase())) {
+            neighborhoods.push(neighborhood);
+          }
+        });
+
+        // Limit to 20 total neighborhoods
+        neighborhoods.splice(20);
+      }
 
       console.log(`[express] Found ${neighborhoods.length} neighborhoods for ${city}:`, neighborhoods);
 

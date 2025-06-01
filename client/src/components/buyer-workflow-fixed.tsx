@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -9,6 +10,113 @@ import {
   Square, Bed, Bath, ImageIcon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+// City Autocomplete Component
+interface CityAutocompleteProps {
+  value: string;
+  onChange: (city: string) => void;
+  placeholder: string;
+}
+
+const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ value, onChange, placeholder }) => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const fetchCitySuggestions = async (input: string) => {
+    if (input.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?access_token=${import.meta.env.VITE_MAPBOX_ACCESS_TOKEN}&types=place&country=US&limit=5`);
+      if (response.ok) {
+        const data = await response.json();
+        const cities = data.features?.map((feature: any) => feature.place_name) || [];
+        setSuggestions(cities);
+      }
+    } catch (error) {
+      // Fallback to popular US cities
+      const popularCities = [
+        'Los Angeles, CA',
+        'San Francisco, CA', 
+        'New York, NY',
+        'Chicago, IL',
+        'Houston, TX',
+        'Phoenix, AZ',
+        'Philadelphia, PA',
+        'San Antonio, TX',
+        'San Diego, CA',
+        'Dallas, TX'
+      ];
+      const filtered = popularCities.filter(city => 
+        city.toLowerCase().includes(input.toLowerCase())
+      );
+      setSuggestions(filtered);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    onChange(newValue);
+    fetchCitySuggestions(newValue);
+    setShowSuggestions(true);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    onChange(suggestion);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        value={value}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+      />
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="p-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Add custom styles for range sliders
+const sliderStyles = `
+  .slider-thumb::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #059669;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .slider-thumb::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #059669;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+`;
 
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
@@ -32,17 +140,73 @@ export default function BuyerWorkflow({
   setNeedsMortgage
 }: BuyerWorkflowProps) {
   const { toast } = useToast();
-  const [selection, setSelection] = useState({
-    rentRange: '',
-    bedrooms: '',
-    bathrooms: '',
-    homeType: '',
-    city: '',
-    neighborhood: '',
+  const [selection, setSelection] = useState<any>({
     architecturalStyles: [],
     interiorStyles: [],
     amenities: [],
+    propertyIntent: 'rent',
+    budgetAmount: 3000,
+    bedrooms: '',
+    bathrooms: '',
+    homeTypes: [],
+    exactMatchBedrooms: false,
+    city: '',
+    neighborhood: '',
+    availableNeighborhoods: [],
+    priceMin: 200000,
+    priceMax: 800000
   });
+
+  // Function to fetch neighborhoods based on selected city
+  const fetchNeighborhoods = useCallback(async (cityName: string) => {
+    if (!cityName || cityName.length < 3) {
+      setSelection(prev => ({...prev, availableNeighborhoods: []}));
+      return;
+    }
+
+    try {
+      // Try to get neighborhoods from your Google Places API
+      const response = await fetch(`/api/neighborhoods?city=${encodeURIComponent(cityName)}`);
+      if (response.ok) {
+        const neighborhoods = await response.json();
+        setSelection(prev => ({
+          ...prev, 
+          availableNeighborhoods: neighborhoods.slice(0, 5)
+        }));
+      } else {
+        // Fallback neighborhoods based on popular cities
+        const neighborhoodMap: { [key: string]: string[] } = {
+          'Los Angeles': ['Hollywood', 'Beverly Hills', 'Santa Monica', 'Venice', 'West Hollywood'],
+          'San Francisco': ['Mission District', 'Pacific Heights', 'Castro', 'Nob Hill', 'SOMA'],
+          'New York': ['Manhattan', 'Brooklyn Heights', 'SoHo', 'Upper East Side', 'Williamsburg'],
+          'Chicago': ['Lincoln Park', 'Wicker Park', 'Gold Coast', 'River North', 'Lakeview'],
+          'Houston': ['Montrose', 'Heights', 'Midtown', 'River Oaks', 'Galleria'],
+          'Phoenix': ['Scottsdale', 'Tempe', 'Ahwatukee', 'Arcadia', 'Biltmore'],
+          'Philadelphia': ['Center City', 'Old City', 'Northern Liberties', 'Fishtown', 'Society Hill'],
+          'San Antonio': ['Alamo Heights', 'Southtown', 'Pearl District', 'Stone Oak', 'Riverwalk'],
+          'San Diego': ['Gaslamp Quarter', 'La Jolla', 'Mission Beach', 'Hillcrest', 'Pacific Beach'],
+          'Dallas': ['Deep Ellum', 'Bishop Arts', 'Uptown', 'Highland Park', 'Knox-Henderson']
+        };
+
+        // Extract city name from the full city string
+        const cityKey = Object.keys(neighborhoodMap).find(key => 
+          cityName.toLowerCase().includes(key.toLowerCase())
+        );
+
+        if (cityKey) {
+          setSelection(prev => ({
+            ...prev, 
+            availableNeighborhoods: neighborhoodMap[cityKey]
+          }));
+        } else {
+          setSelection(prev => ({...prev, availableNeighborhoods: []}));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching neighborhoods:', error);
+      setSelection(prev => ({...prev, availableNeighborhoods: []}));
+    }
+  }, []);
 
   // Handle down payment change
   const handleDownPaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,55 +488,170 @@ export default function BuyerWorkflow({
             {/* Property Basics Section */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Property Basics</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label>Rent Range</Label>
-                    <Input 
-                      placeholder="e.g. $2000-3000"
-                      value={selection.rentRange}
-                      onChange={(e) => setSelection({...selection, rentRange: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Bedrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2-3"
-                      value={selection.bedrooms}
-                      onChange={(e) => setSelection({...selection, bedrooms: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Bathrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2+"
-                      value={selection.bathrooms}
-                      onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
-                    />
-                  </div>
-                   <div>
                     <Label>City</Label>
-                    <Input 
+                    <CityAutocomplete 
+                      value={selection.city || ''}
+                      onChange={(city) => {
+                        setSelection({...selection, city, neighborhood: ''});
+                        fetchNeighborhoods(city);
+                      }}
                       placeholder="e.g. San Francisco"
-                      value={selection.city}
-                      onChange={(e) => setSelection({...selection, city: e.target.value})}
                     />
                   </div>
                   <div>
                     <Label>Neighborhood</Label>
-                    <Input 
-                      placeholder="e.g. Pacific Heights"
-                      value={selection.neighborhood}
-                      onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
-                    />
+                    {selection.availableNeighborhoods && selection.availableNeighborhoods.length > 0 ? (
+                      <select 
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                        value={selection.neighborhood || ''}
+                        onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
+                      >
+                        <option value="">Select a neighborhood</option>
+                        {selection.availableNeighborhoods.map((neighborhood, index) => (
+                          <option key={index} value={typeof neighborhood === 'string' ? neighborhood : neighborhood.name || neighborhood}>
+                            {typeof neighborhood === 'string' ? neighborhood : neighborhood.name || neighborhood}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input 
+                        placeholder="e.g. Pacific Heights"
+                        value={selection.neighborhood || ''}
+                        onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
+                      />
+                    )}
                   </div>
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Home Type (Select all that apply)</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      'Single Family',
+                      'Condo',
+                      'Townhouse',
+                      'Multi-Family',
+                      'Land',
+                      'Apartment'
+                    ].map((type) => (
+                      <div
+                        key={type}
+                        onClick={() => {
+                          const currentTypes = selection.homeTypes || [];
+                          const newTypes = currentTypes.includes(type)
+                            ? currentTypes.filter(t => t !== type)
+                            : [...currentTypes, type];
+                          setSelection({...selection, homeTypes: newTypes});
+                        }}
+                        className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                          selection.homeTypes?.includes(type)
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-gray-200 hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="text-sm font-medium">{type}</div>
+                        {selection.homeTypes?.includes(type) && (
+                          <Check className="h-4 w-4 mx-auto mt-1 text-primary" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <Label>Price Range</Label>
+                    <span className="text-sm text-gray-600">
+                      ${selection.priceMin?.toLocaleString() || '200K'} - ${selection.priceMax?.toLocaleString() || '800K'}
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-xs text-gray-500 mb-2">
+                        <span>Min: $200K</span>
+                        <span>Max: $2M</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={200000}
+                        max={2000000}
+                        step={50000}
+                        value={selection.priceMin || 200000}
+                        onChange={(e) => setSelection({...selection, priceMin: Number(e.target.value)})}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="range"
+                        min={200000}
+                        max={2000000}
+                        step={50000}
+                        value={selection.priceMax || 800000}
+                        onChange={(e) => setSelection({...selection, priceMax: Number(e.target.value)})}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label>Home Type</Label>
-                    <Input 
-                      placeholder="e.g. Condo, House"
-                      value={selection.homeType}
-                      onChange={(e) => setSelection({...selection, homeType: e.target.value})}
-                    />
+                    <Label className="mb-3 block">Bedrooms</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['1', '2', '3', '4+'].map((bed) => (
+                        <div
+                          key={bed}
+                          onClick={() => setSelection({...selection, bedrooms: bed})}
+                          className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                            selection.bedrooms === bed
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="text-sm font-medium">{bed}</div>
+                          {selection.bedrooms === bed && (
+                            <Check className="h-3 w-3 mx-auto mt-1 text-primary" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2">
+                      <label className="flex items-center text-xs text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={selection.exactMatchBedrooms || false}
+                          onChange={(e) => setSelection({...selection, exactMatchBedrooms: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Exact match only
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="mb-3 block">Bathrooms</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['1', '1.5', '2', '2.5+'].map((bath) => (
+                        <div
+                          key={bath}
+                          onClick={() => setSelection({...selection, bathrooms: bath})}
+                          className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                            selection.bathrooms === bath
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="text-sm font-medium">{bath}</div>
+                          {selection.bathrooms === bath && (
+                            <Check className="h-3 w-3 mx-auto mt-1 text-primary" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -454,15 +733,15 @@ export default function BuyerWorkflow({
                 params.append("pt", "1"); // Property Type Residential
 
                 // Add price range parameters
-                if (selection.priceRange?.min) {
-                  params.append("lp", selection.priceRange.min.toString()); // Low Price
+                if (selection.priceMin) {
+                  params.append("lp", selection.priceMin.toString()); // Low Price
                 }
-                if (selection.priceRange?.max) {
-                  params.append("hp", selection.priceRange.max.toString()); // High Price
+                if (selection.priceMax) {
+                  params.append("hp", selection.priceMax.toString()); // High Price
                 }
 
                 // Add default price range if none specified
-                if (!selection.priceRange?.min && !selection.priceRange?.max) {
+                if (!selection.priceMin && !selection.priceMax) {
                   params.append("lp", "200000"); // Default low price 200K
                   params.append("hp", "800000"); // Default high price 800K
                 }
@@ -474,10 +753,10 @@ export default function BuyerWorkflow({
                   params.append("baths", selection.bathrooms);
                 }
 
-                 if (selection.city) {
+                if (selection.city) {
                   params.append("city", selection.city);
                 }
-                 if (selection.neighborhood) {
+                if (selection.neighborhood) {
                   params.append("neighborhood", selection.neighborhood);
                 }
 
@@ -493,8 +772,15 @@ export default function BuyerWorkflow({
                   });
                 }
 
-                // Redirect to IDX Broker with search parameters
-                window.location.href = idxBaseUrl + params.toString();
+                // Create final URL
+                const finalUrl = `${idxBaseUrl}${params.toString()}`;
+                console.log('Redirecting to IDX Broker:', finalUrl);
+
+                // Open in new window to preserve user's place in our app
+                window.open(finalUrl, '_blank');
+
+                // Also call onComplete to mark workflow as done
+                onComplete();
               }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>
@@ -537,57 +823,60 @@ export default function BuyerWorkflow({
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'situation' ? 'bg-primary text-white' : 'bg-gray-200'}`}>
-              1
+    <>
+      <style dangerouslySetInnerHTML={{ __html: sliderStyles }} />
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'situation' ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+                1
+              </div>
+              <p className="mt-2 text-xs text-center">Your Situation</p>
             </div>
-            <p className="mt-2 text-xs text-center">Your Situation</p>
-          </div>
 
-          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
 
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'financing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-              2
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'financing' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                2
+              </div>
+              <p className="mt-2 text-xs text-center">Financing</p>
             </div>
-            <p className="mt-2 text-xs text-center">Financing</p>
-          </div>
 
-          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
 
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'design' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-              3
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'design' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                3
+              </div>
+              <p className="mt-2 text-xs text-center">Design Preferences</p>
             </div>
-            <p className="mt-2 text-xs text-center">Design Preferences</p>
-          </div>
 
-          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
 
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'properties' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-              4
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'properties' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                4
+              </div>
+              <p className="mt-2 text-xs text-center">Properties</p>
             </div>
-            <p className="mt-2 text-xs text-center">Properties</p>
-          </div>
 
-          <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
+            <div className="flex-1 h-1 bg-gray-200 mx-2"></div>
 
-          <div className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'service' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-              5
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep === 'service' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
+                5
+              </div>
+              <p className="mt-2 text-xs text-center">Services</p>
             </div>
-            <p className="mt-2 text-xs text-center">Services</p>
           </div>
         </div>
-      </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        {renderStepContent()}
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          {renderStepContent()}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

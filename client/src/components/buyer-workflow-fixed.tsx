@@ -64,7 +64,9 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({ value, onChange, pl
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    onChange(suggestion);
+    // Extract just the city name from the full suggestion (e.g., "Los Angeles, CA, USA" -> "Los Angeles")
+    const cityName = suggestion.split(',')[0].trim();
+    onChange(cityName);
     setSuggestions([]);
     setShowSuggestions(false);
   };

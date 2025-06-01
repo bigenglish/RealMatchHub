@@ -1618,9 +1618,15 @@ app.post("/api/chatbot", async (req, res) => {
         category: 'locality'
       });
 
-      // Extract unique neighborhood names
+      // Extract unique neighborhood names - include more place types
       const neighborhoods = places
-        .filter(place => place.types.includes('neighborhood') || place.types.includes('sublocality'))
+        .filter(place => 
+          place.types.includes('neighborhood') || 
+          place.types.includes('sublocality') || 
+          place.types.includes('sublocality_level_1') ||
+          place.types.includes('locality') ||
+          place.types.includes('political')
+        )
         .map(place => place.name)
         .filter((name, index, array) => array.indexOf(name) === index)
         .slice(0, 5);
@@ -1634,6 +1640,25 @@ app.post("/api/chatbot", async (req, res) => {
         message: "Error fetching neighborhoods",
         error: error instanceof Error ? error.message : String(error)
       });
+    }
+  });
+
+  // Get property counts by state from IDX Broker
+  app.get("/api/idx-property-counts", async (req, res) => {
+    try {
+      // This would require IDX Broker API access - placeholder for now
+      const states = [
+        { state: 'California', count: 15420 },
+        { state: 'Texas', count: 12800 },
+        { state: 'Florida', count: 9650 },
+        { state: 'New York', count: 8200 },
+        { state: 'Arizona', count: 6500 }
+      ];
+      
+      res.json(states);
+    } catch (error) {
+      console.error("[express] Error fetching IDX property counts:", error);
+      res.status(500).json({ error: "Failed to fetch property counts" });
     }
   });
 

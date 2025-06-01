@@ -10,6 +10,29 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+// Add custom styles for range sliders
+const sliderStyles = `
+  .slider-thumb::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #059669;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  .slider-thumb::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #059669;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+`;
+
 export type Step = 'situation' | 'financing' | 'design' | 'properties' | 'application' | 'service';
 
 interface BuyerWorkflowProps {
@@ -41,7 +64,11 @@ export default function BuyerWorkflow({
     bedrooms: '',
     bathrooms: '',
     homeTypes: [],
-    exactMatchBedrooms: false
+    exactMatchBedrooms: false,
+    city: '',
+    neighborhood: '',
+    priceMin: 200000,
+    priceMax: 800000
   });
 
   // Handle down payment change
@@ -324,13 +351,13 @@ export default function BuyerWorkflow({
             {/* Property Basics Section */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Property Basics</h3>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label>City</Label>
                     <Input 
                       placeholder="e.g. San Francisco"
-                      value={selection.city}
+                      value={selection.city || ''}
                       onChange={(e) => setSelection({...selection, city: e.target.value})}
                     />
                   </div>
@@ -338,41 +365,138 @@ export default function BuyerWorkflow({
                     <Label>Neighborhood</Label>
                     <Input 
                       placeholder="e.g. Pacific Heights"
-                      value={selection.neighborhood}
+                      value={selection.neighborhood || ''}
                       onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
                     />
                   </div>
-                  <div>
-                    <Label>Home Type</Label>
-                    <Input 
-                      placeholder="e.g. Condo, House"
-                      value={selection.homeType}
-                      onChange={(e) => setSelection({...selection, homeType: e.target.value})}
-                    />
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Home Type (Select all that apply)</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      'Single Family',
+                      'Condo',
+                      'Townhouse',
+                      'Multi-Family',
+                      'Land',
+                      'Apartment'
+                    ].map((type) => (
+                      <div
+                        key={type}
+                        onClick={() => {
+                          const currentTypes = selection.homeTypes || [];
+                          const newTypes = currentTypes.includes(type)
+                            ? currentTypes.filter(t => t !== type)
+                            : [...currentTypes, type];
+                          setSelection({...selection, homeTypes: newTypes});
+                        }}
+                        className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                          selection.homeTypes?.includes(type)
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-gray-200 hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="text-sm font-medium">{type}</div>
+                        {selection.homeTypes?.includes(type) && (
+                          <Check className="h-4 w-4 mx-auto mt-1 text-primary" />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-3">
                     <Label>Price Range</Label>
-                    <Input 
-                      placeholder="e.g. $500K-800K"
-                      value={selection.priceRange}
-                      onChange={(e) => setSelection({...selection, priceRange: e.target.value})}
-                    />
+                    <span className="text-sm text-gray-600">
+                      ${selection.priceMin?.toLocaleString() || '200K'} - ${selection.priceMax?.toLocaleString() || '800K'}
+                    </span>
                   </div>
-                  <div>
-                    <Label>Bedrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2-3"
-                      value={selection.bedrooms}
-                      onChange={(e) => setSelection({...selection, bedrooms: e.target.value})}
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-xs text-gray-500 mb-2">
+                        <span>Min: $200K</span>
+                        <span>Max: $2M</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={200000}
+                        max={2000000}
+                        step={50000}
+                        value={selection.priceMin || 200000}
+                        onChange={(e) => setSelection({...selection, priceMin: Number(e.target.value)})}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="range"
+                        min={200000}
+                        max={2000000}
+                        step={50000}
+                        value={selection.priceMax || 800000}
+                        onChange={(e) => setSelection({...selection, priceMax: Number(e.target.value)})}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                      />
+                    </div>
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label>Bathrooms</Label>
-                    <Input 
-                      placeholder="e.g. 2+"
-                      value={selection.bathrooms}
-                      onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
-                    />
+                    <Label className="mb-3 block">Bedrooms</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['1', '2', '3', '4+'].map((bed) => (
+                        <div
+                          key={bed}
+                          onClick={() => setSelection({...selection, bedrooms: bed})}
+                          className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                            selection.bedrooms === bed
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="text-sm font-medium">{bed}</div>
+                          {selection.bedrooms === bed && (
+                            <Check className="h-3 w-3 mx-auto mt-1 text-primary" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2">
+                      <label className="flex items-center text-xs text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={selection.exactMatchBedrooms || false}
+                          onChange={(e) => setSelection({...selection, exactMatchBedrooms: e.target.checked})}
+                          className="mr-2"
+                        />
+                        Exact match only
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="mb-3 block">Bathrooms</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {['1', '1.5', '2', '2.5+'].map((bath) => (
+                        <div
+                          key={bath}
+                          onClick={() => setSelection({...selection, bathrooms: bath})}
+                          className={`p-3 border-2 rounded-lg cursor-pointer text-center transition-all ${
+                            selection.bathrooms === bath
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <div className="text-sm font-medium">{bath}</div>
+                          {selection.bathrooms === bath && (
+                            <Check className="h-3 w-3 mx-auto mt-1 text-primary" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -537,7 +661,9 @@ export default function BuyerWorkflow({
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: sliderStyles }} />
+      <div className="max-w-3xl mx-auto">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-center">
@@ -589,5 +715,6 @@ export default function BuyerWorkflow({
         {renderStepContent()}
       </div>
     </div>
+    </>
   );
 }

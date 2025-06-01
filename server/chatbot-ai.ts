@@ -1,113 +1,80 @@
-
-/**
- * Integration with Google's Gemini AI for the real estate chatbot
- */
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize the Gemini API with the API key
-const API_KEY = process.env.GOOGLE_GEMINI_API_KEY || '';
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Initialize Gemini AI with API key from environment
+const apiKey = process.env.GEMINI_API_KEY;
 
-// Define the model to use
-const modelName = 'gemini-1.5-pro';
+let genAI: GoogleGenerativeAI | null = null;
 
-export interface ChatMessage {
-  role: 'user' | 'bot';
-  content: string;
+// Initialize with better error handling
+try {
+  if (apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+    console.log('[chatbot-ai] Gemini AI initialized successfully');
+  } else {
+    console.warn('[chatbot-ai] GEMINI_API_KEY not found, chatbot will use fallback responses');
+  }
+} catch (error) {
+  console.error('[chatbot-ai] Failed to initialize Gemini AI:', error);
 }
 
-export interface ChatbotResponse {
-  answer: string;
-  relatedQuestions?: string[];
-}
-
-/**
- * Process a real estate related query using Gemini AI
- * @param query The user's query text
- * @param chatHistory Previous conversation history
- * @returns AI response with answer and optional related questions
- */
-export async function processRealEstateQuery(
-  query: string,
-  chatHistory: ChatMessage[] = []
-): Promise<ChatbotResponse> {
+export async function generateChatbotResponse(userMessage: string, context?: any): Promise<string> {
   try {
-    // Set up the model
-    const model = genAI.getGenerativeModel({ model: modelName });
-    
-    // Create the system context as part of the user's message
-    const systemContext = `You are an AI assistant for a real estate platform called REALTY.AI. 
-    Focus on providing helpful, accurate information about real estate topics, property listings, 
-    buying/selling processes, and our services. Our platform offers FREE, BASIC ($1,500), and PREMIUM ($2,500) 
-    plans with various levels of support and features.
-    
-    Key features of our platform:
-    - AI-powered property matching and search
-    - Document review and explanation
-    - Expert consultation services
-    - Significant savings compared to traditional agent commissions (typically 5-6%)
-    
-    Keep responses concise, friendly, and focused on real estate. If you don't know something specific about 
-    REALTY.AI's offerings, recommend the user contact our customer support or check the pricing page.
-    
-    Always suggest ways that REALTY.AI can save the user money compared to traditional real estate services.
-
-    User query: ${query}`;
-
-    // Format the conversation history for the API - ensure first message is from user
-    let formattedHistory = chatHistory.map(msg => ({
-      role: msg.role === 'bot' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    }));
-
-    // If there's no history, start with a user message
-    if (formattedHistory.length === 0) {
-      formattedHistory = [
-        { role: 'user', parts: [{ text: systemContext }] }
-      ];
-    } else {
-      // Add the system context to the current query
-      formattedHistory.push({ role: 'user', parts: [{ text: systemContext }] });
+    // Check if AI is available
+    if (!genAI || !apiKey) {
+      console.warn('[chatbot-ai] AI service not available, using fallback');
+      return getFallbackResponse(userMessage);
     }
-    
-    // Create a chat session with the properly formatted history
-    const chat = model.startChat({
-      history: formattedHistory.slice(0, -1), // All but the last message
-      generationConfig: {
-        temperature: 0.4,
-        topK: 32,
-        topP: 0.95,
-        maxOutputTokens: 500,
-      }
+
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    // Create a prompt with context
+    const prompt = `You are RealtyAI Assistant, a helpful real estate AI assistant. 
+
+Context: You help users with real estate questions, property searches, market insights, and general real estate guidance.
+
+User message: ${userMessage}
+
+Please provide a helpful, informative response about real estate. Keep it conversational and practical.`;
+
+    // Generate response with timeout
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
     });
 
-    // Send the current message (last item in formatted history)
-    const result = await chat.sendMessage(formattedHistory[formattedHistory.length - 1].parts[0].text);
-    const response = result.response;
+    const responsePromise = model.generateContent(prompt);
+
+    const result = await Promise.race([responsePromise, timeoutPromise]);
+    const response = await result.response;
     const text = response.text();
-    
-    // Generate related questions
-    const relatedQuestions = [
-      "How much can I save with REALTY.AI compared to traditional agents?",
-      "What's included in the BASIC plan?",
-      "How does the AI property matching work?",
-      "Can I get expert help with contract negotiations?",
-      "Do you help with mortgage and financing options?"
-    ];
-    
-    // Pick 3 random related questions
-    const randomRelated = relatedQuestions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3);
-    
-    return {
-      answer: text,
-      relatedQuestions: randomRelated
-    };
+
+    if (!text || text.trim().length === 0) {
+      throw new Error('Empty response from AI');
+    }
+
+    return text;
   } catch (error) {
-    console.error("Error with Gemini AI chatbot:", error);
-    return {
-      answer: "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again in a moment or contact our support team for immediate assistance."
-    };
+    console.error('[chatbot-ai] Error generating response:', error);
+
+    // Return a contextual fallback response
+    return getFallbackResponse(userMessage);
   }
+}
+
+function getFallbackResponse(userMessage: string): string {
+  const message = userMessage.toLowerCase();
+
+  if (message.includes('property') || message.includes('house') || message.includes('home')) {
+    return "I'd be happy to help you with property questions! While I'm reconnecting to my AI services, you can browse our property listings or contact one of our real estate experts for immediate assistance.";
+  }
+
+  if (message.includes('price') || message.includes('cost') || message.includes('market')) {
+    return "For current market prices and trends, I recommend speaking with one of our local market experts who can provide the most up-to-date information for your area.";
+  }
+
+  if (message.includes('mortgage') || message.includes('loan') || message.includes('financing')) {
+    return "For mortgage and financing questions, our financing partners can help you explore your options. You can request a consultation through our services page.";
+  }
+
+  return "I'm having trouble connecting to my AI services right now, but I'm here to help! You can browse our property listings, schedule a consultation with an expert, or try asking your question again in a moment.";
 }

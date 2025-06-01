@@ -45,33 +45,33 @@ export default function AIChatbot() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-    
+
     // Add user message
     const userMessage: ChatMessage = { role: 'user', content: input.trim() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput('');
     setIsLoading(true);
-    
+
     try {
       // Make API call to the backend chatbot endpoint
       const response = await apiRequest("POST", "/api/chatbot", {
         query: input.trim(),
         chatHistory: messages
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to get response from AI");
       }
-      
+
       const data = await response.json() as ChatbotResponse;
-      
+
       // Add bot's response to messages
       setMessages([...updatedMessages, { 
         role: 'bot', 
         content: data.answer 
       }]);
-      
+
       // If there are related questions, suggest them
       if (data.relatedQuestions && data.relatedQuestions.length > 0) {
         setTimeout(() => {
@@ -85,7 +85,7 @@ export default function AIChatbot() {
           ]);
         }, 1000);
       }
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error with chatbot:", error);
       setMessages(prev => [
         ...prev,
@@ -94,7 +94,7 @@ export default function AIChatbot() {
           content: "I'm having trouble connecting right now. Please try again in a moment or reach out to our customer support for assistance."
         }
       ]);
-      
+
       toast({
         title: "Chatbot Error",
         description: "Could not connect to the AI assistant. Please try again.",
@@ -152,7 +152,7 @@ export default function AIChatbot() {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg, i) => (
@@ -178,7 +178,7 @@ export default function AIChatbot() {
             )}
             <div ref={messagesEndRef} />
           </div>
-          
+
           {/* Input */}
           <div className="p-3 border-t">
             <div className="flex gap-2">

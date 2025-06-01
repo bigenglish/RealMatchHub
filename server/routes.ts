@@ -394,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-debug", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
-      
+
       const debugInfo = {
         hasApiKey: !!apiKey,
         apiKeyLength: apiKey?.length || 0,
@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             },
             timeout: 5000
           });
-          
+
           debugInfo.connectivityTest = {
             success: true,
             statusCode: testResponse.status,
@@ -446,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-full-debug", async (_req, res) => {
     try {
       console.log("[express] Running comprehensive IDX debug...");
-      
+
       // Capture console output
       const originalLog = console.log;
       const logs: string[] = [];
@@ -454,12 +454,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logs.push(args.join(' '));
         originalLog(...args);
       };
-      
+
       await debugIdxBrokerApi();
-      
+
       // Restore console.log
       console.log = originalLog;
-      
+
       res.json({
         success: true,
         timestamp: new Date().toISOString(),
@@ -512,10 +512,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get IDX listings
       const idxResponse = await fetchIdxListings({ limit: 100 }); // Get more listings for better count
-      
+
       // Count properties by state
       const stateCounts: { [key: string]: number } = {};
-      
+
       idxResponse.listings.forEach(listing => {
         const state = listing.state || 'Unknown';
         stateCounts[state] = (stateCounts[state] || 0) + 1;
@@ -1654,7 +1654,7 @@ app.post("/api/chatbot", async (req, res) => {
         { state: 'New York', count: 8200 },
         { state: 'Arizona', count: 6500 }
       ];
-      
+
       res.json(states);
     } catch (error) {
       console.error("[express] Error fetching IDX property counts:", error);
@@ -1780,7 +1780,7 @@ app.post("/api/chatbot", async (req, res) => {
         }
 
         try {
-          // Create the payment intent with detailed parameters
+          // Create the paymentintent with detailed parameters
           const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(amount * 100), // Convert to cents
             currency: 'usd',
@@ -2104,6 +2104,35 @@ app.post("/api/chatbot", async (req, res) => {
   } catch (error) {
     console.error("[express] Failed to initialize Google Vision API:", error);
   }
+
+  // AI Chatbot endpoint
+  app.post("/api/chatbot", async (req, res) => {
+    try {
+      const { message, context } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      console.log('[express] Chatbot request:', { message: message.substring(0, 100) });
+
+      const response = await generateChatbotResponse(message, context);
+
+      console.log('[express] Chatbot response generated successfully');
+      res.json({ response, status: 'success' });
+    } catch (error) {
+      console.error('[express] Chatbot error:', error);
+
+      // Always return a user-friendly response, never expose internal errors
+      const fallbackResponse = "I'm having trouble connecting right now. Please try again in a moment or reach out to our customer support for assistance.";
+
+      res.json({ 
+        response: fallbackResponse, 
+        status: 'fallback',
+        error: 'AI service temporarily unavailable'
+      });
+    }
+  });
 
   // Server is started in server/index.ts - removed duplicate listen call
 

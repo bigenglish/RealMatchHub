@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import BuyerWorkflow, { Step } from '@/components/buyer-workflow';
+import BuyerWorkflow, { Step } from '@/components/buyer-workflow-clean';
 
 export default function BuyerFlow() {
   const [, setLocation] = useLocation();

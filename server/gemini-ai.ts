@@ -4,6 +4,15 @@
 
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+// Export the genAI instance
+export let genAI: GoogleGenerativeAI;
+
+// Initialize the genAI instance
+const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
+if (apiKey) {
+  genAI = new GoogleGenerativeAI(apiKey);
+}
+
 // Interface for term explanation responses
 export interface TermExplanation {
   term: string;

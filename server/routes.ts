@@ -39,6 +39,7 @@ import cmaRoutes from "./routes/cma-routes"; // Import CMA routes
 import authRoutes from "./routes/auth-routes"; // Import auth routes
 import { initializeVisionClient } from "./vision-service"; // Import vision service initialization
 import { initDocumentProcessor } from "./document-processor"; // Import document processor initialization
+import { genAI } from "./gemini-ai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -1249,19 +1250,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/property/description-suggestions", async (req, res) => {
   try {
     const { features, propertyType, location } = req.body;
-    
+
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
+
     const prompt = `Write an engaging property description for a ${propertyType} with the following features:
     ${features.join(", ")}
     Location: ${location || "Not specified"}
-    
+
     Keep it professional, highlight key features, and make it appealing to potential buyers.
     Format the response as a single paragraph, approximately 100-150 words.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    
+
     res.json({ 
       suggestion: response.text(),
       success: true 
@@ -1278,56 +1279,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 app.post("/api/chatbot", async (req, res) => {
     try {
       const { query, chatHistory } = req.body;
-
-
-
-  // Firebase Admin Key verification endpoint
-  app.get("/api/firebase-status", async (_req, res) => {
-    try {
-      const adminKey = process.env.FIREBASE_ADMIN_KEY;
-      const hasKey = !!adminKey;
-      
-      if (!hasKey) {
-        return res.json({
-          configured: false,
-          message: "Firebase Admin key is not configured"
-        });
-      }
-
-      // Attempt to parse the key to verify it's valid base64
-      try {
-        const decodedKey = Buffer.from(adminKey, 'base64').toString('utf-8');
-        const keyObj = JSON.parse(decodedKey);
-        
-        // Check for required fields in the key
-        const isValid = keyObj.type === 'service_account' && 
-                       keyObj.project_id && 
-                       keyObj.private_key;
-
-        return res.json({
-          configured: true,
-          valid: isValid,
-          projectId: keyObj.project_id,
-          message: isValid ? 
-            "Firebase Admin key is properly configured" : 
-            "Firebase Admin key is invalid"
-        });
-      } catch (parseError) {
-        return res.json({
-          configured: true,
-          valid: false,
-          message: "Firebase Admin key is not properly formatted"
-        });
-      }
-    } catch (error) {
-      console.error("[express] Error checking Firebase Admin key:", error);
-      res.status(500).json({ 
-        configured: false,
-        message: "Error checking Firebase Admin key status"
-      });
-    }
-  });
-
 
       if (!query) {
         return res.status(400).json({ message: "Query is required" });
@@ -1512,7 +1463,7 @@ app.post("/api/chatbot", async (req, res) => {
   app.get("/api/neighborhoods", async (req, res) => {
     try {
       const { city } = req.query;
-      
+
       if (!city || typeof city !== 'string') {
         return res.status(400).json({ error: "City parameter is required" });
       }
@@ -1521,10 +1472,10 @@ app.post("/api/chatbot", async (req, res) => {
 
       // Use Google Places API to search for neighborhoods
       const { searchNearbyPlaces, geocodeAddress } = await import('./google-places');
-      
+
       // First geocode the city to get coordinates
       const coordinates = await geocodeAddress(city);
-      
+
       if (!coordinates) {
         console.log(`[express] Could not geocode city: ${city}`);
         return res.json([]);
@@ -1546,7 +1497,7 @@ app.post("/api/chatbot", async (req, res) => {
         .slice(0, 5);
 
       console.log(`[express] Found ${neighborhoods.length} neighborhoods for ${city}:`, neighborhoods);
-      
+
       res.json(neighborhoods);
     } catch (error) {
       console.error("[express] Error fetching neighborhoods:", error);
@@ -1555,7 +1506,7 @@ app.post("/api/chatbot", async (req, res) => {
         error: error instanceof Error ? error.message : String(error)
       });
     }
-  });</old_str>
+  });
 
   // AI property recommendations endpoint based on user preferences
   app.post("/api/ai-property-recommendations", async (req, res) => {
@@ -1605,7 +1556,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "missing_amount"
           });
         }
-        
+
         if (typeof amount !== 'number' || isNaN(amount)) {
           console.warn(`[express] Invalid amount type in payment intent request: ${typeof amount}`);
           return res.status(400).json({ 
@@ -1614,7 +1565,7 @@ app.post("/api/chatbot", async (req, res) => {
             code: "invalid_amount_format"
           });
         }
-        
+
         if (amount < 0.5) {
           console.warn(`[express] Amount too small in payment intent request: ${amount}`);
           return res.status(400).json({ 
@@ -1655,7 +1606,7 @@ app.post("/api/chatbot", async (req, res) => {
             );
 
             validServices = services.filter(s => s !== null);
-            
+
             if (validServices.length === 0) {
               console.warn('[express] No valid services found for payment intent');
             } else {
@@ -1972,7 +1923,7 @@ app.post("/api/chatbot", async (req, res) => {
   try {
     await initializeVisionClient();
     app.use("/api/vision", visionRoutes);
-    
+
     // Initialize Document AI processor and register document routes
     console.log("[express] Initializing Document AI processor");
     const documentProcessorInitialized = await initDocumentProcessor();
@@ -1984,15 +1935,15 @@ app.post("/api/chatbot", async (req, res) => {
       console.error("[express] Failed to initialize Document AI processor, document routes will not be available");
     }
     console.log("[express] Google Vision API routes registered");
-    
+
     // Register service request routes
     app.use("/api", serviceRequestRoutes);
     console.log("[express] Service request routes registered");
-    
+
     // Register CMA routes
     app.use("/api/cma", cmaRoutes);
     console.log("[express] CMA routes registered");
-    
+
     // Register Auth routes
     app.use("/api/auth", authRoutes);
     console.log("[express] Auth routes registered");

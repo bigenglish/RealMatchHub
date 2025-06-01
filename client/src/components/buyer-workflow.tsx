@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -325,137 +324,55 @@ export default function BuyerWorkflow({
             {/* Property Basics Section */}
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Property Basics</h3>
-              <div className="bg-gray-50 p-6 rounded-lg space-y-6">
-                {/* Rent or Buy Toggle */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Looking to</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant={selection.propertyIntent === 'rent' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelection({...selection, propertyIntent: 'rent'})}
-                    >
-                      Rent
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={selection.propertyIntent === 'buy' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelection({...selection, propertyIntent: 'buy'})}
-                    >
-                      Buy
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Budget Slider */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">
-                    {selection.propertyIntent === 'rent' ? 'Monthly Rent Budget' : 'Purchase Budget'}
-                  </Label>
-                  <div className="space-y-4">
-                    <input
-                      type="range"
-                      min={selection.propertyIntent === 'rent' ? 1000 : 100000}
-                      max={selection.propertyIntent === 'rent' ? 10000 : 2000000}
-                      step={selection.propertyIntent === 'rent' ? 100 : 10000}
-                      value={selection.budgetAmount || (selection.propertyIntent === 'rent' ? 3000 : 500000)}
-                      onChange={(e) => setSelection({...selection, budgetAmount: Number(e.target.value)})}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <Label>City</Label>
+                    <Input 
+                      placeholder="e.g. San Francisco"
+                      value={selection.city}
+                      onChange={(e) => setSelection({...selection, city: e.target.value})}
                     />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>${selection.propertyIntent === 'rent' ? '1,000' : '100K'}</span>
-                      <span className="font-medium text-primary">
-                        ${(selection.budgetAmount || (selection.propertyIntent === 'rent' ? 3000 : 500000)).toLocaleString()}
-                        {selection.propertyIntent === 'rent' ? '/month' : ''}
-                      </span>
-                      <span>${selection.propertyIntent === 'rent' ? '10,000' : '2M'}</span>
-                    </div>
                   </div>
-                </div>
-
-                {/* Bedrooms */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Number of Bedrooms</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {['Studio', '1', '2', '3', '4', '5+'].map((bedroom) => (
-                      <Button
-                        key={bedroom}
-                        type="button"
-                        variant={selection.bedrooms === bedroom ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelection({...selection, bedrooms: bedroom})}
-                        className="min-w-[60px]"
-                      >
-                        {bedroom}
-                      </Button>
-                    ))}
-                  </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="checkbox"
-                      id="exact-match-bedrooms"
-                      checked={selection.exactMatchBedrooms || false}
-                      onChange={(e) => setSelection({...selection, exactMatchBedrooms: e.target.checked})}
-                      className="rounded"
+                  <div>
+                    <Label>Neighborhood</Label>
+                    <Input 
+                      placeholder="e.g. Pacific Heights"
+                      value={selection.neighborhood}
+                      onChange={(e) => setSelection({...selection, neighborhood: e.target.value})}
                     />
-                    <Label htmlFor="exact-match-bedrooms" className="text-sm">Use exact match</Label>
                   </div>
-                </div>
-
-                {/* Bathrooms */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Number of Bathrooms</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {['Any', '1+', '1.5+', '2+', '3+', '4+'].map((bathroom) => (
-                      <Button
-                        key={bathroom}
-                        type="button"
-                        variant={selection.bathrooms === bathroom ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelection({...selection, bathrooms: bathroom})}
-                        className="min-w-[60px]"
-                      >
-                        {bathroom}
-                      </Button>
-                    ))}
+                  <div>
+                    <Label>Home Type</Label>
+                    <Input 
+                      placeholder="e.g. Condo, House"
+                      value={selection.homeType}
+                      onChange={(e) => setSelection({...selection, homeType: e.target.value})}
+                    />
                   </div>
-                </div>
-
-                {/* Home Type */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Home Type</Label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="deselect-all-home-types"
-                        checked={!selection.homeTypes || selection.homeTypes.length === 0}
-                        onChange={() => setSelection({...selection, homeTypes: []})}
-                        className="rounded text-blue-600"
-                      />
-                      <Label htmlFor="deselect-all-home-types" className="text-sm text-blue-600 font-medium">Deselect All</Label>
-                    </div>
-                    
-                    {['Houses', 'Apartments/Condos/Co-ops', 'Townhomes'].map((homeType) => (
-                      <div key={homeType} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`home-type-${homeType}`}
-                          checked={selection.homeTypes?.includes(homeType) || false}
-                          onChange={(e) => {
-                            const currentTypes = selection.homeTypes || [];
-                            const updatedTypes = e.target.checked
-                              ? [...currentTypes, homeType]
-                              : currentTypes.filter(type => type !== homeType);
-                            setSelection({...selection, homeTypes: updatedTypes});
-                          }}
-                          className="rounded text-blue-600"
-                        />
-                        <Label htmlFor={`home-type-${homeType}`} className="text-sm">{homeType}</Label>
-                      </div>
-                    ))}
+                  <div>
+                    <Label>Price Range</Label>
+                    <Input 
+                      placeholder="e.g. $500K-800K"
+                      value={selection.priceRange}
+                      onChange={(e) => setSelection({...selection, priceRange: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Bedrooms</Label>
+                    <Input 
+                      placeholder="e.g. 2-3"
+                      value={selection.bedrooms}
+                      onChange={(e) => setSelection({...selection, bedrooms: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Bathrooms</Label>
+                    <Input 
+                      placeholder="e.g. 2+"
+                      value={selection.bathrooms}
+                      onChange={(e) => setSelection({...selection, bathrooms: e.target.value})}
+                    />
                   </div>
                 </div>
               </div>
@@ -531,11 +448,11 @@ export default function BuyerWorkflow({
                 // Create IDX Broker URL with search parameters based on user selections
                 const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
                 const params = new URLSearchParams();
-                
+
                 // Add required IDX parameters for property search
                 params.append("idxID", "d025");
                 params.append("pt", "1"); // Property Type Residential
-                
+
                 // Add price range parameters
                 if (selection.priceRange?.min) {
                   params.append("lp", selection.priceRange.min.toString()); // Low Price
@@ -543,13 +460,13 @@ export default function BuyerWorkflow({
                 if (selection.priceRange?.max) {
                   params.append("hp", selection.priceRange.max.toString()); // High Price
                 }
-                
+
                 // Add default price range if none specified
                 if (!selection.priceRange?.min && !selection.priceRange?.max) {
                   params.append("lp", "200000"); // Default low price 200K
                   params.append("hp", "800000"); // Default high price 800K
                 }
-                
+
                 if (selection.bedrooms) {
                   params.append("beds", selection.bedrooms);
                 }
@@ -572,10 +489,10 @@ export default function BuyerWorkflow({
                 // Create final URL
                 const finalUrl = `${idxBaseUrl}${params.toString()}`;
                 console.log('Redirecting to IDX Broker:', finalUrl);
-                
+
                 // Open in new window to preserve user's place in our app
                 window.open(finalUrl, '_blank');
-                
+
                 // Also call onComplete to mark workflow as done
                 onComplete();
               }}>

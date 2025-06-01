@@ -510,11 +510,11 @@ export default function BuyerWorkflow({
                       >
                         <option value="">Select a neighborhood</option>
                         {selection.availableNeighborhoods.map((neighborhood, index) => (
-                          <option key={index} value={neighborhood}>
-                            {neighborhood}
+                          <option key={index} value={typeof neighborhood === 'string' ? neighborhood : neighborhood.name || neighborhood}>
+                            {typeof neighborhood === 'string' ? neighborhood : neighborhood.name || neighborhood}
                           </option>
                         ))}
-                      </select>
+                      </select></old_str>
                     ) : (
                       <Input 
                         placeholder="e.g. Pacific Heights"

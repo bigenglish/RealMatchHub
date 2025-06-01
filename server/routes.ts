@@ -1455,7 +1455,7 @@ app.post("/api/chatbot", async (req, res) => {
   });
 
   // Get neighborhood statistics
-  app.get("/api/neighborhoods", async (req, res) => {
+  app.get("/api/neighborhood-stats", async (req, res) => {
     try {
       console.log("[express] Fetching neighborhood statistics");
 
@@ -1555,7 +1555,7 @@ app.post("/api/chatbot", async (req, res) => {
         error: error instanceof Error ? error.message : String(error)
       });
     }
-  });
+  });</old_str>
 
   // AI property recommendations endpoint based on user preferences
   app.post("/api/ai-property-recommendations", async (req, res) => {

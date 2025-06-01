@@ -105,7 +105,7 @@ const sliderStyles = `
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
-  
+
   .slider-thumb::-moz-range-thumb {
     height: 20px;
     width: 20px;
@@ -514,7 +514,7 @@ export default function BuyerWorkflow({
                             {typeof neighborhood === 'string' ? neighborhood : neighborhood.name || neighborhood}
                           </option>
                         ))}
-                      </select></old_str>
+                      </select>
                     ) : (
                       <Input 
                         placeholder="e.g. Pacific Heights"

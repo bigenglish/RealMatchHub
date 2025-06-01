@@ -10,6 +10,7 @@ import {
   insertServiceBundleSchema
 } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
+import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
 import {
   predictPropertyPrice,
   generatePropertyDescription,
@@ -385,6 +386,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: "Error testing IDX connection" 
+      });
+    }
+  });
+
+  // Add detailed IDX debugging endpoint
+  app.get("/api/idx-debug", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      
+      const debugInfo = {
+        hasApiKey: !!apiKey,
+        apiKeyLength: apiKey?.length || 0,
+        apiKeyPrefix: apiKey?.substring(0, 4) || 'none',
+        apiKeyFormat: apiKey?.startsWith('a') ? 'valid_prefix' : 'invalid_prefix',
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      };
+
+      if (apiKey) {
+        // Test basic connectivity to IDX API
+        try {
+          const axios = require('axios');
+          const testResponse = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            timeout: 5000
+          });
+          
+          debugInfo.connectivityTest = {
+            success: true,
+            statusCode: testResponse.status,
+            hasData: !!testResponse.data
+          };
+        } catch (testError: any) {
+          debugInfo.connectivityTest = {
+            success: false,
+            error: testError.response?.status || testError.message,
+            statusCode: testError.response?.status,
+            errorData: testError.response?.data
+          };
+        }
+      }
+
+      console.log("[express] IDX Debug Info:", debugInfo);
+      res.json(debugInfo);
+    } catch (error) {
+      console.error("Error in IDX debug:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error debugging IDX connection" 
+      });
+    }
+  });
+
+  // Comprehensive IDX debugging endpoint
+  app.get("/api/idx-full-debug", async (_req, res) => {
+    try {
+      console.log("[express] Running comprehensive IDX debug...");
+      
+      // Capture console output
+      const originalLog = console.log;
+      const logs: string[] = [];
+      console.log = (...args) => {
+        logs.push(args.join(' '));
+        originalLog(...args);
+      };
+      
+      await debugIdxBrokerApi();
+      
+      // Restore console.log
+      console.log = originalLog;
+      
+      res.json({
+        success: true,
+        timestamp: new Date().toISOString(),
+        debugOutput: logs
+      });
+    } catch (error) {
+      console.error("Error in comprehensive IDX debug:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error running comprehensive IDX debug" 
       });
     }
   });

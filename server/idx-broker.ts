@@ -18,18 +18,23 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
 
     // Make a simple request to test the connection
     try {
-      // We'll make a simple call to get account information
-      // This is typically a lightweight API call that should work if the key is valid
+      // Test with the most standard IDX Broker API format
       const response = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'accesskey': apiKey
-        }
+          'accesskey': apiKey,
+          'outputtype': 'json'
+        },
+        timeout: 8000 // 8 second timeout
       });
+
+      console.log('IDX API test response status:', response.status);
+      console.log('IDX API test response data keys:', Object.keys(response.data || {}));
 
       return { 
         success: true, 
         message: "Successfully connected to IDX Broker API",
+        statusCode: response.status,
+        hasData: !!response.data
       };
     } catch (apiError) {
       // Check the specific error and provide a better message
@@ -220,40 +225,50 @@ export async function fetchIdxListings({
       throw new Error('IDX Broker API key is required to fetch listings');
     }
 
+    // Log API key info for debugging (without exposing the full key)
+    console.log(`IDX API Key Info: Length=${apiKey.length}, Prefix=${apiKey.substring(0, 4)}..., Valid format=${apiKey.startsWith('a') && apiKey.length > 10}`);
+
     try {
       console.log('Fetching listings from IDX Broker API - trying multiple endpoints and formats');
 
-      // Primary endpoints for property data
+      // Primary endpoints for property data - try basic endpoints first
       const possibleEndpoints = [
+        'https://api.idxbroker.com/clients/accountinfo',
+        'https://api.idxbroker.com/clients/systemlinks',
+        'https://api.idxbroker.com/clients/subdomain',
         'https://api.idxbroker.com/clients/featured',
         'https://api.idxbroker.com/mls/searchfieldvalues',
         'https://api.idxbroker.com/mls/searchfields'
       ];
 
+      // Validate API key format
+      if (!apiKey.startsWith('a') || apiKey.length < 10) {
+        console.error('IDX API key appears to be invalid format. Should start with "a" and be longer than 10 characters');
+        throw new Error('Invalid IDX Broker API key format');
+      }
+
       // Different header combinations to try
       const possibleHeaders = [
-        // Standard headers format
-        {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'accesskey': apiKey,
-          'Cache-Control': 'no-cache',
-          'Accept': 'application/json'
-        },
-        // Alternate format 1
-        {
-          'Content-Type': 'application/json',
-          'accesskey': apiKey
-        },
-        // Alternate format 2
+        // IDX Broker standard format (most likely to work)
         {
           'Content-Type': 'application/x-www-form-urlencoded',
           'accesskey': apiKey,
           'outputtype': 'json'
         },
-        // Alternate format 3 - with authorization header
+        // Alternative standard format
+        {
+          'accesskey': apiKey,
+          'outputtype': 'json'
+        },
+        // With Accept header
         {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Bearer ${apiKey}`
+          'accesskey': apiKey,
+          'Accept': 'application/json'
+        },
+        // Minimal headers
+        {
+          'accesskey': apiKey
         }
       ];
 
@@ -270,17 +285,20 @@ export async function fetchIdxListings({
 
         for (const headers of possibleHeaders) {
           try {
-            console.log(`Trying IDX endpoint with headers variation:`, endpoint);
+            console.log(`Trying IDX endpoint: ${endpoint}`);
+            console.log(`Headers:`, Object.keys(headers));
+            console.log(`API Key prefix: ${apiKey.substring(0, 4)}...`);
 
-            // Make the API call to IDX Broker
+            // Make the API call to IDX Broker with timeout
             response = await axios.get(endpoint, {
               headers,
+              timeout: 10000, // 10 second timeout
               params: {
-                limit: 100, // Try a larger limit
-                offset: 0,
+                limit: 10, // Start with smaller limit
+                outputtype: 'json',
                 ...(city && { city }),
-                ...(minPrice > 0 && { minPrice }),
-                ...(maxPrice > 0 && { maxPrice }),
+                ...(minPrice > 0 && { minprice: minPrice }),
+                ...(maxPrice > 0 && { maxprice: maxPrice }),
                 ...(bedrooms !== undefined && { bedrooms }),
                 ...(bathrooms !== undefined && { bathrooms })
               }
@@ -305,7 +323,35 @@ export async function fetchIdxListings({
               console.log(`Endpoint ${endpoint} returned status ${response.status} without data`);
             }
           } catch (err: any) {
-            console.log(`Failed request to ${endpoint}:`, err.message || 'Unknown error');
+            if (err.response) {
+              console.log(`Failed request to ${endpoint}: HTTP ${err.response.status} - ${err.response.statusText}`);
+              console.log(`Response data:`, err.response.data);
+              
+              // Log specific error meanings
+              switch (err.response.status) {
+                case 400:
+                  console.log('400 Error: Bad Request - Invalid parameters or malformed request');
+                  break;
+                case 401:
+                  console.log('401 Error: Unauthorized - Invalid API key');
+                  break;
+                case 403:
+                  console.log('403 Error: Forbidden - API key lacks permissions');
+                  break;
+                case 406:
+                  console.log('406 Error: Not Acceptable - Server cannot produce response in requested format');
+                  break;
+                case 416:
+                  console.log('416 Error: Range Not Satisfiable - Invalid range request');
+                  break;
+                default:
+                  console.log(`${err.response.status} Error: ${err.response.statusText}`);
+              }
+            } else if (err.request) {
+              console.log(`Network error for ${endpoint}:`, err.message);
+            } else {
+              console.log(`Request setup error for ${endpoint}:`, err.message);
+            }
           }
         }
       }

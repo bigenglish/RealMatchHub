@@ -519,6 +519,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { url: 'https://api.idxbroker.com/clients/search', params: { limit: 1000, a_propStatus: 'Active' } },
         { url: 'https://api.idxbroker.com/mls/search', params: { limit: 1000 } },
         { url: 'https://api.idxbroker.com/clients/systemlinks', params: {} },
+        { url: 'https://api.idxbroker.com/clients/accountinfo', params: {} },
+        { url: 'https://api.idxbroker.com/clients/featured', params: {} }
+      ];
+
+      for (const endpoint of countEndpoints) {
+        try {
+          console.log(`[express] Checking endpoint: ${endpoint.url}`);
+          
+          const response = await axios.get(endpoint.url, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            params: endpoint.params,
+            timeout: 15000
+          });
+
+          if (response.status === 200 && response.data) {
+            let count = 0;
+            
+            // Handle different response formats
+            if (Array.isArray(response.data)) {
+              count = response.data.length;
+            } else if (response.data && typeof response.data === 'object') {
+              // Check for common property count fields
+              if (response.data.totalCount) {
+                count = response.data.totalCount;
+              } else if (response.data.count) {
+                count = response.data.count;
+              } else if (response.data.results && Array.isArray(response.data.results)) {
+                count = response.data.results.length;
+              } else {
+                // Count object keys (some APIs return objects with property IDs as keys)
+                count = Object.keys(response.data).length;
+              }
+            }
+
+            allCounts.push({
+              endpoint: endpoint.url,
+              count: count,
+              dataType: typeof response.data,
+              isArray: Array.isArray(response.data)
+            });
+
+            if (count > maxPropertyCount) {
+              maxPropertyCount = count;
+              workingEndpoint = endpoint.url;
+            }
+
+            console.log(`[express] ${endpoint.url} returned ${count} properties`);
+          }
+        } catch (endpointError: any) {
+          console.log(`[express] Endpoint ${endpoint.url} failed: ${endpointError.response?.status || endpointError.message}`);
+          allCounts.push({
+            endpoint: endpoint.url,
+            count: 0,
+            error: endpointError.response?.status || endpointError.message
+          });
+        }
+      }
+
+      return res.json({
+        success: maxPropertyCount > 0,
+        totalCount: maxPropertyCount,
+        message: `Found ${maxPropertyCount} properties from ${workingEndpoint || 'various endpoints'}`,
+        workingEndpoint,
+        allEndpointCounts: allCounts,
+        recommendation: maxPropertyCount < 100 ? 
+          "Consider checking your IDX Broker account settings or MLS feed configuration" : 
+          "Property count looks good"
+      });
+
+    } catch (error: any) {
+      console.error("[express] Error getting total property count:", error.message);
+      return res.json({ 
+        success: false, 
+        message: "Error getting total property count: " + error.message,
+        totalCount: 0
+      });
+    }
+  });
+
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found", totalCount: 0 });
+      }
+
+      console.log(`[express] Getting total property count from IDX Broker`);
+
+      const axios = require('axios');
+      let maxPropertyCount = 0;
+      let workingEndpoint = null;
+      let allCounts = [];
+
+      // Try multiple endpoints to get the highest property count
+      const countEndpoints = [
+        { url: 'https://api.idxbroker.com/clients/listings', params: { limit: 1000, a_propStatus: 'Active' } },
+        { url: 'https://api.idxbroker.com/clients/search', params: { limit: 1000, a_propStatus: 'Active' } },
+        { url: 'https://api.idxbroker.com/mls/search', params: { limit: 1000 } },
+        { url: 'https://api.idxbroker.com/clients/systemlinks', params: {} },
         { url: 'https://api.idxbroker.com/clients/accountinfo', params: {} }
       ];
 

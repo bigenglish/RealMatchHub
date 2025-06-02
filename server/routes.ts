@@ -2778,8 +2778,7 @@ app.post("/api/chatbot", async (req, res) => {
       res.json(conversation);
     } catch (error) {
       console.error('[express] Error fetching chat conversation:', error);
-      ```text
-res.status(500).json({ message: "Error fetching conversation" });
+      res.status(500).json({ message: "Error fetching conversation" });
     }
   });
 

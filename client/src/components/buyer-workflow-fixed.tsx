@@ -733,6 +733,12 @@ export default function BuyerWorkflow({
                 params.append("idxID", "d025");
                 params.append("pt", "1"); // Property Type Residential
 
+                // Add property status filter (like the working URL)
+                params.append("a_propStatus[]", "Active");
+                
+                // Add city context
+                params.append("ccz", "city");
+
                 // Add price range parameters
                 if (selection.priceMin) {
                   params.append("lp", selection.priceMin.toString()); // Low Price
@@ -747,20 +753,25 @@ export default function BuyerWorkflow({
                   params.append("hp", "800000"); // Default high price 800K
                 }
 
+                // Use exact parameter names from working URL
                 if (selection.bedrooms) {
-                  params.append("beds", selection.bedrooms);
+                  params.append("bd", selection.bedrooms); // Bedrooms
                 }
                 if (selection.bathrooms) {
-                  params.append("baths", selection.bathrooms);
+                  params.append("tb", selection.bathrooms); // Total bathrooms
                 }
 
                 // Add city and neighborhood if specified
                 if (selection.city) {
                   // Clean city name and ensure proper formatting
                   const cleanCity = selection.city.trim();
-                  params.append("city", cleanCity);
-
-                  // For IDX Broker, we may need to use specific field names
+                  
+                  // Use city array format like the working URL
+                  // Note: You may need to map city names to city IDs
+                  // For now, using city name but consider implementing city ID mapping
+                  params.append("city[]", cleanCity);
+                  
+                  // Also include the address city field as fallback
                   params.append("a_addressCity", cleanCity);
                 }
                 if (selection.neighborhood) {

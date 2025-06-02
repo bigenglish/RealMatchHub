@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const endpoint of countEndpoints) {
         try {
           console.log(`[express] Checking endpoint: ${endpoint.url}`);
-          
+
           const response = await axios.get(endpoint.url, {
             headers: {
               'accesskey': apiKey,
@@ -538,7 +538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (response.status === 200 && response.data) {
             let count = 0;
-            
+
             // Handle different response formats
             if (Array.isArray(response.data)) {
               count = response.data.length;
@@ -2646,7 +2646,8 @@ app.post("/api/chatbot", async (req, res) => {
       res.json(conversation);
     } catch (error) {
       console.error('[express] Error fetching chat conversation:', error);
-      res.status(500).json({ message: "Error fetching conversation" });
+      ```text
+res.status(500).json({ message: "Error fetching conversation" });
     }
   });
 

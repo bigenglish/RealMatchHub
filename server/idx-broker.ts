@@ -231,13 +231,45 @@ export async function fetchIdxListings({
     try {
       console.log('Fetching listings from IDX Broker API - trying property-specific endpoints');
 
-      // Property-specific endpoints that should return actual listings
+      // Enhanced property-specific endpoints with better parameter handling
       const possibleEndpoints = [
-        'https://api.idxbroker.com/clients/listings',
-        'https://api.idxbroker.com/clients/search', 
-        'https://api.idxbroker.com/mls/search',
-        'https://api.idxbroker.com/clients/featured',
-        'https://api.idxbroker.com/clients/soldpending'
+        {
+          url: 'https://api.idxbroker.com/clients/listings',
+          params: {
+            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,status',
+            limit: Math.min(limit, 1000),
+            offset,
+            pt: '1,2,3,4,5,6,7,8,9,10', // All property types
+            a_propStatus: 'Active'
+          }
+        },
+        {
+          url: 'https://api.idxbroker.com/clients/search',
+          params: {
+            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+            limit: Math.min(limit, 1000),
+            offset,
+            orderby: 'listDate',
+            orderdir: 'DESC'
+          }
+        },
+        {
+          url: 'https://api.idxbroker.com/mls/search',
+          params: {
+            limit: Math.min(limit, 1000),
+            offset
+          }
+        },
+        {
+          url: 'https://api.idxbroker.com/clients/featured',
+          params: {
+            limit: Math.min(limit, 50)
+          }
+        },
+        {
+          url: 'https://api.idxbroker.com/clients/systemlinks',
+          params: {}
+        }
       ];
 
       // Different header combinations to try
@@ -278,36 +310,32 @@ export async function fetchIdxListings({
 
         for (const headers of possibleHeaders) {
           try {
-            console.log(`Trying IDX endpoint: ${endpoint}`);
+            console.log(`Trying IDX endpoint: ${endpoint.url}`);
             console.log(`Headers:`, Object.keys(headers));
             console.log(`API Key prefix: ${apiKey.substring(0, 4)}...`);
 
+            // Add search filters to the endpoint parameters
+            const enhancedParams = {
+              ...endpoint.params,
+              outputtype: 'json',
+              // Enhanced location parameters
+              ...(city && { city }),
+              // Enhanced price parameters
+              ...(minPrice > 0 && { minListPrice: minPrice }),
+              ...(maxPrice > 0 && { maxListPrice: maxPrice }),
+              // Enhanced property parameters
+              ...(bedrooms !== undefined && { bedrooms }),
+              ...(bathrooms !== undefined && { totalBaths: bathrooms }),
+              ...(propertyType && { propType: propertyType }),
+              ...(sqft_min > 0 && { minSqFt: sqft_min }),
+              ...(sqft_max > 0 && { maxSqFt: sqft_max })
+            };
+
             // Make the API call to IDX Broker with enhanced parameters
-            response = await axios.get(endpoint, {
+            response = await axios.get(endpoint.url, {
               headers,
-              timeout: 10000, // 10 second timeout
-              params: {
-                rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-                limit: Math.min(limit, 500), // Increase to 500 properties to get more data
-                offset,
-                outputtype: 'json',
-                pt: '1,2,3,4,5', // Include all property types
-                a_propStatus: 'Active', // Only active properties
-                // Enhanced location parameters
-                ...(city && { city }),
-                // Enhanced price parameters
-                ...(minPrice > 0 && { minListPrice: minPrice }),
-                ...(maxPrice > 0 && { maxListPrice: maxPrice }),
-                // Enhanced property parameters
-                ...(bedrooms !== undefined && { bedrooms }),
-                ...(bathrooms !== undefined && { totalBaths: bathrooms }),
-                ...(propertyType && { propType: propertyType }),
-                ...(sqft_min > 0 && { minSqFt: sqft_min }),
-                ...(sqft_max > 0 && { maxSqFt: sqft_max }),
-                // Order results by most recent
-                orderby: 'listDate',
-                orderdir: 'DESC'
-              }
+              params: enhancedParams,
+              timeout: 15000 // 15 second timeout for larger datasets
             });
 
             // If we got a successful response with data, flag success and break
@@ -783,88 +811,20 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
     console.error('Error processing IDX API response:', error);
   }
 
-  // Create demo properties if no data was found
+  // If no real data was found, return empty results
   if (data.length === 0) {
-    console.log('No properties found in IDX response, creating sample properties for debugging with proper city/state data');
-    // Create sample properties with realistic city and state data
-    data = [
-      {
-        idxID: 'test-ca-1',
-        listingId: 'idx-test-ca-1',
-        address: '123 Pacific Street',
-        city: 'San Francisco',
-        state: 'CA',
-        zipCode: '94102',
-        price: 1299000,
-        bedrooms: 3,
-        bathrooms: 2,
-        sqft: 1800,
-        propertyType: 'Single Family',
-        description: 'Beautiful San Francisco home with city views.',
-        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
-      },
-      {
-        idxID: 'test-ca-2',
-        listingId: 'idx-test-ca-2',
-        address: '456 Hollywood Blvd',
-        city: 'Los Angeles',
-        state: 'CA',
-        zipCode: '90028',
-        price: 899000,
-        bedrooms: 2,
-        bathrooms: 2,
-        sqft: 1400,
-        propertyType: 'Condo',
-        description: 'Modern condo in the heart of Hollywood.',
-        images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=80']
-      },
-      {
-        idxID: 'test-tx-1',
-        listingId: 'idx-test-tx-1',
-        address: '789 Austin Avenue',
-        city: 'Austin',
-        state: 'TX',
-        zipCode: '73301',
-        price: 675000,
-        bedrooms: 4,
-        bathrooms: 3,
-        sqft: 2400,
-        propertyType: 'Single Family',
-        description: 'Spacious family home in Austin with large backyard.',
-        images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=800&q=80']
-      },
-      {
-        idxID: 'test-ny-1',
-        listingId: 'idx-test-ny-1',
-        address: '321 Broadway',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10007',
-        price: 1950000,
-        bedrooms: 2,
-        bathrooms: 2,
-        sqft: 1200,
-        propertyType: 'Condo',
-        description: 'Luxury Manhattan condo with stunning views.',
-        images: ['https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80']
-      },
-      {
-        idxID: 'test-fl-1',
-        listingId: 'idx-test-fl-1',
-        address: '654 Ocean Drive',
-        city: 'Miami',
-        state: 'FL',
-        zipCode: '33139',
-        price: 825000,
-        bedrooms: 3,
-        bathrooms: 2.5,
-        sqft: 1900,
-        propertyType: 'Townhouse',
-        description: 'Beachfront townhouse with ocean access.',
-        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80']
-      }
-    ];
-    totalCount = data.length;
+    console.log('No properties found in IDX response. Check your IDX Broker account configuration.');
+    console.log('API Response details:', {
+      responseType: typeof apiResponse,
+      keys: apiResponse ? Object.keys(apiResponse) : 'null',
+      dataLength: apiResponse ? JSON.stringify(apiResponse).length : 0
+    });
+    
+    return {
+      listings: [],
+      totalCount: 0,
+      hasMoreListings: false
+    };
   }
 
   console.log('Processing', data.length, 'listings');

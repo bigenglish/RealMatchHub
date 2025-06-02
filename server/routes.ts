@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple request inspection endpoint
+  // Simple request inspection endpoint with live API test
   app.get("/api/idx-request-details", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
@@ -403,7 +403,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           prefix: apiKey?.substring(0, 4) || 'none',
           suffix: apiKey?.substring(apiKey?.length - 4) || 'none',
           fullKey: apiKey, // Showing full key for debugging
-          startsWithA: apiKey?.startsWith('a') || false
         },
         requestExample: {
           url: 'https://api.idxbroker.com/clients/accountinfo',
@@ -413,8 +412,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'outputtype': 'json'
           },
           curlCommand: `curl -X GET "https://api.idxbroker.com/clients/accountinfo" -H "accesskey: ${apiKey || 'NO_KEY_FOUND'}" -H "outputtype: json"`
-        }
+        },
+        liveTest: null
       };
+
+      // Perform live test
+      if (apiKey) {
+        try {
+          const axios = require('axios');
+          const testResponse = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            timeout: 8000
+          });
+
+          requestDetails.liveTest = {
+            success: true,
+            status: testResponse.status,
+            statusText: testResponse.statusText,
+            hasData: !!testResponse.data,
+            dataKeys: testResponse.data ? Object.keys(testResponse.data) : [],
+            dataPreview: JSON.stringify(testResponse.data).substring(0, 200)
+          };
+        } catch (apiError: any) {
+          requestDetails.liveTest = {
+            success: false,
+            status: apiError.response?.status,
+            statusText: apiError.response?.statusText,
+            error: apiError.message,
+            errorData: apiError.response?.data
+          };
+        }
+      }
 
       res.json(requestDetails);
     } catch (error) {

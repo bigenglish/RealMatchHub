@@ -353,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test the updated API key immediately
+  // Test the updated API key immediately and count active properties
   app.get("/api/idx-key-test", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
@@ -390,6 +390,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ 
         success: false, 
         message: error.response?.status === 401 ? "API key is still invalid" : error.message 
+      });
+    }
+  });
+
+  // Count active properties from IDX
+  app.get("/api/idx-active-count", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found", activeCount: 0 });
+      }
+
+      console.log(`[express] Counting active properties with API key: ${apiKey?.substring(0, 4)}...`);
+
+      const axios = require('axios');
+      
+      // Try multiple endpoints to get property counts
+      const endpoints = [
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/clients/systemlinks', 
+        'https://api.idxbroker.com/clients/subdomain'
+      ];
+
+      let totalActiveProperties = 0;
+      let workingEndpoint = null;
+      let responseData = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`[express] Trying endpoint: ${endpoint}`);
+          const response = await axios.get(endpoint, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            timeout: 10000
+          });
+
+          if (response.status === 200 && response.data) {
+            workingEndpoint = endpoint;
+            responseData = response.data;
+            
+            // Count properties based on response structure
+            if (Array.isArray(response.data)) {
+              totalActiveProperties = response.data.length;
+            } else if (response.data.listings && Array.isArray(response.data.listings)) {
+              totalActiveProperties = response.data.listings.length;
+            } else if (response.data.count) {
+              totalActiveProperties = response.data.count;
+            } else if (typeof response.data === 'object') {
+              totalActiveProperties = Object.keys(response.data).length;
+            }
+
+            console.log(`[express] Found ${totalActiveProperties} active properties from ${endpoint}`);
+            break;
+          }
+        } catch (endpointError: any) {
+          console.log(`[express] Endpoint ${endpoint} failed: ${endpointError.response?.status || endpointError.message}`);
+          continue;
+        }
+      }
+
+      return res.json({
+        success: totalActiveProperties > 0,
+        message: workingEndpoint ? 
+          `Successfully connected and found ${totalActiveProperties} active properties` :
+          "Connected to API but no active properties found",
+        activeCount: totalActiveProperties,
+        workingEndpoint,
+        sampleData: responseData ? JSON.stringify(responseData).substring(0, 200) + "..." : null
+      });
+
+    } catch (error: any) {
+      console.error("[express] Error counting active properties:", error.message);
+      return res.json({ 
+        success: false, 
+        message: "Error counting active properties: " + error.message,
+        activeCount: 0
       });
     }
   });

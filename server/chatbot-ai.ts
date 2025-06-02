@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google-generative-ai';
 
 // Initialize Gemini AI with API key from environment
 const apiKey = process.env.GEMINI_API_KEY;
@@ -77,4 +77,51 @@ function getFallbackResponse(userMessage: string): string {
   }
 
   return "I'm having trouble connecting to my AI services right now, but I'm here to help! You can browse our property listings, schedule a consultation with an expert, or try asking your question again in a moment.";
+}
+
+import { genAI } from "./gemini-ai";
+
+// AI-powered property search and recommendation functions
+
+/**
+ * Process real estate queries using AI
+ */
+export async function processRealEstateQuery(query: string, chatHistory: any[] = []): Promise<any> {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    // Build context from chat history
+    let context = "";
+    if (chatHistory.length > 0) {
+      context = "Previous conversation:\n" + 
+        chatHistory.map(msg => `${msg.role}: ${msg.content}`).join("\n") + "\n\n";
+    }
+
+    const prompt = `${context}As a helpful real estate AI assistant, please respond to this query: ${query}
+
+    Provide helpful, accurate information about real estate topics including:
+    - Property search and recommendations
+    - Market trends and pricing
+    - Buying and selling processes
+    - Financing and mortgages
+    - Legal considerations
+    - Home inspection and maintenance
+
+    Keep responses concise but informative.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+
+    return {
+      response: response.text(),
+      success: true
+    };
+  } catch (error) {
+    console.error("Error processing real estate query:", error);
+    return {
+      response: "I'm having trouble processing your request right now. Please try again later.",
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
 }

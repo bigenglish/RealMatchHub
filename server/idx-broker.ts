@@ -289,18 +289,29 @@ export async function fetchIdxListings({
             console.log(`Headers:`, Object.keys(headers));
             console.log(`API Key prefix: ${apiKey.substring(0, 4)}...`);
 
-            // Make the API call to IDX Broker with timeout
+            // Make the API call to IDX Broker with enhanced parameters
             response = await axios.get(endpoint, {
               headers,
               timeout: 10000, // 10 second timeout
               params: {
-                limit: 10, // Start with smaller limit
+                rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+                limit: Math.min(limit, 25), // Respect limit but cap at 25
+                offset,
                 outputtype: 'json',
+                // Enhanced location parameters
                 ...(city && { city }),
-                ...(minPrice > 0 && { minprice: minPrice }),
-                ...(maxPrice > 0 && { maxprice: maxPrice }),
+                // Enhanced price parameters
+                ...(minPrice > 0 && { minListPrice: minPrice }),
+                ...(maxPrice > 0 && { maxListPrice: maxPrice }),
+                // Enhanced property parameters
                 ...(bedrooms !== undefined && { bedrooms }),
-                ...(bathrooms !== undefined && { bathrooms })
+                ...(bathrooms !== undefined && { totalBaths: bathrooms }),
+                ...(propertyType && { propType: propertyType }),
+                ...(sqft_min > 0 && { minSqFt: sqft_min }),
+                ...(sqft_max > 0 && { maxSqFt: sqft_max }),
+                // Order results by most recent
+                orderby: 'listDate',
+                orderdir: 'DESC'
               }
             });
 
@@ -326,7 +337,7 @@ export async function fetchIdxListings({
             if (err.response) {
               console.log(`Failed request to ${endpoint}: HTTP ${err.response.status} - ${err.response.statusText}`);
               console.log(`Response data:`, err.response.data);
-              
+
               // Log specific error meanings
               switch (err.response.status) {
                 case 400:

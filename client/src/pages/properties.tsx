@@ -5,6 +5,7 @@ import type { Property } from "@shared/schema";
 import PropertyCard from "@/components/property-card";
 import SearchFilters from "@/components/search-filters";
 import IdxWidget from "@/components/idx-widget";
+import EnhancedIdxWidget from "@/components/enhanced-idx-widget";
 import IdxStatus from "@/components/idx-status";
 import PropertyQuestionnaire, { UserPreferences } from "@/components/property-questionnaire";
 import AIPropertyRecommendations from "@/components/ai-property-recommendations";
@@ -274,16 +275,35 @@ export default function PropertiesPage() {
         </CardContent>
       </Card>
 
-      {/* IDX Broker Widget - Simplified as main content */}
+      {/* Enhanced IDX Broker Widget */}
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="text-2xl">Search Properties with IDX Broker</CardTitle>
+          <CardTitle className="text-2xl">Professional Property Search</CardTitle>
+          <p className="text-gray-600">
+            Enhanced IDX integration with featured properties, market data, and dynamic search fields
+          </p>
+        </CardHeader>
+        <CardContent>
+          <EnhancedIdxWidget 
+            className="w-full" 
+            onSearch={(filters) => {
+              console.log("Enhanced IDX search with filters:", filters);
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Legacy IDX Widget for comparison */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle className="text-xl">Legacy IDX Widget</CardTitle>
+          <p className="text-sm text-gray-500">Basic IDX integration for comparison</p>
         </CardHeader>
         <CardContent>
           <IdxWidget 
             className="w-full" 
             onSearch={(filters) => {
-              console.log("IDX search with filters:", filters);
+              console.log("Legacy IDX search with filters:", filters);
             }}
           />
         </CardContent>

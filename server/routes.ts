@@ -474,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add endpoint to fetch IDX listings
+  // Enhanced IDX listings endpoint with advanced parameters
   app.get("/api/idx-listings", async (req, res) => {
     try {
       const limit = Number(req.query.limit) || 10;
@@ -484,6 +484,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const maxPrice = req.query.maxPrice ? Number(req.query.maxPrice) : undefined;
       const bedrooms = req.query.bedrooms ? Number(req.query.bedrooms) : undefined;
       const bathrooms = req.query.bathrooms ? Number(req.query.bathrooms) : undefined;
+      const propertyType = req.query.propertyType ? String(req.query.propertyType) : undefined;
+      const sqft_min = req.query.sqft_min ? Number(req.query.sqft_min) : undefined;
+      const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
       const listings = await fetchIdxListings({
         limit,
@@ -492,7 +495,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         minPrice,
         maxPrice,
         bedrooms,
-        bathrooms
+        bathrooms,
+        propertyType,
+        sqft_min,
+        sqft_max
       });
 
       res.json(listings);
@@ -500,6 +506,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching IDX listings:", error);
       res.status(500).json({ 
         message: "Error fetching IDX listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Featured properties endpoint
+  app.get("/api/idx-featured", async (req, res) => {
+    try {
+      const limit = Number(req.query.limit) || 10;
+      
+      const { fetchIdxFeaturedListings } = await import('./idx-broker');
+      const featuredListings = await fetchIdxFeaturedListings(limit);
+
+      res.json({
+        listings: featuredListings,
+        totalCount: featuredListings.length,
+        hasMoreListings: false
+      });
+    } catch (error) {
+      console.error("Error fetching featured listings:", error);
+      res.status(500).json({ 
+        message: "Error fetching featured listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Sold/pending properties endpoint
+  app.get("/api/idx-sold-pending", async (req, res) => {
+    try {
+      const status = req.query.status as 'sold' | 'pending' || 'sold';
+      const limit = Number(req.query.limit) || 10;
+      
+      const { fetchIdxSoldPendingListings } = await import('./idx-broker');
+      const soldPendingListings = await fetchIdxSoldPendingListings(status, limit);
+
+      res.json({
+        listings: soldPendingListings,
+        totalCount: soldPendingListings.length,
+        hasMoreListings: false
+      });
+    } catch (error) {
+      console.error("Error fetching sold/pending listings:", error);
+      res.status(500).json({ 
+        message: "Error fetching sold/pending listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Cities endpoint
+  app.get("/api/idx-cities", async (req, res) => {
+    try {
+      const { fetchIdxCities } = await import('./idx-broker');
+      const cities = await fetchIdxCities();
+
+      res.json(cities);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+      res.status(500).json({ 
+        message: "Error fetching cities",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Counties endpoint
+  app.get("/api/idx-counties", async (req, res) => {
+    try {
+      const { fetchIdxCounties } = await import('./idx-broker');
+      const counties = await fetchIdxCounties();
+
+      res.json(counties);
+    } catch (error) {
+      console.error("Error fetching counties:", error);
+      res.status(500).json({ 
+        message: "Error fetching counties",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Postal codes endpoint
+  app.get("/api/idx-postal-codes", async (req, res) => {
+    try {
+      const { fetchIdxPostalCodes } = await import('./idx-broker');
+      const postalCodes = await fetchIdxPostalCodes();
+
+      res.json(postalCodes);
+    } catch (error) {
+      console.error("Error fetching postal codes:", error);
+      res.status(500).json({ 
+        message: "Error fetching postal codes",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Search fields endpoint for dynamic form building
+  app.get("/api/idx-search-fields", async (req, res) => {
+    try {
+      const { fetchIdxSearchFields } = await import('./idx-broker');
+      const searchFields = await fetchIdxSearchFields();
+
+      res.json(searchFields);
+    } catch (error) {
+      console.error("Error fetching search fields:", error);
+      res.status(500).json({ 
+        message: "Error fetching search fields",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Advanced property search endpoint
+  app.get("/api/idx-search", async (req, res) => {
+    try {
+      const {
+        limit = 10,
+        offset = 0,
+        cityId,
+        countyId,
+        postalCodeId,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        propertyType,
+        filterField,
+        filterValue,
+        orderBy = 'listDate',
+        orderDir = 'DESC'
+      } = req.query;
+
+      const { searchIdxProperties } = await import('./idx-broker');
+      const searchResults = await searchIdxProperties({
+        limit: Number(limit),
+        offset: Number(offset),
+        cityId: cityId ? String(cityId) : undefined,
+        countyId: countyId ? String(countyId) : undefined,
+        postalCodeId: postalCodeId ? String(postalCodeId) : undefined,
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        bedrooms: bedrooms ? Number(bedrooms) : undefined,
+        bathrooms: bathrooms ? Number(bathrooms) : undefined,
+        propertyType: propertyType ? String(propertyType) : undefined,
+        filterField: filterField ? String(filterField) : undefined,
+        filterValue: filterValue ? String(filterValue) : undefined,
+        orderBy: String(orderBy),
+        orderDir: orderDir as 'ASC' | 'DESC'
+      });
+
+      res.json(searchResults);
+    } catch (error) {
+      console.error("Error searching properties:", error);
+      res.status(500).json({ 
+        message: "Error searching properties",
         error: error instanceof Error ? error.message : String(error)
       });
     }

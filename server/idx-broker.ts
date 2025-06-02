@@ -288,7 +288,7 @@ export async function fetchIdxListings({
               timeout: 10000, // 10 second timeout
               params: {
                 rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-                limit: Math.min(limit, 100), // Increase to 100 properties
+                limit: Math.min(limit, 500), // Increase to 500 properties to get more data
                 offset,
                 outputtype: 'json',
                 pt: '1,2,3,4,5', // Include all property types

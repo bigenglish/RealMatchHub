@@ -226,7 +226,7 @@ export async function fetchIdxListings({
     }
 
     // Log API key info for debugging (without exposing the full key)
-    console.log(`IDX API Key Info: Length=${apiKey.length}, Prefix=${apiKey.substring(0, 4)}..., Valid format=${apiKey.startsWith('a') && apiKey.length > 10}`);
+    console.log(`IDX API Key Info: Length=${apiKey.length}, Prefix=${apiKey.substring(0, 4)}...`);
 
     try {
       console.log('Fetching listings from IDX Broker API - trying multiple endpoints and formats');
@@ -240,12 +240,6 @@ export async function fetchIdxListings({
         'https://api.idxbroker.com/mls/searchfieldvalues',
         'https://api.idxbroker.com/mls/searchfields'
       ];
-
-      // Validate API key format
-      if (!apiKey.startsWith('a') || apiKey.length < 10) {
-        console.error('IDX API key appears to be invalid format. Should start with "a" and be longer than 10 characters');
-        throw new Error('Invalid IDX Broker API key format');
-      }
 
       // Different header combinations to try
       const possibleHeaders = [

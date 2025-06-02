@@ -431,7 +431,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasApiKey: !!apiKey,
         apiKeyLength: apiKey?.length || 0,
         apiKeyPrefix: apiKey?.substring(0, 4) || 'none',
-        apiKeyFormat: apiKey?.startsWith('a') ? 'valid_prefix' : 'invalid_prefix',
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString()
       };

@@ -79,8 +79,6 @@ function getFallbackResponse(userMessage: string): string {
   return "I'm having trouble connecting to my AI services right now, but I'm here to help! You can browse our property listings, schedule a consultation with an expert, or try asking your question again in a moment.";
 }
 
-import { genAI } from "./gemini-ai";
-
 // AI-powered property search and recommendation functions
 
 /**

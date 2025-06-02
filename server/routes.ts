@@ -353,6 +353,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test the updated API key immediately
+  app.get("/api/idx-key-test", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      console.log(`[express] Testing new API key: ${apiKey?.substring(0, 4)}...${apiKey?.substring(-4)}`);
+      
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      const axios = require('axios');
+      const testResponse = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
+        headers: {
+          'accesskey': apiKey,
+          'outputtype': 'json'
+        },
+        timeout: 8000
+      });
+
+      if (testResponse.status === 200) {
+        return res.json({ 
+          success: true, 
+          message: "New API key is working!", 
+          status: testResponse.status,
+          dataPreview: JSON.stringify(testResponse.data).substring(0, 100)
+        });
+      } else {
+        return res.json({ 
+          success: false, 
+          message: `API returned status ${testResponse.status}` 
+        });
+      }
+    } catch (error: any) {
+      console.error("[express] API key test failed:", error.message);
+      return res.json({ 
+        success: false, 
+        message: error.response?.status === 401 ? "API key is still invalid" : error.message 
+      });
+    }
+  });
+
   // Add endpoint to check if IDX API key is configured
   app.get("/api/idx-status", async (_req, res) => {
     try {

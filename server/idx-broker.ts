@@ -229,16 +229,16 @@ export async function fetchIdxListings({
     console.log(`IDX API Key Info: Length=${apiKey.length}, Prefix=${apiKey.substring(0, 4)}...`);
 
     try {
-      console.log('Fetching listings from IDX Broker API - trying multiple endpoints and formats');
+      console.log('Fetching listings from IDX Broker API - trying property-specific endpoints');
 
-      // Primary endpoints for property data - try basic endpoints first
+      // Property-specific endpoints that should return actual listings
       const possibleEndpoints = [
-        'https://api.idxbroker.com/clients/accountinfo',
-        'https://api.idxbroker.com/clients/systemlinks',
-        'https://api.idxbroker.com/clients/subdomain',
         'https://api.idxbroker.com/clients/featured',
-        'https://api.idxbroker.com/mls/searchfieldvalues',
-        'https://api.idxbroker.com/mls/searchfields'
+        'https://api.idxbroker.com/clients/listings',
+        'https://api.idxbroker.com/mls/search',
+        'https://api.idxbroker.com/clients/search',
+        'https://api.idxbroker.com/clients/soldpending',
+        'https://api.idxbroker.com/clients/systemlinks'
       ];
 
       // Different header combinations to try
@@ -389,6 +389,248 @@ export async function fetchIdxListings({
 }
 
 // We've removed mock listings and now only use real data from IDX Broker API
+
+/**
+ * Fetch IDX cities
+ */
+export async function fetchIdxCities(): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/mls/cities', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX cities:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch IDX counties
+ */
+export async function fetchIdxCounties(): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/mls/counties', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX counties:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch IDX postal codes
+ */
+export async function fetchIdxPostalCodes(): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/mls/postalcodes', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX postal codes:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch IDX search fields
+ */
+export async function fetchIdxSearchFields(): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/mls/searchfields', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX search fields:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch IDX featured listings
+ */
+export async function fetchIdxFeaturedListings(limit: number = 10): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/clients/featured', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      params: {
+        limit
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX featured listings:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetch IDX sold/pending listings
+ */
+export async function fetchIdxSoldPendingListings(status: 'sold' | 'pending', limit: number = 10): Promise<any[]> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    const response = await axios.get('https://api.idxbroker.com/clients/soldpending', {
+      headers: {
+        'accesskey': apiKey,
+        'outputtype': 'json'
+      },
+      params: {
+        status,
+        limit
+      },
+      timeout: 8000
+    });
+
+    return Array.isArray(response.data) ? response.data : [];
+  } catch (error) {
+    console.error('Error fetching IDX sold/pending listings:', error);
+    return [];
+  }
+}
+
+/**
+ * Search IDX properties with advanced parameters
+ */
+export async function searchIdxProperties(params: {
+  limit?: number;
+  offset?: number;
+  cityId?: string;
+  countyId?: string;
+  postalCodeId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  propertyType?: string;
+  filterField?: string;
+  filterValue?: string;
+  orderBy?: string;
+  orderDir?: 'ASC' | 'DESC';
+}): Promise<any> {
+  try {
+    const apiKey = process.env.IDX_BROKER_API_KEY;
+    if (!apiKey) {
+      throw new Error('IDX Broker API key is required');
+    }
+
+    // Try multiple search endpoints
+    const searchEndpoints = [
+      'https://api.idxbroker.com/clients/search',
+      'https://api.idxbroker.com/mls/search',
+      'https://api.idxbroker.com/clients/listings'
+    ];
+
+    for (const endpoint of searchEndpoints) {
+      try {
+        const response = await axios.get(endpoint, {
+          headers: {
+            'accesskey': apiKey,
+            'outputtype': 'json'
+          },
+          params: {
+            limit: params.limit || 10,
+            offset: params.offset || 0,
+            ...(params.cityId && { cityId: params.cityId }),
+            ...(params.countyId && { countyId: params.countyId }),
+            ...(params.postalCodeId && { postalCodeId: params.postalCodeId }),
+            ...(params.minPrice && { minListPrice: params.minPrice }),
+            ...(params.maxPrice && { maxListPrice: params.maxPrice }),
+            ...(params.bedrooms && { bedrooms: params.bedrooms }),
+            ...(params.bathrooms && { bathrooms: params.bathrooms }),
+            ...(params.propertyType && { propertyType: params.propertyType }),
+            orderBy: params.orderBy || 'listDate',
+            orderDir: params.orderDir || 'DESC'
+          },
+          timeout: 8000
+        });
+
+        if (response.status === 200 && response.data) {
+          return {
+            listings: Array.isArray(response.data) ? response.data : [],
+            totalCount: Array.isArray(response.data) ? response.data.length : 0,
+            hasMoreListings: false
+          };
+        }
+      } catch (endpointError) {
+        console.log(`Search endpoint ${endpoint} failed, trying next...`);
+        continue;
+      }
+    }
+
+    // If all endpoints fail, return empty result
+    return {
+      listings: [],
+      totalCount: 0,
+      hasMoreListings: false
+    };
+  } catch (error) {
+    console.error('Error searching IDX properties:', error);
+    return {
+      listings: [],
+      totalCount: 0,
+      hasMoreListings: false
+    };
+  }
+}
 
 /**
  * Transform IDX API response to our application format

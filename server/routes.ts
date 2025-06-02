@@ -353,12 +353,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test the updated API key immediately and count active properties
+  // Comprehensive IDX API test and property count
+  app.get("/api/idx-comprehensive-test", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      console.log(`[express] Comprehensive IDX test with API key: ${apiKey?.substring(0, 4)}...`);
+
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      const axios = require('axios');
+      const results = {
+        apiKeyStatus: 'valid',
+        endpoints: [],
+        totalActiveProperties: 0,
+        recommendedEndpoint: null
+      };
+
+      // Test multiple endpoints systematically
+      const testEndpoints = [
+        { name: 'Account Info', url: 'https://api.idxbroker.com/clients/accountinfo' },
+        { name: 'Featured Properties', url: 'https://api.idxbroker.com/clients/featured' },
+        { name: 'All Listings', url: 'https://api.idxbroker.com/clients/listings' },
+        { name: 'Search Properties', url: 'https://api.idxbroker.com/clients/search' },
+        { name: 'MLS Search', url: 'https://api.idxbroker.com/mls/search' },
+        { name: 'System Links', url: 'https://api.idxbroker.com/clients/systemlinks' }
+      ];
+
+      for (const endpoint of testEndpoints) {
+        try {
+          const response = await axios.get(endpoint.url, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            params: endpoint.name.includes('Properties') || endpoint.name.includes('Search') ? 
+              { limit: 50, rf: 'listingId,address,listPrice,status' } : {},
+            timeout: 8000
+          });
+
+          const endpointResult = {
+            name: endpoint.name,
+            status: response.status,
+            success: response.status === 200,
+            dataType: typeof response.data,
+            propertyCount: 0,
+            hasProperties: false,
+            sampleData: null
+          };
+
+          if (response.status === 200 && response.data) {
+            // Count properties
+            if (Array.isArray(response.data)) {
+              endpointResult.propertyCount = response.data.length;
+              endpointResult.hasProperties = response.data.length > 0;
+            } else if (response.data.listings && Array.isArray(response.data.listings)) {
+              endpointResult.propertyCount = response.data.listings.length;
+              endpointResult.hasProperties = response.data.listings.length > 0;
+            } else if (typeof response.data === 'object' && Object.keys(response.data).length > 0) {
+              endpointResult.propertyCount = Object.keys(response.data).length;
+              endpointResult.hasProperties = true;
+            }
+
+            endpointResult.sampleData = JSON.stringify(response.data).substring(0, 200);
+
+            // Update total if this endpoint has more properties
+            if (endpointResult.propertyCount > results.totalActiveProperties) {
+              results.totalActiveProperties = endpointResult.propertyCount;
+              results.recommendedEndpoint = endpoint.name;
+            }
+          }
+
+          results.endpoints.push(endpointResult);
+          console.log(`[express] ${endpoint.name}: ${endpointResult.propertyCount} properties`);
+
+        } catch (error: any) {
+          results.endpoints.push({
+            name: endpoint.name,
+            status: error.response?.status || 0,
+            success: false,
+            error: error.message,
+            propertyCount: 0,
+            hasProperties: false
+          });
+          console.log(`[express] ${endpoint.name} failed: ${error.message}`);
+        }
+      }
+
+      return res.json({
+        success: results.totalActiveProperties > 0,
+        message: `Found ${results.totalActiveProperties} active properties via ${results.recommendedEndpoint || 'various endpoints'}`,
+        ...results
+      });
+
+    } catch (error: any) {
+      console.error("[express] Comprehensive IDX test failed:", error.message);
+      return res.json({ 
+        success: false, 
+        message: "Comprehensive test failed: " + error.message
+      });
+    }
+  });
+
+  // Test the updated API key immediately
   app.get("/api/idx-key-test", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
       console.log(`[express] Testing new API key: ${apiKey?.substring(0, 4)}...${apiKey?.substring(-4)}`);
-      
+
       if (!apiKey) {
         return res.json({ success: false, message: "No API key found" });
       }
@@ -398,7 +501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-active-count", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
-      
+
       if (!apiKey) {
         return res.json({ success: false, message: "No API key found", activeCount: 0 });
       }
@@ -406,7 +509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[express] Counting active properties with API key: ${apiKey?.substring(0, 4)}...`);
 
       const axios = require('axios');
-      
+
       // Try multiple endpoints to get property counts
       const endpoints = [
         'https://api.idxbroker.com/clients/featured',
@@ -432,7 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (response.status === 200 && response.data) {
             workingEndpoint = endpoint;
             responseData = response.data;
-            
+
             // Count properties based on response structure
             if (Array.isArray(response.data)) {
               totalActiveProperties = response.data.length;
@@ -514,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-request-details", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
-      
+
       const requestDetails = {
         timestamp: new Date().toISOString(),
         apiKey: {
@@ -628,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-full-debug", async (_req, res) => {
     try {
       console.log("[express] Running comprehensive IDX debug...");
-      
+
       const apiKey = process.env.IDX_BROKER_API_KEY;
       const debugResults: any = {
         timestamp: new Date().toISOString(),
@@ -668,10 +771,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       for (let endpointIndex = 0; endpointIndex < endpoints.length; endpointIndex++) {
         const endpoint = endpoints[endpointIndex];
-        
+
         for (let headerIndex = 0; headerIndex < headerVariations.length; headerIndex++) {
           const headers = headerVariations[headerIndex];
-          
+
           const testResult: any = {
             endpoint,
             headerVariation: headerIndex + 1,
@@ -688,7 +791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const axios = require('axios');
             console.log(`Testing: ${endpoint} with headers:`, Object.keys(headers));
-            
+
             const response = await axios.get(endpoint, {
               headers,
               timeout: 8000,
@@ -706,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             };
 
             testResult.success = response.status === 200;
-            
+
             if (response.status === 200 && response.data) {
               console.log(`✅ SUCCESS: ${endpoint}`);
               // Found working combination, can break here if desired
@@ -786,7 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/idx-featured", async (req, res) => {
     try {
       const limit = Number(req.query.limit) || 10;
-      
+
       const { fetchIdxFeaturedListings } = await import('./idx-broker');
       const featuredListings = await fetchIdxFeaturedListings(limit);
 
@@ -809,7 +912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const status = req.query.status as 'sold' | 'pending' || 'sold';
       const limit = Number(req.query.limit) || 10;
-      
+
       const { fetchIdxSoldPendingListings } = await import('./idx-broker');
       const soldPendingListings = await fetchIdxSoldPendingListings(status, limit);
 

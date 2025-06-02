@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -109,26 +108,72 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
     }
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<any>({});
+  const [showResults, setShowResults] = useState(false);
+
+  useEffect(() => {
+    setFilters(searchFilters);
+  }, [searchFilters]);
+
+
   const handleSearch = async () => {
-    setIsSearching(true);
     try {
-      const params = new URLSearchParams();
-      
-      Object.entries(searchFilters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '') {
-          params.append(key, String(value));
-        }
+      setLoading(true);
+      setError(null);
+
+      // First try the search endpoint
+      const searchParams = new URLSearchParams({
+        limit: "20",
+        ...(filters.cityId && { city: filters.cityId }),
+        ...(filters.countyId && { countyId: filters.countyId }),
+        ...(filters.postalCodeId && { postalCodeId: filters.postalCodeId }),
+        ...(filters.minPrice && { minPrice: filters.minPrice.toString() }),
+        ...(filters.maxPrice && { maxPrice: filters.maxPrice.toString() }),
+        ...(filters.bedrooms && { bedrooms: filters.bedrooms.toString() }),
+        ...(filters.bathrooms && { bathrooms: filters.bathrooms.toString() }),
+        ...(filters.propertyType && { propertyType: filters.propertyType }),
+        ...(filters.filterField && { filterField: filters.filterField }),
+        ...(filters.filterValue && { filterValue: filters.filterValue })
       });
 
-      const response = await fetch(`/api/idx-search?${params}`);
-      if (!response.ok) throw new Error('Search failed');
-      
+      console.log('Searching with filters:', filters);
+
+      // Try the idx-search endpoint first
+      let response = await fetch(`/api/idx-search?${searchParams}`);
+
+      if (!response.ok) {
+        console.log('IDX search endpoint failed, trying regular properties endpoint');
+        // Fall back to the regular properties endpoint with filters
+        response = await fetch(`/api/properties?${searchParams}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+
       const data = await response.json();
-      setSearchResults(data.listings || []);
-      onSearch?.(searchFilters);
+
+      // Handle different response formats
+      let listings = [];
+      if (data.listings) {
+        listings = data.listings;
+      } else if (data.idxListings) {
+        listings = data.idxListings;
+      } else if (Array.isArray(data)) {
+        listings = data;
+      }
+
+      setSearchResults(listings);
+      setShowResults(true);
+
+      console.log(`Search completed: ${listings.length} properties found`);
     } catch (error) {
       console.error('Search error:', error);
+      setError(error instanceof Error ? error.message : 'Search failed');
     } finally {
+      setLoading(false);
       setIsSearching(false);
     }
   };
@@ -268,8 +313,8 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
               </div>
             </div>
 
-            <Button onClick={handleSearch} disabled={isSearching} className="w-full">
-              {isSearching ? 'Searching...' : 'Search Properties'}
+            <Button onClick={handleSearch} disabled={isSearching || loading} className="w-full">
+              {isSearching || loading ? 'Searching...' : 'Search Properties'}
             </Button>
 
             {/* Search Results */}
@@ -314,7 +359,7 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
               <Star className="h-5 w-5 text-yellow-500" />
               Featured Properties
             </h3>
-            
+
             {loadingFeatured ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[...Array(4)].map((_, i) => (
@@ -360,7 +405,7 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
               <TrendingUp className="h-5 w-5 text-blue-500" />
               Recent Market Activity
             </h3>
-            
+
             {loadingSold ? (
               <div className="space-y-2">
                 {[...Array(3)].map((_, i) => (
@@ -396,7 +441,7 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
             <p className="text-sm text-gray-600">
               These fields are dynamically loaded from the MLS and may vary by region.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {searchFields.slice(0, 8).map((field) => (
                 <div key={field.field} className="space-y-2">
@@ -404,7 +449,7 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
                     {field.label}
                     {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
-                  
+
                   {field.type === 'select' && field.options ? (
                     <Select onValueChange={(value) => setSearchFilters(prev => ({ 
                       ...prev, 

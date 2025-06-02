@@ -390,6 +390,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple request inspection endpoint
+  app.get("/api/idx-request-details", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      
+      const requestDetails = {
+        timestamp: new Date().toISOString(),
+        apiKey: {
+          present: !!apiKey,
+          length: apiKey?.length || 0,
+          prefix: apiKey?.substring(0, 4) || 'none',
+          suffix: apiKey?.substring(apiKey?.length - 4) || 'none',
+          fullKey: apiKey, // Showing full key for debugging
+          startsWithA: apiKey?.startsWith('a') || false
+        },
+        requestExample: {
+          url: 'https://api.idxbroker.com/clients/accountinfo',
+          method: 'GET',
+          headers: {
+            'accesskey': apiKey || 'NO_KEY_FOUND',
+            'outputtype': 'json'
+          },
+          curlCommand: `curl -X GET "https://api.idxbroker.com/clients/accountinfo" -H "accesskey: ${apiKey || 'NO_KEY_FOUND'}" -H "outputtype: json"`
+        }
+      };
+
+      res.json(requestDetails);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // Add detailed IDX debugging endpoint
   app.get("/api/idx-debug", async (_req, res) => {
     try {
@@ -442,34 +474,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comprehensive IDX debugging endpoint
+  // Comprehensive IDX debugging endpoint with request/response capture
   app.get("/api/idx-full-debug", async (_req, res) => {
     try {
       console.log("[express] Running comprehensive IDX debug...");
-
-      // Capture console output
-      const originalLog = console.log;
-      const logs: string[] = [];
-      console.log = (...args) => {
-        logs.push(args.join(' '));
-        originalLog(...args);
+      
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      const debugResults: any = {
+        timestamp: new Date().toISOString(),
+        apiKeyInfo: {
+          hasKey: !!apiKey,
+          length: apiKey?.length || 0,
+          prefix: apiKey?.substring(0, 4) || 'none',
+          validFormat: apiKey?.startsWith('a') || false,
+          fullKey: apiKey // TEMPORARY: showing full key for debugging
+        },
+        testResults: []
       };
 
-      await debugIdxBrokerApi();
+      if (!apiKey) {
+        return res.json({
+          success: false,
+          message: "No API key found",
+          debugResults
+        });
+      }
 
-      // Restore console.log
-      console.log = originalLog;
+      // Test different endpoints with captured requests/responses
+      const endpoints = [
+        'https://api.idxbroker.com/clients/accountinfo',
+        'https://api.idxbroker.com/clients/systemlinks', 
+        'https://api.idxbroker.com/clients/subdomain',
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/clients/cities'
+      ];
+
+      const headerVariations = [
+        { 'accesskey': apiKey, 'outputtype': 'json' },
+        { 'Content-Type': 'application/x-www-form-urlencoded', 'accesskey': apiKey, 'outputtype': 'json' },
+        { 'accesskey': apiKey },
+        { 'Authorization': `Bearer ${apiKey}` }
+      ];
+
+      for (let endpointIndex = 0; endpointIndex < endpoints.length; endpointIndex++) {
+        const endpoint = endpoints[endpointIndex];
+        
+        for (let headerIndex = 0; headerIndex < headerVariations.length; headerIndex++) {
+          const headers = headerVariations[headerIndex];
+          
+          const testResult: any = {
+            endpoint,
+            headerVariation: headerIndex + 1,
+            request: {
+              url: endpoint,
+              method: 'GET',
+              headers: headers
+            },
+            response: null,
+            success: false,
+            error: null
+          };
+
+          try {
+            const axios = require('axios');
+            console.log(`Testing: ${endpoint} with headers:`, Object.keys(headers));
+            
+            const response = await axios.get(endpoint, {
+              headers,
+              timeout: 8000,
+              validateStatus: () => true // Don't throw on HTTP errors
+            });
+
+            testResult.response = {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+              dataType: typeof response.data,
+              dataLength: JSON.stringify(response.data || {}).length,
+              dataPreview: JSON.stringify(response.data || {}).substring(0, 500),
+              fullData: response.data // Include full response for debugging
+            };
+
+            testResult.success = response.status === 200;
+            
+            if (response.status === 200 && response.data) {
+              console.log(`✅ SUCCESS: ${endpoint}`);
+              // Found working combination, can break here if desired
+            } else {
+              console.log(`❌ Failed: ${endpoint} - Status ${response.status}`);
+            }
+
+          } catch (error: any) {
+            console.log(`❌ Error: ${endpoint} -`, error.message);
+            testResult.error = {
+              message: error.message,
+              code: error.code,
+              status: error.response?.status,
+              statusText: error.response?.statusText,
+              responseData: error.response?.data
+            };
+          }
+
+          debugResults.testResults.push(testResult);
+        }
+      }
 
       res.json({
         success: true,
-        timestamp: new Date().toISOString(),
-        debugOutput: logs
+        message: "IDX API debugging completed",
+        debugResults
       });
+
     } catch (error) {
       console.error("Error in comprehensive IDX debug:", error);
       res.status(500).json({ 
         success: false, 
-        message: "Error running comprehensive IDX debug" 
+        message: "Error running comprehensive IDX debug",
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

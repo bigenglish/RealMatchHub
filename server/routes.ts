@@ -1146,6 +1146,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Direct IDX API diagnostic with live test
+  app.get("/api/idx-live-diagnostic", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      console.log(`[express] Running live IDX diagnostic with API key: ${apiKey?.substring(0, 8)}...`);
+
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      const axios = require('axios');
+      const results = [];
+
+      // Test the exact endpoints your IDX account uses
+      const testEndpoints = [
+        {
+          name: 'Account Info',
+          url: 'https://api.idxbroker.com/clients/accountinfo',
+          params: {}
+        },
+        {
+          name: 'All Listings (No Limit)',
+          url: 'https://api.idxbroker.com/clients/listings',
+          params: { outputtype: 'json' }
+        },
+        {
+          name: 'All Listings (1000 Limit)',
+          url: 'https://api.idxbroker.com/clients/listings',
+          params: { limit: 1000, outputtype: 'json' }
+        },
+        {
+          name: 'Search Endpoint',
+          url: 'https://api.idxbroker.com/clients/search',
+          params: { limit: 1000, outputtype: 'json' }
+        },
+        {
+          name: 'System Links',
+          url: 'https://api.idxbroker.com/clients/systemlinks',
+          params: { outputtype: 'json' }
+        }
+      ];
+
+      for (const endpoint of testEndpoints) {
+        try {
+          const response = await axios.get(endpoint.url, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json',
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: endpoint.params,
+            timeout: 30000
+          });
+
+          let propertyCount = 0;
+          let sampleListing = null;
+
+          if (response.status === 200 && response.data) {
+            if (Array.isArray(response.data)) {
+              propertyCount = response.data.length;
+              sampleListing = response.data[0];
+            } else if (response.data.listings && Array.isArray(response.data.listings)) {
+              propertyCount = response.data.listings.length;
+              sampleListing = response.data.listings[0];
+            } else if (typeof response.data === 'object') {
+              const keys = Object.keys(response.data);
+              propertyCount = keys.length;
+              if (keys.length > 0) {
+                sampleListing = response.data[keys[0]];
+              }
+            }
+          }
+
+          results.push({
+            endpoint: endpoint.name,
+            url: endpoint.url,
+            status: response.status,
+            propertyCount,
+            sampleListing: sampleListing ? {
+              id: sampleListing.idxID || sampleListing.listingId || 'unknown',
+              address: sampleListing.address || 'unknown',
+              city: sampleListing.cityName || sampleListing.city || 'unknown',
+              price: sampleListing.listPrice || sampleListing.price || 0
+            } : null,
+            success: response.status === 200 && propertyCount > 0
+          });
+
+          console.log(`[express] ${endpoint.name}: ${propertyCount} properties found`);
+
+        } catch (error: any) {
+          results.push({
+            endpoint: endpoint.name,
+            url: endpoint.url,
+            status: error.response?.status || 0,
+            error: error.message,
+            propertyCount: 0,
+            success: false
+          });
+          console.log(`[express] ${endpoint.name} failed: ${error.message}`);
+        }
+      }
+
+      // Find the endpoint with the most properties
+      const bestResult = results.reduce((best, current) => 
+        current.propertyCount > best.propertyCount ? current : best, 
+        { propertyCount: 0 }
+      );
+
+      return res.json({
+        success: bestResult.propertyCount > 0,
+        apiKeyStatus: 'valid',
+        bestEndpoint: bestResult,
+        totalFound: bestResult.propertyCount,
+        sampleListingUrl: bestResult.sampleListing ? 
+          `https://your-repl-url.replit.dev/api/properties/${bestResult.sampleListing.id}` : null,
+        allResults: results,
+        recommendation: bestResult.propertyCount < 100 ? 
+          "Low property count detected. Check IDX account configuration." :
+          bestResult.propertyCount < 1000 ?
+          "Moderate property count. May have API limits." :
+          "Good property count. API is working correctly."
+      });
+
+    } catch (error: any) {
+      console.error("[express] Live IDX diagnostic failed:", error.message);
+      return res.json({ 
+        success: false, 
+        message: "Diagnostic failed: " + error.message 
+      });
+    }
+  });
+
   // Add endpoint to get property counts by state
   app.get("/api/properties/state-counts", async (req, res) => {
     try {

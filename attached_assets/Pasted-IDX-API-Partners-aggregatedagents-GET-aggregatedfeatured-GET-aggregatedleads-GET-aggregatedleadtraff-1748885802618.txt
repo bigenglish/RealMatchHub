@@ -1,0 +1,3188 @@
+IDX API
+Partners
+aggregatedagents GET
+aggregatedfeatured GET
+aggregatedleads GET
+aggregatedleadtraffic GET
+aggregatedlistingstatus GET
+aggregatedproperties GET
+aggregatedsearches GET
+aggregatedsoldpending GET
+aggregatedsupplemental GET
+apiversion GET
+availablemls GET
+clients GET
+listcomponents GET
+listmethods GET
+pricing GET
+propertytypes GET
+subscriber PUT
+Clients
+accountinfo GET
+accountinfo POST
+accounttype GET
+agents GET
+apiversion GET
+cities GET
+cities/sold GET
+citieslistname GET
+counties GET
+counties/sold GET
+countieslistname GET
+dynamicwrapperurl POST
+featured GET
+listcomponents GET
+listmethods GET
+offices GET
+offmarket GET
+postalcodes GET
+postalcodes/sold GET
+postalcodeslistname GET
+savedlinks DELETE
+savedlinks GET
+savedlinks POST
+savedlinks PUT
+savedlinks/{savedLinkID}/count GET
+soldpending GET
+subheaders DELETE
+subheaders GET
+subheaders POST
+subheaders PUT
+subheaders/{id} GET
+supplemental DELETE
+supplemental GET
+supplemental POST
+supplemental PUT
+systemlinks GET
+widgets GET
+widgets PUT
+widgets-legacy GET
+widgets-legacy/batch DELETE
+widgets-legacy/{id} DELETE
+widgets-legacy/{id} GET
+widgets-legacy/{id}/upgrade POST
+widgets/batch DELETE
+widgets/batch POST
+widgets/{id} DELETE
+widgets/{id} GET
+widgets/{id} POST
+widgetsrc GET
+wrappercache DELETE
+zipcodes GET
+MLS
+age GET
+approval-instructions GET
+approvedmls GET
+cities GET
+cities/sold GET
+counties GET
+counties/sold GET
+listcomponents GET
+listmethods GET
+postalcodes GET
+postalcodes/sold GET
+prices GET
+prices/sold GET
+propertycount GET
+propertycount/sold GET
+propertytypes GET
+searchfields GET
+searchfieldvalues GET
+searchfieldvalues/sold GET
+zipcodes GET
+zipcodes/sold GET
+Leads
+bulklead POST
+bulklead PUT
+lead DELETE
+lead GET
+lead POST
+lead PUT
+leadtraffic GET
+listcomponents GET
+listmethods GET
+note DELETE
+note GET
+note POST
+note PUT
+property DELETE
+property GET
+property POST
+property PUT
+search DELETE
+search GET
+search POST
+search PUT
+1.8.0 
+API Overview
+IDX API Methods
+Methods for accessing client, lead, and MLS information.
+Partners
+Partners - aggregatedagents GET
+1.8.0 
+Get a list of all agents for your clients.
+
+
+https://api.idxbroker.com/partners/aggregatedagents
+Example Request:
+https://api.idxbroker.com/aggregatedagents?rf[]=userID&clientChunk=1&includeDisabledAccounts=true
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "All available agents."
+Partners - aggregatedfeatured GET
+1.8.0 
+Get a list of featured MLS properties.
+
+Output fields may or may not be populated depending on how the information was entered into the IDX system.
+
+https://api.idxbroker.com/partners/aggregatedfeatured
+Example Request:
+https://api.idxbroker.com/partners/aggregatedfeatured?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded&rf[]=listingID&clientChunk=1&includeDisabledAccounts=true
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead, this will specify is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+disclaimersoptional	boolean	
+Include MLS disclaimer/courtesy in the response.
+
+Success-Response:
+HTTP/1.1 200 OK "list of featured MLS properties for each client."
+Partners - aggregatedleads GET
+1.8.0 
+Get a list of all leads including their last 5 viewed listings and search results and total number of viewed listings. Note: Lead traffic information is limited to 180 days.
+
+For bandwidth and memory considerations there is a limit of 5,000 on the number of leads that can be returned in any single request. Even if a full week of data is requested this limit will only be encountered if your clients have a combined average 30+ leads created, updated, or active per hour (as such it will be most common when requesting leads based on last property update date). If this limit is exceeded a 413 -Requested Entity Too Large error is returned. If encountered a smaller interval will need to be used.
+
+https://api.idxbroker.com/partners/aggregatedleads
+Example Request:
+https://api.idxbroker.com/partners/aggregatedleads?interval=24&startDatetime=2015-01-01+23:59:59&dateType=lastLoginDate
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead, this will specify is being used to return information. If no value is specified subscribeDate will be used.
+
+Allowed values: "subscribeDate - set at the time the lead signed up or was added to the system via API or middleware.", "lastEdited - set any time lead information is edited.", "lastLoginDate - the last time the lead logged in to their account.", "lastPropertyUpdateDate - the last time the lead received property updates.", "lastActivityDate - the last time the lead was active. This could be a login, a saved property, or a saved search."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+Success-Response:
+HTTP/1.1 200 OK "The applicable client account ID, lead ID, first name, last name, email address, address, city, state/province, country, zipCode, phone number, ID of the agent assigned, email format (html or plain text), disabled status (y/n), allowed to log in to their account (y/n), will receive property updates (y/n), subscribe date, last edited, last login date, last property update date, last activity type, last activity date, last 5 viewed listings, last 5 search results and total number of viewed listings."
+Partners - aggregatedleadtraffic GET
+1.8.0 
+Get a list of all leads traffic history.
+
+Note: For bandwidth and memory considerations there is a limit of 5,000 on the number of searches that can be returned in any single request.
+
+https://api.idxbroker.com/partners/aggregatedleadtraffic
+Example Request:
+https://api.idxbroker.com/partners/aggregatedleadtraffic?interval=24&startDatetime=2015-01-01+23:59:59
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "The applicable client account ID, date, lead ID, IP , page, and referrer."
+Partners - aggregatedlistingstatus GET
+1.8.0 
+This method gives the status for all MLS listings (not supplemental) broken down by client account ID. This includes sold/pending listings with an unknown status which are not usually returned by sold/pending api methods. This is helpful if you need to know when previously gathered featured properties have left the market.
+
+https://api.idxbroker.com/partners/aggregatedlistingstatus
+Example Request:
+https://api.idxbroker.com/partners/aggregatedlistingstatus?filterField=status&filterValue=active
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "status"
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField.
+
+Allowed values: "active", "unknown", "sold", "pending", "contigent"
+
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+Success-Response:
+HTTP/1.1 200 OK "MLS listings along with their statuses."
+Partners - aggregatedproperties GET
+1.8.0 
+Get a list of all lead saved properties.
+
+For bandwidth and memory considerations there is a limit of 5,000 on the number of searches that can be returned in any single request.
+
+https://api.idxbroker.com/partners/aggregatedproperties
+Example Request:
+https://api.idxbroker.com/partners/aggregatedproperties?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead, this will specify is being used to return information. If no value is specified created will be used.
+
+Allowed values: "created - set at the time the saved property is saved.", "lastEdited - set any time saved property information is edited."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+Success-Response:
+HTTP/1.1 200 OK "search ID, the applicable client account ID, lead ID, page ID, search name, search parameters, lead will receive property updates (y/n), created date, last edited date."
+Partners - aggregatedsearches GET
+1.8.0 
+Get a list of all lead saved searches.
+
+For bandwidth and memory considerations there is a limit of 5,000 on the number of searches that can be returned in any single request.
+
+https://api.idxbroker.com/partners/aggregatedsearches
+Example Request:
+https://api.idxbroker.com/partners/aggregatedsearches?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead, this will specify is being used to return information. If no value is specified created will be used.
+
+Allowed values: "created - set at the time the search is saved.", "lastEdited - set any time search information is edited."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+Success-Response:
+HTTP/1.1 200 OK "search ID, the applicable client account ID, lead ID, page ID, search name, search parameters, lead will receive property updates (y/n), created date, last edited date."
+Partners - aggregatedsoldpending GET
+1.8.0 
+Get a list of sold/pending MLS properties.
+
+Output fields may or may not be populated depending on how the information was entered into the IDX system.
+
+We are planning to add the ability to query by the date the property left the market and, for sold listings, the date it was sold in a future update.
+
+https://api.idxbroker.com/partners/aggregatedsoldpending
+Example Request:
+https://api.idxbroker.com/partners/aggregatedsoldpending?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "list of soldpending properties for each client."
+Partners - aggregatedsupplemental GET
+1.8.0 
+Get a list of supplemental (non-MLS) properties.
+
+Output fields may or may not be populated depending on how the information was entered into the IDX system.
+
+https://api.idxbroker.com/partners/aggregatedsupplemental
+Example Request:
+https://api.idxbroker.com/partners/aggregatedleadtraffic?interval=24&startDatetime=2015-01-01+23:59:59&&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+clientChunkoptional	number	
+Limit the results data to 400 clients. Example: clientChunk=1 returns data for the first 400 clients and clientChunk=2 returns the data for the next 400 clients.
+
+includeDisabledAccountsoptional	boolean	
+By default, disabled accounts are excluded from the results data. Use this parameter to include disabled accounts.
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "list of supplemental (non-MLS) properties for each client."
+Partners - apiversion GET
+1.8.0 
+Get the default api version.
+
+https://api.idxbroker.com/partners/apiversion
+Success-Response:
+HTTP/1.1 200 OK "The default api version."
+Partners - availablemls GET
+1.8.0 
+List of available MLSs with their fees.
+
+
+https://api.idxbroker.com/partners/availablemls
+Success-Response:
+HTTP/1.1 200 OK "List of available MLSs with their fees."
+Partners - clients GET
+1.8.0 
+A list of clients available to a given partner. The list of clients can be filtered by GET values.
+
+https://api.idxbroker.com/partners/clients
+Example Request:
+https://api.idxbroker.com/partners/clients?filterField=accountStatus&filterValue=enabled
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "accountStatus - filter to just enabled or just disabled accounts.", "accountID - information for a single client by their account ID."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "The account ID, company name, display name, account status, multiuser addon, current API key, and approved MLSs of each client or clients matching the filter values."
+Partners - listcomponents GET
+1.8.0 
+This is a simple, access anywhere, method for getting a list of all API components available.
+
+https://api.idxbroker.com/partners/listcomponents
+Success-Response:
+HTTP/1.1 200 OK "All available APIs/Components."
+Partners - listmethods GET
+1.8.0 
+A simple method for listing all available methods in the current API component. This method will also list which request methods (GET, PUT, POST, or DELETE) are supported by each method in addition to each method status.
+
+https://api.idxbroker.com/partners/listmethods
+Success-Response:
+HTTP/1.1 200 OK "Basic information about all available methods in this API."
+Partners - pricing GET
+1.8.0 
+Get IDX account and agent/office add-on pricing.
+
+
+https://api.idxbroker.com/partners/pricing
+Success-Response:
+HTTP/1.1 200 OK "IDX account and agent/office add-on pricing."
+Partners - propertytypes GET
+1.8.0 
+Gives the names and IDs of all available property types. This method differs from the property type lookup method in the client API component in that it can look up property types for any active Engage MLS, not just those for which the client is a member.
+
+Note: The IDX property types are those used for multiple MLS searches and are equivalent to the property types used in the original IDX product. The data returned is structured as:
+
+idxPropTypes
+parentPtID - the numeric ID for IDX property types; seen as parentPtID when retrieving property information.
+pt - the 2 to 3 letter abbreviated property type as seen in multiple MLS search queries as the variable pt.
+propertyType - the human friendly property type name.
+[idxID] in the format a### (this element will not be present at all if no IDX ID is provided)
+mlsPtID - the numeric ID given to MLS property types; seen as parentPtID when retrieving property information and in single MLS search queries as the variable pt.
+propertyType - the human friendly property type name.
+parentPtID - the ID of the IDX property type to which this MLS property type belongs.
+https://api.idxbroker.com/partners/propertytypes
+Example Request:
+https://api.idxbroker.com/partners/propertytypes/a001
+primary request ID
+Field	Type	Description
+idxIDoptional	string	
+The IDX ID of the MLS from which you need property type information. If no IDX ID is specified then only the IDX property types (parentPtID) will be returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "An array containing the IDX property types and, if an IDX ID has been provided, the MLS's property types and their IDs."
+Partners - subscriber PUT
+1.8.0 
+Create IDX subscriber. Once the client account is created, the API key associated with the new signup will be activated.
+
+
+https://api.idxbroker.com/partners/subscriber
+Example Request: PHP
+$url = 'https://api.idxbroker.com/partners/subscriber';
+
+// Note: To get list of required or optional fields, simply make a request with nothing in the body.
+// Make sure all required fields are passed in the request body.
+// Example:
+$data = [
+    'product'               => 'core', // 'core' or 'engage'
+    'firstName'             => 'Test',
+    'lastName'              => 'Test',
+    'companyName'           => 'Test Company',
+    'address'               => '1000 E Test street',
+    'city'                  => 'Eugene',
+    'state'                 => 'OR', // Use XX for international.
+    'zipcode'               => 97402,
+    'primaryPhone'          => '5555555555',
+    'email'                 => 'test@gmail.com',
+    'website'               => 'http://example.com',
+    'mlsIDList'             => 'a001,a002',
+    'agreeToTermsOfService' => 'yes',
+    'customDomain'          => 'search.example.com',
+    'useCustomDomain'       => 'y',
+];
+$data = http_build_query($data); // Encode and & delineate.
+Success-Response:
+HTTP/1.1 200 OK "An API key assigned to the specific client signup, which will be used and activated once the client account is created."
+Error-Response:
+HTTP/1.1 400 "Missing required or invalid fields."
+HTTP/1.1 400 "Website address is not valid."
+HTTP/1.1 409 "Subscriber already exists."
+HTTP/1.1 409 "Custom Domain already exists."
+HTTP/1.1 500 "Failure to create client signup."
+Clients
+Clients - accountinfo GET
+1.8.0 
+Get client account information.
+
+https://api.idxbroker.com/clients/accountinfo
+Success-Response:
+HTTP/1.1 200 OK "Client account information."
+Clients - accountinfo POST
+1.8.0 
+Update client account information.
+
+https://api.idxbroker.com/clients/accountinfo
+Example Request:
+https://api.idxbroker.com/clients/accountinfo
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = [
+ 'displayName'   => 'Test Display',
+ 'address'       => 'Test Street',
+ 'city'          => 'Test',
+ 'stateProvince' => 'OR', // stateProvince needs to be in abbreviated form.
+ 'zipCode'       => '97402',
+ 'phone1'        => '5415555555',
+ 'phone2'        => '5415555555'
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200/204 OK "204 response code."
+Clients - accounttype GET
+1.8.0 
+Get your account type.
+
+https://api.idxbroker.com/clients/accounttype
+Success-Response:
+HTTP/1.1 200 OK "account type":
+Clients - agents GET
+1.8.0 
+View agent information on a multi-user account.
+
+https://api.idxbroker.com/clients/agents
+Example Request:
+https://api.idxbroker.com/clients/agents?filterField=agentID&filterValue=1&interval=24&startDatetime=2015-01-01+23:59:59&dateType=accountCreated
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "agentID - The IDX assigned agent ID", "officeID - The IDX assigned office ID", "category - The agent category", "language - The defined language settings", "agentName - The agent name"
+
+dateTypeoptional	string	
+There are several dates associated with an agent, this will specify what is being used to return information.
+
+Allowed values: "accountCreated - the date/time the agent was added to our system.", "lastLoginDate - the last time the agent logged in to their account."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All agents on the account or those matching filter values."
+Clients - apiversion GET
+1.8.0 
+Get the default api version.
+
+https://api.idxbroker.com/clients/apiversion
+Success-Response:
+HTTP/1.1 200 OK "The default api version."
+Clients - cities GET
+1.8.0 
+Returns the cities available in each of a client's city lists. Since a client can build any number of city lists this method requires the ID of which list you want to view. To get a list of all city lists available do not send the primary request ID. The default list on each account has the id combinedActiveMLS
+
+https://api.idxbroker.com/clients/cities
+Example Request:
+https://api.idxbroker.com/clients/cities/123
+primary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All cities in a given list or, if no list ID is provided, a list of list IDs."
+Clients - cities/sold GET
+1.8.0 
+Returns the cities (limited to sold data) available in each of a client's city lists. Since a client can build any number of city lists this method requires the ID of which list you want to view. To get a list of all city lists available do not send the primary request ID.
+
+https://api.idxbroker.com/clients/cities/sold
+Example Request:
+https://api.idxbroker.com/clients/cities/sold/123
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All cities in a given list or, if no list ID is provided, a list of list IDs."
+Clients - citieslistname GET
+1.8.0 
+Returns the IDs and names for each of a client's city lists including MLS city lists. To get the list of all city lists available do not send the primary request ID. The default list on each account has the ID combinedActiveMLS
+
+Note: This method was previously camelcased as "citiesListName" but was made lower case to fit the API naming convention. Calls to "citiesListName" will be forwarded to "citieslistname" and "citiesListName" is listed as deprecated in the method list.
+
+https://api.idxbroker.com/clients/citieslistname
+Success-Response:
+HTTP/1.1 200 OK "A list of city list IDs and names"
+Clients - counties GET
+1.8.0 
+Returns the counties available in each of a client's county lists. Since a client can build any number of county lists this method requires the ID of which list you want to view. To get a list of all county lists available do not send the primary request ID. The default list on each account has the id combinedActiveMLS.
+
+https://api.idxbroker.com/clients/counties
+Example Request:
+https://api.idxbroker.com/clients/counties/123
+primary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All counties in a given list or, if no list ID is provided, a list of list IDs."
+Clients - counties/sold GET
+1.8.0 
+Returns the counties (limited to sold data) available in each of a client's county lists. Since a client can build any number of county lists this method requires the ID of which list you want to view. To get a list of all county lists available do not send the primary request ID.
+
+https://api.idxbroker.com/clients/counties/sold
+Example Request:
+https://api.idxbroker.com/clients/counties/sold/123
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All counties in a given list or, if no list ID is provided, a list of list IDs."
+Clients - countieslistname GET
+1.8.0 
+Returns the IDs and names for each of a client's counties lists including MLS counties lists. To get the list of all counties lists available do not send the primary request ID. The default list on each account has the ID combinedActiveMLS
+
+
+https://api.idxbroker.com/clients/countieslistname
+Success-Response:
+HTTP/1.1 200 OK "A list of counties list IDs and names"
+Clients - dynamicwrapperurl POST
+1.8.0 
+Update dynamic wrapper url for global, pages and saved links. If savedLinkID, or pageID are not passed, the global dynamic wrapper url will be updated.
+
+https://api.idxbroker.com/clients/dynamicwrapperurl
+Example Request:
+http://api.idxbroker.com/clients/dynamicwrapperurl
+
+// Note: The fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'pageID' => '123',
+ 'dynamicURL' => 'http://example.com'
+);
+additional input
+Field	Type	Description
+dynamicURL	string	
+dynamic wrapper url.
+
+savedLinkIDoptional	number	
+saved link ID if setting dynamic wrapper url for a specific saved link.
+
+pageIDoptional	number	
+page ID if setting dynamic wrapper url for a specific page.
+
+Success-Response:
+HTTP/1.1 204 OK
+Error-Response:
+HTTP/1.1 400 "Invalid savedLinkID or pageID will result in 400 error".
+HTTP/1.1 400 "dynamicURL is required."
+Clients - featured GET
+1.8.0 
+Returns all the information for the client's featured (active) properties
+
+https://api.idxbroker.com/clients/featured
+Example Request:
+https://api.idxbroker.com/clients/featured?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+disclaimersoptional	boolean	
+Include MLS disclaimer/courtesy in the response.
+
+Success-Response:
+HTTP/1.1 200 OK "Featured properties on the account."
+Clients - listcomponents GET
+1.8.0 
+This is a simple, access anywhere, method for getting a list of all API components available.
+
+https://api.idxbroker.com/clients/listcomponents
+Success-Response:
+HTTP/1.1 200 OK "All available APIs/Components."
+Clients - listmethods GET
+1.8.0 
+A simple method for listing all available methods in the current API component. This method will also list which request methods (GET, PUT, POST, or DELETE) are supported by each method in addition to each method status.
+
+https://api.idxbroker.com/clients/listmethods
+Success-Response:
+HTTP/1.1 200 OK "Basic information about all available methods in this API."
+Clients - offices GET
+1.8.0 
+View all offices on a mutli-user account.
+
+https://api.idxbroker.com/clients/offices
+Example Request:
+https://api.idxbroker.com/clients/offices?filterField=officeID&filterValue=123&interval=24&startDatetime=2015-01-01+23:59:59&dateType=accountCreated
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "officeID - The IDX assigned office ID", "stateprovince - The state or province that the office(s) are in", "zipcode - The zip code that the office(s) are in"
+
+dateTypeoptional	datetime	
+There are several dates associated with an office, this will specify what is being used to return information.
+
+Allowed values: "accountCreated - the date/time the office was added to our system.", "lastUpdate - the date/time the office information was updated."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All offices on the account or those matching filter values."
+Clients - offmarket GET
+1.8.0 
+Returns all the information for the client's off market properties
+
+https://api.idxbroker.com/clients/offmarket
+Example Request:
+https://api.idxbroker.com/clients/offmarket?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+disclaimersoptional	boolean	
+Include MLS disclaimer/courtesy in the response.
+
+Success-Response:
+HTTP/1.1 200 OK "Off market properties on the account."
+Clients - postalcodes GET
+1.8.0 
+Returns the postalcodes available in each of a client's postalcode lists. Since a client can build any number of postalcode lists this method requires the ID of which list you want to view. To get a list of all postalcode lists available do not send the primary request ID. The default list on each account has the id combinedActiveMLS. Note: This method was previously called as "zipcodes" but was changed to keep API format more international. Calls to "zipcodes" will be forwarded to "postalcodes" and "zipcodes" is listed as deprecated in the method list.
+
+https://api.idxbroker.com/clients/postalcodes
+Example Request:
+https://api.idxbroker.com/clients/postalcodes/123
+primary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "All postalcodes in a given list or, if no list ID is provided, a list of list IDs."
+Clients - postalcodes/sold GET
+1.8.0 
+Returns the postalcodes (limited to sold data) available in each of a client's postalcode lists. Since a client can build any number of postalcode lists this method requires the ID of which list you want to view. To get a list of all postalcode lists available do not send the primary request ID. Note: This method was previously called as "zipcodes" but was changed to keep API format more international. Calls to "zipcodes" will be forwarded to "postalcodes" and "zipcodes" is listed as deprecated in the method list.
+
+https://api.idxbroker.com/clients/postalcodes/sold
+Example Request:
+https://api.idxbroker.com/clients/postalcodes/sold/123
+primary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "All postalcodes in a given list or, if no list ID is provided, a list of list IDs."
+Clients - postalcodeslistname GET
+1.8.0 
+Returns the IDs and names for each of a client's postalcode lists including MLS postalcode lists. To get the list of all postal code lists available do not send the primary request ID. The default list on each account has the ID combinedActiveMLS
+
+
+https://api.idxbroker.com/clients/postalcodeslistname
+Success-Response:
+HTTP/1.1 200 OK "A list of city list IDs and names"
+Clients - savedlinks DELETE
+1.8.0 
+Remove a new client saved link.
+
+https://api.idxbroker.com/clients/savedlinks
+Example Request:
+https://api.idxbroker.com/clients/savedlinks/1
+primary request ID
+Field	Type	Description
+savedLinksID	number	
+The ID of a client's saved link
+
+Success-Response:
+HTTP/1.1 204 OK
+Clients - savedlinks GET
+1.8.0 
+Get saved links for a given client account.
+
+https://api.idxbroker.com/clients/savedlinks
+Example Request:
+https://api.idxbroker.com/clients/savedlinks?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+Allowed values: "created - the date/time the saved link was added to our system"
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "All saved links on the account."
+Clients - savedlinks POST
+1.8.0 
+Update an existing client's saved link
+
+This method is to be used at your own risk. We will NOT be held accountable for programmatic errors in your code or the improper use of search values or options within said values resulting in broken saved links.
+
+https://api.idxbroker.com/clients/savedlinks
+Example Request:
+https://api.idxbroker.com/clients/savedlinks/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'linkName' => 'Good_side_of_tracks',
+ 'pageTitle' => 'Good_side_of_tracks',
+ 'linkTitle' => 'Good_side_of_tracks',
+ 'queryString' => array('idxID' => 'a001', 'hp' => '200000')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+savedLinksID	number	
+The ID of a client's saved link
+
+Success-Response:
+HTTP/1.1 200/204 OK "if no POST data is supplied, then a list of updatable fields with format information is returned, otherwise on success 204 is returned."
+Clients - savedlinks PUT
+1.8.0 
+Create a new client saved link.
+
+https://api.idxbroker.com/clients/savedlinks
+Example Request:
+$url = 'https://api.idxbroker.com/clients/savedlinks';
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// Example:
+$data = array(
+ 'linkName' => 'Good_side_of_tracks',
+ 'pageTitle' => 'Good_side_of_tracks',
+ 'linkTitle' => 'Good_side_of_tracks',
+ 'queryString' => array('idxID' => 'a001', 'hp' => '200000')
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200 OK "If a client saved link is successfully created, the new saved link's ID will be returned. If no PUT data is supplied, then a list of updatable fields with format information is returned."
+Clients - savedlinks/{savedLinkID}/count GET
+1.8.0 
+Get total property count for a saved link.
+
+https://api.idxbroker.com/clients/savedlinks/{savedLinkID}/count
+primary request ID
+Field	Type	Description
+savedLinkID	number	
+The saved link ID.
+
+secondary request ID
+Field	Type	Description
+count	string	
+To return total property count.
+
+Success-Response:
+HTTP/1.1 200 OK "Total property count for the given saved link ID."
+Clients - soldpending GET
+1.8.0 
+Returns all the information for the client's sold and pending properties. That is, those that have been removed from their MLS data.
+
+https://api.idxbroker.com/clients/soldpending
+Example Request:
+https://api.idxbroker.com/clients/soldpending?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "Sold/pending properties on the account."
+Clients - subheaders DELETE
+1.8.0 
+Remove a client's subheader
+
+This method is to be used at your own risk. We will NOT be held accountable for programmatic errors in your code or the improper use of search values or options within said values resulting in deletion of subheaders.
+
+https://api.idxbroker.com/clients/subheaders
+Example Request:
+Example Request:
+https://api.idxbroker.com/clients/subheaders/123
+primary request ID
+Field	Type	Description
+subheaderID	number	
+The id of a subheader.
+
+Success-Response:
+Success-Response:
+HTTP/1.1 200 OK
+{
+ "deleted": [
+   "1",
+   "2"
+ ],
+ "not-found": [
+   "3"
+ ]
+}
+Error-Response:
+HTTP/1.1 400 "Invalid or missing ID(s) will result in 400 error".
+HTTP/1.1 500 "Failure to delete the widget."
+Clients - subheaders GET
+1.8.0 
+Get all client subheaders.
+
+https://api.idxbroker.com/clients/subheaders
+Example Request:
+https://api.idxbroker.com/clients/subheaders
+Success-Response:
+HTTP/1.1 200 OK
+[
+ {
+   "id": 123,
+   "type": "page",
+   "category": "",
+   "pageID": 1,
+   "subheader": "<p>Subheader<\/p>"
+ },
+ {
+   "id": 124,
+   "type": "page",
+   "category": "",
+   "pageID": 2,
+   "subheader": "<p>Subheader<\/p>"
+  },
+]
+Clients - subheaders POST
+1.8.0 
+Edit an existing subheader, or multiple subheaders.
+
+https://api.idxbroker.com/clients/subheaders
+Example Request:
+Example Request:
+// Note: The updatable fields need to be submitted in the request body
+// as JSON, and your request must include a header 'content-type' set to
+// 'application/json'
+
+// Example 1: Editing one subheader.
+$url = 'https://api.idxbroker.com/clients/subheaders/1'; // The subheader's id
+$data = array(
+ 'subheader' => '<p>New Subheader Content</p>'
+);
+$body = json_encode($data);
+Success-Response:
+Success-Response:
+HTTP/1.1 204 OK "All submitted subheaders are successfully updated."
+Error-Response:
+HTTP/1.1 400
+Clients - subheaders PUT
+1.8.0 
+Create a new subheader.
+
+https://api.idxbroker.com/clients/subheaders
+Example Request:
+$url = 'https://api.idxbroker.com/clients/subheaders';
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// Example 1:
+$data = array(
+ 'type'      => 'global',
+ 'category'  => '',
+ 'pageID'    => 0,
+ 'subheader' => '<p>Global Subheader Content</p>'
+);
+$data = http_build_query($data);
+
+// Example 2:
+$data = array(
+ 'type'      => 'page',
+ 'category'  => 'search',
+ 'pageID'    => 1000,
+ 'subheader' => '<p>Search Page 1000 Subheader Content</p>'
+);
+$data = http_build_query($data);
+Success-Response:
+HTTP/1.1 200 OK "If a subheader is successfully created, the new subheader's ID will be returned. If no PUT data is supplied, then a list of updatable fields with format information is returned."
+Error-Response:
+HTTP/1.1 400 "Informative errors."
+Clients - subheaders/{id} GET
+1.8.0 
+Get a single client subheader.
+
+https://api.idxbroker.com/clients/subheaders/{subheaderID}
+Example Request:
+https://api.idxbroker.com/clients/subheaders/123
+primary request ID
+Field	Type	Description
+subheaderID	number	
+The id of a subheader.
+
+Success-Response:
+HTTP/1.1 200 OK
+{
+ "id": 123,
+ "type": "page",
+ "category": "",
+ "pageID": 1,
+ "subheader": "<p>Subheader<\/p>"
+}
+Clients - supplemental DELETE
+1.8.0 
+Remove a clients supplemental property.
+
+This method is to be used at your own risk. We will NOT be held accountable for programmatic errors in your code or the improper use of search values or options within said values resulting in deletion of supplemental properties.
+
+https://api.idxbroker.com/clients/supplemental
+Example Request:
+https://api.idxbroker.com/clients/supplemental/123
+primary request ID
+Field	Type	Description
+listingID	number	
+The listingID of a supplmental property.
+
+Success-Response:
+HTTP/1.1 204 OK
+Clients - supplemental GET
+1.8.0 
+Returns a basic set of information for all of the client's supplemental (non-MLS) properties.
+
+https://api.idxbroker.com/clients/supplemental
+Example Request:
+https://api.idxbroker.com/clients/supplemental?interval=24&startDatetime=2015-01-01+23:59:59&dateType=dateAdded
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 8765 (1 year).
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+dateTypeoptional	datetime	
+There are several dates associated with a property, this will specify what is being used to return information. If no value is specified dateAdded will be used.
+
+Allowed values: "dateAdded - the date/time at which the IDX system first added the listing to our system.", "dateModified - the date time the IDX system last saw a change in data as listed in the MLS."
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "Supplemental properties on the account."
+Clients - supplemental POST
+1.8.0 
+Update an existing supplemental listing.
+
+Note: if updating images, existing images are deleted and the new images are inserted instead for the listing.
+
+https://api.idxbroker.com/clients/supplemental
+Example Request:
+$url = 'https://api.idxbroker.com/clients/supplemental/123';
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// Example:
+$data = array(
+ 'likeIdxID' => 'a001',
+ 'likeMlsPtID' => '1',
+ 'images' => array('http://example.com/image1.jpg', 'http://example.com/image2.jpg')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+listingID	number	
+The supplemental listing ID
+
+Success-Response:
+HTTP/1.1 200 OK "if no POST data is supplied, then a list of updatable fields with format information is returned, otherwise on success 204 is returned."
+Clients - supplemental PUT
+1.8.0 
+Create a new supplemental listing.
+
+Note: likeIdxID, likeMlsPtID and zipcode fields are required.
+
+https://api.idxbroker.com/clients/supplemental
+Example Request:
+$url = 'https://api.idxbroker.com/clients/supplemental';
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// Example:
+$data = array(
+ 'likeIdxID' => 'a001',
+ 'likeMlsPtID' => '1',
+ 'zipcode' => '97402',
+ 'images' => array('http://example.com/image1.jpg', 'http://example.com/image2.jpg')
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200 OK "If a supplemental listing is successfully created, the new supplemental listing ID will be returned. If no PUT data is supplied, then a list of updatable fields with format information is returned."
+Error-Response:
+HTTP/1.1 417 "This action is not allowed if the client has more than 1000 supplmental listings."
+Clients - systemlinks GET
+1.8.0 
+Gathers all the pages system pages (search, featured, contact, etc) that can be directly linked to without additional property information being included in the URL.
+
+https://api.idxbroker.com/clients/systemlinks
+Example Request:
+https://api.idxbroker.com/clients/systemlinks?rf[]=url
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK
+"The name, unique ID, and URL for all system links on the account. Additionally there is a boolean named systemresults."
+"If true this is a property results page that requires additional parameters. This means the url can be useful when dynamically building results page links but should not be linked to directly."
+"When a client has more than one MLS on their account, listings for search pages that can vary by MLS ID will include a subpages array element."
+Clients - widgets GET
+1.8.0 
+Gathers all javascript widgets (non-legacy) currently on the user's account. These widgets can then be placed on the user's main site via the included URLs.
+
+https://api.idxbroker.com/clients/widgets
+Example Request:
+https://api.idxbroker.com/clients/widgets?rf[]=url
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "The name, unique ID, URL, and options for all javascript widgets that have been created on the user's account."
+Clients - widgets PUT
+1.8.0 
+Create a new javascript widget.
+
+https://api.idxbroker.com/clients/widgets
+Example Request:
+https://api.idxbroker.com/clients/widgets
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data. Each specific widget type has their own set of valid options and invalid options will be ignored.
+// Option examples below will indicate the input type and any single pipe characters indicate 'or', if a string type option has many specific valid values.
+// Example:
+
+$data = [
+ 'name'    => 'New Widgets Name',
+ 'type'    => 'widgetType',
+ 'options' => [...]
+];
+$data = http_build_query($data); // encode and & delineate
+
+// Available Widget Specific Options:
+// Virtual Showings Widget (widgetType: virtualShowings)
+[
+  'market'        => [
+    'idxID'            => 'string',
+    'type'             => 'city|county|zipcode',
+    'masterListAreaID' => 'integer'
+  ],
+  'minPrice'      => 'integer',
+  'maxPrice'      => 'integer',
+  'minBedrooms'   => 'integer',
+  'minBathrooms'  => 'integer',
+  'minSquareFeet' => 'integer',
+  'layout'        => 'horizontal|vertical',
+  'css'           => 'string',
+];
+
+// Market Report Widget (widgetType: marketReport)
+[
+  'market'        => [
+    'idxID'            => 'idxID',
+    'type'             => 'city|county|zipcode',
+    'masterListAreaID' => 'integer'
+  ],
+  'layout'        => 'square|horizontal|vertical',
+  'colors'        => [
+    'primary'        => 'string',
+    'secondary'      => 'string',
+    'tertiary'       => 'string',
+    'quaternary'     => 'string',
+    'buttonText'     => 'string',
+    'statisticsText' => 'string'
+  ],
+  'css'           => 'string'
+];
+
+// Listings Showcase Widget (widgetType: listingsShowcase)
+[
+  'heading'                   => 'string',
+  'market'                    => [
+    'idxID'            => 'idxID',
+    'type'             => 'city|county|postalCode',
+    'masterListAreaID' => 'integer'
+  ],
+  // Limit search by custom ccz lists from the account. ID of the client created custom list and the type.
+  // ID for dynamic mls lists use the idxID. Examples: '189-zipcode', 'b001-county'
+  'locationList'              => 'id-county|city|zipcode',
+  'status'                    => 'active|sold',
+  'minPrice'                  => 'integer',
+  'maxPrice'                  => 'integer',
+  'minBedrooms'               => 'integer',
+  'minBathrooms'              => 'integer',
+  'minSquareFeet'             => 'integer',
+  'sortOrder'                 => 'newest|pra|prd|bda|bdd|tba|tbd|sqfta|sqftd',
+  'maxNumberOfColumns'        => 'integer',
+  'maxNumberOfListings'       => 'integer',
+  'openLinksInNewWindow'      => 'boolean',
+  'displayViewAllResultsLink' => 'boolean',
+  'layout'                    => 'overlayed|below',
+  // Must be valid hex codes.
+  'colors'                    => [
+    'banners'      => 'string',
+    'text'         => 'string',
+    'priceReduced' => 'string',
+    'favorite'     => 'string'
+  ],
+  'fieldsToDisplay'           => [
+    'showBed'                => 'boolean',
+    'showBath'               => 'boolean',
+    'showSqFt'               => 'boolean',
+    'showAcres'              => 'boolean',
+    'showSubdivision'        => 'boolean',
+    'showPrice'              => 'boolean',
+    'showStatus'             => 'boolean',
+    'showAddress'            => 'boolean',
+    'showNewListingBanner'   => 'boolean',
+    'showOpenHouseBanner'    => 'boolean',
+    'showPriceReducedBanner' => 'boolean',
+    'showVirtualTourBanner'  => 'boolean',
+    'showFavoriteListing'    => 'boolean'
+  ],
+  // Great for targeting mls advanced fields or any other query filtering the same way you would with key value pairs on the front end.
+  'editByHandQuery'           => [
+    'add' => '10'
+    'pt'  => [ 1, 2, 3 ],
+    'key' => 'value',
+    'key' => 'value'
+  ],
+  // Additional filtering via a polygon shape.
+  // Circle.
+  'polygonData'               => [
+    'polyType'   => 'circle',
+    'polyRadius' => 'numeric',
+    'centerLat'  => 'string',
+    'centerLng'  => 'string'
+  ],
+  // Polygon. Ensure the first and the last coordinates match to complete the shape object.
+  'polygonData'               => [
+    'polyType'   => 'polygon',
+    'polyCoords' => [
+      [lat, lng],
+      [lat, lng],
+      [lat, lng]
+    ]
+  ],
+  'css'                       => 'string',
+  'newListingBannerThreshold' => 'integer'
+];
+
+// Listings Carousel Widget (widgetType: listingsCarousel)
+// All options from the listings showcase widget in addition to:
+[
+  'displayCarouselArrows' => 'boolean',
+  'enableAutoScroll'      => 'boolean',
+  'autoScrollTimer'       => 'integer',
+  'colors'                => [
+    'arrows'          => 'string',
+    'arrowBackground' => 'string'
+  ]
+];
+
+// Prime Map Search Widget (widgetType: primeMapSearch)
+// All options from the listings showcase widget (minus heading, locationList, market, maxNumberOfColumns, maxNumberOfListings), in addition to:
+[
+  'mapStyle'             => 'road|satellite|satellite_road_labels|grayscale_dark|grayscale_light|night|high_contrast_dark|high_contrast_light',
+  'mapControlsToDisplay' => [
+    'addZoomControl'    => 'boolean',
+    'addPitchControl'   => 'boolean',
+    'addCompassControl' => 'boolean'
+  ],
+  'mapDrawingOptions'    => [
+    'addDrawPoint'     => 'boolean',
+    'addDrawPolygon'   => 'boolean',
+    'addDrawLine'      => 'boolean',
+    'addDrawCircle'    => 'boolean',
+    'addDrawRectangle' => 'boolean',
+    'addEditGeometry'  => 'boolean',
+    'addEraseGeometry' => 'boolean'
+  ],
+  'mapZoom'              => 'integer',
+  'mapCenter'            => [
+    'widgetCenterLat' => 'numeric',
+    'widgetCenterLng' => 'numeric'
+  ]
+];
+Success-Response:
+HTTP/1.1 200 OK "The ID, Embed, and Preview URL of the successfully created widget in the user's account."
+Error-Response:
+HTTP/1.1 400 "The required fields or data options being used to create the widget are missing or invalid."
+HTTP/1.1 500 "Failure to create the new widget."
+Clients - widgets-legacy GET
+1.8.0 
+Gathers all the legacy javascript widgets currently on the user's account. These widgets can then be placed on the user's main site via the included URLs.
+
+Note: This method replaces the "widgetsrc" method. Calls to that endpoint will be forwarded here and "widgetsrc" is listed as deprecated in the methods list.
+
+https://api.idxbroker.com/clients/widgets-legacy
+Example Request:
+https://api.idxbroker.com/clients/widgets-legacy?rf[]=url
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "The name, unique ID, URL, and options for all legacy javascript widgets that have been created on the user's account."
+Clients - widgets-legacy/batch DELETE
+1.8.0 
+Delete many legacy javascript widgets from the user's account.
+
+https://api.idxbroker.com/clients/widgets-legacy/batch
+Example Request:
+https://api.idxbroker.com/clients/widgets-legacy/batch
+// Note: For batch deletes, a JSON object must be supplied as POST data,
+// containing the ids you wish to delete.
+// PHP Example:
+$data = [
+ 'ids' => [1, 2, 3]
+];
+$data = json_encode($data); // Encode as JSON, then include as body of request.
+primary request ID
+Field	Type	Description
+batch	string	
+To delete the widgets in batch.
+
+Success-Response:
+HTTP/1.1 200 OK "A list of deleted IDs."
+{
+ "deleted": [ 1, 2 ],
+ "not-found": [ 3, 4 ]
+}
+Error-Response:
+HTTP/1.1 400 "Required 'ids' field is missing or all given IDs are invalid."
+HTTP/1.1 500 "Failure to delete the widgets will result in a 500 error."
+Clients - widgets-legacy/{id} DELETE
+1.8.0 
+Delete a single legacy javascript widget from the users account.
+
+https://api.idxbroker.com/clients/widgets-legacy/{id}
+Example Request:
+https://api.idxbroker.com/clients/widgets-legacy/1234
+primary request ID
+Field	Type	Description
+id	number	
+The legacy widget ID.
+
+Success-Response:
+HTTP/1.1 204 OK
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID will result in a 400 error."
+HTTP/1.1 500 "Failure to delete the widget."
+Clients - widgets-legacy/{id} GET
+1.8.0 
+Gather a single legacy javascript widget and it's settings. These widgets can then be placed on the user's main site via the included URLs.
+
+https://api.idxbroker.com/clients/widgets-legacy/{id}
+Example Request:
+https://api.idxbroker.com/clients/widgets-legacy/1234?rf[]=url
+primary request ID
+Field	Type	Description
+id	number	
+The legacy widget ID.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "The name, unique ID, URL, and options for a single legacy javascript widget that has been created on the user's account."
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID will result in 400 error".
+Clients - widgets-legacy/{id}/upgrade POST
+1.8.0 
+Upgrade a legacy widget to a new widget.
+
+https://api.idxbroker.com/clients/widgets-legacy/{id}/upgrade
+primary request ID
+Field	Type	Description
+id	number	
+The legacy widget ID.
+
+secondary request ID
+Field	Type	Description
+upgrade	string	
+To return the upgraded widget ID.
+
+Success-Response:
+HTTP/1.1 200 OK "Upgrade successful for the given legacy widget ID."
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID."
+HTTP/1.1 400 "Widget is not available for upgrade."
+HTTP/1.1 500 "Failure to upgrade the legacy widget will result in a 500 error."
+Clients - widgets/batch DELETE
+1.8.0 
+Delete many non-legacy javascript widgets from the user's account.
+
+https://api.idxbroker.com/clients/widgets/batch
+Example Request:
+https://api.idxbroker.com/clients/widgets/batch
+// Note: For batch deletes, a JSON object must be supplied as POST data,
+// containing the ids you wish to delete.
+// PHP Example:
+$data = [
+ 'ids' => [1, 2, 3]
+];
+$data = json_encode($data); // Encode as JSON, then include as body of request.
+primary request ID
+Field	Type	Description
+batch	string	
+To delete the widgets in batch.
+
+Success-Response:
+HTTP/1.1 200 OK "A list of deleted IDs."
+{
+ "deleted": [ 1, 2 ],
+ "not-found": [ 3, 4 ]
+}
+Error-Response:
+HTTP/1.1 400 "Required 'ids' field is missing or all given IDs are invalid."
+HTTP/1.1 500 "Failure to delete the widgets will result in a 500 error."
+Clients - widgets/batch POST
+1.8.0 
+Batch update non-legacy javascript widget's settings from the user's account.
+
+https://api.idxbroker.com/clients/widgets/batch
+Example Request:
+https://api.idxbroker.com/clients/widgets/batch
+// Note: For batch deletes, a JSON object must be supplied as POST data,
+// with each widget object including the ID of the widget that you wish to update.
+// PHP Example:
+$data = [
+ [
+  'id'      => 123
+  'name'    => 'New widget name'
+  'options' => [...]
+ ],
+ [
+  'id'      => 124
+  'options' => [...]
+ ],
+];
+$data = json_encode($data); // Encode as JSON, then include as body of request.
+primary request ID
+Field	Type	Description
+batch	string	
+To update the widgets in batch.
+
+Success-Response:
+HTTP/1.1 200 OK "List of widget ID's that were updated."
+{
+ "updated": [ "1", "2" ]
+}
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID's or validation errors on invalid widget options."
+HTTP/1.1 500 "Failing to update the widgets."
+Clients - widgets/{id} DELETE
+1.8.0 
+Delete a single non-legacy javascript widget from the user's account.
+
+https://api.idxbroker.com/clients/widgets/{id}
+Example Request:
+https://api.idxbroker.com/clients/widgets/1234
+primary request ID
+Field	Type	Description
+id	number	
+The widget ID.
+
+Success-Response:
+HTTP/1.1 204 OK
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID."
+HTTP/1.1 500 "Failure to delete the widget will result in a 500 error."
+Clients - widgets/{id} GET
+1.8.0 
+Gather a single javascript widgets settings, currently on the user's account. Widgets can then be placed on the user's main site via the included URLs.
+
+https://api.idxbroker.com/clients/widgets/{id}
+Example Request:
+https://api.idxbroker.com/clients/widgets/1234?rf[]=url
+primary request ID
+Field	Type	Description
+id	number	
+The widget ID.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "The name, unique ID, URL, and options for a single javascript widget that has been created on the user's account."
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID will result in 400 error."
+Clients - widgets/{id} POST
+1.8.0 
+Update a single non-legacy javascript widget's settings from the user's account.
+
+https://api.idxbroker.com/clients/widgets/{id}
+Example Request:
+https://api.idxbroker.com/clients/widgets/1234
+
+// Note: For updates, a JSON object must be supplied as POST data,
+// containing the widget options you wish to update. Each specific widget type has their own set of valid options.
+// PHP Example:
+$data = [
+ 'name'    => 'New widget name',
+ 'heading' => 'Homes Over 500k in Fake Subdivision',
+ 'layout'  => 'overlayed',
+ 'colors   => [
+  'text     => '#FFFFF2',
+  'favorite => '#FF0002'
+ ]
+];
+$data = json_encode($data); // Encode as JSON, then include as body of request.
+primary request ID
+Field	Type	Description
+id	number	
+The widget ID.
+
+Success-Response:
+HTTP/1.1 204 OK
+Error-Response:
+HTTP/1.1 400 "Invalid widget ID or options will result in a 400 error."
+HTTP/1.1 500 "Failure to update the widget."
+Clients - widgetsrc GET
+1.7.0 
+Gather all the URLs for javascript widgets on the user's account. These widgets can then be placed on the user's main site via the included URLs.
+
+https://api.idxbroker.com/clients/widgetsrc
+Example Request:
+https://api.idxbroker.com/clients/widgetsrc?rf[]=url
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "The name, unique ID and URL for all javascript widgets that have been created on the user's account."
+Clients - wrappercache DELETE
+1.8.0 
+https://api.idxbroker.com/clients/wrappercache
+Success-Response:
+HTTP/1.1 204 OK
+Clients - zipcodes GET
+1.2.1 
+Returns the zipcodes available in each of a client's zipcode lists. Since a client can build any number of zipcode lists this method requires the ID of which list you want to view. To get a list of all zipcode lists available do not send the primary request ID. The default list on each account has the id combinedActiveMLS.
+
+https://api.idxbroker.com/clients/zipcodes
+Example Request:
+https://api.idxbroker.com/clients/zipcodes/123
+primary request ID
+Field	Type	Description
+listIDoptional	number	
+If no ID is given a list of IDs is returned.
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "All zipcodes in a given list or, if no list ID is provided, a list of list IDs."
+MLS
+MLS - age GET
+1.8.0 
+Gives the date and time a particular MLS was last downloaded, processed and the last time images gathering was completed.
+
+Note: dates/times given are UTC.
+
+https://api.idxbroker.com/mls/age
+Example Request:
+https://api.idxbroker.com/mls/age/a001
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "An array of timestamps for last downloaded, last processes and last images gathered."
+MLS - approval-instructions GET
+1.8.0 
+MLS approval instructions for a given mls.
+
+https://api.idxbroker.com/mls/approval-instructions
+Example Request:
+https://api.idxbroker.com/mls/approval-instructions/a001
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+Success-Response:
+HTTP/1.1 OK "An array containing the title and content of the approval instructions."
+MLS - approvedmls GET
+1.8.0 
+This method provides all of the IDX IDs and names for all of the paperwork approved MLSs on the client's account.
+
+Note: This method was previously camelcased as "approvedMLS" but was made lower case to fit the API naming convention. Calls to "approvedMLS" will be forwarded to "approvedmls" and "approvedMLS" is listed as deprecated in the method list.
+
+https://api.idxbroker.com/mls/approvedmls
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "A list of IDs and names for all MLSs approved for display on the client account."
+MLS - cities GET
+1.8.0 
+All cities represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/cities
+Example Request:
+https://api.idxbroker.com/mls/cities/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "cityID - the IDX assigned cityID value.", "cityName - the name of a city.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available cities along with applicable city ID, property type, and state as well as a count of the number of occurrences for each value."
+MLS - cities/sold GET
+1.8.0 
+All cities (limited to sold data) represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/cities/sold
+Example Request:
+https://api.idxbroker.com/mls/cities/sold/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "cityID - the IDX assigned cityID value.", "cityName - the name of a city.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available cities along with applicable city ID, property type, and state as well as a count of the number of occurrences for each value."
+MLS - counties GET
+1.8.0 
+All counties represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/counties
+Example Request:
+https://api.idxbroker.com/mls/counties/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "countyID - the IDX assigned countyID value.", "countyName - the name of a county.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available counties along with applicable county ID, property type, and state as well as a count of the number of occurrences of each value."
+MLS - counties/sold GET
+1.8.0 
+All counties (limited to sold data) represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/counties/sold
+Example Request:
+https://api.idxbroker.com/mls/counties/sold/a002?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "countyID - the IDX assigned countyID value.", "countyName - the name of a county.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available counties along with applicable county ID, property type, and state as well as a count of the number of occurrences of each value."
+MLS - listcomponents GET
+1.8.0 
+This is a simple, access anywhere, method for getting a list of all API components available.
+
+https://api.idxbroker.com/mls/listcomponents
+Success-Response:
+HTTP/1.1 200 OK "All available APIs/Components."
+MLS - listmethods GET
+1.8.0 
+A simple method for listing all available methods in the current API component. This method will also list which request methods (GET, PUT, POST, or DELETE) are supported by each method in addition to each method status.
+
+https://api.idxbroker.com/mls/listmethods
+Success-Response:
+HTTP/1.1 200 OK "Basic information about all available methods in this API."
+MLS - postalcodes GET
+1.8.0 
+All postal codes represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/postalcodes
+Example Request:
+https://api.idxbroker.com/mls/postalcodes/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "id - a 5 digit postal code.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available postalcodes along with applicable property type and state as well as a count of the number of occurrences of each value."
+MLS - postalcodes/sold GET
+1.8.0 
+All postal codes (limited to sold data) represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/postalcodes/sold
+Example Request:
+https://api.idxbroker.com/mls/postalcodes/sold/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+sold	string	
+To limit result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "id - a 5 digit postal code.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available postalcodes along with applicable property type and state as well as a count of the number of occurrences of each value."
+MLS - prices GET
+1.8.0 
+The sum total of properties listed in a given MLS as well as sums for each property type in the MLS.
+
+https://api.idxbroker.com/mls/prices
+Example Request:
+https://api.idxbroker.com/mls/prices/a001
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "A multidimensional array with the total sum and the sum for each property type."
+MLS - prices/sold GET
+1.8.0 
+The sum total of properties (limited to sold data) listed in a given MLS as well as sums for each property type in the MLS.
+
+https://api.idxbroker.com/mls/prices/sold
+Example Request:
+https://api.idxbroker.com/mls/prices/sold/a001
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "A multidimensional array with the total sum and the sum for each property type."
+MLS - propertycount GET
+1.8.0 
+Gives a total number of listings available for a given city, county, or zipcode.
+
+https://api.idxbroker.com/mls/propertycount
+Example Request:
+https://api.idxbroker.com/mls/propertycount/a001?countType=city&countSpecifier=37536
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+countType	string	
+Specify if you are looking for the count of a city, county, or zipcode.
+
+Allowed values: "city", "county", "zipcode"
+
+countSpecifier	number	
+The numeric city ID, county ID, or zipcode for which you want to get a property count.
+
+Success-Response:
+HTTP/1.1 OK "An integer count of the number of properties."
+MLS - propertycount/sold GET
+1.8.0 
+Gives a total number of listings available (limited to sold data) for a given city, county, or zipcode.
+
+https://api.idxbroker.com/mls/propertycount/sold
+Example Request:
+https://api.idxbroker.com/mls/propertycount/sold/a001?countType=city&countSpecifier=37536
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+countType	string	
+Specify if you are looking for the count of a city, county, or zipcode.
+
+Allowed values: "city", "county", "zipcode"
+
+countSpecifier	number	
+The numeric city ID, county ID, or zipcode for which you want to get a property count.
+
+Success-Response:
+HTTP/1.1 OK "An integer count of the number of properties."
+MLS - propertytypes GET
+1.8.0 
+Gives the property type information for all types that are available on a given MLS.
+
+https://api.idxbroker.com/mls/propertytypes
+Example Request:
+https://api.idxbroker.com/mls/propertytypes/a001?filterField=mlsPtID&filterValue=1
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "mlsPtID - the IDX assigned numeric ID of the MLS property type as seen in a typical results page URL.", "mlsPropertyType - the name of the property type as given by the MLS."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "An array of property type information including MLS property type ID, MLS property type name, parent property type, and subtypes."
+MLS - searchfields GET
+1.8.0 
+All the fields in a given MLS that are currently allowed to be searched according to MLS guidelines.
+
+https://api.idxbroker.com/mls/searchfields
+Example Request:
+https://api.idxbroker.com/mls/searchfields/a001?filterField=mlsPtID&filterValue=1
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	number	
+The field to use when filtering output.
+
+Allowed values: "mlsPtID - the IDX assigned ID of the MLS property type(s). See the propertytypes method in this API/Component for a lookup of property type IDs.", "parentPtID - the IDX assigned parent property type ID; use any time multiple MLSs are being searched at once."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "An array containing all MLS fields that are searchable according to MLS rules and IDX guidelines. Array contains the field's name (which is the field to be used as a key when performing a search), the display name (as should be displayed in a search form), and both the mlsPtID and parentPtID to which the field belongs."
+MLS - searchfieldvalues GET
+1.8.0 
+Field values in a given MLS that are currently allowed to be searched according to MLS guidelines.
+
+https://api.idxbroker.com/mls/searchfieldvalues
+Example Request:
+https://api.idxbroker.com/mls/searchfieldvalues/a001?mlsPtID=1&name=subdivision
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+mlsPtID	number	
+The IDX assigned ID of the MLS property type(s). See the propertytypes method in this API/Component for a lookup of property type IDs.
+
+name	string	
+mls field name - the IDX assigned name of the MLS field name. See the searchfields for the list of searchable fields.
+
+Success-Response:
+HTTP/1.1 OK "An array containing all the values for the given mls field."
+MLS - searchfieldvalues/sold GET
+1.8.0 
+Field values (limited to sold data) in a given MLS that are currently allowed to be searched according to MLS guidelines.
+
+https://api.idxbroker.com/mls/searchfieldvalues/sold
+Example Request:
+https://api.idxbroker.com/mls/searchfieldvalues/sold/a001?mlsPtID=1&name=subdivision
+primary request ID
+Field	Type	Description
+sold	string	
+To limit the result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+mlsPtID	number	
+The IDX assigned ID of the MLS property type(s). See the propertytypes method in this API/Component for a lookup of property type IDs.
+
+name	string	
+mls field name - the IDX assigned name of the MLS field name. See the searchfields for the list of searchable fields.
+
+Success-Response:
+HTTP/1.1 OK "An array containing all the values for the given mls field limited to sold data."
+MLS - zipcodes GET
+1.8.0 
+All zip codes represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/zipcodes
+Example Request:
+https://api.idxbroker.com/mls/zipcodes/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "zipcode - a 5 digit zip code.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available zipcodes along with applicable property type and state as well as a count of the number of occurrences of each value."
+MLS - zipcodes/sold GET
+1.8.0 
+All zip codes (limited to sold data) represented in the current set of MLS data are available from this method. The output can be filtered using additional GET parameters.
+
+https://api.idxbroker.com/mls/zipcodes/sold
+Example Request:
+https://api.idxbroker.com/mls/zipcodes/sold/a001?filterField=stateAbrv&filterValue=OR
+primary request ID
+Field	Type	Description
+sold	string	
+To limit result to sold data.
+
+secondary request ID
+Field	Type	Description
+idxID	string	
+format: x000
+
+additional input
+Field	Type	Description
+filterFieldoptional	string	
+The field to use when filtering output.
+
+Allowed values: "zipcode - a 5 digit zip code.", "stateAbrv - the 2 letter state abbreviation.", "mlsPtID - the IDX assigned ID of the MLS property type (see the propertytypes method)."
+
+filterValueoptional	string	
+The value by which to filter. Conditional on use of filterField
+
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 OK "Available zipcodes along with applicable property type and state as well as a count of the number of occurrences of each value."
+Leads
+Leads - bulklead POST
+1.8.0 
+Update leads in batches of up to 100 per request.
+
+https://api.idxbroker.com/leads/bulklead
+Example Request:
+https://api.idxbroker.com/leads/bulklead
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data. Each lead field should be passed as an indexed array starting
+// at and going to, at most, 100. There must not be any gaps. LeadID is required for each lead to be updated
+// PHP Example:
+$data = array(
+ 'id[0]' => 1,
+ 'firstName[0]' => 'John',
+ 'lastName[0]' => 'Doe',
+ 'email[0]' => 'john@example.com',
+ 'status[0]' => 'verified',
+ 'id[1]' = 2,
+ 'firstName[1]' => 'Aaron',
+ 'lastName[1]' => 'Aaronson',
+ 'email[1]' => 'aaron@example.com'
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200 OK "If a leads are successfully updated the updated lead IDs will be returned. If no POST data is supplied then a list of updatable fields with format information is returned."
+Leads - bulklead PUT
+1.8.0 
+Add leads in batches of up to 100 per request.
+
+https://api.idxbroker.com/leads/bulklead
+Example Request:
+https://api.idxbroker.com/leads/bulklead
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data. Each lead field should be passed as an indexed array starting
+// at and going to, at most, 100. There must not be any gaps.
+// PHP Example:
+$data = array(
+ 'firstName[0]' => 'John',
+ 'lastName[0]' => 'Doe',
+ 'email[0]' => 'john@example.com',
+ 'status[0]' => 'verified',
+ 'firstName[1]' => 'Aaron',
+ 'lastName[1]' => 'Aaronson',
+ 'email[1]' => 'aaron@example.com'
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200 OK "If a lead is successfully created the new lead IDs will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - lead DELETE
+1.8.0 
+Remove a lead system wide.
+
+This method is to be used at your own risk. We will NOT be held accountable for programmatic errors in your code or the improper use of search values or options within said values resulting in deletion of leads.
+
+https://api.idxbroker.com/leads/lead
+Example Request:
+https://api.idxbroker.com/leads/lead/1
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+Success-Response:
+HTTP/1.1 204 OK
+Leads - lead GET
+1.8.0 
+Get information for one or multiple leads including their last 5 viewed listings and search results and total number of viewed listings. Note: Lead traffic information is limited to 180 days.
+For bandwidth and memory considerations there is a limit of 500 on the number of leads that can be returned in any single request when querying for multiple leads. Use pagination to get all leads.
+
+https://api.idxbroker.com/leads/lead
+Example Request:
+https://api.idxbroker.com/leads/lead?interval=24&startDatetime=2015-01-01+23:59:59&dateType=subscribeDate&sortOrder=desc
+primary request ID
+Field	Type	Description
+leadIDoptional	number	
+The ID of a lead
+
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+there are several dates associated with a lead, this will specify what is being used to return information. If no value is specified subscribeDate will be used.
+
+Allowed values: "subscribeDate - set at the time the lead signed up or was added to the system via API or middleware.", "lastEdited - set any time lead information is edited.", "lastLoginDate - the last time the lead logged in to their account.", "lastPropertyUpdateDate - the last time the lead received property updates.", "lastActivityDate - the last time the lead was active. This could be a login, a saved property, or a saved search."
+
+offsetoptional	number	
+Items to skip from the beginning.
+
+sortByoptional	string	
+Sort leads in the order they were created. Possible values: asc, desc.
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "If a lead ID is provided detailed information about that lead is returned. Otherwise simple information about all leads (limited to 500) is returned along with the pagination information to get all leads."
+Leads - lead POST
+1.8.0 
+Update the information for one lead specified by the primary request ID.
+
+https://api.idxbroker.com/leads/lead
+Example Request:
+https://api.idxbroker.com/leads/lead/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'firstName' => 'John',
+ 'lastName' => 'Doe',
+ 'email' => 'john@example.com',
+ 'status' => 'verified'
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead
+
+Success-Response:
+HTTP/1.1 200 OK "If no POST data is supplied then a list of updatable fields with format information is returned."
+Leads - lead PUT
+1.8.0 
+Create a new lead.
+
+Special Note: Currently the API cannot differentiate between a lead rejected due to server error or one rejected due to bad email address. The lead system requires email addresses that are correctly formatted to cut down on garbage accounts, and they need to have a valid MX record. Most 500 error from this method are a result of bad email addresses. In future versions we will differentiate the error and make the MX record requirement optional.
+
+https://api.idxbroker.com/leads/lead
+Example Request:
+https://api.idxbroker.com/leads/lead
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// PHP Example:
+$data = array(
+ 'firstName' => 'John',
+ 'lastName' => 'Doe',
+ 'email' => 'john@example.com',
+ 'status' => 'verified'
+);
+$data = http_build_query($data); // encode and & delineate
+Success-Response:
+HTTP/1.1 200 OK "If a lead is successfully created the new lead's ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - leadtraffic GET
+1.8.0 
+Get traffic history for a specified lead.
+
+For bandwidth and memory considerations there is a limit of 5,000 on the number of lead traffics that can be returned in any single request.
+
+https://api.idxbroker.com/leads/leadtraffic
+Example Request:
+https://api.idxbroker.com/leads/leadtraffic/1?interval=24&startDatetime=2015-01-01+23:59:59
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+additional input
+Field	Type	Description
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+offsetoptional	number	
+Items to skip from the beginning.
+
+Combine with limit to return part of data.
+Default is 0
+For example: specifying offset=0 and limit=5 will return the first 5 of 10 total results.
+limitoptional	number	
+Number of items to return.
+
+Combine with offset to return part of data.
+Success-Response:
+HTTP/1.1 200 OK "The applicable client account ID, date, lead ID, IP , page, and referrer."
+Leads - listcomponents GET
+1.8.0 
+This is a simple, access anywhere, method for getting a list of all API components available.
+
+https://api.idxbroker.com/leads/listcomponents
+Success-Response:
+HTTP/1.1 200 OK "All available APIs/Components."
+Leads - listmethods GET
+1.8.0 
+A simple method for listing all available methods in the current API component. This method will also list which request methods (GET, PUT, POST, or DELETE) are supported by each method in addition to each method status.
+
+https://api.idxbroker.com/leads/listmethods
+Success-Response:
+HTTP/1.1 200 OK "Basic information about all available methods in this API."
+Leads - note DELETE
+1.8.0 
+Remove a lead note.
+
+https://api.idxbroker.com/leads/note
+Example Request:
+https://api.idxbroker.com/leads/note/1/1
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+noteID	number	
+The ID of the note to delete.
+
+Success-Response:
+HTTP/1.1 204 OK
+Leads - note GET
+1.8.0 
+Get notes for a lead.
+
+https://api.idxbroker.com/leads/note
+Example Request:
+https://api.idxbroker.com/leads/note/1/1?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+noteIDoptional	number	
+The ID of a lead's note.
+
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead note, this will specify what is being used to return information.
+
+Allowed values: "created - the date/time the lead note is added to our system.", "lastAltered - the date/tome the lead note is updated in our system."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "Lead note information. If no note ID is sent all notes for the lead are returned. If a note ID is passed only the one note is returned."
+Leads - note POST
+1.8.0 
+Update the notes information for one lead specified by the primary request ID.
+
+https://api.idxbroker.com/leads/note
+Example Request:
+https://api.idxbroker.com/leads/note/1/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'note' => 'Test note'
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+noteID	number	
+The ID of a lead's note.
+
+Success-Response:
+HTTP/1.1 200 OK "If a note is successfully created the new notes's ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - note PUT
+1.8.0 
+Create a new lead note.
+
+https://api.idxbroker.com/leads/note
+Example Request:
+https://api.idxbroker.com/leads/note/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// PHP Example:
+$data = array(
+ 'note' => 'Test note'
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+Success-Response:
+HTTP/1.1 200 OK "If a note is successfully created the new notes's ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - property DELETE
+1.8.0 
+Remove a lead saved property.
+
+https://api.idxbroker.com/leads/property
+Example Request:
+https://api.idxbroker.com/leads/property/1/1
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+propertyID	number	
+The ID of a property to delete.
+
+Success-Response:
+HTTP/1.1 204 OK
+Leads - property GET
+1.8.0 
+Get saved properties for a lead.
+
+https://api.idxbroker.com/leads/property
+Example Request:
+https://api.idxbroker.com/leads/property/1/1?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+propertyIDoptional	number	
+The ID of a lead's saved property.
+
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+there are several dates associated with a lead's saved property, this will specify what is being used to return information. If no value is specified created will be used.
+
+Allowed values: "created - the date/time the lead's saved property is added to our system.", "lastEdited - the date/tome the lead's saved property is updated in our system."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "If no property ID is passed all properties are returned. If a property ID is passed only the information for that specified property is returned."
+Leads - property POST
+1.8.0 
+Update an existing lead's saved property.
+
+https://api.idxbroker.com/leads/property
+Example Request:
+https://api.idxbroker.com/leads/property/1/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'propertyName' => 'Test Property',
+ 'property' => array('idxID' => 'a001', 'listingID' => '345678')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+propertyID	number	
+The ID of a lead's saved property.
+
+Success-Response:
+HTTP/1.1 200 OK If no POST data is supplied then a list of updatable fields with format information is returned.
+Leads - property PUT
+1.8.0 
+Create a new lead saved property.
+
+https://api.idxbroker.com/leads/property
+Example Request:
+https://api.idxbroker.com/leads/property/1
+
+// Note: idxID and listingID are required.
+// The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// PHP Example:
+$data = array(
+ 'propertyName' => 'Test Property',
+ 'property' => array('idxID' => 'a001', 'listingID' => '345678')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+Success-Response:
+HTTP/1.1 200 OK "If a saved property is successfully created the new property's ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - search DELETE
+1.8.0 
+Remove a lead saved search.
+
+https://api.idxbroker.com/leads/search
+Example Request:
+https://api.idxbroker.com/leads/search/1/1
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+searchID	number	
+The ID of the search to delete.
+
+Success-Response:
+HTTP/1.1 204 OK
+Leads - search GET
+1.8.0 
+Get searches for a lead.
+
+https://api.idxbroker.com/leads/search
+Example Request:
+https://api.idxbroker.com/leads/search/1/1?interval=24&startDatetime=2015-01-01+23:59:59&dateType=created
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+searchIDoptional	number	
+The ID of a lead's search
+
+additional input
+Field	Type	Description
+dateTypeoptional	datetime	
+There are several dates associated with a lead search, this will specify what is being used to return information.
+
+Allowed values: "created - the date/time the lead's saved search is added to our system.", "lastEdited - the date/tome the lead's saved search is updated in our system."
+
+intervaloptional	number	
+The number of hours worth of data to return.
+
+This must be a numeric value but can be an integer or a decimal. E.g. to get the last 90 minutes you would use an interval value of 1.5
+Up to 4 digits after the decimal point will be tolerated, additional precision will be rounded off.
+Intervals will also be rounded to the nearest second.
+The interval specifies the number of hours before the startDatetime from which information will be returned.
+Minimum value: 0.0166 (~ 1 minute). Maximum value: 168 (1 week).
+If no value is specified 1 hour will be used.
+startDatetimeoptional	datetime	
+The date and time to from which the interval counts back.
+
+This is the date and time closest to now from which you want information. E.g. if you want all data stored on New Year's Day you could use an interval of 24 plus a startDatetime of 2015-01-01 23:59:59. This will pull data from the very end of the day to 24 hours previous.
+Format: YYYY-MM-DD hh:mm:ss
+This method currently assumes the date passed will be UTC.
+If no value is specified the current date/time will be used.
+rfoptional	array	
+Array of fields to return in the output.
+
+List of available return fields can be obtained via the listmethods method.
+rf[]=\* or rf=\* returns all the available fields in the output
+Specified fields that are not in the available return fields list will be ignored.
+Success-Response:
+HTTP/1.1 200 OK "an array with 2 keys. The key searchInformation that contains all existing saved search information. The key info will return messages about any returned saved search. Currently this info will tell you if any search's advanced fields are not valid in the IDX system."
+Leads - search POST
+1.8.0 
+Update an existing lead's saved search.
+
+https://api.idxbroker.com/leads/search
+Example Request:
+https://api.idxbroker.com/leads/search/1/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as POST data.
+// PHP Example:
+$data = array(
+ 'searchName' => 'Test Search',
+ 'search' => array('idxID' => 'a001', 'hp' => '200000')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+secondary request ID
+Field	Type	Description
+searchID	number	
+The ID of a lead's saved search.
+
+Success-Response:
+HTTP/1.1 200 "If a lead search is successfully created the new searches' ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."
+Leads - search PUT
+1.8.0 
+Create a new lead saved search.
+
+https://api.idxbroker.com/leads/search
+Example Request:
+https://api.idxbroker.com/leads/search/1
+
+// Note: The updatable fields need to be in a URL encoded, ampersand delineated query string format
+// and need to be supplied as PUT data.
+// PHP Example:
+$data = array(
+ 'searchName' => 'Test Search',
+ 'search' => array('idxID' => 'a001', 'hp' => '200000')
+);
+$data = http_build_query($data); // encode and & delineate
+primary request ID
+Field	Type	Description
+leadID	number	
+The ID of a lead.
+
+Success-Response:
+HTTP/1.1 200 "If a lead search is successfully created the new searches' ID will be returned. If no PUT data is supplied then a list of updatable fields with format information is returned."

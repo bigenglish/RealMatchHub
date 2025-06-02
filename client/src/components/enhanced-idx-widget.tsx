@@ -49,22 +49,26 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
   const [isSearching, setIsSearching] = useState(false);
 
   // Fetch location data
-  const { data: cities = [] } = useQuery({
+  const { data: cities = [], isLoading: loadingCities, error: citiesError } = useQuery({
     queryKey: ['idx-cities'],
     queryFn: async () => {
       const response = await fetch('/api/idx-cities');
       if (!response.ok) throw new Error('Failed to fetch cities');
       return response.json() as IdxLocationData[];
-    }
+    },
+    retry: 3,
+    retryDelay: 1000
   });
 
-  const { data: counties = [] } = useQuery({
+  const { data: counties = [], isLoading: loadingCounties, error: countiesError } = useQuery({
     queryKey: ['idx-counties'],
     queryFn: async () => {
       const response = await fetch('/api/idx-counties');
       if (!response.ok) throw new Error('Failed to fetch counties');
       return response.json() as IdxLocationData[];
-    }
+    },
+    retry: 3,
+    retryDelay: 1000
   });
 
   const { data: postalCodes = [] } = useQuery({
@@ -210,12 +214,20 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
                 <label className="text-sm font-medium">City</label>
                 <Select onValueChange={(value) => setSearchFilters(prev => ({ ...prev, cityId: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select city" />
+                    <SelectValue placeholder={loadingCities ? "Loading cities..." : "Select city"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {cities.slice(0, 50).map(city => (
-                      <SelectItem key={city.id} value={city.id}>{city.name}</SelectItem>
-                    ))}
+                    {loadingCities ? (
+                      <SelectItem value="loading" disabled>Loading cities...</SelectItem>
+                    ) : citiesError ? (
+                      <SelectItem value="error" disabled>Error loading cities</SelectItem>
+                    ) : cities.length === 0 ? (
+                      <SelectItem value="none" disabled>No cities available</SelectItem>
+                    ) : (
+                      cities.slice(0, 50).map(city => (
+                        <SelectItem key={city.id} value={city.name}>{city.name}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -224,12 +236,20 @@ const EnhancedIdxWidget: React.FC<EnhancedIdxWidgetProps> = ({ className, onSear
                 <label className="text-sm font-medium">County</label>
                 <Select onValueChange={(value) => setSearchFilters(prev => ({ ...prev, countyId: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select county" />
+                    <SelectValue placeholder={loadingCounties ? "Loading counties..." : "Select county"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {counties.slice(0, 50).map(county => (
-                      <SelectItem key={county.id} value={county.id}>{county.name}</SelectItem>
-                    ))}
+                    {loadingCounties ? (
+                      <SelectItem value="loading" disabled>Loading counties...</SelectItem>
+                    ) : countiesError ? (
+                      <SelectItem value="error" disabled>Error loading counties</SelectItem>
+                    ) : counties.length === 0 ? (
+                      <SelectItem value="none" disabled>No counties available</SelectItem>
+                    ) : (
+                      counties.slice(0, 50).map(county => (
+                        <SelectItem key={county.id} value={county.name}>{county.name}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

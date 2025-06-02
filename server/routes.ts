@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const idxListings = await fetchIdxListings({ limit: 20 }); // Fetch 20 listings from IDX
+      const idxListings = await fetchIdxListings({ limit: 100 }); // Fetch 100 listings from IDX
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

@@ -105,7 +105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const idxListings = await fetchIdxListings({ limit: 100 }); // Fetch 100 listings from IDX
+      const { fetchIdxListings: fetchIdxListingsFixed } = await import('./idx-broker-fixed');
+      const idxListings = await fetchIdxListingsFixed({ limit: 500 }); // Fetch up to 500 listings from IDX
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging
@@ -1052,7 +1053,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sqft_min = req.query.sqft_min ? Number(req.query.sqft_min) : undefined;
       const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
-      const listings = await fetchIdxListings({
+      const { fetchIdxListings: fetchIdxListingsFixed } = await import('./idx-broker-fixed');
+      const listings = await fetchIdxListingsFixed({
         limit,
         offset,
         city,
@@ -1060,9 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxPrice,
         bedrooms,
         bathrooms,
-        propertyType,
-        sqft_min,
-        sqft_max
+        propertyType
       });
 
       res.json(listings);

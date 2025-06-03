@@ -52,43 +52,42 @@ export async function fetchIdxListings({
 
     console.log(`[IDX] Fetching listings with limit: ${limit}, offset: ${offset}`);
 
-    // For RealtyCandy integration with MLS d025, use the correct endpoints
+    // Use standard IDX Broker API endpoints based on documentation
     const endpoints = [
-      // Primary property search endpoint for MLS d025
+      // Primary: MLS property search with proper field selection
       {
-        url: 'https://api.idxbroker.com/mls/property/listingsearchdetails',
-        params: {
-          mls: 'd025',
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,propStatus',
-          limit: Math.min(limit, 500),
-          offset,
-          a_propStatus: 'A', // Active listings only
-          ...(city && { cityName: city }),
-          ...(minPrice > 0 && { lp_min: minPrice }),
-          ...(maxPrice > 0 && { lp_max: maxPrice }),
-          ...(bedrooms && { bd: bedrooms }),
-          ...(bathrooms && { ba: bathrooms }),
-          ...(propertyType && { pt: propertyType })
-        }
-      },
-      // Alternative search endpoint
-      {
-        url: 'https://api.idxbroker.com/mls/search/d025',
+        url: 'https://api.idxbroker.com/mls/search',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 500),
-          offset,
+          limit: Math.min(limit, 100),
+          offset: offset,
           orderby: 'listDate',
           orderdir: 'DESC'
         }
       },
-      // Property list endpoint
+      // Secondary: Clients search endpoint  
       {
-        url: 'https://api.idxbroker.com/clients/listings/d025',
+        url: 'https://api.idxbroker.com/clients/search',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 500),
-          offset
+          limit: Math.min(limit, 100),
+          offset: offset
+        }
+      },
+      // Featured properties
+      {
+        url: 'https://api.idxbroker.com/clients/featured',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: Math.min(limit, 50)
+        }
+      },
+      // Sold/pending for active data
+      {
+        url: 'https://api.idxbroker.com/clients/soldpending',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: Math.min(limit, 50)
         }
       }
     ];

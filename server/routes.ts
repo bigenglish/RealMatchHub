@@ -98,15 +98,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/properties", async (_req, res) => {
     try {
-      // Check cache first
-      if (propertyCache.data && Date.now() - propertyCache.timestamp < propertyCache.TTL) {
-        return res.json(propertyCache.data);
-      }
+      // Skip cache for debugging parameter issues
+      // if (propertyCache.data && Date.now() - propertyCache.timestamp < propertyCache.TTL) {
+      //   return res.json(propertyCache.data);
+      // }
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const { fetchIdxListings: fetchIdxListingsWidget } = await import('./idx-widget-api');
-      const idxListings = await fetchIdxListingsWidget({ limit: 500 }); // Fetch up to 500 listings from widget API
+      const { fetchIdxListings: fetchIdxListingsCorrected } = await import('./idx-corrected');
+      const idxListings = await fetchIdxListingsCorrected({ limit: 500 }); // Fetch listings with corrected parameters
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging
@@ -1053,8 +1053,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sqft_min = req.query.sqft_min ? Number(req.query.sqft_min) : undefined;
       const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
-      const { fetchIdxListings: fetchIdxListingsWidget } = await import('./idx-widget-api');
-      const listings = await fetchIdxListingsWidget({
+      const { fetchIdxListings: fetchIdxListingsCorrected } = await import('./idx-corrected');
+      const listings = await fetchIdxListingsCorrected({
         limit,
         offset,
         city,

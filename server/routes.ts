@@ -1058,6 +1058,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // MLS Field Coverage Analysis endpoint
+  app.get("/api/idx-field-analysis", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      console.log("[express] Analyzing MLS field coverage...");
+
+      const axios = require('axios');
+      
+      // Get sample properties to analyze field coverage
+      const response = await axios.get('https://api.idxbroker.com/clients/listings', {
+        headers: {
+          'accesskey': apiKey,
+          'outputtype': 'json'
+        },
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,parkingSpaces,garage,basement,fireplace,pool,waterfront,stories,mlsNumber,daysOnMarket,pricePerSqFt,heating,cooling,roofType,exteriorFeatures,interiorFeatures,appliances,flooring,securityFeatures,communityFeatures,utilities,taxAmount,hoaFee,subdivision,schoolDistrict,elementarySchool,middleSchool,highSchool,propertyCondition,architecturalStyle,newConstruction,foreclosure,shortSale,ownerFinancing,leaseOption,virtualTour,walkScore,transitScore,bikeScore',
+          limit: 50
+        },
+        timeout: 15000
+      });
+
+      if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
+        return res.json({
+          success: false,
+          message: "No sample data available for field analysis"
+        });
+      }
+
+      const sampleProperties = response.data;
+      const totalFields = {
+        // Core fields
+        'listingId': 0, 'address': 0, 'city': 0, 'state': 0, 'zipCode': 0,
+        'price': 0, 'bedrooms': 0, 'bathrooms': 0, 'sqft': 0, 'propertyType': 0,
+        'images': 0, 'description': 0, 'listedDate': 0,
+        
+        // Enhanced MLS fields
+        'yearBuilt': 0, 'lotSize': 0, 'parkingSpaces': 0, 'garage': 0,
+        'basement': 0, 'fireplace': 0, 'pool': 0, 'waterfront': 0,
+        'stories': 0, 'mlsNumber': 0, 'daysOnMarket': 0, 'pricePerSqFt': 0,
+        'heating': 0, 'cooling': 0, 'roofType': 0, 'exteriorFeatures': 0,
+        'interiorFeatures': 0, 'appliances': 0, 'flooring': 0,
+        'securityFeatures': 0, 'communityFeatures': 0, 'utilities': 0,
+        'taxAmount': 0, 'hoaFee': 0, 'subdivision': 0, 'schoolDistrict': 0,
+        'elementarySchool': 0, 'middleSchool': 0, 'highSchool': 0,
+        'propertyCondition': 0, 'architecturalStyle': 0, 'newConstruction': 0,
+        'foreclosure': 0, 'shortSale': 0, 'ownerFinancing': 0,
+        'leaseOption': 0, 'virtualTour': 0, 'walkScore': 0,
+        'transitScore': 0, 'bikeScore': 0
+      };
+
+      // Analyze field coverage
+      sampleProperties.forEach(property => {
+        Object.keys(totalFields).forEach(field => {
+          const mappedField = getPropertyFieldMapping(field);
+          if (property[mappedField] !== undefined && property[mappedField] !== null && property[mappedField] !== '') {
+            totalFields[field]++;
+          }
+        });
+      });
+
+      const fieldCoverage = Object.entries(totalFields).map(([field, count]) => ({
+        field,
+        coverage: Math.round((count / sampleProperties.length) * 100),
+        available: count > 0,
+        priority: getFieldPriority(field)
+      })).sort((a, b) => b.coverage - a.coverage);
+
+      const highCoverageFields = fieldCoverage.filter(f => f.coverage >= 40);
+      const totalCoverageScore = Math.round(
+        highCoverageFields.length / fieldCoverage.length * 100
+      );
+
+      res.json({
+        success: true,
+        analysis: {
+          totalProperties: sampleProperties.length,
+          totalFields: fieldCoverage.length,
+          highCoverageFields: highCoverageFields.length,
+          coverageScore: totalCoverageScore,
+          fieldDetails: fieldCoverage,
+          recommendation: totalCoverageScore >= 50 ? 
+            "Excellent MLS field coverage for advanced property matching" :
+            totalCoverageScore >= 30 ?
+            "Good MLS field coverage, some advanced features may be limited" :
+            "Basic MLS field coverage, consider upgrading IDX plan for more fields"
+        }
+      });
+
+    } catch (error) {
+      console.error("[express] Error analyzing MLS field coverage:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error analyzing MLS field coverage",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  function getPropertyFieldMapping(field: string): string {
+    const fieldMap: { [key: string]: string } = {
+      'listingId': 'idxID',
+      'address': 'address', 
+      'city': 'cityName',
+      'state': 'state',
+      'zipCode': 'zipcode',
+      'price': 'listPrice',
+      'bedrooms': 'bedrooms',
+      'bathrooms': 'totalBaths',
+      'sqft': 'sqFt',
+      'propertyType': 'propType',
+      'images': 'image',
+      'description': 'remarksConcat',
+      'listedDate': 'listDate'
+    };
+    return fieldMap[field] || field;
+  }
+
+  function getFieldPriority(field: string): 'high' | 'medium' | 'low' {
+    const highPriority = ['garage', 'securityFeatures', 'pool', 'fireplace', 'yearBuilt', 'lotSize'];
+    const mediumPriority = ['heating', 'cooling', 'parkingSpaces', 'stories', 'taxAmount', 'hoaFee'];
+    
+    if (highPriority.includes(field)) return 'high';
+    if (mediumPriority.includes(field)) return 'medium';
+    return 'low';
+  }
+
   // Enhanced IDX listings endpoint with advanced parameters
   app.get("/api/idx-listings", async (req, res) => {
     try {

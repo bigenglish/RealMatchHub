@@ -236,7 +236,7 @@ export async function fetchIdxListings({
         {
           url: 'https://api.idxbroker.com/clients/listings',
           params: {
-            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,status',
+            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,parkingSpaces,garage,basement,fireplace,pool,waterfront,stories,mlsNumber,daysOnMarket,pricePerSqFt,heating,cooling,roofType,exteriorFeatures,interiorFeatures,appliances,flooring,securityFeatures,communityFeatures,utilities,taxAmount,hoaFee,subdivision,schoolDistrict,elementarySchool,middleSchool,highSchool,propertyCondition,architecturalStyle,newConstruction,foreclosure,shortSale,ownerFinancing,leaseOption,virtualTour,walkScore,transitScore,bikeScore',
             limit: Math.min(limit, 1000),
             offset,
             pt: '1,2,3,4,5,6,7,8,9,10', // All property types
@@ -246,7 +246,7 @@ export async function fetchIdxListings({
         {
           url: 'https://api.idxbroker.com/clients/search',
           params: {
-            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+            rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,parkingSpaces,garage,basement,fireplace,pool,waterfront,stories,mlsNumber,daysOnMarket,pricePerSqFt,heating,cooling,roofType,exteriorFeatures,interiorFeatures,appliances,flooring,securityFeatures,communityFeatures,utilities,taxAmount,hoaFee,subdivision,schoolDistrict,elementarySchool,middleSchool,highSchool,propertyCondition,architecturalStyle,newConstruction,foreclosure,shortSale,ownerFinancing,leaseOption,virtualTour,walkScore,transitScore,bikeScore',
             limit: Math.min(limit, 1000),
             offset,
             orderby: 'listDate',
@@ -819,7 +819,7 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
       keys: apiResponse ? Object.keys(apiResponse) : 'null',
       dataLength: apiResponse ? JSON.stringify(apiResponse).length : 0
     });
-    
+
     return {
       listings: [],
       totalCount: 0,
@@ -853,7 +853,48 @@ function transformIdxResponse(apiResponse: any): IdxListingsResponse {
         ? item.images.map((img: any) => typeof img === 'string' ? img : img.url || '')
         : item.image ? [item.image] : [],
       description: item.remarksConcat || item.description || item.remarks || 'No description available',
-      listedDate: item.listDate || item.listedDate || new Date().toISOString().split('T')[0]
+      listedDate: item.listDate || item.listedDate || new Date().toISOString().split('T')[0],
+      // Enhanced MLS fields
+      yearBuilt: parseInt(item.yearBuilt || '0') || undefined,
+      lotSize: parseFloat(item.lotSize || '0') || undefined,
+      parkingSpaces: parseInt(item.parkingSpaces || '0') || undefined,
+      garage: item.garage === 'Yes' || item.garage === '1' || item.garage === true,
+      basement: item.basement === 'Yes' || item.basement === '1' || item.basement === true,
+      fireplace: item.fireplace === 'Yes' || item.fireplace === '1' || item.fireplace === true,
+      pool: item.pool === 'Yes' || item.pool === '1' || item.pool === true,
+      waterfront: item.waterfront === 'Yes' || item.waterfront === '1' || item.waterfront === true,
+      stories: parseFloat(item.stories || '0') || undefined,
+      mlsNumber: item.mlsNumber || item.listingId || undefined,
+      daysOnMarket: parseInt(item.daysOnMarket || '0') || undefined,
+      pricePerSqFt: parseFloat(item.pricePerSqFt || '0') || (sqft > 0 ? Math.round(price / sqft) : undefined),
+      heating: item.heating || undefined,
+      cooling: item.cooling || undefined,
+      roofType: item.roofType || undefined,
+      exteriorFeatures: item.exteriorFeatures || undefined,
+      interiorFeatures: item.interiorFeatures || undefined,
+      appliances: item.appliances || undefined,```text
+flooring: item.flooring || undefined,
+      securityFeatures: item.securityFeatures || undefined,
+      communityFeatures: item.communityFeatures || undefined,
+      utilities: item.utilities || undefined,
+      taxAmount: parseFloat(item.taxAmount || '0') || undefined,
+      hoaFee: parseFloat(item.hoaFee || '0') || undefined,
+      subdivision: item.subdivision || undefined,
+      schoolDistrict: item.schoolDistrict || undefined,
+      elementarySchool: item.elementarySchool || undefined,
+      middleSchool: item.middleSchool || undefined,
+      highSchool: item.highSchool || undefined,
+      propertyCondition: item.propertyCondition || undefined,
+      architecturalStyle: item.architecturalStyle || undefined,
+      newConstruction: item.newConstruction === 'Yes' || item.newConstruction === '1' || item.newConstruction === true,
+      foreclosure: item.foreclosure === 'Yes' || item.foreclosure === '1' || item.foreclosure === true,
+      shortSale: item.shortSale === 'Yes' || item.shortSale === '1' || item.shortSale === true,
+      ownerFinancing: item.ownerFinancing === 'Yes' || item.ownerFinancing === '1' || item.ownerFinancing === true,
+      leaseOption: item.leaseOption === 'Yes' || item.leaseOption === '1' || item.leaseOption === true,
+      virtualTour: item.virtualTour || undefined,
+      walkScore: parseInt(item.walkScore || '0') || undefined,
+      transitScore: parseInt(item.transitScore || '0') || undefined,
+      bikeScore: parseInt(item.bikeScore || '0') || undefined
     };
   });
 

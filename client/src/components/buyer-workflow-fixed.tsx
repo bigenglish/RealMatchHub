@@ -402,6 +402,56 @@ export default function BuyerWorkflow({
     setSelection(prev => ({ ...prev, inspirationImages: images }));
   };
 
+  const toggleAmenity = (amenityId: string) => {
+    setSelection(prev => ({
+      ...prev,
+      amenities: prev.amenities?.includes(amenityId)
+        ? prev.amenities.filter(id => id !== amenityId)
+        : [...(prev.amenities || []), amenityId]
+    }));
+  };
+
+  const handleInspirationUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('File size must be less than 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setSelection(prev => ({
+          ...prev,
+          inspirationImages: [...(prev.inspirationImages || []), result]
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeInspirationImage = (index: number) => {
+    setSelection(prev => ({
+      ...prev,
+      inspirationImages: prev.inspirationImages?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const addInspirationUrl = () => {
+    if (inspirationUrl.trim()) {
+      setSelection(prev => ({
+        ...prev,
+        inspirationImages: [...(prev.inspirationImages || []), inspirationUrl.trim()]
+      }));
+      setInspirationUrl('');
+    }
+  };
+
+  const [inspirationUrl, setInspirationUrl] = useState('');
+
   // Render content based on current step
   const renderStepContent = () => {
     switch (currentStep) {
@@ -1040,6 +1090,211 @@ export default function BuyerWorkflow({
 
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
+            </div>
+          </div>
+        );
+
+      case 'amenities':
+        return (
+          <div className="space-y-8">
+            <div className="text-center space-y-4">
+              <h2 className="text-2xl font-bold">What amenities matter most to you?</h2>
+              <p className="text-gray-600">Select the features that are important in your ideal home</p>
+            </div>
+
+            {/* Property Features */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Property Features</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'security-system', label: 'Security System', icon: '🔒', priority: 'high' },
+                  { id: 'walk-in-closets', label: 'Walk-in Closets', icon: '👔', priority: 'high' },
+                  { id: 'laundry-room', label: 'Laundry Room', icon: '🧺', priority: 'high' },
+                  { id: 'basement', label: 'Basement', icon: '🏠', priority: 'medium' },
+                  { id: 'attic', label: 'Attic', icon: '🏠', priority: 'medium' },
+                  { id: 'wine-cellar', label: 'Wine Cellar', icon: '🍷', priority: 'medium' },
+                  { id: 'home-theater', label: 'Home Theater', icon: '🎬', priority: 'medium' },
+                  { id: 'outdoor-kitchen', label: 'Outdoor Kitchen', icon: '🍳', priority: 'medium' },
+                  { id: 'solar-panels', label: 'Solar Panels', icon: '☀️', priority: 'medium' },
+                  { id: 'generator', label: 'Generator', icon: '⚡', priority: 'medium' },
+                ].map((feature) => (
+                  <button
+                    key={feature.id}
+                    onClick={() => toggleAmenity(feature.id)}
+                    className={`p-4 rounded-lg border-2 text-left transition-colors relative ${
+                      selection.amenities?.includes(feature.id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {feature.priority === 'high' && (
+                      <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          High Priority
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{feature.icon}</span>
+                      <span className="font-medium">{feature.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Outdoor Amenities */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Outdoor Amenities</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'garden', label: 'Garden', icon: '🌸', priority: 'high' },
+                  { id: 'patio', label: 'Patio', icon: '🪑', priority: 'high' },
+                  { id: 'fire-pit', label: 'Fire Pit', icon: '🔥', priority: 'high' },
+                  { id: 'deck', label: 'Deck', icon: '🪵', priority: 'medium' },
+                  { id: 'balcony', label: 'Balcony', icon: '🏢', priority: 'medium' },
+                  { id: 'sprinkler-system', label: 'Sprinkler System', icon: '💧', priority: 'medium' },
+                  { id: 'outdoor-lighting', label: 'Outdoor Lighting', icon: '💡', priority: 'medium' },
+                  { id: 'bbq-area', label: 'BBQ Area', icon: '🍖', priority: 'medium' },
+                  { id: 'tennis-court', label: 'Tennis Court', icon: '🎾', priority: 'medium' },
+                  { id: 'basketball-court', label: 'Basketball Court', icon: '🏀', priority: 'medium' },
+                ].map((feature) => (
+                  <button
+                    key={feature.id}
+                    onClick={() => toggleAmenity(feature.id)}
+                    className={`p-4 rounded-lg border-2 text-left transition-colors relative ${
+                      selection.amenities?.includes(feature.id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {feature.priority === 'high' && (
+                      <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          High Priority
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{feature.icon}</span>
+                      <span className="font-medium">{feature.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Community Features */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Community Features</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'security-patrol', label: 'Security Patrol', icon: '👮', priority: 'high' },
+                  { id: 'gated-community', label: 'Gated Community', icon: '🚪', priority: 'high' },
+                  { id: 'club-house', label: 'Club House', icon: '🏛️', priority: 'medium' },
+                  { id: 'community-pool', label: 'Community Pool', icon: '🏊', priority: 'medium' },
+                  { id: 'tennis-courts', label: 'Tennis Courts', icon: '🎾', priority: 'medium' },
+                  { id: 'golf-course', label: 'Golf Course', icon: '⛳', priority: 'medium' },
+                  { id: 'walking-trails', label: 'Walking Trails', icon: '🚶', priority: 'medium' },
+                  { id: 'park-access', label: 'Park Access', icon: '🌳', priority: 'medium' },
+                  { id: 'guest-parking', label: 'Guest Parking', icon: '🅿️', priority: 'medium' },
+                  { id: 'package-service', label: 'Package Service', icon: '📦', priority: 'medium' },
+                ].map((feature) => (
+                  <button
+                    key={feature.id}
+                    onClick={() => toggleAmenity(feature.id)}
+                    className={`p-4 rounded-lg border-2 text-left transition-colors relative ${
+                      selection.amenities?.includes(feature.id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {feature.priority === 'high' && (
+                      <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          High Priority
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{feature.icon}</span>
+                      <span className="font-medium">{feature.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tell us about your design preferences */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Tell us about your design preferences</h3>
+              <p className="text-gray-600">Help us understand your style to find properties that match your taste</p>
+
+              {/* Upload Inspiration Images */}
+              <div className="space-y-4">
+                <Label>Upload Inspiration Images</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleInspirationUpload}
+                    className="hidden"
+                    id="inspiration-upload"
+                  />
+                  <label htmlFor="inspiration-upload" className="cursor-pointer">
+                    <div className="space-y-4">
+                      <div className="mx-auto h-16 w-16 text-gray-400">
+                        <svg className="h-full w-full" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-lg font-medium">Click to upload or drag and drop</p>
+                        <p className="text-gray-500">JPG, PNG or WEBP (max 5MB)</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Preview uploaded images */}
+                {selection.inspirationImages && selection.inspirationImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {selection.inspirationImages.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={image}
+                          alt={`Inspiration ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => removeInspirationImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Inspiration URLs */}
+                <div className="space-y-2">
+                  <Label>Add Inspiration URLs</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/inspiration-image.jpg"
+                      value={inspirationUrl}
+                      onChange={(e) => setInspirationUrl(e.target.value)}
+                      className="flex-1 p-2 border border-gray-300 rounded-md"
+                    />
+                    <Button onClick={addInspirationUrl} type="button" variant="outline">
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );

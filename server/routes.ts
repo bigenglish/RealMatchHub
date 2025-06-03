@@ -717,6 +717,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test buyer workflow URL parameters specifically
+  app.get("/api/test-buyer-workflow-params", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      console.log("[express] Testing buyer workflow URL parameters...");
+
+      const axios = require('axios');
+      
+      // Try to replicate the exact search from your buyer workflow URL
+      const searchParams = {
+        // URL parameters decoded:
+        // idxID=d025, pt=1, a_propStatus[]=Active, ccz=city, hp=1650000, 
+        // bd=2, tb=1, city[]=los+angeles, a_addressCity=los+angeles,
+        // neighborhood=Central+LA, a_subdivision=Central+LA
+        
+        rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+        limit: 100,
+        maxListPrice: 1650000, // hp=1650000
+        bedrooms: 2, // bd=2
+        totalBaths: 1, // tb=1
+        city: 'los angeles', // city[]=los+angeles
+        a_propStatus: 'Active',
+        orderby: 'listDate',
+        orderdir: 'DESC'
+      };
+
+      const testResults = {
+        searchParameters: searchParams,
+        endpointResults: []
+      };
+
+      // Test multiple endpoints with these specific parameters
+      const endpoints = [
+        'https://api.idxbroker.com/clients/search',
+        'https://api.idxbroker.com/clients/listings',
+        'https://api.idxbroker.com/mls/search'
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Testing ${endpoint} with buyer workflow params...`);
+          
+          const response = await axios.get(endpoint, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            params: searchParams,
+            timeout: 10000
+          });
+
+          const resultCount = Array.isArray(response.data) ? response.data.length : 
+                            (response.data && response.data.length) || 0;
+
+          testResults.endpointResults.push({
+            endpoint,
+            success: true,
+            status: response.status,
+            resultCount,
+            sampleData: Array.isArray(response.data) ? response.data.slice(0, 3) : response.data
+          });
+
+          console.log(`${endpoint} returned ${resultCount} properties`);
+
+        } catch (error: any) {
+          testResults.endpointResults.push({
+            endpoint,
+            success: false,
+            error: error.response?.status || error.message,
+            resultCount: 0
+          });
+          console.log(`${endpoint} failed:`, error.message);
+        }
+      }
+
+      res.json(testResults);
+    } catch (error) {
+      console.error("Error testing buyer workflow params:", error);
+      res.status(500).json({ message: "Error testing buyer workflow parameters" });
+    }
+  });
+
   // Simple request inspection endpoint with live API test
   app.get("/api/idx-request-details", async (_req, res) => {
     try {

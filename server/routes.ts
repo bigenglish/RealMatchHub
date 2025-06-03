@@ -96,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     TTL: 300000 // 5 minutes
   };
 
-  app.get("/api/properties", async (_req, res) => {
+  app.get("/api/properties", async (req, res) => {
     try {
       // Skip cache for debugging parameter issues
       // if (propertyCache.data && Date.now() - propertyCache.timestamp < propertyCache.TTL) {

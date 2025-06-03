@@ -105,8 +105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const { fetchIdxListings: fetchIdxListingsCorrected } = await import('./idx-corrected');
-      const idxListings = await fetchIdxListingsCorrected({ limit: 500 }); // Fetch listings with corrected parameters
+      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai');
+      const idxListings = await fetchIdxListingsHomesAI({ limit: 500 }); // Fetch listings using HomesAI URL patterns
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging
@@ -1053,8 +1053,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sqft_min = req.query.sqft_min ? Number(req.query.sqft_min) : undefined;
       const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
-      const { fetchIdxListings: fetchIdxListingsCorrected } = await import('./idx-corrected');
-      const listings = await fetchIdxListingsCorrected({
+      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai');
+      const listings = await fetchIdxListingsHomesAI({
         limit,
         offset,
         city,

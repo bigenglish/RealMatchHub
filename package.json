@@ -61,6 +61,7 @@
     "@types/react-helmet": "^6.1.11",
     "@wojtekmaj/react-daterange-picker": "^6.0.0",
     "axios": "^1.8.4",
+    "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

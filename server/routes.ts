@@ -106,7 +106,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Fetching fresh properties from IDX Broker");
 
       const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai-fixed');
-      const idxListings = await fetchIdxListingsHomesAI({ limit: 500 }); // Fetch listings using HomesAI URL patterns
+      
+      // Build comprehensive search criteria for the properties endpoint
+      const searchCriteria = {
+        limit: 500,
+        pool: req.query.pool === 'true',
+        poolType: req.query.poolType ? String(req.query.poolType) : undefined,
+        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        minBedrooms: req.query.minBedrooms ? Number(req.query.minBedrooms) : undefined,
+        garage: req.query.garage === 'true',
+        waterfront: req.query.waterfront === 'true',
+        fireplace: req.query.fireplace === 'true',
+        newConstruction: req.query.newConstruction === 'true',
+        city: req.query.city ? String(req.query.city) : undefined,
+        state: req.query.state ? String(req.query.state) : undefined,
+        zipCode: req.query.zipCode ? String(req.query.zipCode) : undefined,
+        propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined
+      };
+      
+      const idxListings = await fetchIdxListingsHomesAI(searchCriteria);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging
@@ -1054,16 +1073,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
       const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai-fixed');
-      const listings = await fetchIdxListingsHomesAI({
+      
+      // Build comprehensive search criteria from query parameters
+      const searchCriteria = {
         limit,
         offset,
         city,
+        state: req.query.state ? String(req.query.state) : undefined,
+        zipCode: req.query.zipCode ? String(req.query.zipCode) : undefined,
+        county: req.query.county ? String(req.query.county) : undefined,
+        neighborhood: req.query.neighborhood ? String(req.query.neighborhood) : undefined,
         minPrice,
         maxPrice,
         bedrooms,
+        minBedrooms: req.query.minBedrooms ? Number(req.query.minBedrooms) : undefined,
+        maxBedrooms: req.query.maxBedrooms ? Number(req.query.maxBedrooms) : undefined,
         bathrooms,
-        propertyType
-      });
+        minBathrooms: req.query.minBathrooms ? Number(req.query.minBathrooms) : undefined,
+        maxBathrooms: req.query.maxBathrooms ? Number(req.query.maxBathrooms) : undefined,
+        propertyType,
+        minSquareFeet: sqft_min,
+        maxSquareFeet: sqft_max,
+        minLotSize: req.query.minLotSize ? Number(req.query.minLotSize) : undefined,
+        maxLotSize: req.query.maxLotSize ? Number(req.query.maxLotSize) : undefined,
+        minAcres: req.query.minAcres ? Number(req.query.minAcres) : undefined,
+        maxAcres: req.query.maxAcres ? Number(req.query.maxAcres) : undefined,
+        garage: req.query.garage === 'true',
+        parking: req.query.parking ? Number(req.query.parking) : undefined,
+        pool: req.query.pool === 'true',
+        poolType: req.query.poolType ? String(req.query.poolType) : undefined,
+        waterfront: req.query.waterfront === 'true',
+        fireplace: req.query.fireplace === 'true',
+        basement: req.query.basement === 'true',
+        yearBuilt: req.query.yearBuilt ? Number(req.query.yearBuilt) : undefined,
+        minYearBuilt: req.query.minYearBuilt ? Number(req.query.minYearBuilt) : undefined,
+        maxYearBuilt: req.query.maxYearBuilt ? Number(req.query.maxYearBuilt) : undefined,
+        stories: req.query.stories ? Number(req.query.stories) : undefined,
+        architectural: req.query.architectural ? String(req.query.architectural) : undefined,
+        status: req.query.status ? String(req.query.status) : undefined,
+        maxDaysOnMarket: req.query.maxDaysOnMarket ? Number(req.query.maxDaysOnMarket) : undefined,
+        newConstruction: req.query.newConstruction === 'true',
+        hoa: req.query.hoa === 'true',
+        maxHOA: req.query.maxHOA ? Number(req.query.maxHOA) : undefined,
+        maxTaxAmount: req.query.maxTaxAmount ? Number(req.query.maxTaxAmount) : undefined,
+        rental: req.query.rental === 'true',
+        seniorCommunity: req.query.seniorCommunity === 'true',
+        wheelchair: req.query.wheelchair === 'true',
+        energyEfficient: req.query.energyEfficient === 'true',
+        solar: req.query.solar === 'true',
+        greenCertified: req.query.greenCertified === 'true',
+        schoolDistrict: req.query.schoolDistrict ? String(req.query.schoolDistrict) : undefined,
+        elementarySchool: req.query.elementarySchool ? String(req.query.elementarySchool) : undefined,
+        middleSchool: req.query.middleSchool ? String(req.query.middleSchool) : undefined,
+        highSchool: req.query.highSchool ? String(req.query.highSchool) : undefined,
+        sortBy: req.query.sortBy ? String(req.query.sortBy) : undefined,
+        sortOrder: req.query.sortOrder === 'desc' ? 'desc' : 'asc'
+      };
+      
+      const listings = await fetchIdxListingsHomesAI(searchCriteria);
 
       res.json(listings);
     } catch (error) {

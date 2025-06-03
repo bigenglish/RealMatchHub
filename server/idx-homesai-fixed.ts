@@ -33,42 +33,254 @@ const httpsAgent = new https.Agent({
 /**
  * Fetch property listings using your working homesai.net.idxbroker.com URLs
  */
-export async function fetchIdxListings({ 
-  limit = 100, 
-  offset = 0, 
-  city = '', 
-  minPrice = 0, 
-  maxPrice = 0,
-  bedrooms,
-  bathrooms,
-  propertyType = ''
-}: { 
-  limit?: number; 
-  offset?: number; 
-  city?: string; 
-  minPrice?: number; 
+export interface PropertySearchCriteria {
+  // Basic pagination and limits
+  limit?: number;
+  offset?: number;
+  
+  // Location filters
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  county?: string;
+  neighborhood?: string;
+  mls?: string;
+  
+  // Price filters
+  minPrice?: number;
   maxPrice?: number;
+  
+  // Property basics
   bedrooms?: number;
+  minBedrooms?: number;
+  maxBedrooms?: number;
   bathrooms?: number;
-  propertyType?: string;
-} = {}): Promise<IdxListingsResponse> {
+  minBathrooms?: number;
+  maxBathrooms?: number;
+  propertyType?: string; // sfr, condo, townhouse, mobile, land, etc.
+  
+  // Size and lot
+  minSquareFeet?: number;
+  maxSquareFeet?: number;
+  minLotSize?: number;
+  maxLotSize?: number;
+  minAcres?: number;
+  maxAcres?: number;
+  
+  // Property features
+  garage?: boolean;
+  parking?: number; // Number of parking spaces
+  pool?: boolean;
+  poolType?: string; // "In Ground", "Above Ground", "Spa/Hot Tub"
+  waterfront?: boolean;
+  fireplace?: boolean;
+  basement?: boolean;
+  
+  // Building details
+  yearBuilt?: number;
+  minYearBuilt?: number;
+  maxYearBuilt?: number;
+  stories?: number;
+  architectural?: string;
+  
+  // Listing status and timing
+  status?: string; // Active, Pending, Sold, etc.
+  daysOnMarket?: number;
+  maxDaysOnMarket?: number;
+  newConstruction?: boolean;
+  
+  // Financial
+  hoa?: boolean;
+  maxHOA?: number;
+  taxAmount?: number;
+  maxTaxAmount?: number;
+  
+  // Investment/rental specific
+  rental?: boolean;
+  cashFlow?: number;
+  capRate?: number;
+  
+  // Accessibility and special needs
+  seniorCommunity?: boolean;
+  wheelchair?: boolean;
+  
+  // Energy and environment
+  energyEfficient?: boolean;
+  solar?: boolean;
+  greenCertified?: boolean;
+  
+  // School districts (important for families)
+  schoolDistrict?: string;
+  elementarySchool?: string;
+  middleSchool?: string;
+  highSchool?: string;
+  
+  // Sorting and ordering
+  sortBy?: string; // price, date, sqft, beds, etc.
+  sortOrder?: 'asc' | 'desc';
+}
+
+export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): Promise<IdxListingsResponse> {
+  const {
+    limit = 100,
+    offset = 0,
+    city = '',
+    state = '',
+    zipCode = '',
+    county = '',
+    neighborhood = '',
+    mls = '',
+    minPrice = 0,
+    maxPrice = 0,
+    bedrooms,
+    minBedrooms,
+    maxBedrooms,
+    bathrooms,
+    minBathrooms,
+    maxBathrooms,
+    propertyType = '',
+    minSquareFeet,
+    maxSquareFeet,
+    minLotSize,
+    maxLotSize,
+    minAcres,
+    maxAcres,
+    garage,
+    parking,
+    pool,
+    poolType,
+    waterfront,
+    fireplace,
+    basement,
+    yearBuilt,
+    minYearBuilt,
+    maxYearBuilt,
+    stories,
+    architectural,
+    status,
+    daysOnMarket,
+    maxDaysOnMarket,
+    newConstruction,
+    hoa,
+    maxHOA,
+    taxAmount,
+    maxTaxAmount,
+    rental,
+    cashFlow,
+    capRate,
+    seniorCommunity,
+    wheelchair,
+    energyEfficient,
+    solar,
+    greenCertified,
+    schoolDistrict,
+    elementarySchool,
+    middleSchool,
+    highSchool,
+    sortBy,
+    sortOrder
+  } = criteria;
   try {
     console.log(`[IDX-HomesAI] Fetching listings from homesai.net.idxbroker.com, limit: ${limit}`);
 
-    // Use the working URL patterns you provided
+    // Build comprehensive search parameters for IDX Broker
     const searchParams = new URLSearchParams();
     
-    // Property type: sfr (single family residential) as default
-    searchParams.append('pt', propertyType || 'sfr');
+    // Core property filters
+    searchParams.append('pt', propertyType || 'sfr'); // Property type: sfr, condo, townhouse, mobile, land
     
-    // Price range - use defaults if not specified
-    searchParams.append('lp', String(minPrice || 200000)); // Low price
-    searchParams.append('hp', String(maxPrice || 800000)); // High price
+    // Price range
+    if (minPrice || maxPrice) {
+      searchParams.append('lp', String(minPrice || 0)); // Low price
+      searchParams.append('hp', String(maxPrice || 10000000)); // High price
+    } else {
+      // Default price range if none specified
+      searchParams.append('lp', '200000');
+      searchParams.append('hp', '800000');
+    }
     
-    // Additional filters
+    // Bedrooms - support exact, min, and max
     if (bedrooms) searchParams.append('bd', String(bedrooms));
+    if (minBedrooms) searchParams.append('mnbd', String(minBedrooms));
+    if (maxBedrooms) searchParams.append('mxbd', String(maxBedrooms));
+    
+    // Bathrooms - support exact, min, and max
     if (bathrooms) searchParams.append('ba', String(bathrooms));
-    if (city) searchParams.append('ccz', 'city');
+    if (minBathrooms) searchParams.append('mnba', String(minBathrooms));
+    if (maxBathrooms) searchParams.append('mxba', String(maxBathrooms));
+    
+    // Square footage
+    if (minSquareFeet) searchParams.append('sf', String(minSquareFeet));
+    if (maxSquareFeet) searchParams.append('msf', String(maxSquareFeet));
+    
+    // Lot size
+    if (minLotSize) searchParams.append('ls', String(minLotSize));
+    if (maxLotSize) searchParams.append('mls', String(maxLotSize));
+    
+    // Acres
+    if (minAcres) searchParams.append('ac', String(minAcres));
+    if (maxAcres) searchParams.append('mac', String(maxAcres));
+    
+    // Location filters
+    if (city) searchParams.append('ccz', 'city'); // City/County/Zip search
+    if (zipCode) searchParams.append('zip', zipCode);
+    if (county) searchParams.append('county', county);
+    if (neighborhood) searchParams.append('area', neighborhood);
+    if (mls) searchParams.append('idxID', mls);
+    
+    // Year built
+    if (yearBuilt) searchParams.append('yr', String(yearBuilt));
+    if (minYearBuilt) searchParams.append('mnyr', String(minYearBuilt));
+    if (maxYearBuilt) searchParams.append('mxyr', String(maxYearBuilt));
+    
+    // Property features - using common IDX parameter patterns
+    if (garage) searchParams.append('gar', '1'); // Has garage
+    if (parking) searchParams.append('park', String(parking)); // Parking spaces
+    if (pool) searchParams.append('pool', '1'); // Has pool
+    if (poolType) searchParams.append('a_poolFeatures', poolType); // Pool type (like your example)
+    if (waterfront) searchParams.append('wf', '1'); // Waterfront
+    if (fireplace) searchParams.append('fp', '1'); // Fireplace
+    if (basement) searchParams.append('bsmt', '1'); // Basement
+    
+    // Building details
+    if (stories) searchParams.append('stories', String(stories));
+    if (architectural) searchParams.append('arch', architectural);
+    
+    // Listing status and timing
+    if (status) searchParams.append('status', status); // Active, Pending, Sold
+    if (maxDaysOnMarket) searchParams.append('dom', String(maxDaysOnMarket));
+    if (newConstruction) searchParams.append('new', '1');
+    
+    // Financial filters
+    if (hoa) searchParams.append('hoa', '1');
+    if (maxHOA) searchParams.append('mhoa', String(maxHOA));
+    if (maxTaxAmount) searchParams.append('mtax', String(maxTaxAmount));
+    
+    // Investment/rental specific
+    if (rental) searchParams.append('rental', '1');
+    if (cashFlow) searchParams.append('cf', String(cashFlow));
+    if (capRate) searchParams.append('cap', String(capRate));
+    
+    // Accessibility and special needs
+    if (seniorCommunity) searchParams.append('senior', '1');
+    if (wheelchair) searchParams.append('accessible', '1');
+    
+    // Energy and environment
+    if (energyEfficient) searchParams.append('energy', '1');
+    if (solar) searchParams.append('solar', '1');
+    if (greenCertified) searchParams.append('green', '1');
+    
+    // School districts (critical for family buyers)
+    if (schoolDistrict) searchParams.append('school', schoolDistrict);
+    if (elementarySchool) searchParams.append('elem', elementarySchool);
+    if (middleSchool) searchParams.append('middle', middleSchool);
+    if (highSchool) searchParams.append('high', highSchool);
+    
+    // Sorting
+    if (sortBy) {
+      searchParams.append('sb', sortBy); // Sort by: price, date, sqft, beds, etc.
+      if (sortOrder) searchParams.append('so', sortOrder); // asc or desc
+    }
     
     // Pagination
     if (offset > 0) searchParams.append('start', String(offset));

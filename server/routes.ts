@@ -1429,6 +1429,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comprehensive IDX verification endpoint
+  app.get("/api/verify-idx-integration", async (_req, res) => {
+    try {
+      const { verifyIdxIntegration } = await import('./test-idx-verification');
+      const results = await verifyIdxIntegration();
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Direct IDX API diagnostic with live test
   app.get("/api/idx-live-diagnostic", async (_req, res) => {
     try {

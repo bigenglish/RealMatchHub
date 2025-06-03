@@ -978,86 +978,167 @@ export default function BuyerWorkflow({
 
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
-              <Button onClick={() => {
-                // Create IDX Broker URL with search parameters based on user selections
-                const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
-                const params = new URLSearchParams();
+              <Button onClick={async () => {
+                try {
+                  // Use our API to search properties with enhanced filtering
+                  const searchParams = new URLSearchParams();
+                  
+                  // Basic property filters
+                  if (selection.priceMin) searchParams.append('minPrice', selection.priceMin.toString());
+                  if (selection.priceMax) searchParams.append('maxPrice', selection.priceMax.toString());
+                  if (selection.bedrooms) searchParams.append('bedrooms', selection.bedrooms);
+                  if (selection.bathrooms) searchParams.append('bathrooms', selection.bathrooms);
+                  if (selection.city) searchParams.append('city', selection.city);
+                  
+                  // Property type filters
+                  if (selection.homeTypes?.length) {
+                    // Map home types to IDX property types
+                    const propertyTypeMap: { [key: string]: string } = {
+                      'Single Family': 'sfr',
+                      'Condo': 'cnd',
+                      'Townhouse': 'twn',
+                      'Multi-Family': 'mfr',
+                      'Land': 'lnd'
+                    };
+                    
+                    const mappedTypes = selection.homeTypes
+                      .map(type => propertyTypeMap[type])
+                      .filter(Boolean)
+                      .join(',');
+                    
+                    if (mappedTypes) {
+                      searchParams.append('propertyType', mappedTypes);
+                    }
+                  }
+                  
+                  // Enhanced MLS field filters
+                  if (selection.amenities?.length) {
+                    selection.amenities.forEach((amenity: string) => {
+                      // Map amenities to search parameters
+                      const amenityMap: { [key: string]: string } = {
+                        'security-system': 'securityFeatures',
+                        'basement': 'basement',
+                        'attic': 'basement', // Some IDX systems use basement for both
+                        'wine-cellar': 'basement',
+                        'home-theater': 'basement',
+                        'outdoor-kitchen': 'pool', // Often associated with pool properties
+                        'solar-panels': 'newConstruction',
+                        'generator': 'newConstruction',
+                        'laundry-room': 'garage', // Standard in most homes with garages
+                        'walk-in-closets': 'garage',
+                        'garden': 'pool',
+                        'patio': 'pool',
+                        'fire-pit': 'fireplace',
+                        'deck': 'pool',
+                        'balcony': 'pool',
+                        'sprinkler-system': 'pool',
+                        'outdoor-lighting': 'pool',
+                        'bbq-area': 'pool',
+                        'tennis-court': 'pool',
+                        'basketball-court': 'pool',
+                        'security-patrol': 'securityFeatures',
+                        'gated-community': 'securityFeatures',
+                        'club-house': 'pool',
+                        'community-pool': 'pool',
+                        'tennis-courts': 'pool',
+                        'golf-course': 'pool',
+                        'walking-trails': 'pool',
+                        'park-access': 'pool',
+                        'guest-parking': 'garage',
+                        'package-service': 'securityFeatures'
+                      };
+                      
+                      const mappedAmenity = amenityMap[amenity];
+                      if (mappedAmenity) {
+                        searchParams.append(mappedAmenity, 'true');
+                      }
+                    });
+                  }
+                  
+                  // Style preferences
+                  if (selection.architecturalStyles?.length) {
+                    searchParams.append('architectural', selection.architecturalStyles.join(','));
+                  }
+                  if (selection.interiorStyles?.length) {
+                    searchParams.append('interiorStyle', selection.interiorStyles.join(','));
+                  }
+                  
+                  // Search using our enhanced API endpoint
+                  const apiUrl = `/api/idx-listings?${searchParams.toString()}`;
+                  console.log('Searching properties with enhanced filters:', apiUrl);
+                  
+                  // Try API search first
+                  try {
+                    const response = await fetch(apiUrl);
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log(`Found ${data.listings?.length || 0} properties via API`);
+                      
+                      // Navigate to properties page with filters
+                      window.location.href = `/properties?${searchParams.toString()}`;
+                      onComplete();
+                      return;
+                    }
+                  } catch (apiError) {
+                    console.log('API search failed, falling back to IDX URL');
+                  }
+                  
+                  // Fallback to IDX Broker URL with enhanced parameters
+                  const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
+                  const idxParams = new URLSearchParams();
 
-                // Add required IDX parameters for property search
-                params.append("idxID", "d025");
-                params.append("pt", "1"); // Property Type Residential
+                  // Add required IDX parameters
+                  idxParams.append("idxID", "d025");
+                  idxParams.append("pt", "1");
+                  idxParams.append("a_propStatus[]", "Active");
+                  idxParams.append("ccz", "city");
 
-                // Add property status filter (like the working URL)
-                params.append("a_propStatus[]", "Active");
+                  // Add enhanced search parameters
+                  if (selection.priceMin) idxParams.append("lp", selection.priceMin.toString());
+                  if (selection.priceMax) idxParams.append("hp", selection.priceMax.toString());
+                  if (!selection.priceMin && !selection.priceMax) {
+                    idxParams.append("lp", "200000");
+                    idxParams.append("hp", "800000");
+                  }
+                  
+                  if (selection.bedrooms) idxParams.append("bd", selection.bedrooms);
+                  if (selection.bathrooms) idxParams.append("tb", selection.bathrooms);
+                  
+                  if (selection.city) {
+                    const cleanCity = selection.city.trim();
+                    idxParams.append("city[]", cleanCity);
+                    idxParams.append("a_addressCity", cleanCity);
+                  }
+                  
+                  if (selection.neighborhood) {
+                    const cleanNeighborhood = selection.neighborhood.trim();
+                    idxParams.append("neighborhood", cleanNeighborhood);
+                    idxParams.append("a_subdivision", cleanNeighborhood);
+                  }
+                  
+                  if (selection.architecturalStyles?.length) {
+                    idxParams.append("a_style", selection.architecturalStyles.join(","));
+                  }
+                  
+                  if (selection.amenities?.length) {
+                    selection.amenities.forEach((amenity: string) => {
+                      idxParams.append("fea", amenity);
+                    });
+                  }
 
-                // Add city context
-                params.append("ccz", "city");
-
-                // Add price range parameters
-                if (selection.priceMin) {
-                  params.append("lp", selection.priceMin.toString()); // Low Price
-                }
-                if (selection.priceMax) {
-                  params.append("hp", selection.priceMax.toString()); // High Price
-                }
-
-                // Add default price range if none specified
-                if (!selection.priceMin && !selection.priceMax) {
-                  params.append("lp", "200000"); // Default low price 200K
-                  params.append("hp", "800000"); // Default high price 800K
-                }
-
-                // Use exact parameter names from working URL
-                if (selection.bedrooms) {
-                  params.append("bd", selection.bedrooms); // Bedrooms
-                }
-                if (selection.bathrooms) {
-                  params.append("tb", selection.bathrooms); // Total bathrooms
-                }
-
-                // Add city and neighborhood if specified
-                if (selection.city) {
-                  // Clean city name and ensure proper formatting
-                  const cleanCity = selection.city.trim();
-
-                  // Use city array format like the working URL
-                  // Note: You may need to map city names to city IDs
-                  // For now, using city name but consider implementing city ID mapping
-                  params.append("city[]", cleanCity);
-
-                  // Also include the address city field as fallback
-                  params.append("a_addressCity", cleanCity);
-                }
-                if (selection.neighborhood) {
-                  // Clean neighborhood name
-                  const cleanNeighborhood = selection.neighborhood.trim();
-                  params.append("neighborhood", cleanNeighborhood);
-
-                  // Also try subdivision field which IDX often uses
-                  params.append("a_subdivision", cleanNeighborhood);
-                }
-
-                // Add architectural styles if selected
-                if (selection.architecturalStyles?.length) {
-                  params.append("a_style", selection.architecturalStyles.join(","));
-                }
-
-                // Add amenities if selected
-                if (selection.amenities?.length) {
-                  selection.amenities.forEach((amenity: string) => {
-                    params.append("fea", amenity);
+                  const finalUrl = `${idxBaseUrl}${idxParams.toString()}`;
+                  console.log('Opening IDX Broker with enhanced filters:', finalUrl);
+                  window.open(finalUrl, '_blank');
+                  onComplete();
+                  
+                } catch (error) {
+                  console.error('Search error:', error);
+                  toast({
+                    title: "Search Error",
+                    description: "Unable to search properties. Please try again.",
+                    variant: "destructive"
                   });
                 }
-
-                // Create final URL
-                const finalUrl = `${idxBaseUrl}${params.toString()}`;
-                console.log('Redirecting to IDX Broker:', finalUrl);
-
-                // Open in new window to preserve user's place in our app
-                window.open(finalUrl, '_blank');
-
-                // Also call onComplete to mark workflow as done
-                onComplete();
               }}>
                 Continue to Properties <ChevronsRight className="ml-2 h-4 w-4" />
               </Button>

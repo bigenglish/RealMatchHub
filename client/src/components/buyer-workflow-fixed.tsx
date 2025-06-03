@@ -131,6 +131,25 @@ interface BuyerWorkflowProps {
   setNeedsMortgage: (needs: boolean) => void;
 }
 
+interface BuyerSelection {
+  timeline: string;
+  propertyType: string;
+  bedrooms: number;
+  bathrooms: number;
+  maxPrice: number;
+  city: string;
+  neighborhood: string;
+  amenities: string[];
+  availableNeighborhoods?: string[];
+  inspirationImages?: string[];
+  styleAnalysis?: {
+    architecturalStyle: string[];
+    interiorStyle: string[];
+    designFeatures: string[];
+    colorScheme: string;
+  } | null;
+}
+
 export default function BuyerWorkflow({
   currentStep,
   onStepChange,
@@ -141,7 +160,7 @@ export default function BuyerWorkflow({
   setNeedsMortgage
 }: BuyerWorkflowProps) {
   const { toast } = useToast();
-  const [selection, setSelection] = useState<any>({
+  const [selection, setSelection] = useState<BuyerSelection>({
     architecturalStyles: [],
     interiorStyles: [],
     amenities: [],
@@ -155,7 +174,9 @@ export default function BuyerWorkflow({
     neighborhood: '',
     availableNeighborhoods: [],
     priceMin: 200000,
-    priceMax: 800000
+    priceMax: 800000,
+    inspirationImages: [],
+    styleAnalysis: null
   });
 
   // Function to fetch neighborhoods based on selected city
@@ -279,6 +300,106 @@ export default function BuyerWorkflow({
         interiorStyles: newStyles
       };
     });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const filePromises = Array.from(files).map(file => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target && typeof event.target.result === 'string') {
+            resolve(event.target.result);
+          } else {
+            reject("Failed to read file");
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    });
+
+    try {
+      const images = await Promise.all(filePromises);
+      const newImages = [...(selection.inspirationImages || []), ...images];
+      setSelection(prev => ({ ...prev, inspirationImages: newImages }));
+
+      // Analyze images with Vision API
+      if (images.length > 0) {
+        analyzeImages(images);
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error);
+    }
+  };
+
+  const analyzeImages = async (images: string[]) => {
+    try {
+      const analysisPromises = images.map(async (image) => {
+        const response = await fetch('/api/vision/analyze-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ base64Image: image }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Analysis failed: ${response.statusText}`);
+        }
+
+        return response.json();
+      });
+
+      const results = await Promise.all(analysisPromises);
+
+      // Combine analysis results
+      let combinedArchStyles: string[] = [];
+      let combinedInteriorStyles: string[] = [];
+      let combinedDesignFeatures: string[] = [];
+      let latestColorScheme = '';
+
+      results.forEach(result => {
+        if (result.architecturalStyle) {
+          combinedArchStyles = [...combinedArchStyles, ...result.architecturalStyle];
+        }
+        if (result.interiorStyle) {
+          combinedInteriorStyles = [...combinedInteriorStyles, ...result.interiorStyle];
+        }
+        if (result.designFeatures) {
+          combinedDesignFeatures = [...combinedDesignFeatures, ...result.designFeatures];
+        }
+        if (result.colorScheme) {
+          latestColorScheme = result.colorScheme;
+        }
+      });
+
+      // Remove duplicates and update state
+      const uniqueArchStyles = [...new Set(combinedArchStyles)];
+      const uniqueInteriorStyles = [...new Set(combinedInteriorStyles)];
+      const uniqueDesignFeatures = [...new Set(combinedDesignFeatures)];
+
+      setSelection(prev => ({
+        ...prev,
+        styleAnalysis: {
+          architecturalStyle: uniqueArchStyles,
+          interiorStyle: uniqueInteriorStyles,
+          designFeatures: uniqueDesignFeatures,
+          colorScheme: latestColorScheme
+        }
+      }));
+
+    } catch (error) {
+      console.error('Error analyzing images:', error);
+    }
+  };
+
+  const removeInspiration = (index: number) => {
+    const images = [...(selection.inspirationImages || [])];
+    images.splice(index, 1);
+    setSelection(prev => ({ ...prev, inspirationImages: images }));
   };
 
   // Render content based on current step
@@ -722,6 +843,89 @@ export default function BuyerWorkflow({
               ))}
             </div>
 
+            {/* Design Preferences Section */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium">Tell us about your design preferences</h3>
+              <p className="text-sm text-gray-600">
+                Help us understand your style to find properties that match your taste
+              </p>
+
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Upload Inspiration Images</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  <div className="text-center">
+                    <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      JPG, PNG or WEBP (max 5MB)
+                    </p>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      id="inspiration-upload"
+                      onChange={handleImageUpload}
+                    />
+                    <label
+                      htmlFor="inspiration-upload"
+                      className="cursor-pointer inline-flex items-center px-4 py-2 mt-3 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50"
+                    >
+                      Select Images
+                    </label>
+                  </div>
+                </div>
+
+                {/* Display uploaded images */}
+                {selection.inspirationImages && selection.inspirationImages.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                    {selection.inspirationImages.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Inspiration ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => removeInspiration(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* AI Analysis Results */}
+                {selection.styleAnalysis && (
+                  <div className="bg-blue-50 p-4 rounded-lg mt-4">
+                    <h4 className="font-medium text-blue-900 mb-2">AI Style Analysis</h4>
+                    <div className="space-y-2 text-sm">
+                      {selection.styleAnalysis.architecturalStyle && (
+                        <p><span className="font-medium">Architectural Style:</span> {selection.styleAnalysis.architecturalStyle.join(', ')}</p>
+                      )}
+                      {selection.styleAnalysis.interiorStyle && (
+                        <p><span className="font-medium">Interior Style:</span> {selection.styleAnalysis.interiorStyle.join(', ')}</p>
+                      )}
+                      {selection.styleAnalysis.designFeatures && (
+                        <p><span className="font-medium">Key Features:</span> {selection.styleAnalysis.designFeatures.join(', ')}</p>
+                      )}
+                      {selection.styleAnalysis.colorScheme && (
+                        <p><span className="font-medium">Color Palette:</span> {selection.styleAnalysis.colorScheme}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex justify-between pt-6">
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={() => {
@@ -735,7 +939,7 @@ export default function BuyerWorkflow({
 
                 // Add property status filter (like the working URL)
                 params.append("a_propStatus[]", "Active");
-                
+
                 // Add city context
                 params.append("ccz", "city");
 
@@ -765,12 +969,12 @@ export default function BuyerWorkflow({
                 if (selection.city) {
                   // Clean city name and ensure proper formatting
                   const cleanCity = selection.city.trim();
-                  
+
                   // Use city array format like the working URL
                   // Note: You may need to map city names to city IDs
                   // For now, using city name but consider implementing city ID mapping
                   params.append("city[]", cleanCity);
-                  
+
                   // Also include the address city field as fallback
                   params.append("a_addressCity", cleanCity);
                 }

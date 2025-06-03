@@ -74,7 +74,7 @@ export async function fetchIdxListings({
     if (offset > 0) searchParams.append('start', String(offset));
     if (limit !== 100) searchParams.append('count', String(Math.min(limit, 100)));
 
-    const searchUrl = `https://homesai.net.idxbroker.com/idx/results/listings?${searchParams.toString()}`;
+    const searchUrl = `https://homesai.idxbroker.com/idx/results/listings?${searchParams.toString()}`;
     
     console.log(`[IDX-HomesAI] Searching: ${searchUrl}`);
 
@@ -126,7 +126,7 @@ export async function fetchIdxListings({
       console.log('[IDX-HomesAI] Trying map search endpoint');
       
       try {
-        const mapSearchUrl = `https://homesai.net.idxbroker.com/idx/map/mapsearch?${searchParams.toString()}`;
+        const mapSearchUrl = `https://homesai.idxbroker.com/idx/map/mapsearch?${searchParams.toString()}`;
         
         response = await axios.get(mapSearchUrl, {
           headers: {
@@ -182,30 +182,78 @@ function parsePropertyListingsFromHTML(html: string): any[] {
     const $ = cheerio.load(html);
     const listings: any[] = [];
 
-    // Look for property listing elements in the HTML
-    $('.listing-item, .property-item, .search-result, .listing-wrap, .idx-listing').each((index, element) => {
+    // Look for IDX property listing elements in the HTML
+    $('.IDX-resultsCell').each((index, element) => {
       const $element = $(element);
       
-      // Extract property data from HTML elements
+      // Extract property data from IDX HTML structure
+      const listingId = $element.attr('data-listingid') || `homesai-${index}`;
+      const idxId = $element.attr('data-idxid') || 'd025';
+      const price = parseFloat($element.attr('data-price') || '0') || 0;
+      
+      // Extract address components
+      const addressNumber = $element.find('.IDX-resultsAddressNumber').text().trim();
+      const addressName = $element.find('.IDX-resultsAddressName').text().trim();
+      const city = $element.find('.IDX-resultsAddressCity').text().trim();
+      const state = $element.find('.IDX-resultsAddressState, .IDX-resultsAddressStateAbrv').text().trim();
+      const zip = $element.find('.IDX-resultsAddressZip').text().trim();
+      
+      const fullAddress = `${addressNumber}${addressName}, ${city}, ${state} ${zip}`.trim();
+      
+      // Extract property details
+      const priceText = $element.find('.IDX-field-listingPrice .IDX-text, .IDX-field-price .IDX-text').text().trim();
+      const listPrice = price || parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
+      
+      // Look for bedrooms and bathrooms in various possible locations
+      const bedrooms = parseInt($element.find('.IDX-field-bedrooms .IDX-text, .IDX-field-beds .IDX-text').text().replace(/\D/g, '')) || 
+                     parseInt($element.text().match(/(\d+)\s*bed/i)?.[1] || '0') || 0;
+      
+      const totalBaths = parseFloat($element.find('.IDX-field-totalBaths .IDX-text, .IDX-field-baths .IDX-text').text().replace(/[^\d.]/g, '')) ||
+                        parseFloat($element.text().match(/(\d+(?:\.\d+)?)\s*bath/i)?.[1] || '0') || 0;
+      
+      // Extract square footage
+      const sqFt = parseInt($element.find('.IDX-field-sqFt .IDX-text').text().replace(/\D/g, '')) ||
+                   parseInt($element.text().match(/(\d{3,})\s*sq\s*ft/i)?.[1] || '0') || 0;
+      
+      // Extract property type and status
+      const propStatus = $element.find('.IDX-field-propStatus .IDX-resultsText').text().trim() || 'Active';
+      const propType = $element.find('.IDX-field-propType .IDX-resultsText').text().trim() || 'Residential';
+      
+      // Extract description
+      const description = $element.find('.IDX-resultsDescription').text().trim();
+      
+      // Extract image
+      const imageElement = $element.find('.IDX-resultsPhotoImg, .IDX-resultsPhoto img').first();
+      const image = imageElement.attr('data-src') || imageElement.attr('src') || '';
+      
+      // Extract listing date (if available)
+      const listDate = $element.find('.IDX-field-listDate .IDX-resultsText').text().trim() || new Date().toISOString();
+      
       const listing = {
-        idxID: $element.attr('data-listing-id') || 
-               $element.find('[data-listing-id]').attr('data-listing-id') ||
-               $element.attr('data-listingid') ||
-               `homesai-${index}`,
-        address: $element.find('.address, .listing-address, .street-address').text().trim(),
-        listPrice: parseFloat($element.find('.price, .listing-price, .list-price').text().replace(/[^\d.]/g, '')) || 0,
-        bedrooms: parseInt($element.find('.beds, .bedrooms, .bed-count').text().replace(/\D/g, '')) || 0,
-        totalBaths: parseFloat($element.find('.baths, .bathrooms, .bath-count').text().replace(/[^\d.]/g, '')) || 0,
-        sqFt: parseInt($element.find('.sqft, .square-feet, .sq-ft').text().replace(/\D/g, '')) || 0,
-        propType: $element.find('.property-type, .prop-type').text().trim() || 'Residential',
-        image: $element.find('img').first().attr('src') || '',
-        remarksConcat: $element.find('.description, .remarks, .listing-desc').text().trim(),
-        listDate: $element.find('.list-date, .date-listed').text().trim() || new Date().toISOString()
+        idxID: listingId,
+        idxMLS: idxId,
+        address: fullAddress || `${addressNumber}${addressName}`.trim(),
+        listPrice: listPrice,
+        bedrooms: bedrooms,
+        totalBaths: totalBaths,
+        sqFt: sqFt,
+        propType: propType,
+        propStatus: propStatus,
+        image: image,
+        remarksConcat: description,
+        listDate: listDate,
+        // Additional IDX-specific fields
+        city: city,
+        state: state.replace('California', 'CA').trim(),
+        zipcode: zip,
+        latitude: parseFloat($element.attr('data-lat') || '0'),
+        longitude: parseFloat($element.attr('data-lng') || '0')
       };
 
-      // Only add if we have essential data
-      if (listing.address && listing.listPrice > 0) {
+      // Only add if we have essential data (listing ID and either address or price)
+      if (listing.idxID && (listing.address || listing.listPrice > 0)) {
         listings.push(listing);
+        console.log(`[IDX-HomesAI] Found property: ${listing.idxID} - ${listing.address} - $${listing.listPrice}`);
       }
     });
 
@@ -399,7 +447,7 @@ function extractZipFromAddress(address: string): string {
 export async function testIdxConnection(): Promise<{ success: boolean; message: string }> {
   try {
     // Test the working URL pattern you provided
-    const testUrl = 'https://homesai.net.idxbroker.com/idx/results/listings?pt=sfr&lp=200000&hp=800000';
+    const testUrl = 'https://homesai.idxbroker.com/idx/results/listings?lp=500000&hp=600000';
     
     const response = await axios.get(testUrl, {
       headers: {

@@ -1053,7 +1053,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sqft_min = req.query.sqft_min ? Number(req.query.sqft_min) : undefined;
       const sqft_max = req.query.sqft_max ? Number(req.query.sqft_max) : undefined;
 
-      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai');
+      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai-fixed');
       const listings = await fetchIdxListingsHomesAI({
         limit,
         offset,

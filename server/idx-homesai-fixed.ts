@@ -24,6 +24,12 @@ export interface IdxListingsResponse {
   hasMoreListings: boolean;
 }
 
+// Create a reusable HTTPS agent with relaxed SSL settings
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false,
+  secureProtocol: 'TLSv1_2_method'
+});
+
 /**
  * Fetch property listings using your working homesai.net.idxbroker.com URLs
  */
@@ -72,100 +78,50 @@ export async function fetchIdxListings({
     
     console.log(`[IDX-HomesAI] Searching: ${searchUrl}`);
 
-    // First try the JSON API endpoint
-    const apiEndpoints = [
-      // Try JSON API format
-      {
-        url: 'https://homesai.net.idxbroker.com/idx/api/search',
-        params: Object.fromEntries(searchParams)
-      },
-      // Try results page with JSON format
-      {
-        url: `https://homesai.net.idxbroker.com/idx/results/listings`,
-        params: {
-          ...Object.fromEntries(searchParams),
-          format: 'json'
-        }
-      }
-    ];
+    // Standard headers that work well with IDX Broker
+    const standardHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Cache-Control': 'no-cache'
+    };
 
+    // Try the direct results page first (your working example)
     let response = null;
     let successfulEndpoint = null;
 
-    // Try API endpoints first
-    for (const endpoint of apiEndpoints) {
-      try {
-        console.log(`[IDX-HomesAI] Trying API endpoint: ${endpoint.url}`);
-        
-        response = await axios.get(endpoint.url, {
-          params: endpoint.params,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'application/json, text/html, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          timeout: 15000,
-          httpsAgent: new (require('https').Agent)({
-            rejectUnauthorized: false,
-            secureProtocol: 'TLSv1_2_method'
-          })
-        });
-
-        if (response.status === 200 && response.data) {
-          console.log(`[IDX-HomesAI] API response type: ${typeof response.data}`);
-          
-          // Check if we got JSON data with properties
-          if (typeof response.data === 'object' && !response.data.includes?.('<html>')) {
-            console.log(`[IDX-HomesAI] Got JSON response from ${endpoint.url}`);
-            successfulEndpoint = endpoint.url;
-            break;
-          }
-        }
-        
-      } catch (error: any) {
-        console.log(`[IDX-HomesAI] API endpoint failed: ${endpoint.url} - ${error.response?.status || error.message}`);
-        continue;
-      }
-    }
-
-    // If API endpoints fail, scrape the HTML results page
-    if (!response || !successfulEndpoint) {
-      console.log('[IDX-HomesAI] API endpoints failed, trying HTML scraping');
+    try {
+      console.log(`[IDX-HomesAI] Trying direct results page: ${searchUrl}`);
       
-      try {
-        response = await axios.get(searchUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache'
-          },
-          timeout: 15000,
-          httpsAgent: new (require('https').Agent)({
-            rejectUnauthorized: false,
-            secureProtocol: 'TLSv1_2_method'
-          })
-        });
+      response = await axios.get(searchUrl, {
+        headers: standardHeaders,
+        timeout: 15000,
+        httpsAgent
+      });
 
-        if (response.status === 200 && response.data && typeof response.data === 'string') {
-          console.log(`[IDX-HomesAI] Got HTML response, parsing for property data`);
-          successfulEndpoint = searchUrl;
-          
-          // Parse HTML for property listings
-          const propertyData = parsePropertyListingsFromHTML(response.data);
-          if (propertyData.length > 0) {
-            response.data = propertyData;
+      if (response.status === 200 && response.data && typeof response.data === 'string') {
+        console.log(`[IDX-HomesAI] Got HTML response from results page`);
+        successfulEndpoint = searchUrl;
+        
+        // Parse HTML for property listings
+        const propertyData = parsePropertyListingsFromHTML(response.data);
+        if (propertyData.length > 0) {
+          console.log(`[IDX-HomesAI] Parsed ${propertyData.length} properties from HTML`);
+          response.data = propertyData;
+        } else {
+          console.log(`[IDX-HomesAI] No properties found in HTML, checking for embedded JSON`);
+          // Try to extract JSON from script tags or data attributes
+          const jsonData = extractJSONFromHTML(response.data);
+          if (jsonData && jsonData.length > 0) {
+            response.data = jsonData;
           }
         }
-        
-      } catch (htmlError: any) {
-        console.log(`[IDX-HomesAI] HTML scraping failed: ${htmlError.message}`);
       }
+    } catch (directError: any) {
+      console.log(`[IDX-HomesAI] Direct results page failed: ${directError.message}`);
     }
 
-    // If still no data, try the map search endpoint
+    // Try map search endpoint if direct results fail
     if (!response || !response.data || (Array.isArray(response.data) && response.data.length === 0)) {
       console.log('[IDX-HomesAI] Trying map search endpoint');
       
@@ -174,23 +130,27 @@ export async function fetchIdxListings({
         
         response = await axios.get(mapSearchUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'application/json, text/html, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache'
+            ...standardHeaders,
+            'Accept': 'application/json, text/html, */*'
           },
           timeout: 15000,
-          httpsAgent: new (require('https').Agent)({
-            rejectUnauthorized: false,
-            secureProtocol: 'TLSv1_2_method'
-          })
+          httpsAgent
         });
 
         if (response.status === 200 && response.data) {
           console.log(`[IDX-HomesAI] Map search returned data`);
           successfulEndpoint = mapSearchUrl;
+          
+          // Try to parse JSON if it's an API response
+          if (typeof response.data === 'object') {
+            console.log(`[IDX-HomesAI] Got JSON response from map search`);
+          } else if (typeof response.data === 'string') {
+            const jsonData = extractJSONFromHTML(response.data);
+            if (jsonData && jsonData.length > 0) {
+              response.data = jsonData;
+            }
+          }
         }
-        
       } catch (mapError: any) {
         console.log(`[IDX-HomesAI] Map search failed: ${mapError.message}`);
       }
@@ -223,21 +183,24 @@ function parsePropertyListingsFromHTML(html: string): any[] {
     const listings: any[] = [];
 
     // Look for property listing elements in the HTML
-    $('.listing-item, .property-item, .search-result').each((index, element) => {
+    $('.listing-item, .property-item, .search-result, .listing-wrap, .idx-listing').each((index, element) => {
       const $element = $(element);
       
       // Extract property data from HTML elements
       const listing = {
-        idxID: $element.attr('data-listing-id') || $element.find('[data-listing-id]').attr('data-listing-id'),
-        address: $element.find('.address, .listing-address').text().trim(),
-        listPrice: parseFloat($element.find('.price, .listing-price').text().replace(/[^\d.]/g, '')) || 0,
-        bedrooms: parseInt($element.find('.beds, .bedrooms').text().replace(/\D/g, '')) || 0,
-        totalBaths: parseFloat($element.find('.baths, .bathrooms').text().replace(/[^\d.]/g, '')) || 0,
-        sqFt: parseInt($element.find('.sqft, .square-feet').text().replace(/\D/g, '')) || 0,
-        propType: $element.find('.property-type').text().trim() || 'Residential',
-        image: $element.find('img').attr('src') || '',
-        remarksConcat: $element.find('.description, .remarks').text().trim(),
-        listDate: $element.find('.list-date').text().trim() || new Date().toISOString()
+        idxID: $element.attr('data-listing-id') || 
+               $element.find('[data-listing-id]').attr('data-listing-id') ||
+               $element.attr('data-listingid') ||
+               `homesai-${index}`,
+        address: $element.find('.address, .listing-address, .street-address').text().trim(),
+        listPrice: parseFloat($element.find('.price, .listing-price, .list-price').text().replace(/[^\d.]/g, '')) || 0,
+        bedrooms: parseInt($element.find('.beds, .bedrooms, .bed-count').text().replace(/\D/g, '')) || 0,
+        totalBaths: parseFloat($element.find('.baths, .bathrooms, .bath-count').text().replace(/[^\d.]/g, '')) || 0,
+        sqFt: parseInt($element.find('.sqft, .square-feet, .sq-ft').text().replace(/\D/g, '')) || 0,
+        propType: $element.find('.property-type, .prop-type').text().trim() || 'Residential',
+        image: $element.find('img').first().attr('src') || '',
+        remarksConcat: $element.find('.description, .remarks, .listing-desc').text().trim(),
+        listDate: $element.find('.list-date, .date-listed').text().trim() || new Date().toISOString()
       };
 
       // Only add if we have essential data
@@ -246,17 +209,45 @@ function parsePropertyListingsFromHTML(html: string): any[] {
       }
     });
 
-    // Also check for JSON data embedded in script tags
+    console.log(`[IDX-HomesAI] Parsed ${listings.length} listings from HTML elements`);
+    return listings;
+  } catch (parseError) {
+    console.log(`[IDX-HomesAI] HTML parsing failed: ${parseError}`);
+    return [];
+  }
+}
+
+/**
+ * Extract JSON data embedded in HTML script tags or data attributes
+ */
+function extractJSONFromHTML(html: string): any[] {
+  try {
+    const $ = cheerio.load(html);
+    let listings: any[] = [];
+
+    // Check for JSON data in script tags
     $('script').each((index, element) => {
       const scriptContent = $(element).html();
-      if (scriptContent && scriptContent.includes('listings') && scriptContent.includes('idxID')) {
+      if (scriptContent && (scriptContent.includes('listings') || scriptContent.includes('properties'))) {
         try {
-          // Try to extract JSON data from script tags
-          const jsonMatch = scriptContent.match(/listings["\']?\s*:\s*(\[.*?\])/s);
-          if (jsonMatch) {
-            const jsonData = JSON.parse(jsonMatch[1]);
-            if (Array.isArray(jsonData)) {
-              listings.push(...jsonData);
+          // Try to extract JSON data from various patterns
+          const patterns = [
+            /listings["\']?\s*:\s*(\[.*?\])/s,
+            /properties["\']?\s*:\s*(\[.*?\])/s,
+            /searchResults["\']?\s*:\s*(\[.*?\])/s,
+            /var\s+listings\s*=\s*(\[.*?\]);/s,
+            /window\.listings\s*=\s*(\[.*?\]);/s
+          ];
+
+          for (const pattern of patterns) {
+            const jsonMatch = scriptContent.match(pattern);
+            if (jsonMatch) {
+              const jsonData = JSON.parse(jsonMatch[1]);
+              if (Array.isArray(jsonData) && jsonData.length > 0) {
+                listings.push(...jsonData);
+                console.log(`[IDX-HomesAI] Found ${jsonData.length} listings in script tag`);
+                break;
+              }
             }
           }
         } catch (jsonError) {
@@ -265,10 +256,9 @@ function parsePropertyListingsFromHTML(html: string): any[] {
       }
     });
 
-    console.log(`[IDX-HomesAI] Parsed ${listings.length} listings from HTML`);
     return listings;
-  } catch (parseError) {
-    console.log(`[IDX-HomesAI] HTML parsing failed: ${parseError}`);
+  } catch (error) {
+    console.log(`[IDX-HomesAI] JSON extraction failed: ${error}`);
     return [];
   }
 }
@@ -418,10 +408,7 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
         'Accept-Language': 'en-US,en;q=0.9'
       },
       timeout: 8000,
-      httpsAgent: new (require('https').Agent)({
-        rejectUnauthorized: false,
-        secureProtocol: 'TLSv1_2_method'
-      })
+      httpsAgent
     });
 
     if (response.status === 200) {

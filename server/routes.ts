@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai');
+      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai-fixed');
       const idxListings = await fetchIdxListingsHomesAI({ limit: 500 }); // Fetch listings using HomesAI URL patterns
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 

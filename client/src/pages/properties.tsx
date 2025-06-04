@@ -129,6 +129,17 @@ export default function PropertiesPage() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const { toast } = useToast();
 
+  // Extract URL search parameters for filtering (moved before usage)
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const searchFilters = {
+    maxPrice: urlParams.get('maxPrice') ? Number(urlParams.get('maxPrice')) : undefined,
+    minPrice: urlParams.get('minPrice') ? Number(urlParams.get('minPrice')) : undefined,
+    bedrooms: urlParams.get('bedrooms') ? Number(urlParams.get('bedrooms')) : undefined,
+    bathrooms: urlParams.get('bathrooms') ? Number(urlParams.get('bathrooms')) : undefined,
+    city: urlParams.get('city') || undefined,
+    propertyType: urlParams.get('propertyType') || undefined,
+  };
+
   // Prepare the property data with proper deduplication
   const yourProperties = data?.yourProperties || [];
   const rawIdxListings = data?.idxListings || [];
@@ -194,17 +205,6 @@ export default function PropertiesPage() {
       console.log("Raw IDX properties before filtering:", convertedListings.length);
     }
   }, [data, idxListings, activeTab, searchFilters, convertedListings]);
-
-  // Extract URL search parameters for filtering
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
-  const searchFilters = {
-    maxPrice: urlParams.get('maxPrice') ? Number(urlParams.get('maxPrice')) : undefined,
-    minPrice: urlParams.get('minPrice') ? Number(urlParams.get('minPrice')) : undefined,
-    bedrooms: urlParams.get('bedrooms') ? Number(urlParams.get('bedrooms')) : undefined,
-    bathrooms: urlParams.get('bathrooms') ? Number(urlParams.get('bathrooms')) : undefined,
-    city: urlParams.get('city') || undefined,
-    propertyType: urlParams.get('propertyType') || undefined,
-  };
 
   // Handle search filters (simplified but kept for reference)
   const handleFilter = (filters: any) => {

@@ -48,14 +48,30 @@ interface CombinedPropertiesResponse {
   idxListings: IdxListing[];
 }
 
-// Function to convert IDX listing to Property format for display
-function convertIdxToProperty(idx: IdxListing): Property {
-  // Use the ID directly from the backend response
-  const id = typeof idx.id === 'string' ? parseInt(idx.id.replace(/\D/g, '')) || 9000 : Number(idx.id) || 9000;
+// Function to convert IDX listing to Property format with unique ID generation
+function convertIdxToProperty(idx: IdxListing, index: number): Property {
+  // Generate truly unique ID by combining original ID with index and timestamp
+  const originalId = String(idx.id || '');
+  const numericId = originalId.replace(/\D/g, '');
+  const uniqueId = numericId ? 
+    parseInt(`${numericId}${index}`) : 
+    parseInt(`${Date.now()}${index}`);
+
+  // Filter out obviously invalid properties
+  const isValidProperty = idx.address && 
+    !idx.address.includes('ERR404') && 
+    idx.price > 100 && // Filter out unrealistic prices
+    idx.city && 
+    idx.city !== '';
+
+  if (!isValidProperty) {
+    console.warn(`[Properties] Filtering out invalid property:`, idx.address);
+    return null;
+  }
 
   // Create the property with all required fields matching backend structure
   return {
-    id,
+    id: uniqueId,
     title: idx.title || `${idx.address}, ${idx.city || ''}`,
     description: idx.description || 'No description available',
     price: typeof idx.price === 'number' ? idx.price : 0,
@@ -71,7 +87,7 @@ function convertIdxToProperty(idx: IdxListing): Property {
     propertyType: idx.propertyType || 'Residential',
     images: Array.isArray(idx.images) ? idx.images : [],
     listedDate: idx.createdAt ? idx.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
-    listingId: String(idx.id) || null
+    listingId: originalId || null
   };
 }
 
@@ -113,9 +129,25 @@ export default function PropertiesPage() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const { toast } = useToast();
 
-  // Prepare the property data
+  // Prepare the property data with proper deduplication
   const yourProperties = data?.yourProperties || [];
-  const idxListings = data?.idxListings?.map(convertIdxToProperty) || [];
+  const rawIdxListings = data?.idxListings || [];
+  
+  // Convert and filter IDX listings, removing duplicates and invalid properties
+  const convertedListings = rawIdxListings
+    .map((listing, index) => convertIdxToProperty(listing, index))
+    .filter(Boolean) as Property[];
+  
+  // Remove duplicates based on address and price combination
+  const seenProperties = new Set<string>();
+  const idxListings = convertedListings.filter(property => {
+    const key = `${property.address}-${property.price}`;
+    if (seenProperties.has(key)) {
+      return false;
+    }
+    seenProperties.add(key);
+    return true;
+  });
 
   // Debug logging for more detailed info
   useEffect(() => {
@@ -295,8 +327,8 @@ export default function PropertiesPage() {
           </Badge>
         </div>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {idxListings.map((property) => (
-            <Card key={property.id} className="overflow-hidden">
+          {idxListings.map((property, index) => (
+            <Card key={`property-${property.id}-${index}`} className="overflow-hidden">
               {property.images && property.images.length > 0 ? (
                 <img 
                   src={property.images[0]} 

@@ -146,26 +146,50 @@ function parsePropertiesFromHtml(html: string): IdxListing[] {
   const properties: IdxListing[] = [];
   
   try {
-    // Extract property data from HTML structure
-    const propertyMatches = html.match(/<div[^>]*class="[^"]*property-item[^"]*"[^>]*>[\s\S]*?<\/div>/g);
+    // Split HTML by property cells for more accurate parsing
+    const cellPattern = /<div[^>]*class="[^"]*IDX-resultsCell[^"]*"[^>]*>/g;
+    const cells = html.split(cellPattern);
     
-    if (!propertyMatches) {
-      console.log('[IDX-Authentic] No property items found in HTML');
-      return properties;
-    }
-
-    for (const propertyHtml of propertyMatches) {
+    console.log(`[IDX-Authentic] Found ${cells.length - 1} potential property cells`);
+    
+    // Process each cell (skip first element which is before the first match)
+    for (let i = 1; i < cells.length; i++) {
       try {
-        const listing = extractPropertyData(propertyHtml);
-        if (listing && listing.listingId) {
+        const cellHtml = cells[i];
+        
+        // Extract basic property data using more flexible patterns
+        const listingId = extractValue(cellHtml, /data-listingid="([^"]+)"/);
+        const price = extractPrice(cellHtml);
+        const bedrooms = extractBedrooms(cellHtml);
+        const bathrooms = extractBathrooms(cellHtml);
+        const address = extractAddress(cellHtml);
+        
+        if (listingId && price > 0 && address) {
+          const listing: IdxListing = {
+            listingId,
+            address,
+            city: extractCity(address),
+            state: extractState(address),
+            zipCode: extractZipCode(address),
+            price,
+            bedrooms,
+            bathrooms,
+            sqft: extractSqft(cellHtml),
+            propertyType: 'Residential',
+            images: [],
+            description: '',
+            listedDate: new Date().toISOString()
+          };
+          
           properties.push(listing);
+          console.log(`[IDX-Authentic] Parsed: ${listingId} - ${address} - $${price.toLocaleString()}`);
         }
       } catch (error) {
-        console.error('[IDX-Authentic] Error parsing individual property:', error);
+        console.error('[IDX-Authentic] Error parsing cell:', error);
       }
     }
 
-    console.log(`[IDX-Authentic] Successfully parsed ${properties.length} properties from HTML`);
+    console.log(`[IDX-Authentic] Successfully parsed ${properties.length} properties`);
   } catch (error) {
     console.error('[IDX-Authentic] Error parsing properties from HTML:', error);
   }
@@ -174,58 +198,115 @@ function parsePropertiesFromHtml(html: string): IdxListing[] {
 }
 
 /**
- * Extract individual property data from HTML
+ * Extract value using regex pattern
  */
-function extractPropertyData(html: string): IdxListing | null {
-  try {
-    // Extract listing ID
-    const idMatch = html.match(/data-listing-id="([^"]+)"/);
-    const listingId = idMatch ? idMatch[1] : '';
-
-    // Extract address
-    const addressMatch = html.match(/<div[^>]*class="[^"]*address[^"]*"[^>]*>([^<]+)</);
-    const address = addressMatch ? addressMatch[1].trim() : '';
-
-    // Extract price
-    const priceMatch = html.match(/[\$]([0-9,]+)/);
-    const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 0;
-
-    // Extract bedrooms
-    const bedroomMatch = html.match(/(\d+)\s*(?:bed|br|bedroom)/i);
-    const bedrooms = bedroomMatch ? parseInt(bedroomMatch[1]) : 0;
-
-    // Extract bathrooms
-    const bathroomMatch = html.match(/(\d+(?:\.\d+)?)\s*(?:bath|ba|bathroom)/i);
-    const bathrooms = bathroomMatch ? parseFloat(bathroomMatch[1]) : 0;
-
-    // Extract square footage
-    const sqftMatch = html.match(/([0-9,]+)\s*(?:sq\.?\s*ft|sqft|square feet)/i);
-    const sqft = sqftMatch ? parseInt(sqftMatch[1].replace(/,/g, '')) : 0;
-
-    if (!listingId || !address || price === 0) {
-      return null;
-    }
-
-    return {
-      listingId,
-      address,
-      city: extractCity(address),
-      state: extractState(address),
-      zipCode: extractZipCode(address),
-      price,
-      bedrooms,
-      bathrooms,
-      sqft,
-      propertyType: 'Residential',
-      images: [],
-      description: '',
-      listedDate: new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('[IDX-Authentic] Error extracting property data:', error);
-    return null;
-  }
+function extractValue(html: string, pattern: RegExp): string {
+  const match = html.match(pattern);
+  return match ? match[1].trim() : '';
 }
+
+/**
+ * Extract price from property HTML
+ */
+function extractPrice(html: string): number {
+  const patterns = [
+    /IDX-text">\$([0-9,]+)<\/span>/,
+    /\$([0-9,]+)/,
+    /Price[^>]*>[\s\S]*?\$([0-9,]+)/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match) {
+      return parseInt(match[1].replace(/,/g, ''));
+    }
+  }
+  return 0;
+}
+
+/**
+ * Extract bedrooms from property HTML
+ */
+function extractBedrooms(html: string): number {
+  const patterns = [
+    /IDX-field-bedrooms[\s\S]*?IDX-text">(\d+)</,
+    /(\d+)\s*Bedroom/i,
+    /(\d+)\s*bed/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match) {
+      return parseInt(match[1]);
+    }
+  }
+  return 0;
+}
+
+/**
+ * Extract bathrooms from property HTML
+ */
+function extractBathrooms(html: string): number {
+  const patterns = [
+    /IDX-field-totalBaths[\s\S]*?IDX-text">(\d+(?:\.\d+)?)</,
+    /(\d+(?:\.\d+)?)\s*Total Baths/i,
+    /(\d+(?:\.\d+)?)\s*bath/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match) {
+      return parseFloat(match[1]);
+    }
+  }
+  return 0;
+}
+
+/**
+ * Extract square footage from property HTML
+ */
+function extractSqft(html: string): number {
+  const patterns = [
+    /IDX-field-sqFt[\s\S]*?IDX-text">\s*([0-9,]+)/,
+    /([0-9,]+)\s*SqFt/i,
+    /([0-9,]+)\s*sq\.?\s*ft/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match) {
+      return parseInt(match[1].replace(/,/g, ''));
+    }
+  }
+  return 0;
+}
+
+/**
+ * Extract address from property HTML
+ */
+function extractAddress(html: string): string {
+  const patterns = [
+    /IDX-resultsAddressNumber">([^<]*)<\/span>[\s\S]*?IDX-resultsAddressName">([^<]*)<\/span>/,
+    /IDX-resultsAddress[\s\S]*?<h4>(.*?)<\/h4>/,
+    /<h4[^>]*>(.*?)<\/h4>/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match) {
+      if (match.length > 2) {
+        // Reconstruct address from components
+        return `${match[1]} ${match[2]}`.trim();
+      } else {
+        // Clean up full address
+        return match[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+      }
+    }
+  }
+  return '';
+}
+
+
 
 /**
  * Extract city from address

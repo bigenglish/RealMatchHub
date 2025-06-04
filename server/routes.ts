@@ -105,11 +105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("[express] Fetching fresh properties from IDX Broker");
 
-      const { fetchIdxListings: fetchIdxListingsHomesAI } = await import('./idx-homesai-fixed');
+      const { fetchAllIdxListings: fetchAllIdxListingsHomesAI } = await import('./idx-homesai-fixed');
       
       // Build comprehensive search criteria for the properties endpoint
       const searchCriteria = {
-        limit: 500,
         pool: req.query.pool === 'true',
         poolType: req.query.poolType ? String(req.query.poolType) : undefined,
         minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
@@ -125,7 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined
       };
       
-      const idxListings = await fetchIdxListingsHomesAI(searchCriteria);
+      console.log("[express] Fetching ALL available properties from IDX Broker (up to 1,000 properties)");
+      const idxListings = await fetchAllIdxListingsHomesAI(searchCriteria);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

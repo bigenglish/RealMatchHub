@@ -120,9 +120,51 @@ export interface PropertySearchCriteria {
   sortOrder?: 'asc' | 'desc';
 }
 
+export async function fetchAllIdxListings(criteria: PropertySearchCriteria = {}): Promise<IdxListingsResponse> {
+  const allListings: IdxListing[] = [];
+  let currentPage = 1;
+  const maxPages = 20; // Based on your analysis: 20 pages total
+  const itemsPerPage = 50; // Based on your analysis: 50 properties per page
+  
+  console.log(`[IDX-HomesAI] Fetching all pages (up to ${maxPages} pages with ${itemsPerPage} properties each)`);
+  
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const pageOffset = (page - 1) * itemsPerPage;
+      const pageResults = await fetchIdxListings({
+        ...criteria,
+        limit: itemsPerPage,
+        offset: pageOffset
+      });
+      
+      if (pageResults.listings.length === 0) {
+        console.log(`[IDX-HomesAI] No more listings found at page ${page}, stopping pagination`);
+        break;
+      }
+      
+      allListings.push(...pageResults.listings);
+      console.log(`[IDX-HomesAI] Page ${page}: Added ${pageResults.listings.length} listings (Total: ${allListings.length})`);
+      
+      // Small delay to avoid overwhelming the server
+      if (page < maxPages) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    } catch (error) {
+      console.error(`[IDX-HomesAI] Error fetching page ${page}:`, error);
+      break;
+    }
+  }
+  
+  return {
+    listings: allListings,
+    totalCount: allListings.length,
+    hasMoreListings: false
+  };
+}
+
 export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): Promise<IdxListingsResponse> {
   const {
-    limit = 100,
+    limit = 50,
     offset = 0,
     city = '',
     state = '',
@@ -282,9 +324,10 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
       if (sortOrder) searchParams.append('so', sortOrder); // asc or desc
     }
     
-    // Pagination
-    if (offset > 0) searchParams.append('start', String(offset));
-    if (limit !== 100) searchParams.append('count', String(Math.min(limit, 100)));
+    // Pagination - using page-based pagination for IDX Broker
+    const pageNumber = Math.floor(offset / limit) + 1;
+    if (pageNumber > 1) searchParams.append('p', String(pageNumber));
+    searchParams.append('count', String(Math.min(limit, 50))); // IDX Broker typically shows 50 per page
 
     const searchUrl = `https://homesai.idxbroker.com/idx/results/listings?${searchParams.toString()}`;
     

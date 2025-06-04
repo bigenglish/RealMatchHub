@@ -138,9 +138,45 @@ export default function PropertiesPage() {
     .map((listing, index) => convertIdxToProperty(listing, index))
     .filter(Boolean) as Property[];
   
-  // Remove duplicates based on address and price combination
+  // Apply search filters and remove duplicates
   const seenProperties = new Set<string>();
   const idxListings = convertedListings.filter(property => {
+    // Apply search filters first
+    if (searchFilters.maxPrice && property.price > searchFilters.maxPrice) {
+      return false;
+    }
+    if (searchFilters.minPrice && property.price < searchFilters.minPrice) {
+      return false;
+    }
+    if (searchFilters.bedrooms && property.bedrooms !== searchFilters.bedrooms) {
+      return false;
+    }
+    if (searchFilters.bathrooms && property.bathrooms !== searchFilters.bathrooms) {
+      return false;
+    }
+    if (searchFilters.city && !property.city?.toLowerCase().includes(searchFilters.city.toLowerCase().replace(/\+/g, ' '))) {
+      return false;
+    }
+    if (searchFilters.propertyType) {
+      const propertyTypeMap: { [key: string]: string[] } = {
+        'sfr': ['Single Family', 'single family', 'sfr', 'residential'],
+        'cnd': ['Condo', 'condo', 'condominium'],
+        'twn': ['Townhouse', 'townhouse', 'townhome'],
+        'mfr': ['Multi-Family', 'multi-family', 'multifamily'],
+        'lnd': ['Land', 'land', 'lot']
+      };
+      
+      const allowedTypes = propertyTypeMap[searchFilters.propertyType.toLowerCase()] || [searchFilters.propertyType];
+      const propertyTypeMatch = allowedTypes.some(type => 
+        property.propertyType?.toLowerCase().includes(type.toLowerCase())
+      );
+      
+      if (!propertyTypeMatch) {
+        return false;
+      }
+    }
+
+    // Remove duplicates based on address and price combination
     const key = `${property.address}-${property.price}`;
     if (seenProperties.has(key)) {
       return false;
@@ -152,10 +188,23 @@ export default function PropertiesPage() {
   // Debug logging for more detailed info
   useEffect(() => {
     if (data) {
-      console.log("Getting display properties for tab:", activeTab, "filtered:", isFiltered);
-      console.log("Returning unfiltered IDX properties:", idxListings.length);
+      console.log("Search filters applied:", searchFilters);
+      console.log("Getting display properties for tab:", activeTab, "filtered:", Object.values(searchFilters).some(v => v !== undefined));
+      console.log("Total IDX properties after filtering:", idxListings.length);
+      console.log("Raw IDX properties before filtering:", convertedListings.length);
     }
-  }, [data, idxListings, activeTab, isFiltered]);
+  }, [data, idxListings, activeTab, searchFilters, convertedListings]);
+
+  // Extract URL search parameters for filtering
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const searchFilters = {
+    maxPrice: urlParams.get('maxPrice') ? Number(urlParams.get('maxPrice')) : undefined,
+    minPrice: urlParams.get('minPrice') ? Number(urlParams.get('minPrice')) : undefined,
+    bedrooms: urlParams.get('bedrooms') ? Number(urlParams.get('bedrooms')) : undefined,
+    bathrooms: urlParams.get('bathrooms') ? Number(urlParams.get('bathrooms')) : undefined,
+    city: urlParams.get('city') || undefined,
+    propertyType: urlParams.get('propertyType') || undefined,
+  };
 
   // Handle search filters (simplified but kept for reference)
   const handleFilter = (filters: any) => {

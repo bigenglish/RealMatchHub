@@ -22,21 +22,24 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Building, Users, Zap, Video } from 'lucide-react';
 
-// Interface for IDX Broker listings
+// Interface for IDX Broker listings (matching backend response)
 interface IdxListing {
-  listingId: string;
+  id: number | string;
+  title: string;
+  description: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  squareFeet: number;
   address: string;
   city: string;
   state: string;
   zipCode: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
   propertyType: string;
   images: string[];
-  description: string;
-  listedDate: string;
+  source: string;
+  createdAt: string;
+  status: string;
 }
 
 // Combined properties response interface
@@ -47,30 +50,16 @@ interface CombinedPropertiesResponse {
 
 // Function to convert IDX listing to Property format for display
 function convertIdxToProperty(idx: IdxListing): Property {
-  // Create a safe ID from listingId - handle potential undefined or non-string values
-  let id = 9000;
-  try {
-    if (idx.listingId) {
-      // Remove any non-numeric characters and add 1000 to avoid ID conflicts
-      const numericPart = idx.listingId.replace(/\D/g, '');
-      id = numericPart ? parseInt(numericPart) + 1000 : 9000 + Math.floor(Math.random() * 1000);
-    } else {
-      id = 9000 + Math.floor(Math.random() * 1000); // Fallback with random ID
-    }
-  } catch (e) {
-    console.error("Error generating ID from listingId:", e);
-    id = 9000 + Math.floor(Math.random() * 1000); // Another fallback
-  }
+  // Use the ID directly from the backend response
+  const id = typeof idx.id === 'string' ? parseInt(idx.id.replace(/\D/g, '')) || 9000 : Number(idx.id) || 9000;
 
-  // Create the property with all required fields
+  // Create the property with all required fields matching backend structure
   return {
     id,
-    title: idx.address ? `${idx.address}, ${idx.city || ''}` : 'Property Listing',
+    title: idx.title || `${idx.address}, ${idx.city || ''}`,
     description: idx.description || 'No description available',
     price: typeof idx.price === 'number' ? idx.price : 0,
-    address: idx.address 
-      ? `${idx.address}, ${idx.city || ''}, ${idx.state || ''} ${idx.zipCode || ''}`
-      : 'Address not available',
+    address: idx.address || 'Address not available',
     city: idx.city || null,
     state: idx.state || null,
     zipCode: idx.zipCode || null,
@@ -78,11 +67,11 @@ function convertIdxToProperty(idx: IdxListing): Property {
     longitude: null, // Not provided in IDX listing
     bedrooms: typeof idx.bedrooms === 'number' ? idx.bedrooms : 0,
     bathrooms: typeof idx.bathrooms === 'number' ? idx.bathrooms : 0,
-    sqft: typeof idx.sqft === 'number' ? idx.sqft : 0,
+    sqft: typeof idx.squareFeet === 'number' ? idx.squareFeet : 0, // Updated field name
     propertyType: idx.propertyType || 'Residential',
-    images: Array.isArray(idx.images) ? idx.images : [], // Ensure images is always an array
-    listedDate: idx.listedDate || new Date().toISOString().split('T')[0],
-    listingId: idx.listingId || null
+    images: Array.isArray(idx.images) ? idx.images : [],
+    listedDate: idx.createdAt ? idx.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+    listingId: String(idx.id) || null
   };
 }
 

@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("[express] Processing property search request with query:", req.query);
 
-      const { fetchIdxListings } = await import('./idx-authentic');
+      const { fetchAllIdxListings: fetchAllIdxListingsHomesAI } = await import('./idx-homesai-fixed');
       
       // Build comprehensive search criteria from URL parameters
       const searchCriteria = {
@@ -145,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      const idxListings = await fetchIdxListings(searchCriteria);
+      const idxListings = await fetchAllIdxListingsHomesAI(searchCriteria);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

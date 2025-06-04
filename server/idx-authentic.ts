@@ -157,14 +157,20 @@ function parsePropertiesFromHtml(html: string): IdxListing[] {
       try {
         const cellHtml = cells[i];
         
-        // Extract basic property data using more flexible patterns
-        const listingId = extractValue(cellHtml, /data-listingid="([^"]+)"/);
-        const price = extractPrice(cellHtml);
+        // Extract property data from data attributes (more reliable)
+        const listingIdMatch = cellHtml.match(/data-listingid="([^"]+)"/);
+        const priceMatch = cellHtml.match(/data-price="([^"]+)"/);
+        
+        const listingId = listingIdMatch ? listingIdMatch[1] : '';
+        const price = priceMatch ? parseInt(priceMatch[1]) : extractPrice(cellHtml);
         const bedrooms = extractBedrooms(cellHtml);
         const bathrooms = extractBathrooms(cellHtml);
         const address = extractAddress(cellHtml);
         
-        if (listingId && price > 0 && address) {
+        // Debug logging for troubleshooting
+        console.log(`[IDX-Authentic] Cell ${i}: listingId=${listingId}, price=${price}, address="${address}"`);
+        
+        if (listingId && address) {
           const listing: IdxListing = {
             listingId,
             address,
@@ -285,25 +291,45 @@ function extractSqft(html: string): number {
  * Extract address from property HTML
  */
 function extractAddress(html: string): string {
-  const patterns = [
-    /IDX-resultsAddressNumber">([^<]*)<\/span>[\s\S]*?IDX-resultsAddressName">([^<]*)<\/span>/,
-    /IDX-resultsAddress[\s\S]*?<h4>(.*?)<\/h4>/,
-    /<h4[^>]*>(.*?)<\/h4>/
-  ];
-  
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match) {
-      if (match.length > 2) {
-        // Reconstruct address from components
-        return `${match[1]} ${match[2]}`.trim();
-      } else {
-        // Clean up full address
-        return match[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-      }
+  try {
+    // Extract address components from IDX-specific spans
+    const numberMatch = html.match(/<span class="IDX-resultsAddressNumber">([^<]*)<\/span>/);
+    const directionMatch = html.match(/<span class="IDX-resultsAddressDirection">([^<]*)<\/span>/);
+    const nameMatch = html.match(/<span class="IDX-resultsAddressName">([^<]*)<\/span>/);
+    const unitMatch = html.match(/<span class="IDX-resultsAddressUnitNumber">([^<]*)<\/span>/);
+    const cityMatch = html.match(/<span class="IDX-resultsAddressCity">([^<]*)<\/span>/);
+    const stateMatch = html.match(/<span class="IDX-resultsAddressState">([^<]*)<\/span>/);
+    const zipMatch = html.match(/<span class="IDX-resultsAddressZip">([^<]*)<\/span>/);
+    
+    // Build address from components
+    let address = '';
+    if (numberMatch && numberMatch[1].trim()) address += numberMatch[1].trim() + ' ';
+    if (directionMatch && directionMatch[1].trim()) address += directionMatch[1].trim() + ' ';
+    if (nameMatch && nameMatch[1].trim()) address += nameMatch[1].trim();
+    if (unitMatch && unitMatch[1].trim()) address += ' ' + unitMatch[1].trim();
+    
+    // Add city, state, zip if available
+    if (cityMatch && cityMatch[1].trim()) address += ', ' + cityMatch[1].trim();
+    if (stateMatch && stateMatch[1].trim()) address += ', ' + stateMatch[1].trim();
+    if (zipMatch && zipMatch[1].trim() && zipMatch[1].trim() !== 'ERR404') {
+      address += ' ' + zipMatch[1].trim();
     }
+    
+    if (address.trim()) {
+      return address.trim();
+    }
+    
+    // Fallback: extract from h4 tag
+    const h4Match = html.match(/<h4[^>]*>(.*?)<\/h4>/);
+    if (h4Match) {
+      return h4Match[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('[IDX-Authentic] Error extracting address:', error);
+    return '';
   }
-  return '';
 }
 
 

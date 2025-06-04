@@ -264,45 +264,38 @@ export default function PropertiesPage() {
         </CardContent>
       </Card>
 
-      {/* Enhanced IDX Broker Widget */}
+      {/* Property Statistics */}
       <Card className="mt-8">
-        <CardHeader>
-          <CardTitle className="text-2xl">Professional Property Search</CardTitle>
-          <p className="text-gray-600">
-            Enhanced IDX integration with featured properties, market data, and dynamic search fields
-          </p>
-        </CardHeader>
-        <CardContent>
-          <EnhancedIdxWidget 
-            className="w-full" 
-            onSearch={(filters) => {
-              console.log("Enhanced IDX search with filters:", filters);
-            }}
-          />
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-600">{idxListings.length}</div>
+              <div className="text-sm text-gray-600">Available Properties</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">
+                ${idxListings.length > 0 ? Math.round(idxListings.reduce((sum, p) => sum + p.price, 0) / idxListings.length / 1000) : 0}K
+              </div>
+              <div className="text-sm text-gray-600">Average Price</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-600">CA</div>
+              <div className="text-sm text-gray-600">Market Coverage</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Legacy IDX Widget for comparison */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle className="text-xl">Legacy IDX Widget</CardTitle>
-          <p className="text-sm text-gray-500">Basic IDX integration for comparison</p>
-        </CardHeader>
-        <CardContent>
-          <IdxWidget 
-            className="w-full" 
-            onSearch={(filters) => {
-              console.log("Legacy IDX search with filters:", filters);
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Featured Properties Section */}
+      {/* All Available Properties Section */}
       <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-6">Featured Properties</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold">Available Properties ({idxListings.length})</h2>
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            Live MLS Data
+          </Badge>
+        </div>
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-          {idxListings.slice(0, 6).map((property) => (
+          {idxListings.map((property) => (
             <Card key={property.id} className="overflow-hidden">
               {property.images && property.images.length > 0 ? (
                 <img 

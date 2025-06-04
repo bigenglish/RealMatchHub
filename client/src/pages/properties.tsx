@@ -109,8 +109,26 @@ export default function PropertiesPage() {
     }
   }, [mode, setLocation]);
   
+  // Build query string from URL parameters for API call
+  const buildApiUrl = () => {
+    const currentUrl = window.location.href;
+    const urlParams = new URLSearchParams(currentUrl.split('?')[1] || '');
+    
+    const params = new URLSearchParams();
+    
+    // Pass all URL parameters to the API
+    urlParams.forEach((value, key) => {
+      if (value && value !== 'undefined') {
+        params.append(key, value);
+      }
+    });
+    
+    const queryString = params.toString();
+    return queryString ? `/api/properties?${queryString}` : "/api/properties";
+  };
+
   const { data, isLoading, isError } = useQuery<CombinedPropertiesResponse>({
-    queryKey: ["/api/properties"],
+    queryKey: [buildApiUrl()],
   });
 
   const [activeTab, setActiveTab] = useState<"all" | "your" | "idx">("idx");
@@ -130,7 +148,8 @@ export default function PropertiesPage() {
   const { toast } = useToast();
 
   // Extract URL search parameters for filtering (moved before usage)
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const currentUrl = window.location.href;
+  const urlParams = new URLSearchParams(currentUrl.split('?')[1] || '');
   const searchFilters = {
     maxPrice: urlParams.get('maxPrice') ? Number(urlParams.get('maxPrice')) : undefined,
     minPrice: urlParams.get('minPrice') ? Number(urlParams.get('minPrice')) : undefined,
@@ -199,6 +218,8 @@ export default function PropertiesPage() {
   // Debug logging for more detailed info
   useEffect(() => {
     if (data) {
+      console.log("Current URL:", window.location.href);
+      console.log("URL search params:", new URLSearchParams(window.location.search).toString());
       console.log("Search filters applied:", searchFilters);
       console.log("Getting display properties for tab:", activeTab, "filtered:", Object.values(searchFilters).some(v => v !== undefined));
       console.log("Total IDX properties after filtering:", idxListings.length);

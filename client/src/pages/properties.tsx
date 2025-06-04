@@ -171,44 +171,80 @@ export default function PropertiesPage() {
   // Apply search filters and remove duplicates
   const seenProperties = new Set<string>();
   const idxListings = convertedListings.filter(property => {
-    // Apply search filters first
-    if (searchFilters.maxPrice && property.price > searchFilters.maxPrice) {
+    // First filter out obviously invalid properties
+    if (!property || !property.address || property.address.includes('ERR404') || property.price < 1000) {
+      console.log(`[Properties] Filtering out invalid property: ${property?.address}`);
       return false;
     }
-    if (searchFilters.minPrice && property.price < searchFilters.minPrice) {
+
+    // Apply search filters only if they exist and have meaningful values
+    if (searchFilters.maxPrice && searchFilters.maxPrice > 0 && property.price > searchFilters.maxPrice) {
+      console.log(`[Properties] Price too high: ${property.price} > ${searchFilters.maxPrice}`);
       return false;
     }
-    if (searchFilters.bedrooms && property.bedrooms !== searchFilters.bedrooms) {
+    if (searchFilters.minPrice && searchFilters.minPrice > 0 && property.price < searchFilters.minPrice) {
+      console.log(`[Properties] Price too low: ${property.price} < ${searchFilters.minPrice}`);
       return false;
     }
-    if (searchFilters.bathrooms && property.bathrooms !== searchFilters.bathrooms) {
+    
+    // For bedrooms and bathrooms, be more flexible - use >= instead of exact match
+    if (searchFilters.bedrooms && searchFilters.bedrooms > 0 && property.bedrooms < searchFilters.bedrooms) {
+      console.log(`[Properties] Not enough bedrooms: ${property.bedrooms} < ${searchFilters.bedrooms}`);
       return false;
     }
-    if (searchFilters.city && !property.city?.toLowerCase().includes(searchFilters.city.toLowerCase().replace(/\+/g, ' '))) {
+    if (searchFilters.bathrooms && searchFilters.bathrooms > 0 && property.bathrooms < searchFilters.bathrooms) {
+      console.log(`[Properties] Not enough bathrooms: ${property.bathrooms} < ${searchFilters.bathrooms}`);
       return false;
     }
-    if (searchFilters.propertyType) {
+    
+    // City filter - be more flexible with matching
+    if (searchFilters.city && searchFilters.city.trim() !== '') {
+      const searchCity = searchFilters.city.toLowerCase().replace(/\+/g, ' ').trim();
+      const propertyCity = (property.city || '').toLowerCase().trim();
+      
+      // Check if search city is contained in property city or vice versa
+      const cityMatch = propertyCity.includes(searchCity) || searchCity.includes(propertyCity);
+      
+      if (!cityMatch) {
+        console.log(`[Properties] City doesn't match: "${propertyCity}" vs "${searchCity}"`);
+        return false;
+      }
+    }
+    
+    // Property type filter - handle multiple types and be more flexible
+    if (searchFilters.propertyType && searchFilters.propertyType.trim() !== '') {
+      const propertyTypes = searchFilters.propertyType.split(',').map(t => t.trim().toLowerCase());
+      
       const propertyTypeMap: { [key: string]: string[] } = {
-        'sfr': ['Single Family', 'single family', 'sfr', 'residential'],
-        'cnd': ['Condo', 'condo', 'condominium'],
-        'twn': ['Townhouse', 'townhouse', 'townhome'],
-        'mfr': ['Multi-Family', 'multi-family', 'multifamily'],
-        'lnd': ['Land', 'land', 'lot']
+        'sfr': ['single family', 'residential', 'house', 'sfr'],
+        'cnd': ['condo', 'condominium', 'condo/coop'],
+        'twn': ['townhouse', 'townhome', 'town house'],
+        'mfr': ['multi-family', 'multifamily', 'duplex', 'triplex'],
+        'lnd': ['land', 'lot', 'vacant']
       };
       
-      const allowedTypes = propertyTypeMap[searchFilters.propertyType.toLowerCase()] || [searchFilters.propertyType];
-      const propertyTypeMatch = allowedTypes.some(type => 
-        property.propertyType?.toLowerCase().includes(type.toLowerCase())
-      );
+      let typeMatches = false;
+      for (const searchType of propertyTypes) {
+        const allowedTypes = propertyTypeMap[searchType] || [searchType];
+        const propertyTypeMatch = allowedTypes.some(type => 
+          property.propertyType?.toLowerCase().includes(type)
+        );
+        if (propertyTypeMatch) {
+          typeMatches = true;
+          break;
+        }
+      }
       
-      if (!propertyTypeMatch) {
+      if (!typeMatches) {
+        console.log(`[Properties] Property type doesn't match: "${property.propertyType}" vs "${searchFilters.propertyType}"`);
         return false;
       }
     }
 
-    // Remove duplicates based on address and price combination
-    const key = `${property.address}-${property.price}`;
+    // Remove duplicates based on a more robust key
+    const key = `${property.address?.trim()}-${property.price}-${property.bedrooms}-${property.bathrooms}`;
     if (seenProperties.has(key)) {
+      console.log(`[Properties] Duplicate property filtered: ${property.address}`);
       return false;
     }
     seenProperties.add(key);
@@ -221,9 +257,43 @@ export default function PropertiesPage() {
       console.log("Current URL:", window.location.href);
       console.log("URL search params:", new URLSearchParams(window.location.search).toString());
       console.log("Search filters applied:", searchFilters);
-      console.log("Getting display properties for tab:", activeTab, "filtered:", Object.values(searchFilters).some(v => v !== undefined));
+      console.log("Getting display properties for tab:", activeTab, "filtered:", Object.values(searchFilters).some(v => v !== undefined && v !== ''));
       console.log("Total IDX properties after filtering:", idxListings.length);
       console.log("Raw IDX properties before filtering:", convertedListings.length);
+      
+      // Log first few properties to see what we're working with
+      if (convertedListings.length > 0) {
+        console.log("Sample converted properties:", convertedListings.slice(0, 3).map(p => ({
+          address: p.address,
+          city: p.city,
+          price: p.price,
+          bedrooms: p.bedrooms,
+          bathrooms: p.bathrooms,
+          propertyType: p.propertyType
+        })));
+      }
+      
+      // If we have filters but no results, log why
+      if (Object.values(searchFilters).some(v => v !== undefined && v !== '') && idxListings.length === 0 && convertedListings.length > 0) {
+        console.log("🔍 No properties match filters. First property details:");
+        const firstProp = convertedListings[0];
+        console.log("First property:", {
+          address: firstProp.address,
+          city: firstProp.city,
+          price: firstProp.price,
+          bedrooms: firstProp.bedrooms,
+          bathrooms: firstProp.bathrooms,
+          propertyType: firstProp.propertyType
+        });
+        console.log("Active filters:", {
+          city: searchFilters.city,
+          minPrice: searchFilters.minPrice,
+          maxPrice: searchFilters.maxPrice,
+          bedrooms: searchFilters.bedrooms,
+          bathrooms: searchFilters.bathrooms,
+          propertyType: searchFilters.propertyType
+        });
+      }
     }
   }, [data, idxListings, activeTab, searchFilters, convertedListings]);
 

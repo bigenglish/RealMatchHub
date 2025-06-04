@@ -98,34 +98,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/properties", async (req, res) => {
     try {
-      // Skip cache for debugging parameter issues
-      // if (propertyCache.data && Date.now() - propertyCache.timestamp < propertyCache.TTL) {
-      //   return res.json(propertyCache.data);
-      // }
+      console.log("[express] Processing property search request with query:", req.query);
 
-      console.log("[express] Fetching fresh properties from IDX Broker");
-
-      const { fetchAllIdxListings: fetchAllIdxListingsHomesAI } = await import('./idx-homesai-fixed');
+      const { fetchIdxListings } = await import('./idx-authentic');
       
-      // Build comprehensive search criteria for the properties endpoint
+      // Build comprehensive search criteria from URL parameters
       const searchCriteria = {
-        pool: req.query.pool === 'true',
-        poolType: req.query.poolType ? String(req.query.poolType) : undefined,
+        // Basic filters
+        limit: req.query.limit ? Number(req.query.limit) : 50,
+        offset: req.query.offset ? Number(req.query.offset) : 0,
+        
+        // Location filters
+        city: req.query.city ? String(req.query.city) : undefined,
+        state: req.query.state ? String(req.query.state) : undefined,
+        zipCode: req.query.zipCode ? String(req.query.zipCode) : undefined,
+        county: req.query.county ? String(req.query.county) : undefined,
+        
+        // Price filters
         minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
         maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        
+        // Property specifications
         minBedrooms: req.query.minBedrooms ? Number(req.query.minBedrooms) : undefined,
+        maxBedrooms: req.query.maxBedrooms ? Number(req.query.maxBedrooms) : undefined,
+        minBathrooms: req.query.minBathrooms ? Number(req.query.minBathrooms) : undefined,
+        maxBathrooms: req.query.maxBathrooms ? Number(req.query.maxBathrooms) : undefined,
+        propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined,
+        
+        // Property features
+        pool: req.query.pool === 'true',
+        poolType: req.query.poolType ? String(req.query.poolType) : undefined,
         garage: req.query.garage === 'true',
         waterfront: req.query.waterfront === 'true',
         fireplace: req.query.fireplace === 'true',
         newConstruction: req.query.newConstruction === 'true',
-        city: req.query.city ? String(req.query.city) : undefined,
-        state: req.query.state ? String(req.query.state) : undefined,
-        zipCode: req.query.zipCode ? String(req.query.zipCode) : undefined,
-        propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined
+        
+        // Size filters
+        minSquareFeet: req.query.minSquareFeet ? Number(req.query.minSquareFeet) : undefined,
+        maxSquareFeet: req.query.maxSquareFeet ? Number(req.query.maxSquareFeet) : undefined,
+        
+        // Sorting
+        sortBy: req.query.sortBy ? String(req.query.sortBy) : undefined,
+        sortOrder: req.query.sortOrder === 'desc' ? 'desc' as const : 'asc' as const
       };
       
-      console.log("[express] Fetching ALL available properties from IDX Broker (up to 1,000 properties)");
-      const idxListings = await fetchAllIdxListingsHomesAI(searchCriteria);
+      console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
+      console.log("[express] Fetching properties from IDX Broker with filters applied");
+      
+      const idxListings = await fetchIdxListings(searchCriteria);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

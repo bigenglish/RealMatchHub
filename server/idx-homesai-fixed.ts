@@ -231,14 +231,12 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     // Core property filters
     searchParams.append('pt', propertyType || 'sfr'); // Property type: sfr, condo, townhouse, mobile, land
     
-    // Price range
-    if (minPrice || maxPrice) {
-      searchParams.append('lp', String(minPrice || 0)); // Low price
-      searchParams.append('hp', String(maxPrice || 10000000)); // High price
-    } else {
-      // Default price range if none specified
-      searchParams.append('lp', '200000');
-      searchParams.append('hp', '800000');
+    // Price range - only add if specified to get full dataset
+    if (minPrice && minPrice > 0) {
+      searchParams.append('lp', String(minPrice)); // Low price
+    }
+    if (maxPrice && maxPrice > 0) {
+      searchParams.append('hp', String(maxPrice)); // High price
     }
     
     // Bedrooms - support exact, min, and max

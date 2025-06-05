@@ -236,7 +236,9 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     searchParams.append('lp', String(minPrice || 200000)); // Low price
     searchParams.append('hp', String(maxPrice || 800000)); // High price
     
-    // Location search type and filters (matching your URL patterns)
+    // Location search type and filters - restrict to US properties
+    searchParams.append('state', 'CA'); // California only to avoid international listings
+    
     if (zipCode) {
       searchParams.append('ccz', 'zipcode');
       searchParams.append('zipcode[]', zipCode);
@@ -245,10 +247,15 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
       // Handle city as array parameter like in your examples
       const cityArray = Array.isArray(city) ? city : [city];
       cityArray.forEach(c => {
-        if (c) searchParams.append('city[]', c);
+        if (c) {
+          // Clean city name and ensure US focus
+          const cleanCity = c.trim();
+          searchParams.append('city[]', cleanCity);
+        }
       });
     } else {
       searchParams.append('ccz', 'city'); // Default to city search
+      searchParams.append('city[]', 'Los Angeles'); // Default to LA for testing
     }
     
     // Bedrooms and bathrooms (matching your examples: bd=1, tb=1)
@@ -600,11 +607,38 @@ function transformIdxResponse(data: any): IdxListingsResponse {
 
   console.log(`[IDX-HomesAI] Found ${listings.length} items to process`);
 
-  // Filter and transform each listing
+  // Filter and transform each listing - remove international properties
   const transformedListings: IdxListing[] = listings
     .filter((item: any) => {
       // Filter out invalid entries
-      return item && (item.idxID || item.listingID || item.address || item.listPrice);
+      if (!item || !(item.idxID || item.listingID || item.address || item.listPrice)) {
+        return false;
+      }
+      
+      // Filter out international properties based on address patterns
+      const address = item.address || '';
+      const city = item.city || '';
+      
+      // Exclude international locations
+      const internationalPatterns = [
+        'greece', 'mexico', 'cyprus', 'athens', 'pafos', 'tijuana', 'baja',
+        'outside area (outside u.s.)', 'outside area (outside ca)', 'foreign country',
+        'other,', ', other,', ', other ', 'outside area'
+      ];
+      
+      const addressLower = address.toLowerCase();
+      const cityLower = city.toLowerCase();
+      
+      const isInternational = internationalPatterns.some(pattern => 
+        addressLower.includes(pattern) || cityLower.includes(pattern)
+      );
+      
+      if (isInternational) {
+        console.log(`[IDX-HomesAI] Filtering out international property: ${address}`);
+        return false;
+      }
+      
+      return true;
     })
     .map((item: any, index: number) => {
       // Handle different possible field names

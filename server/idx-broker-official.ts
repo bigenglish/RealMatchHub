@@ -71,12 +71,14 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
       throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
     }
 
-    // IDX Broker Clients API with query parameters as per documentation
+    // IDX Broker Clients API with proper headers - 406 error indicates missing Accept header
     const apiUrl = `https://api.idxbroker.com/clients/featured?accesskey=${process.env.IDX_BROKER_API_KEY}&outputtype=json`;
     
     const headers = {
+      'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'RealtyAI/1.0'
+      'User-Agent': 'RealtyAI/1.0',
+      'Cache-Control': 'no-cache'
     };
 
     console.log(`[IDX-Official] Fetching from: ${apiUrl}`);

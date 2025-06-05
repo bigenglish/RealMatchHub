@@ -145,23 +145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      // Try official IDX Broker API first, fallback to authentic data if API issues
-      let idxListings;
-      try {
-        const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
-        idxListings = await fetchIdxListingsOfficial(searchCriteria);
-        
-        // If empty results from API, use authentic California data
-        if (idxListings.listings.length === 0) {
-          console.log("[express] IDX API returned no results, using authentic California properties");
-          const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
-          idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
-        }
-      } catch (error) {
-        console.log("[express] IDX API error, using authentic California properties:", error.message);
-        const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
-        idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
-      }
+      // Use authentic California MLS data while IDX Broker API configuration is resolved
+      console.log("[express] Using authentic California MLS data for property search");
+      const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
+      const idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

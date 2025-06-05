@@ -115,15 +115,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         county: req.query.county ? String(req.query.county) : undefined,
         
         // Price filters
-        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
-        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        minPrice: req.query.minPrice ? Number(req.query.minPrice) : 200000,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : 800000,
         
-        // Property specifications
+        // Property specifications - handle both bedrooms and minBedrooms
+        bedrooms: req.query.bedrooms ? Number(req.query.bedrooms) : undefined,
         minBedrooms: req.query.minBedrooms ? Number(req.query.minBedrooms) : undefined,
         maxBedrooms: req.query.maxBedrooms ? Number(req.query.maxBedrooms) : undefined,
+        bathrooms: req.query.bathrooms ? Number(req.query.bathrooms) : undefined,
         minBathrooms: req.query.minBathrooms ? Number(req.query.minBathrooms) : undefined,
         maxBathrooms: req.query.maxBathrooms ? Number(req.query.maxBathrooms) : undefined,
-        propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined,
+        propertyType: req.query.propertyType ? String(req.query.propertyType) : 'sfr',
         
         // Property features
         pool: req.query.pool === 'true',

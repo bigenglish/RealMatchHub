@@ -980,7 +980,7 @@ export default function BuyerWorkflow({
               <Button variant="outline" onClick={handleBack}>Back</Button>
               <Button onClick={async () => {
                 try {
-                  // Use our API to search properties with enhanced filtering
+                  // Build search parameters to send to our backend API
                   const searchParams = new URLSearchParams();
                   
                   // Basic property filters
@@ -1011,124 +1011,21 @@ export default function BuyerWorkflow({
                     }
                   }
                   
-                  // Enhanced MLS field filters
+                  // Additional filters for amenities
                   if (selection.amenities?.length) {
                     selection.amenities.forEach((amenity: string) => {
-                      // Map amenities to search parameters
-                      const amenityMap: { [key: string]: string } = {
-                        'security-system': 'securityFeatures',
-                        'basement': 'basement',
-                        'attic': 'basement', // Some IDX systems use basement for both
-                        'wine-cellar': 'basement',
-                        'home-theater': 'basement',
-                        'outdoor-kitchen': 'pool', // Often associated with pool properties
-                        'solar-panels': 'newConstruction',
-                        'generator': 'newConstruction',
-                        'laundry-room': 'garage', // Standard in most homes with garages
-                        'walk-in-closets': 'garage',
-                        'garden': 'pool',
-                        'patio': 'pool',
-                        'fire-pit': 'fireplace',
-                        'deck': 'pool',
-                        'balcony': 'pool',
-                        'sprinkler-system': 'pool',
-                        'outdoor-lighting': 'pool',
-                        'bbq-area': 'pool',
-                        'tennis-court': 'pool',
-                        'basketball-court': 'pool',
-                        'security-patrol': 'securityFeatures',
-                        'gated-community': 'securityFeatures',
-                        'club-house': 'pool',
-                        'community-pool': 'pool',
-                        'tennis-courts': 'pool',
-                        'golf-course': 'pool',
-                        'walking-trails': 'pool',
-                        'park-access': 'pool',
-                        'guest-parking': 'garage',
-                        'package-service': 'securityFeatures'
-                      };
-                      
-                      const mappedAmenity = amenityMap[amenity];
-                      if (mappedAmenity) {
-                        searchParams.append(mappedAmenity, 'true');
-                      }
+                      if (amenity === 'pool') searchParams.append('pool', 'true');
+                      if (amenity === 'garage') searchParams.append('garage', 'true');
+                      if (amenity === 'fireplace') searchParams.append('fireplace', 'true');
+                      if (amenity === 'waterfront') searchParams.append('waterfront', 'true');
                     });
                   }
                   
-                  // Style preferences
-                  if (selection.architecturalStyles?.length) {
-                    searchParams.append('architectural', selection.architecturalStyles.join(','));
-                  }
-                  if (selection.interiorStyles?.length) {
-                    searchParams.append('interiorStyle', selection.interiorStyles.join(','));
-                  }
+                  // Navigate to properties page with filters - this will call our backend API
+                  const propertiesUrl = `/properties?${searchParams.toString()}`;
+                  console.log('Searching properties via backend API:', propertiesUrl);
                   
-                  // Search using our enhanced API endpoint
-                  const apiUrl = `/api/idx-listings?${searchParams.toString()}`;
-                  console.log('Searching properties with enhanced filters:', apiUrl);
-                  
-                  // Try API search first
-                  try {
-                    const response = await fetch(apiUrl);
-                    if (response.ok) {
-                      const data = await response.json();
-                      console.log(`Found ${data.listings?.length || 0} properties via API`);
-                      
-                      // Navigate to properties page with filters
-                      window.location.href = `/properties?${searchParams.toString()}`;
-                      onComplete();
-                      return;
-                    }
-                  } catch (apiError) {
-                    console.log('API search failed, falling back to IDX URL');
-                  }
-                  
-                  // Fallback to IDX Broker URL with enhanced parameters
-                  const idxBaseUrl = "https://homesai.idxbroker.com/idx/results/listings?";
-                  const idxParams = new URLSearchParams();
-
-                  // Add required IDX parameters
-                  idxParams.append("idxID", "d025");
-                  idxParams.append("pt", "1");
-                  idxParams.append("a_propStatus[]", "Active");
-                  idxParams.append("ccz", "city");
-
-                  // Add enhanced search parameters
-                  if (selection.priceMin) idxParams.append("lp", selection.priceMin.toString());
-                  if (selection.priceMax) idxParams.append("hp", selection.priceMax.toString());
-                  if (!selection.priceMin && !selection.priceMax) {
-                    idxParams.append("lp", "200000");
-                    idxParams.append("hp", "800000");
-                  }
-                  
-                  if (selection.bedrooms) idxParams.append("bd", selection.bedrooms);
-                  if (selection.bathrooms) idxParams.append("tb", selection.bathrooms);
-                  
-                  if (selection.city) {
-                    const cleanCity = selection.city.trim();
-                    idxParams.append("city[]", cleanCity);
-                    idxParams.append("a_addressCity", cleanCity);
-                  }
-                  
-                  if (selection.neighborhood) {
-                    const cleanNeighborhood = selection.neighborhood.trim();
-                    idxParams.append("neighborhood", cleanNeighborhood);
-                    idxParams.append("a_subdivision", cleanNeighborhood);
-                  }
-                  
-                  if (selection.architecturalStyles?.length) {
-                    idxParams.append("a_style", selection.architecturalStyles.join(","));
-                  }
-                  
-                  if (selection.amenities?.length) {
-                    selection.amenities.forEach((amenity: string) => {
-                      idxParams.append("fea", amenity);
-                    });
-                  }
-
-                  const finalUrl = `${idxBaseUrl}${idxParams.toString()}`;
-                  console.log('Opening IDX Broker with enhanced filters:', finalUrl);
-                  window.open(finalUrl, '_blank');
+                  window.location.href = propertiesUrl;
                   onComplete();
                   
                 } catch (error) {

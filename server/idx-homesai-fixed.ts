@@ -172,8 +172,8 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     county = '',
     neighborhood = '',
     mls = '',
-    minPrice = 0,
-    maxPrice = 0,
+    minPrice = 200000,
+    maxPrice = 800000,
     bedrooms,
     minBedrooms,
     maxBedrooms,
@@ -223,50 +223,54 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     sortOrder
   } = criteria;
   try {
-    console.log(`[IDX-HomesAI] Fetching listings from homesai.net.idxbroker.com, limit: ${limit}`);
+    console.log(`[IDX-HomesAI] Fetching listings with criteria:`, JSON.stringify(criteria, null, 2));
 
-    // Build comprehensive search parameters for IDX Broker
+    // Build IDX search parameters matching the exact URL patterns from your examples
     const searchParams = new URLSearchParams();
     
-    // Core property filters
-    searchParams.append('pt', propertyType || 'sfr'); // Property type: sfr, condo, townhouse, mobile, land
+    // Required IDX parameters (from your examples)
+    searchParams.append('idxID', 'd025'); // Required IDX ID
+    searchParams.append('pt', propertyType || '1'); // Property type: 1 for residential, sfr for single family
     
-    // Price range - only add if specified to get full dataset
-    if (minPrice && minPrice > 0) {
-      searchParams.append('lp', String(minPrice)); // Low price
+    // Price range (always include as per your examples)
+    searchParams.append('lp', String(minPrice || 200000)); // Low price
+    searchParams.append('hp', String(maxPrice || 800000)); // High price
+    
+    // Location search type and filters (matching your URL patterns)
+    if (zipCode) {
+      searchParams.append('ccz', 'zipcode');
+      searchParams.append('zipcode[]', zipCode);
+    } else if (city) {
+      searchParams.append('ccz', 'city');
+      // Handle city as array parameter like in your examples
+      const cityArray = Array.isArray(city) ? city : [city];
+      cityArray.forEach(c => {
+        if (c) searchParams.append('city[]', c);
+      });
+    } else {
+      searchParams.append('ccz', 'city'); // Default to city search
     }
-    if (maxPrice && maxPrice > 0) {
-      searchParams.append('hp', String(maxPrice)); // High price
+    
+    // Bedrooms and bathrooms (matching your examples: bd=1, tb=1)
+    if (bedrooms !== undefined) {
+      searchParams.append('bd', String(bedrooms));
+    } else if (minBedrooms !== undefined) {
+      searchParams.append('bd', String(minBedrooms));
+    } else {
+      searchParams.append('bd', '0'); // Default as in your examples
     }
     
-    // Bedrooms - support exact, min, and max
-    if (bedrooms) searchParams.append('bd', String(bedrooms));
-    if (minBedrooms) searchParams.append('mnbd', String(minBedrooms));
-    if (maxBedrooms) searchParams.append('mxbd', String(maxBedrooms));
+    if (bathrooms !== undefined) {
+      searchParams.append('tb', String(bathrooms)); // Total baths
+    } else if (minBathrooms !== undefined) {
+      searchParams.append('tb', String(minBathrooms));
+    } else {
+      searchParams.append('tb', '1'); // Default as in your examples
+    }
     
-    // Bathrooms - support exact, min, and max
-    if (bathrooms) searchParams.append('ba', String(bathrooms));
-    if (minBathrooms) searchParams.append('mnba', String(minBathrooms));
-    if (maxBathrooms) searchParams.append('mxba', String(maxBathrooms));
-    
-    // Square footage
+    // Additional filters
     if (minSquareFeet) searchParams.append('sf', String(minSquareFeet));
     if (maxSquareFeet) searchParams.append('msf', String(maxSquareFeet));
-    
-    // Lot size
-    if (minLotSize) searchParams.append('ls', String(minLotSize));
-    if (maxLotSize) searchParams.append('mls', String(maxLotSize));
-    
-    // Acres
-    if (minAcres) searchParams.append('ac', String(minAcres));
-    if (maxAcres) searchParams.append('mac', String(maxAcres));
-    
-    // Location filters
-    if (city) searchParams.append('ccz', 'city'); // City/County/Zip search
-    if (zipCode) searchParams.append('zip', zipCode);
-    if (county) searchParams.append('county', county);
-    if (neighborhood) searchParams.append('area', neighborhood);
-    if (mls) searchParams.append('idxID', mls);
     
     // Year built
     if (yearBuilt) searchParams.append('yr', String(yearBuilt));
@@ -329,7 +333,7 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
 
     const searchUrl = `https://homesai.idxbroker.com/idx/results/listings?${searchParams.toString()}`;
     
-    console.log(`[IDX-HomesAI] Searching: ${searchUrl}`);
+    console.log(`[IDX-HomesAI] Searching with IDX parameters: ${searchUrl}`);
 
     // Standard headers that work well with IDX Broker
     const standardHeaders = {

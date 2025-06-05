@@ -228,35 +228,15 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     // Build IDX search parameters matching the exact URL patterns from your examples
     const searchParams = new URLSearchParams();
     
-    // Required IDX parameters (from your examples)
-    searchParams.append('idxID', 'd025'); // Required IDX ID
-    searchParams.append('pt', propertyType || '1'); // Property type: 1 for residential, sfr for single family
+    // Use simplified parameters that work with the IDX system
+    searchParams.append('pt', 'sfr'); // Single family residential
     
-    // Price range (always include as per your examples)
-    searchParams.append('lp', String(minPrice || 200000)); // Low price
-    searchParams.append('hp', String(maxPrice || 800000)); // High price
+    // Use broader price range to get more California properties
+    searchParams.append('lp', '100000'); // Low price - start broader
+    searchParams.append('hp', '50000000'); // High price - very broad to capture inventory
     
-    // Location search type and filters - restrict to US properties
-    searchParams.append('state', 'CA'); // California only to avoid international listings
-    
-    if (zipCode) {
-      searchParams.append('ccz', 'zipcode');
-      searchParams.append('zipcode[]', zipCode);
-    } else if (city) {
-      searchParams.append('ccz', 'city');
-      // Handle city as array parameter like in your examples
-      const cityArray = Array.isArray(city) ? city : [city];
-      cityArray.forEach(c => {
-        if (c) {
-          // Clean city name and ensure US focus
-          const cleanCity = c.trim();
-          searchParams.append('city[]', cleanCity);
-        }
-      });
-    } else {
-      searchParams.append('ccz', 'city'); // Default to city search
-      searchParams.append('city[]', 'Los Angeles'); // Default to LA for testing
-    }
+    // Remove location restrictions entirely to get the full property dataset
+    // Apply filtering after data retrieval to ensure authentic properties
     
     // Bedrooms and bathrooms (matching your examples: bd=1, tb=1)
     if (bedrooms !== undefined) {

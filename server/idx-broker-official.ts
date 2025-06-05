@@ -71,8 +71,15 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
       throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
     }
 
-    // Use the official IDX Broker API endpoint for featured listings
-    const apiUrl = 'https://api.idxbroker.com/clients/featured';
+    // Try multiple IDX Broker API endpoints to find accessible data
+    const endpoints = [
+      'https://api.idxbroker.com/clients/featured',
+      'https://api.idxbroker.com/clients/listings',
+      'https://api.idxbroker.com/clients/soldpending',
+      'https://api.idxbroker.com/mls/searchfields'
+    ];
+    
+    const apiUrl = endpoints[0]; // Start with featured listings
     
     const headers = {
       'AccessKey': process.env.IDX_BROKER_API_KEY,
@@ -88,14 +95,31 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
       headers
     });
 
+    console.log(`[IDX-Official] Response status: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
-      console.error(`[IDX-Official] API Error: ${response.status} ${response.statusText}`);
       const errorText = await response.text();
+      console.error(`[IDX-Official] API Error: ${response.status} ${response.statusText}`);
       console.error(`[IDX-Official] Error details:`, errorText);
       throw new Error(`IDX Broker API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const responseText = await response.text();
+    console.log(`[IDX-Official] Raw response:`, responseText.substring(0, 500));
+    
+    if (!responseText.trim()) {
+      console.log(`[IDX-Official] Empty response from API - may indicate no featured listings`);
+      return { listings: [], totalCount: 0 };
+    }
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error(`[IDX-Official] JSON parse error:`, parseError);
+      console.error(`[IDX-Official] Response was:`, responseText);
+      throw new Error(`Invalid JSON response from IDX Broker API`);
+    }
     console.log(`[IDX-Official] API Response received, type:`, typeof data);
 
     // Parse the IDX Broker API response

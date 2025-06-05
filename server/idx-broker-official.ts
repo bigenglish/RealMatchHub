@@ -71,14 +71,12 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
       throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
     }
 
-    // IDX Broker API with proper authentication headers
-    const apiUrl = 'https://api.idxbroker.com/clients/featured';
+    // IDX Broker Clients API with query parameters as per documentation
+    const apiUrl = `https://api.idxbroker.com/clients/featured?accesskey=${process.env.IDX_BROKER_API_KEY}&outputtype=json`;
     
     const headers = {
-      'accesskey': process.env.IDX_BROKER_API_KEY,
-      'outputtype': 'json',
-      'apiversion': '1.4.0',
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'RealtyAI/1.0'
     };
 
     console.log(`[IDX-Official] Fetching from: ${apiUrl}`);

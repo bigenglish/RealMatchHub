@@ -739,14 +739,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add endpoint to check if IDX API key is configured
   app.get("/api/idx-status", async (_req, res) => {
     try {
-      const hasApiKey = !!process.env.IDX_BROKER_API_KEY;
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      const hasApiKey = !!apiKey;
       console.log("[express] /api/idx-status called, hasApiKey =", hasApiKey);
+
+      let message = "IDX Broker API key is not configured";
+      let detailedInfo = null;
+
+      if (hasApiKey) {
+        message = "IDX Broker API is configured";
+        detailedInfo = {
+          keyLength: apiKey.length,
+          keyPrefix: apiKey.substring(0, 4) + "...",
+          keyFormat: apiKey.startsWith('a') ? 'Valid format' : 'Unexpected format'
+        };
+      }
 
       const response = { 
         enabled: hasApiKey,
-        message: hasApiKey ? 
-          "IDX Broker API is configured and ready to use" : 
-          "IDX Broker API key is not configured"
+        message,
+        details: detailedInfo
       };
 
       console.log("[express] /api/idx-status response:", response);

@@ -25,11 +25,10 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
     const apiKey = process.env.IDX_BROKER_API_KEY;
     console.log(`[IDX-Official] Using API key: ${apiKey.substring(0, 4)}...`);
 
-    // Try multiple endpoints in order of preference
+    // Use Client API endpoints based on your account type
     const endpoints = [
-      'https://api.idxbroker.com/clients/listings',
       'https://api.idxbroker.com/clients/featured',
-      'https://api.idxbroker.com/clients/search'
+      'https://api.idxbroker.com/clients/systemlinks'
     ];
 
     for (const endpoint of endpoints) {

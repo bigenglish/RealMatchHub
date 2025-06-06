@@ -47,6 +47,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint for deployment verification
   app.get('/api/health', (req, res) => {
+
+// Helper function to generate IDX search URLs for fallback
+function generateIdxSearchUrl(criteria: any): string {
+  const baseUrl = 'https://homesai.idxbroker.com/idx/results/listings';
+  const params = new URLSearchParams();
+  
+  // Add default parameters
+  params.append('idxID', 'd025');
+  params.append('pt', '1');
+  params.append('ccz', 'city');
+  
+  // Add search criteria
+  if (criteria.minPrice) params.append('lp', criteria.minPrice.toString());
+  if (criteria.maxPrice) params.append('hp', criteria.maxPrice.toString());
+  if (criteria.bedrooms || criteria.minBedrooms) {
+    params.append('bd', (criteria.bedrooms || criteria.minBedrooms).toString());
+  }
+  if (criteria.bathrooms || criteria.minBathrooms) {
+    params.append('tb', (criteria.bathrooms || criteria.minBathrooms).toString());
+  }
+  if (criteria.city) {
+    params.append('city[]', criteria.city.toLowerCase().replace(/\s+/g, '+'));
+  }
+  
+  return `${baseUrl}?${params.toString()}`;
+}
+
+
     res.status(200).json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -162,6 +190,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
         idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
       }
+      
+      // Add URL fallback option for users who want direct IDX search
+      const fallbackUrl = generateIdxSearchUrl(searchCriteria);
+      console.log("[express] Generated fallback URL:", fallbackUrl);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
       // Log some IDX listings for debugging

@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/health', (req, res) => {
 
 // Helper function to generate IDX search URLs for fallback
-function generateIdxSearchUrl(criteria: any): string {
+function buildIdxSearchUrl(criteria: any): string {
   const baseUrl = 'https://homesai.idxbroker.com/idx/results/listings';
   const params = new URLSearchParams();
   
@@ -192,7 +192,7 @@ function generateIdxSearchUrl(criteria: any): string {
       }
       
       // Add URL fallback option for users who want direct IDX search
-      const fallbackUrl = generateIdxSearchUrl(searchCriteria);
+      const fallbackUrl = buildIdxSearchUrl(searchCriteria);
       console.log("[express] Generated fallback URL:", fallbackUrl);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 

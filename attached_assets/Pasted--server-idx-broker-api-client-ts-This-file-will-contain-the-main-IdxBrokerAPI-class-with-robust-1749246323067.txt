@@ -1,0 +1,384 @@
+// server/idx-broker-api-client.ts
+// This file will contain the main IdxBrokerAPI class with robust methods.
+
+import axios from 'axios';
+import querystring from 'querystring'; // For correctly encoding URL parameters
+
+// Ensure these interfaces match what you've already defined or adapt as needed.
+// These are included here for completeness of the self-contained code.
+export interface IdxListing {
+  listingId: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  price: number;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  propertyType: string;
+  images: string[];
+  description: string;
+  listedDate: string;
+  status?: string;
+  mlsNumber?: string;
+  yearBuilt?: number;
+  lotSize?: number;
+  daysOnMarket?: number;
+  listingAgent?: string;
+  listingOffice?: string;
+}
+
+export interface IdxSearchCriteria {
+  limit?: number;
+  offset?: number;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  bedrooms?: number;
+  minBedrooms?: number;
+  maxBedrooms?: number;
+  bathrooms?: number;
+  minBathrooms?: number;
+  maxBathrooms?: number;
+  propertyType?: string;
+  [key: string]: any; // Allows for additional dynamic properties
+}
+
+export interface IdxResponse {
+  listings: IdxListing[];
+  totalCount: number;
+  hasMoreListings: boolean;
+}
+
+export class IdxBrokerAPI {
+  private apiKey: string;
+  private baseUrl = 'https://api.idxbroker.com';
+  // Use a specific API version as suggested by the IDX Broker documentation.
+  // The documentation showed 1.8.0 in examples, but 1.2.0 is often a good stable choice for 'clients' endpoints.
+  // If 1.8.0 causes issues, try 1.2.0 or consult docs for the latest stable version for Client API.
+  private apiVersion = '1.8.0'; 
+  private userAgent = 'YourAppName/1.0 (Contact: your-email@example.com)'; // Good practice for API calls
+
+  constructor() {
+    this.apiKey = process.env.IDX_BROKER_API_KEY || '';
+    if (!this.apiKey) {
+      // Ensure the environment variable is set in Replit Secrets
+      throw new Error('IDX_BROKER_API_KEY environment variable is required and must be correctly formatted.');
+    }
+    console.log('IdxBrokerAPI initialized. API Key presence:', !!this.apiKey);
+  }
+
+  /**
+   * Helper to build URL query parameters from an object,
+   * ensuring correct encoding.
+   * @param params An object of key-value pairs for query parameters.
+   * @returns A URL-encoded query string.
+   */
+  private buildQueryParams(params: { [key: string]: any }): string {
+    // Filter out undefined values to prevent empty parameters
+    const filteredParams: { [key: string]: any } = {};
+    for (const key in params) {
+      if (params[key] !== undefined) {
+        filteredParams[key] = params[key];
+      }
+    }
+    return querystring.stringify(filteredParams);
+  }
+
+  /**
+   * Standardized headers for all IDX Broker API requests.
+   * Based on agent's working pattern and common API requirements.
+   */
+  private getStandardHeaders() {
+    return {
+      'AccessKey': this.apiKey,
+      'outputtype': 'json', // Crucial for getting JSON response
+      'Version': this.apiVersion,
+      'Content-Type': 'application/x-www-form-urlencoded', // IDX Broker often expects this
+      'User-Agent': this.userAgent, // Good practice for API identification
+    };
+  }
+
+  /**
+   * Fetches listings using a specific IDX Broker Client API endpoint.
+   * This example targets the 'clients/featured' endpoint which is common for Client accounts.
+   * @param criteria Search criteria to filter listings.
+   * @param endpoint The specific API path, e.g., 'clients/featured' or 'clients/listings'.
+   * Ensure this endpoint is valid for your 'Client' account type.
+   * @returns A promise that resolves to an IdxResponse object.
+   */
+  public async fetchListings(
+    endpoint: string, // e.g., 'clients/featured', 'clients/activemls'
+    criteria: IdxSearchCriteria = {}
+  ): Promise<IdxResponse> {
+    const queryParams = this.buildQueryParams(criteria);
+    const url = `${this.baseUrl}/${endpoint}?${queryParams}`;
+
+    console.log(`Attempting to fetch from URL: ${url}`);
+    console.log('Request Headers:', this.getStandardHeaders());
+
+    try {
+      const response = await axios.get(url, {
+        headers: this.getStandardHeaders(),
+      });
+
+      console.log(`Received status: ${response.status} from ${url}`);
+      // IDX Broker API often returns an array, even for single results.
+      // Or an object if an error/empty result.
+      const rawData = response.data;
+      console.log('Raw IDX Broker Response Data:', JSON.stringify(rawData, null, 2));
+
+      // Attempt to parse and validate the response structure
+      let listings: IdxListing[] = [];
+      let totalCount: number = 0;
+      let hasMoreListings: boolean = false;
+
+      if (Array.isArray(rawData)) {
+        // Assume rawData is an array of listings
+        listings = rawData.map(item => ({
+          listingId: item.listingID || item.id || 'N/A', // Adjust field names based on actual API response
+          address: item.address || 'N/A',
+          city: item.cityName || 'N/A',
+          state: item.state || 'N/A',
+          zipCode: item.zipCode || 'N/A',
+          price: parseFloat(item.listPrice) || 0, // Ensure price is a number
+          bedrooms: parseInt(item.bedrooms) || 0,
+          bathrooms: parseFloat(item.totalBaths) || 0, // totalBaths often includes half baths
+          sqft: parseInt(item.sqFt) || 0,
+          propertyType: item.idxPropType || 'N/A', // Common property type field
+          images: item.photos && Array.isArray(item.photos) ? item.photos.map((p: any) => p.url) : [], // Adapt to actual image structure
+          description: item.remarks || 'No description available.',
+          listedDate: item.listingDate || 'N/A',
+          status: item.status || 'N/A',
+          mlsNumber: item.mlsID || 'N/A',
+          yearBuilt: parseInt(item.yearBuilt) || undefined,
+          lotSize: parseFloat(item.lotSizeSqFt) || undefined,
+          daysOnMarket: parseInt(item.daysOnMarket) || undefined,
+          listingAgent: item.listingAgentName || undefined,
+          listingOffice: item.listingOfficeName || undefined,
+        })).filter(listing => listing.listingId !== 'N/A'); // Filter out potentially malformed listings
+
+        totalCount = listings.length; // This would ideally come from a response header/meta if provided by IDX Broker
+        // For simplicity, hasMoreListings can be determined by if the number of listings returned
+        // equals the requested limit and there's an offset. More complex if IDX provides a true total count.
+        hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
+
+      } else if (rawData && typeof rawData === 'object' && rawData.errors) {
+        // Handle specific error structure from IDX Broker if they send a 200 OK with errors in body
+        console.error('IDX Broker API reported errors in response:', rawData.errors);
+        throw new Error(`IDX Broker API error: ${JSON.stringify(rawData.errors)}`);
+      } else {
+        // Handle unexpected response format
+        console.warn('Unexpected IDX Broker API response format:', rawData);
+        listings = [];
+        totalCount = 0;
+        hasMoreListings = false;
+      }
+
+      return { listings, totalCount, hasMoreListings };
+
+    } catch (error: any) {
+      console.error(`Error during IDX Broker API call to ${url}:`);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
+        console.error('Response Status:', error.response.status);
+        console.error('Response Headers:', error.response.headers);
+        throw new Error(`IDX Broker API request failed with status ${error.response.status}: ${JSON.stringify(error.response.data)}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        throw new Error('No response from IDX Broker API. Check network or API endpoint.');
+      } else {
+        // Something else happened in setting up the request that triggered an Error
+        console.error('Error setting up IDX Broker API request:', error.message);
+        throw new Error(`Error preparing IDX Broker API request: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * A diagnostic method to test basic IDX Broker API connection and credentials.
+   * Can be used to check if the API key and base configuration are working.
+   * For example, calling the 'clients/accountinfo' or 'partners/apiversion' endpoint.
+   */
+  public async testConnection(endpoint: string = 'clients/accountinfo'): Promise<any> {
+    const url = `${this.baseUrl}/${endpoint}`;
+    console.log(`Testing IDX Broker API connection to: ${url}`);
+    console.log('Test Headers:', this.getStandardHeaders());
+
+    try {
+      const response = await axios.get(url, {
+        headers: this.getStandardHeaders(),
+      });
+      console.log(`Connection test successful. Status: ${response.status}`);
+      console.log('Test Response Data:', JSON.stringify(response.data, null, 2));
+      return { success: true, status: response.status, data: response.data };
+    } catch (error: any) {
+      console.error(`Connection test failed to ${url}:`);
+      if (error.response) {
+        console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
+        console.error('Response Status:', error.response.status);
+      } else if (error.request) {
+        console.error('No response received:', error.request);
+      } else {
+        console.error('Error:', error.message);
+      }
+      return { success: false, status: error.response?.status, error: error.message, details: error.response?.data };
+    }
+  }
+}
+```typescript
+// server/routes.ts
+// This file needs to be updated to use the new IdxBrokerAPI class.
+
+import type { Express, Request, Response, NextFunction } from "express";
+import { IdxBrokerAPI } from './idx-broker-api-client'; // Import the new class
+import { storage } from "./storage"; // Assuming storage is used for other parts of the app
+import {
+  predictPropertyPrice,
+  generatePropertyDescription,
+  getPersonalizedRecommendations,
+  generateChatbotResponse,
+} from "./vertex-ai"; // Import Vertex AI functions
+import { explainLegalTerm } from "./gemini-ai"; // Import Gemini direct API function
+
+// Initialize the IDX Broker API client once
+const idxApi = new IdxBrokerAPI();
+
+export const setupRoutes = (app: Express) => {
+  // Add a health check route
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).send('API is healthy');
+  });
+
+  // --- IDX Broker API Endpoints ---
+
+  // Diagnostic endpoint to test IDX Broker API connection
+  app.get('/api/idx-full-diagnostics', async (req: Request, res: Response) => {
+    console.log('Running IDX Broker API diagnostics...');
+    try {
+      // Test basic account info access
+      const accountInfo = await idxApi.testConnection('clients/accountinfo');
+      // Test featured listings access
+      const featuredListings = await idxApi.fetchListings('clients/featured', { limit: 5 });
+
+      res.json({
+        message: 'IDX Broker API Diagnostics Completed',
+        accountInfoTest: accountInfo,
+        featuredListingsTest: featuredListings,
+      });
+    } catch (error: any) {
+      console.error('Error during IDX diagnostics:', error.message);
+      res.status(500).json({
+        message: 'IDX Broker API Diagnostics Failed',
+        error: error.message,
+        details: error.stack,
+      });
+    }
+  });
+
+  // Endpoint to fetch featured listings for the frontend
+  app.get('/api/listings/featured', async (req: Request, res: Response) => {
+    const { limit, offset } = req.query;
+    try {
+      const listingsResponse = await idxApi.fetchListings('clients/featured', {
+        limit: limit ? parseInt(limit as string) : 25, // Default limit
+        offset: offset ? parseInt(offset as string) : 0, // Default offset
+      });
+      res.json(listingsResponse);
+    } catch (error: any) {
+      console.error('Error fetching featured listings:', error.message);
+      res.status(error.status || 500).json({
+        message: 'Failed to retrieve featured listings',
+        error: error.message,
+        details: error.details,
+      });
+    }
+  });
+
+  // Example: Endpoint for searching listings with filters
+  app.get('/api/listings/search', async (req: Request, res: Response) => {
+    const criteria: IdxSearchCriteria = {
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+      city: req.query.city as string || undefined,
+      state: req.query.state as string || undefined,
+      zipCode: req.query.zipCode as string || undefined,
+      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
+      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
+      bedrooms: req.query.bedrooms ? parseInt(req.query.bedrooms as string) : undefined,
+      bathrooms: req.query.bathrooms ? parseFloat(req.query.bathrooms as string) : undefined,
+      propertyType: req.query.propertyType as string || undefined,
+      // Add other search parameters as needed, adapting to IDX Broker's specific parameter names
+      // For example, if IDX uses 'pt' for property type, you'd map 'propertyType' from req.query to 'pt' for IDX criteria.
+      // E.g. 'pt': req.query.propertyType as string || undefined,
+    };
+
+    console.log('Search Criteria received:', criteria);
+
+    try {
+      // Use 'clients/activels' or 'clients/listings' for a general search endpoint if available for 'Client' accounts.
+      // You may need to confirm this with IDX Broker support. 'clients/featured' is for specific featured listings.
+      // Let's assume 'clients/activels' for now, but confirm the correct endpoint for general search.
+      const listingsResponse = await idxApi.fetchListings('clients/activels', criteria);
+      res.json(listingsResponse);
+    } catch (error: any) {
+      console.error('Error fetching search listings:', error.message);
+      res.status(error.status || 500).json({
+        message: 'Failed to retrieve search listings',
+        error: error.message,
+        details: error.details,
+      });
+    }
+  });
+
+
+  // --- Other API Endpoints (e.g., AI, Storage) ---
+
+  // Placeholder for storage endpoints
+  app.post('/api/properties', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertPropertySchema.parse(req.body);
+      const newProperty = await storage.insertProperty(parsedData);
+      res.status(201).json(newProperty);
+    } catch (error) {
+      console.error('Error inserting property:', error);
+      res.status(400).json({ message: 'Invalid property data', error: error.message });
+    }
+  });
+
+  // Placeholder for Vertex AI endpoints
+  app.post('/api/ai/predict-price', async (req: Request, res: Response) => {
+    try {
+      const { propertyData } = req.body;
+      const pricePrediction = await predictPropertyPrice(propertyData);
+      res.json({ pricePrediction });
+    } catch (error) {
+      console.error('Error predicting price:', error);
+      res.status(500).json({ message: 'Failed to predict price' });
+    }
+  });
+
+  // Placeholder for Gemini AI endpoints
+  app.post('/api/ai/explain-legal-term', async (req: Request, res: Response) => {
+    try {
+      const { term } = req.body;
+      const explanation = await explainLegalTerm(term);
+      res.json({ explanation });
+    } catch (error) {
+      console.error('Error explaining legal term:', error);
+      res.status(500).json({ message: 'Failed to explain term' });
+    }
+  });
+
+  // Global error handling middleware (should be last)
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error('Unhandled API Error:', err.stack);
+    res.status(500).send('Something broke!');
+  });
+};

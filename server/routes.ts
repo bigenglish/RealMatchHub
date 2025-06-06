@@ -9,7 +9,7 @@ import {
   insertServiceOfferingSchema,
   insertServiceBundleSchema
 } from "@shared/schema";
-import { fetchIdxListings, testIdxConnection } from "./idx-broker"; // Import from idx-broker.ts
+import { fetchIdxListings, testIdxConnection } from "./idx-broker-comprehensive-fix"; // Import from comprehensive fix
 import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
 import {
   predictPropertyPrice,
@@ -813,6 +813,22 @@ function generateIdxSearchUrl(criteria: any): string {
       res.status(500).json({ 
         success: false, 
         message: "Error testing IDX connection" 
+      });
+    }
+  });
+
+  // Comprehensive IDX diagnostics endpoint
+  app.get("/api/idx-full-diagnostics", async (_req, res) => {
+    try {
+      const { runComprehensiveDiagnostics } = await import('./idx-api-diagnostics');
+      const diagnostics = await runComprehensiveDiagnostics();
+      res.json(diagnostics);
+    } catch (error) {
+      console.error("Error running IDX diagnostics:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error running diagnostics",
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   });

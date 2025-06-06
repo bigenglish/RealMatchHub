@@ -801,10 +801,11 @@ function generateIdxSearchUrl(criteria: any): string {
     }
   });
 
-  // Add endpoint to test the IDX API connection
+  // Add endpoint to test the IDX API connection using new client
   app.get("/api/idx-test", async (_req, res) => {
     try {
       console.log("[express] /api/idx-test called");
+      const { testIdxConnection } = await import('./idx-broker-api-client');
       const connectionResult = await testIdxConnection();
       console.log("[express] /api/idx-test result:", connectionResult);
       res.json(connectionResult);
@@ -817,11 +818,62 @@ function generateIdxSearchUrl(criteria: any): string {
     }
   });
 
-  // Comprehensive IDX diagnostics endpoint
+  // New endpoint for robust IDX listings using the new API client
+  app.get("/api/idx-listings-robust", async (req, res) => {
+    try {
+      const { IdxBrokerAPI } = await import('./idx-broker-api-client');
+      const api = new IdxBrokerAPI();
+      
+      const criteria = {
+        limit: req.query.limit ? Number(req.query.limit) : 25,
+        offset: req.query.offset ? Number(req.query.offset) : 0,
+        city: req.query.city ? String(req.query.city) : undefined,
+        state: req.query.state ? String(req.query.state) : undefined,
+        zipCode: req.query.zipCode ? String(req.query.zipCode) : undefined,
+        minPrice: req.query.minPrice ? Number(req.query.minPrice) : undefined,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+        bedrooms: req.query.bedrooms ? Number(req.query.bedrooms) : undefined,
+        bathrooms: req.query.bathrooms ? Number(req.query.bathrooms) : undefined,
+        propertyType: req.query.propertyType ? String(req.query.propertyType) : undefined,
+      };
+
+      console.log("[express] IDX Robust API search criteria:", criteria);
+      
+      // Try featured listings first, then fall back to other endpoints
+      const endpoints = ['clients/featured', 'clients/systemlinks', 'clients/listings'];
+      let lastError;
+      
+      for (const endpoint of endpoints) {
+        try {
+          const result = await api.fetchListings(endpoint, criteria);
+          if (result.listings.length > 0) {
+            console.log(`[express] Success with endpoint ${endpoint}: ${result.listings.length} listings`);
+            return res.json(result);
+          }
+        } catch (error) {
+          console.log(`[express] Endpoint ${endpoint} failed:`, error);
+          lastError = error;
+          continue;
+        }
+      }
+      
+      throw lastError || new Error('All endpoints failed');
+      
+    } catch (error) {
+      console.error("Error fetching robust IDX listings:", error);
+      res.status(500).json({ 
+        message: "Error fetching IDX listings",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Comprehensive IDX diagnostics endpoint using new API client
   app.get("/api/idx-full-diagnostics", async (_req, res) => {
     try {
-      const { runComprehensiveDiagnostics } = await import('./idx-api-diagnostics');
-      const diagnostics = await runComprehensiveDiagnostics();
+      const { IdxBrokerAPI } = await import('./idx-broker-api-client');
+      const api = new IdxBrokerAPI();
+      const diagnostics = await api.runDiagnostics();
       res.json(diagnostics);
     } catch (error) {
       console.error("Error running IDX diagnostics:", error);

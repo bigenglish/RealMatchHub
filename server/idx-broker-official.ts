@@ -71,15 +71,32 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
       throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
     }
 
-    // IDX Broker API using header-based authentication as required by your account
-    const apiUrl = 'https://api.idxbroker.com/clients/featured';
+    // IDX Broker API using proper header-based authentication
+    const params = new URLSearchParams();
+    
+    // Add search criteria as URL parameters
+    if (minPrice) params.append('lp', minPrice.toString());
+    if (maxPrice) params.append('hp', maxPrice.toString());
+    if (bedrooms) params.append('bd', bedrooms.toString());
+    if (minBedrooms) params.append('bd', minBedrooms.toString());
+    if (bathrooms) params.append('tb', bathrooms.toString());
+    if (minBathrooms) params.append('tb', minBathrooms.toString());
+    if (city) params.append('city[]', city);
+    if (state) params.append('state', state);
+    if (zipCode) params.append('zipcode[]', zipCode);
+    if (propertyType && propertyType !== 'sfr') params.append('pt', propertyType);
+    
+    // Add default parameters
+    params.append('limit', limit.toString());
+    params.append('rf', 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate');
+    
+    const apiUrl = `https://api.idxbroker.com/clients/featured?${params.toString()}`;
     
     const headers = {
       'accesskey': process.env.IDX_BROKER_API_KEY,
       'outputtype': 'json',
-      'apiversion': '1.8.0',
-      'Accept': 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Accept': 'application/json'
     };
 
     console.log(`[IDX-Official] Fetching from: ${apiUrl}`);

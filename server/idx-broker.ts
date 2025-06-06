@@ -70,14 +70,15 @@ export async function fetchIdxListings(criteria: IdxSearchCriteria = {}): Promis
   try {
     console.log('[IDX] Fetching listings with criteria:', criteria);
     
-    const response = await axios.get('https://api.idxbroker.com/clients/listings', {
+    const response = await axios.get('https://api.idxbroker.com/clients/featured', {
       headers: {
         'accesskey': apiKey,
-        'outputtype': 'json'
+        'outputtype': 'json',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       params: {
         limit: criteria.limit || 100,
-        ...criteria
+        rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate'
       },
       timeout: 15000
     });
@@ -151,7 +152,8 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
     const response = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
       headers: {
         'accesskey': apiKey,
-        'outputtype': 'json'
+        'outputtype': 'json',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
       timeout: 10000
     });

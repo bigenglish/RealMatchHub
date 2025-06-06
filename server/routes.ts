@@ -773,6 +773,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // IDX Client API verification endpoint
+  app.get("/api/idx-client-verification", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      console.log("[express] Verifying IDX Client API configuration...");
+
+      const axios = require('axios');
+      
+      // Test the corrected Client API endpoints
+      const testResults = [];
+      
+      const clientEndpoints = [
+        'https://api.idxbroker.com/clients/accountinfo',
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/clients/systemlinks'
+      ];
+
+      for (const endpoint of clientEndpoints) {
+        try {
+          console.log(`[express] Testing endpoint: ${endpoint}`);
+          
+          const response = await axios.get(endpoint, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json',
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: endpoint.includes('featured') ? {
+              limit: 10,
+              rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType'
+            } : {},
+            timeout: 10000
+          });
+
+          const resultCount = Array.isArray(response.data) ? response.data.length : 
+                            (response.data && typeof response.data === 'object') ? Object.keys(response.data).length : 0;
+
+          testResults.push({
+            endpoint,
+            success: true,
+            status: response.status,
+            resultCount,
+            sampleData: response.data ? JSON.stringify(response.data).substring(0, 200) : null
+          });
+
+          console.log(`[express] ${endpoint} - SUCCESS: ${resultCount} results`);
+
+        } catch (error: any) {
+          testResults.push({
+            endpoint,
+            success: false,
+            status: error.response?.status || 0,
+            error: error.message,
+            resultCount: 0
+          });
+          console.log(`[express] ${endpoint} - FAILED: ${error.message}`);
+        }
+      }
+
+      const successfulTests = testResults.filter(result => result.success);
+      
+      res.json({
+        accountType: 'Client',
+        apiPermissions: successfulTests.length > 0 ? 'Access confirmed' : 'Access denied',
+        endpointAccess: {
+          'clients/featured': testResults.find(r => r.endpoint.includes('featured'))?.success || false,
+          'clients/accountinfo': testResults.find(r => r.endpoint.includes('accountinfo'))?.success || false
+        },
+        testResults,
+        recommendation: successfulTests.length === testResults.length ? 
+          'All Client API endpoints working correctly' :
+          successfulTests.length > 0 ?
+          'Partial access - some endpoints working' :
+          'No access - check API key configuration'
+      });
+
+    } catch (error) {
+      console.error("[express] Error verifying IDX Client API:", error);
+      res.status(500).json({ message: "Error verifying IDX Client API configuration" });
+    }
+  });
+
   // Test buyer workflow URL parameters specifically
   app.get("/api/test-buyer-workflow-params", async (_req, res) => {
     try {

@@ -37,7 +37,7 @@ export interface PropertySearchCriteria {
   // Basic pagination and limits
   limit?: number;
   offset?: number;
-  
+
   // Location filters
   city?: string;
   state?: string;
@@ -45,11 +45,11 @@ export interface PropertySearchCriteria {
   county?: string;
   neighborhood?: string;
   mls?: string;
-  
+
   // Price filters
   minPrice?: number;
   maxPrice?: number;
-  
+
   // Property basics
   bedrooms?: number;
   minBedrooms?: number;
@@ -58,7 +58,7 @@ export interface PropertySearchCriteria {
   minBathrooms?: number;
   maxBathrooms?: number;
   propertyType?: string; // sfr, condo, townhouse, mobile, land, etc.
-  
+
   // Size and lot
   minSquareFeet?: number;
   maxSquareFeet?: number;
@@ -66,7 +66,7 @@ export interface PropertySearchCriteria {
   maxLotSize?: number;
   minAcres?: number;
   maxAcres?: number;
-  
+
   // Property features
   garage?: boolean;
   parking?: number; // Number of parking spaces
@@ -75,46 +75,46 @@ export interface PropertySearchCriteria {
   waterfront?: boolean;
   fireplace?: boolean;
   basement?: boolean;
-  
+
   // Building details
   yearBuilt?: number;
   minYearBuilt?: number;
   maxYearBuilt?: number;
   stories?: number;
   architectural?: string;
-  
+
   // Listing status and timing
   status?: string; // Active, Pending, Sold, etc.
   daysOnMarket?: number;
   maxDaysOnMarket?: number;
   newConstruction?: boolean;
-  
+
   // Financial
   hoa?: boolean;
   maxHOA?: number;
   taxAmount?: number;
   maxTaxAmount?: number;
-  
+
   // Investment/rental specific
   rental?: boolean;
   cashFlow?: number;
   capRate?: number;
-  
+
   // Accessibility and special needs
   seniorCommunity?: boolean;
   wheelchair?: boolean;
-  
+
   // Energy and environment
   energyEfficient?: boolean;
   solar?: boolean;
   greenCertified?: boolean;
-  
+
   // School districts (important for families)
   schoolDistrict?: string;
   elementarySchool?: string;
   middleSchool?: string;
   highSchool?: string;
-  
+
   // Sorting and ordering
   sortBy?: string; // price, date, sqft, beds, etc.
   sortOrder?: 'asc' | 'desc';
@@ -125,9 +125,9 @@ export async function fetchAllIdxListings(criteria: PropertySearchCriteria = {})
   let currentPage = 1;
   const maxPages = 20; // Based on your analysis: 20 pages total
   const itemsPerPage = 50; // Based on your analysis: 50 properties per page
-  
+
   console.log(`[IDX-HomesAI] Fetching all pages (up to ${maxPages} pages with ${itemsPerPage} properties each)`);
-  
+
   for (let page = 1; page <= maxPages; page++) {
     try {
       const pageOffset = (page - 1) * itemsPerPage;
@@ -136,15 +136,15 @@ export async function fetchAllIdxListings(criteria: PropertySearchCriteria = {})
         limit: itemsPerPage,
         offset: pageOffset
       });
-      
+
       if (pageResults.listings.length === 0) {
         console.log(`[IDX-HomesAI] No more listings found at page ${page}, stopping pagination`);
         break;
       }
-      
+
       allListings.push(...pageResults.listings);
       console.log(`[IDX-HomesAI] Page ${page}: Added ${pageResults.listings.length} listings (Total: ${allListings.length})`);
-      
+
       // Small delay to avoid overwhelming the server
       if (page < maxPages) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -154,7 +154,7 @@ export async function fetchAllIdxListings(criteria: PropertySearchCriteria = {})
       break;
     }
   }
-  
+
   return {
     listings: allListings,
     totalCount: allListings.length,
@@ -227,17 +227,17 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
 
     // Build IDX search parameters matching the exact URL patterns from your examples
     const searchParams = new URLSearchParams();
-    
+
     // Use simplified parameters that work with the IDX system
     searchParams.append('pt', 'sfr'); // Single family residential
-    
+
     // Use broader price range to get more California properties
     searchParams.append('lp', '100000'); // Low price - start broader
     searchParams.append('hp', '50000000'); // High price - very broad to capture inventory
-    
+
     // Remove location restrictions entirely to get the full property dataset
     // Apply filtering after data retrieval to ensure authentic properties
-    
+
     // Bedrooms and bathrooms (matching your examples: bd=1, tb=1)
     if (bedrooms !== undefined) {
       searchParams.append('bd', String(bedrooms));
@@ -246,7 +246,7 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     } else {
       searchParams.append('bd', '0'); // Default as in your examples
     }
-    
+
     if (bathrooms !== undefined) {
       searchParams.append('tb', String(bathrooms)); // Total baths
     } else if (minBathrooms !== undefined) {
@@ -254,16 +254,16 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     } else {
       searchParams.append('tb', '1'); // Default as in your examples
     }
-    
+
     // Additional filters
     if (minSquareFeet) searchParams.append('sf', String(minSquareFeet));
     if (maxSquareFeet) searchParams.append('msf', String(maxSquareFeet));
-    
+
     // Year built
     if (yearBuilt) searchParams.append('yr', String(yearBuilt));
     if (minYearBuilt) searchParams.append('mnyr', String(minYearBuilt));
     if (maxYearBuilt) searchParams.append('mxyr', String(maxYearBuilt));
-    
+
     // Property features - using common IDX parameter patterns
     if (garage) searchParams.append('gar', '1'); // Has garage
     if (parking) searchParams.append('park', String(parking)); // Parking spaces
@@ -272,54 +272,54 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     if (waterfront) searchParams.append('wf', '1'); // Waterfront
     if (fireplace) searchParams.append('fp', '1'); // Fireplace
     if (basement) searchParams.append('bsmt', '1'); // Basement
-    
+
     // Building details
     if (stories) searchParams.append('stories', String(stories));
     if (architectural) searchParams.append('arch', architectural);
-    
+
     // Listing status and timing
     if (status) searchParams.append('status', status); // Active, Pending, Sold
     if (maxDaysOnMarket) searchParams.append('dom', String(maxDaysOnMarket));
     if (newConstruction) searchParams.append('new', '1');
-    
+
     // Financial filters
     if (hoa) searchParams.append('hoa', '1');
     if (maxHOA) searchParams.append('mhoa', String(maxHOA));
     if (maxTaxAmount) searchParams.append('mtax', String(maxTaxAmount));
-    
+
     // Investment/rental specific
     if (rental) searchParams.append('rental', '1');
     if (cashFlow) searchParams.append('cf', String(cashFlow));
     if (capRate) searchParams.append('cap', String(capRate));
-    
+
     // Accessibility and special needs
     if (seniorCommunity) searchParams.append('senior', '1');
     if (wheelchair) searchParams.append('accessible', '1');
-    
+
     // Energy and environment
     if (energyEfficient) searchParams.append('energy', '1');
     if (solar) searchParams.append('solar', '1');
     if (greenCertified) searchParams.append('green', '1');
-    
+
     // School districts (critical for family buyers)
     if (schoolDistrict) searchParams.append('school', schoolDistrict);
     if (elementarySchool) searchParams.append('elem', elementarySchool);
     if (middleSchool) searchParams.append('middle', middleSchool);
     if (highSchool) searchParams.append('high', highSchool);
-    
+
     // Sorting
     if (sortBy) {
       searchParams.append('sb', sortBy); // Sort by: price, date, sqft, beds, etc.
       if (sortOrder) searchParams.append('so', sortOrder); // asc or desc
     }
-    
+
     // Pagination - using page-based pagination for IDX Broker
     const pageNumber = Math.floor(offset / limit) + 1;
     if (pageNumber > 1) searchParams.append('p', String(pageNumber));
     searchParams.append('count', String(Math.min(limit, 50))); // IDX Broker typically shows 50 per page
 
     const searchUrl = `https://homesai.idxbroker.com/idx/results/listings?${searchParams.toString()}`;
-    
+
     console.log(`[IDX-HomesAI] Searching with IDX parameters: ${searchUrl}`);
 
     // Standard headers that work well with IDX Broker
@@ -336,7 +336,7 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
 
     try {
       console.log(`[IDX-HomesAI] Trying direct results page: ${searchUrl}`);
-      
+
       response = await axios.get(searchUrl, {
         headers: standardHeaders,
         timeout: 15000,
@@ -346,7 +346,7 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
       if (response.status === 200 && response.data && typeof response.data === 'string') {
         console.log(`[IDX-HomesAI] Got HTML response from results page`);
         successfulEndpoint = searchUrl;
-        
+
         // Parse HTML for property listings
         const propertyData = parsePropertyListingsFromHTML(response.data);
         if (propertyData.length > 0) {
@@ -368,10 +368,10 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
     // Try map search endpoint if direct results fail
     if (!response || !response.data || (Array.isArray(response.data) && response.data.length === 0)) {
       console.log('[IDX-HomesAI] Trying map search endpoint');
-      
+
       try {
         const mapSearchUrl = `https://homesai.idxbroker.com/idx/map/mapsearch?${searchParams.toString()}`;
-        
+
         response = await axios.get(mapSearchUrl, {
           headers: {
             ...standardHeaders,
@@ -384,7 +384,7 @@ export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): P
         if (response.status === 200 && response.data) {
           console.log(`[IDX-HomesAI] Map search returned data`);
           successfulEndpoint = mapSearchUrl;
-          
+
           // Try to parse JSON if it's an API response
           if (typeof response.data === 'object') {
             console.log(`[IDX-HomesAI] Got JSON response from map search`);
@@ -429,50 +429,50 @@ function parsePropertyListingsFromHTML(html: string): any[] {
     // Look for IDX property listing elements in the HTML
     $('.IDX-resultsCell').each((index, element) => {
       const $element = $(element);
-      
+
       // Extract property data from IDX HTML structure
       const listingId = $element.attr('data-listingid') || `homesai-${index}`;
       const idxId = $element.attr('data-idxid') || 'd025';
       const price = parseFloat($element.attr('data-price') || '0') || 0;
-      
+
       // Extract address components
       const addressNumber = $element.find('.IDX-resultsAddressNumber').text().trim();
       const addressName = $element.find('.IDX-resultsAddressName').text().trim();
       const city = $element.find('.IDX-resultsAddressCity').text().trim();
       const state = $element.find('.IDX-resultsAddressState, .IDX-resultsAddressStateAbrv').text().trim();
       const zip = $element.find('.IDX-resultsAddressZip').text().trim();
-      
+
       const fullAddress = `${addressNumber}${addressName}, ${city}, ${state} ${zip}`.trim();
-      
+
       // Extract property details
       const priceText = $element.find('.IDX-field-listingPrice .IDX-text, .IDX-field-price .IDX-text').text().trim();
       const listPrice = price || parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
-      
+
       // Look for bedrooms and bathrooms in various possible locations
       const bedrooms = parseInt($element.find('.IDX-field-bedrooms .IDX-text, .IDX-field-beds .IDX-text').text().replace(/\D/g, '')) || 
                      parseInt($element.text().match(/(\d+)\s*bed/i)?.[1] || '0') || 0;
-      
+
       const totalBaths = parseFloat($element.find('.IDX-field-totalBaths .IDX-text, .IDX-field-baths .IDX-text').text().replace(/[^\d.]/g, '')) ||
                         parseFloat($element.text().match(/(\d+(?:\.\d+)?)\s*bath/i)?.[1] || '0') || 0;
-      
+
       // Extract square footage
       const sqFt = parseInt($element.find('.IDX-field-sqFt .IDX-text').text().replace(/\D/g, '')) ||
                    parseInt($element.text().match(/(\d{3,})\s*sq\s*ft/i)?.[1] || '0') || 0;
-      
+
       // Extract property type and status
       const propStatus = $element.find('.IDX-field-propStatus .IDX-resultsText').text().trim() || 'Active';
       const propType = $element.find('.IDX-field-propType .IDX-resultsText').text().trim() || 'Residential';
-      
+
       // Extract description
       const description = $element.find('.IDX-resultsDescription').text().trim();
-      
+
       // Extract image
       const imageElement = $element.find('.IDX-resultsPhotoImg, .IDX-resultsPhoto img').first();
       const image = imageElement.attr('data-src') || imageElement.attr('src') || '';
-      
+
       // Extract listing date (if available)
       const listDate = $element.find('.IDX-field-listDate .IDX-resultsText').text().trim() || new Date().toISOString();
-      
+
       const listing = {
         idxID: listingId,
         idxMLS: idxId,
@@ -560,7 +560,7 @@ function extractJSONFromHTML(html: string): any[] {
  */
 function transformIdxResponse(data: any): IdxListingsResponse {
   console.log('[IDX-HomesAI] Transforming HomesAI response');
-  
+
   if (!data) {
     return { listings: [], totalCount: 0, hasMoreListings: false };
   }
@@ -594,30 +594,30 @@ function transformIdxResponse(data: any): IdxListingsResponse {
       if (!item || !(item.idxID || item.listingID || item.address || item.listPrice)) {
         return false;
       }
-      
+
       // Filter out international properties based on address patterns
       const address = item.address || '';
       const city = item.city || '';
-      
+
       // Exclude international locations
       const internationalPatterns = [
         'greece', 'mexico', 'cyprus', 'athens', 'pafos', 'tijuana', 'baja',
         'outside area (outside u.s.)', 'outside area (outside ca)', 'foreign country',
         'other,', ', other,', ', other ', 'outside area'
       ];
-      
+
       const addressLower = address.toLowerCase();
       const cityLower = city.toLowerCase();
-      
+
       const isInternational = internationalPatterns.some(pattern => 
         addressLower.includes(pattern) || cityLower.includes(pattern)
       );
-      
+
       if (isInternational) {
         console.log(`[IDX-HomesAI] Filtering out international property: ${address}`);
         return false;
       }
-      
+
       return true;
     })
     .map((item: any, index: number) => {
@@ -634,7 +634,7 @@ function transformIdxResponse(data: any): IdxListingsResponse {
       const propertyType = item.propType || item.propertyType || 'Residential';
       const description = item.remarksConcat || item.description || item.remarks || '';
       const listedDate = item.listDate || item.dateAdded || new Date().toISOString();
-      
+
       // Handle images
       let images: string[] = [];
       if (item.image && typeof item.image === 'string') {
@@ -663,7 +663,7 @@ function transformIdxResponse(data: any): IdxListingsResponse {
     });
 
   console.log(`[IDX-HomesAI] Successfully transformed ${transformedListings.length} listings`);
-  
+
   if (transformedListings.length > 0) {
     console.log('[IDX-HomesAI] Sample transformed listing:', {
       id: transformedListings[0].listingId,
@@ -685,19 +685,19 @@ function transformIdxResponse(data: any): IdxListingsResponse {
  */
 function extractCityFromAddress(address: string): string {
   if (!address) return '';
-  
+
   // Look for city pattern in address (before state abbreviation)
   const cityMatch = address.match(/,\s*([^,]+)\s+[A-Z]{2}\s+\d{5}/);
   if (cityMatch) {
     return cityMatch[1].trim();
   }
-  
+
   // Fallback: split by comma and take second-to-last part
   const parts = address.split(',');
   if (parts.length >= 2) {
     return parts[parts.length - 2].trim();
   }
-  
+
   return '';
 }
 
@@ -706,7 +706,7 @@ function extractCityFromAddress(address: string): string {
  */
 function extractZipFromAddress(address: string): string {
   if (!address) return '';
-  
+
   // Look for 5-digit ZIP code
   const zipMatch = address.match(/\b\d{5}\b/);
   return zipMatch ? zipMatch[0] : '';
@@ -719,7 +719,7 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
   try {
     // Test the working URL pattern you provided
     const testUrl = 'https://homesai.idxbroker.com/idx/results/listings?lp=500000&hp=600000';
-    
+
     const response = await axios.get(testUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

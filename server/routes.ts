@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/health', (req, res) => {
 
 // Helper function to generate IDX search URLs for fallback
-function buildIdxSearchUrl(criteria: any): string {
+function generateIdxSearchUrl(criteria: any): string {
   const baseUrl = 'https://homesai.idxbroker.com/idx/results/listings';
   const params = new URLSearchParams();
   
@@ -192,7 +192,7 @@ function buildIdxSearchUrl(criteria: any): string {
       }
       
       // Add URL fallback option for users who want direct IDX search
-      const fallbackUrl = buildIdxSearchUrl(searchCriteria);
+      const fallbackUrl = generateIdxSearchUrl(searchCriteria);
       console.log("[express] Generated fallback URL:", fallbackUrl);
       console.log(`[express] Fetched ${idxListings.listings.length} listings from IDX Broker`);
 
@@ -765,6 +765,17 @@ function buildIdxSearchUrl(criteria: any): string {
         message: "Error counting active properties: " + error.message,
         activeCount: 0
       });
+    }
+  });
+
+  // Add comprehensive API key diagnostic endpoint
+  app.get("/api/idx-key-diagnostics", async (_req, res) => {
+    try {
+      const { getApiKeyDiagnostics } = await import('./idx-key-validator');
+      const diagnostics = getApiKeyDiagnostics();
+      res.json(diagnostics);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to run diagnostics' });
     }
   });
 

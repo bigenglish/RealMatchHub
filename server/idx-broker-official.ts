@@ -24,6 +24,11 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
 
     const apiKey = process.env.IDX_BROKER_API_KEY;
     console.log(`[IDX-Official] Using API key: ${apiKey.substring(0, 4)}...`);
+    
+    // Validate API key format
+    if (!apiKey.startsWith('a') || apiKey.length !== 22) {
+      console.warn(`[IDX-Official] API key format warning: Expected format 'a...' with 22 characters, got '${apiKey.substring(0, 4)}...' with ${apiKey.length} characters`);
+    }
 
     // Use Client API endpoints based on your account type
     const endpoints = [

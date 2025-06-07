@@ -15,7 +15,7 @@ export function validateIdxApiKey(apiKey: string): { valid: boolean; issues: str
     issues.push(`API key should start with '@' or 'a', got '${apiKey.charAt(0)}'`);
   }
   
-  if (!/^[a-zA-Z0-9]+$/.test(apiKey)) {
+  if (!/^[@a-zA-Z0-9]+$/.test(apiKey)) {
     issues.push("API key contains invalid characters (should be alphanumeric only)");
   }
   

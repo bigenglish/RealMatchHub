@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker-comprehensive-fix"; // Import from comprehensive fix
 import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
+import { isValidIdxApiKey } from "./idx-key-validator"; // Import the new validator
 import {
   predictPropertyPrice,
   generatePropertyDescription,
@@ -544,16 +545,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test the updated API key immediately
+  // Test the updated API key immediately with validation
   app.get("/api/idx-key-test", async (_req, res) => {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
-      console.log(`[express] Testing new API key: ${apiKey?.substring(0, 4)}...${apiKey?.substring(-4)}`);
+      console.log(`[express] Testing API key: ${apiKey?.substring(0, 4)}...${apiKey?.substring(-4)}`);
+      console.log(`[express] Full API key for debugging: ${apiKey}`);
 
       if (!apiKey) {
         return res.json({ success: false, message: "No API key found" });
       }
 
+      // First, validate the key format
+      const isValidFormat = isValidIdxApiKey(apiKey);
+      console.log(`[express] API key format validation: ${isValidFormat}`);
+
+      if (!isValidFormat) {
+        return res.json({ 
+          success: false, 
+          message: "API key format is invalid",
+          keyInfo: {
+            length: apiKey.length,
+            startsWithA: apiKey.startsWith('a'),
+            startsWithAt: apiKey.startsWith('@'),
+            format: apiKey.startsWith('@') ? 'new format' : apiKey.startsWith('a') ? 'traditional format' : 'unknown format'
+          }
+        });
+      }
+
+      // Test the API connection
       const axios = require('axios');
       const testResponse = await axios.get('https://api.idxbroker.com/clients/accountinfo', {
         headers: {
@@ -566,21 +586,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (testResponse.status === 200) {
         return res.json({ 
           success: true, 
-          message: "New API key is working!", 
+          message: "API key is working!", 
           status: testResponse.status,
+          validFormat: true,
           dataPreview: JSON.stringify(testResponse.data).substring(0, 100)
         });
       } else {
         return res.json({ 
           success: false, 
-          message: `API returned status ${testResponse.status}` 
+          message: `API returned status ${testResponse.status}`,
+          validFormat: true
         });
       }
     } catch (error: any) {
       console.error("[express] API key test failed:", error.message);
       return res.json({ 
         success: false, 
-        message: error.response?.status === 401 ? "API key is still invalid" : error.message 
+        message: error.response?.status === 401 ? "API key is invalid or expired" : error.message,
+        validFormat: apiKey ? isValidIdxApiKey(apiKey) : false
       });
     }
   });

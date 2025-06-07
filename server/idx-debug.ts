@@ -19,7 +19,7 @@ export async function debugIdxBrokerApi(): Promise<void> {
   console.log('✅ API Key found');
   console.log('📊 API Key length:', apiKey.length);
   console.log('📊 API Key prefix:', apiKey.substring(0, 4) + '...');
-  console.log('📊 Starts with "a":', apiKey.startsWith('a'));
+  console.log('📊 API Key format valid:', apiKey.startsWith('a') || apiKey.startsWith('@'));
   
   // Test different endpoints with different header combinations
   const endpoints = [

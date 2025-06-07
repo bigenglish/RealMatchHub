@@ -2,7 +2,12 @@
 import axios from 'axios';
 
 async function testIdxBrokerConnection() {
-  const apiKey = '@C1r6rrCR9VuUqT2gs@dU';
+  const apiKey = process.env.IDX_BROKER_API_KEY;
+  
+  if (!apiKey) {
+    console.log('❌ No IDX_BROKER_API_KEY found in environment variables');
+    return;
+  }
   
   console.log('=== IDX Broker API Connection Test ===');
   console.log('API Key:', apiKey.substring(0, 4) + '...');

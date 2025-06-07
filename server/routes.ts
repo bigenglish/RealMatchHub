@@ -550,7 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const apiKey = process.env.IDX_BROKER_API_KEY;
       console.log(`[express] Testing API key: ${apiKey?.substring(0, 4)}...${apiKey?.substring(-4)}`);
-      console.log(`[express] Full API key for debugging: ${apiKey}`);
+      console.log(`[express] API key format: ${apiKey?.startsWith('@') ? 'new format' : apiKey?.startsWith('a') ? 'traditional format' : 'unknown format'}`);
 
       if (!apiKey) {
         return res.json({ success: false, message: "No API key found" });
@@ -1109,10 +1109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           url: 'https://api.idxbroker.com/clients/accountinfo',
           method: 'GET',
           headers: {
-            'accesskey': apiKey || 'NO_KEY_FOUND',
+            'accesskey': apiKey ? '[PRESENT]' : '[MISSING]',
             'outputtype': 'json'
           },
-          curlCommand: `curl -X GET "https://api.idxbroker.com/clients/accountinfo" -H "accesskey: ${apiKey || 'NO_KEY_FOUND'}" -H "outputtype: json"`
+          curlCommand: `curl -X GET "https://api.idxbroker.com/clients/accountinfo" -H "accesskey: [YOUR_API_KEY]" -H "outputtype: json"`
         },
         liveTest: null
       };
@@ -1218,7 +1218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           length: apiKey?.length || 0,
           prefix: apiKey?.substring(0, 4) || 'none',
           validFormat: apiKey?.startsWith('a') || false,
-          fullKey: apiKey // TEMPORARY: showing full key for debugging
+          keyFormat: apiKey?.startsWith('@') ? 'new format' : apiKey?.startsWith('a') ? 'traditional format' : 'unknown format'
         },
         testResults: []
       };

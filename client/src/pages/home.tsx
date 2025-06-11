@@ -237,7 +237,7 @@ export default function HomePage() {
                 charset="UTF-8" 
                 type="text/javascript" 
                 id="idxaddons-autocomplete-script" 
-                src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3Dr0Y38H410MY/?pts=tabs" 
+                src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3D@C1r6rrCR9VuUqT2gs@dUd/?pts=tabs" 
                 data-disable="bd,tb,lp,hp" 
                 data-fieldlabels="n"
               ></script>

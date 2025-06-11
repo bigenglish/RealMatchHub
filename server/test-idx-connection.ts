@@ -10,7 +10,8 @@ async function testIdxBrokerConnection() {
   }
   
   console.log('=== IDX Broker API Connection Test ===');
-  console.log('API Key:', apiKey.substring(0, 4) + '...');
+  console.log('API Key format:', apiKey.startsWith('@') ? 'New format' : 'Traditional format');
+  console.log('API Key prefix:', apiKey.substring(0, 4) + '...');
   console.log('API Key Length:', apiKey.length);
   
   const endpoints = [

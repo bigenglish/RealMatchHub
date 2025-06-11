@@ -60,7 +60,16 @@ export class IdxBrokerAPI {
     if (!this.apiKey) {
       throw new Error('IDX_BROKER_API_KEY environment variable is required and must be correctly formatted.');
     }
-    console.log('[IDX-API-Client] IdxBrokerAPI initialized. API Key presence:', !!this.apiKey);
+    
+    // Validate API key format
+    const isValidFormat = this.apiKey.startsWith('a') || this.apiKey.startsWith('@');
+    if (!isValidFormat) {
+      console.warn('[IDX-API-Client] Warning: API key format may be invalid. Expected to start with "a" or "@"');
+    }
+    
+    console.log('[IDX-API-Client] IdxBrokerAPI initialized.');
+    console.log('[IDX-API-Client] API Key format:', this.apiKey.startsWith('@') ? 'New format (@...)' : 'Traditional format (a...)');
+    console.log('[IDX-API-Client] API Key length:', this.apiKey.length);
   }
 
   private buildQueryParams(params: { [key: string]: any }): string {

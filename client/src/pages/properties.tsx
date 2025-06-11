@@ -100,7 +100,7 @@ export default function PropertiesPage() {
   const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const mode = searchParams.get('mode');
-  
+
   // Redirect to seller flow if in sell mode
   useEffect(() => {
     if (mode === 'sell') {
@@ -108,21 +108,21 @@ export default function PropertiesPage() {
       return;
     }
   }, [mode, setLocation]);
-  
+
   // Build query string from URL parameters for API call
   const buildApiUrl = () => {
     const currentUrl = window.location.href;
     const urlParams = new URLSearchParams(currentUrl.split('?')[1] || '');
-    
+
     const params = new URLSearchParams();
-    
+
     // Pass all URL parameters to the API
     urlParams.forEach((value, key) => {
       if (value && value !== 'undefined') {
         params.append(key, value);
       }
     });
-    
+
     const queryString = params.toString();
     return queryString ? `/api/properties?${queryString}` : "/api/properties";
   };
@@ -162,12 +162,12 @@ export default function PropertiesPage() {
   // Prepare the property data with proper deduplication
   const yourProperties = data?.yourProperties || [];
   const rawIdxListings = data?.idxListings || [];
-  
+
   // Convert and filter IDX listings, removing duplicates and invalid properties
   const convertedListings = rawIdxListings
     .map((listing, index) => convertIdxToProperty(listing, index))
     .filter(Boolean) as Property[];
-  
+
   // Apply search filters and remove duplicates
   const seenProperties = new Set<string>();
   const idxListings = convertedListings.filter(property => {
@@ -186,7 +186,7 @@ export default function PropertiesPage() {
       console.log(`[Properties] Price too low: ${property.price} < ${searchFilters.minPrice}`);
       return false;
     }
-    
+
     // For bedrooms and bathrooms, be more flexible - use >= instead of exact match
     if (searchFilters.bedrooms && searchFilters.bedrooms > 0 && property.bedrooms < searchFilters.bedrooms) {
       console.log(`[Properties] Not enough bedrooms: ${property.bedrooms} < ${searchFilters.bedrooms}`);
@@ -196,25 +196,25 @@ export default function PropertiesPage() {
       console.log(`[Properties] Not enough bathrooms: ${property.bathrooms} < ${searchFilters.bathrooms}`);
       return false;
     }
-    
+
     // City filter - be more flexible with matching
     if (searchFilters.city && searchFilters.city.trim() !== '') {
       const searchCity = searchFilters.city.toLowerCase().replace(/\+/g, ' ').trim();
       const propertyCity = (property.city || '').toLowerCase().trim();
-      
+
       // Check if search city is contained in property city or vice versa
       const cityMatch = propertyCity.includes(searchCity) || searchCity.includes(propertyCity);
-      
+
       if (!cityMatch) {
         console.log(`[Properties] City doesn't match: "${propertyCity}" vs "${searchCity}"`);
         return false;
       }
     }
-    
+
     // Property type filter - handle multiple types and be more flexible
     if (searchFilters.propertyType && searchFilters.propertyType.trim() !== '') {
       const propertyTypes = searchFilters.propertyType.split(',').map(t => t.trim().toLowerCase());
-      
+
       const propertyTypeMap: { [key: string]: string[] } = {
         'sfr': ['single family', 'residential', 'house', 'sfr'],
         'cnd': ['condo', 'condominium', 'condo/coop'],
@@ -222,7 +222,7 @@ export default function PropertiesPage() {
         'mfr': ['multi-family', 'multifamily', 'duplex', 'triplex'],
         'lnd': ['land', 'lot', 'vacant']
       };
-      
+
       let typeMatches = false;
       for (const searchType of propertyTypes) {
         const allowedTypes = propertyTypeMap[searchType] || [searchType];
@@ -234,7 +234,7 @@ export default function PropertiesPage() {
           break;
         }
       }
-      
+
       if (!typeMatches) {
         console.log(`[Properties] Property type doesn't match: "${property.propertyType}" vs "${searchFilters.propertyType}"`);
         return false;
@@ -260,7 +260,7 @@ export default function PropertiesPage() {
       console.log("Getting display properties for tab:", activeTab, "filtered:", Object.values(searchFilters).some(v => v !== undefined && v !== ''));
       console.log("Total IDX properties after filtering:", idxListings.length);
       console.log("Raw IDX properties before filtering:", convertedListings.length);
-      
+
       // Log first few properties to see what we're working with
       if (convertedListings.length > 0) {
         console.log("Sample converted properties:", convertedListings.slice(0, 3).map(p => ({
@@ -272,7 +272,7 @@ export default function PropertiesPage() {
           propertyType: p.propertyType
         })));
       }
-      
+
       // If we have filters but no results, log why
       if (Object.values(searchFilters).some(v => v !== undefined && v !== '') && idxListings.length === 0 && convertedListings.length > 0) {
         console.log("🔍 No properties match filters. First property details:");
@@ -391,6 +391,28 @@ export default function PropertiesPage() {
     );
   }
 
+  // Filter out properties with missing critical data
+  const isValidProperty = (property: any) => {
+    if (!property) return false;
+
+    // More lenient validation - just check if we have basic structure
+    const hasAddress = property.address && property.address.length > 0;
+    const hasPrice = property.price && property.price > 0;
+    const hasId = property.id || property.listingId;
+
+    const isValid = hasAddress && hasPrice && hasId;
+
+    if (!isValid) {
+      console.log('[Properties] Filtering out invalid property:', {
+        address: property.address,
+        price: property.price,
+        id: property.id || property.listingId
+      });
+    }
+
+    return isValid;
+  };
+
   return (
     <div className="space-y-8">
       {/* Required IDX Broker markers */}
@@ -417,7 +439,7 @@ export default function PropertiesPage() {
 
       {/* IDX Status Banner */}
       <IdxStatus className="mt-4" />
-      
+
       {/* Fast Online Application Promo Banner */}
       <Card className="mt-4 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
         <CardContent className="flex flex-col md:flex-row items-center justify-between p-6">

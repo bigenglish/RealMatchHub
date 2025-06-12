@@ -11,6 +11,7 @@ import {
   insertServiceBundleSchema
 } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker-comprehensive-fix"; // Import from comprehensive fix
+import { mlsSearchAPI } from "./idx-broker-mls-search"; // Import MLS search for full database access
 import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
 import { isValidIdxApiKey } from "./idx-key-validator"; // Import the new validator
 import {
@@ -175,25 +176,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      // Try official IDX Broker API first, fallback to authentic data if needed
+      // Try MLS search API first for full database access, then fallback to featured listings
       let idxListings;
       try {
-        const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
-        console.log("[express] Calling IDX API with search criteria:", JSON.stringify(searchCriteria, null, 2));
-        idxListings = await fetchIdxListingsOfficial(searchCriteria);
+        console.log("[express] Calling MLS Search API for full database access");
+        const mlsResults = await mlsSearchAPI.searchMLS(searchCriteria);
         
-        console.log(`[express] IDX API returned ${idxListings.listings.length} results`);
+        console.log(`[express] MLS Search returned ${mlsResults.listings.length} results`);
         
-        // If empty results from API, use authentic California data
-        if (idxListings.listings.length === 0) {
-          console.log("[express] IDX API returned no results, using authentic California properties");
+        if (mlsResults.listings.length > 0) {
+          // Transform MLS results to match expected format
+          idxListings = {
+            listings: mlsResults.listings.map(listing => ({
+              id: listing.listingId,
+              idxID: listing.listingId,
+              address: listing.address,
+              cityName: listing.city,
+              state: listing.state,
+              zipcode: listing.zipCode,
+              listPrice: listing.price,
+              bedrooms: listing.bedrooms,
+              totalBaths: listing.bathrooms,
+              sqFt: listing.sqft,
+              propType: listing.propertyType,
+              image: listing.images[0] || '',
+              remarksConcat: listing.description,
+              listDate: listing.listedDate,
+              mlsID: listing.mlsNumber
+            })),
+            totalCount: mlsResults.totalCount,
+            hasMoreListings: mlsResults.totalCount > (searchCriteria.offset || 0) + mlsResults.listings.length
+          };
+        } else {
+          // If MLS search returns no results, try the official API
+          console.log("[express] MLS Search returned no results, trying official IDX API");
+          const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
+          idxListings = await fetchIdxListingsOfficial(searchCriteria);
+          
+          // If official API also returns no results, use authentic California data
+          if (idxListings.listings.length === 0) {
+            console.log("[express] Official IDX API returned no results, using authentic California properties");
+            const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
+            idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
+          }
+        }
+      } catch (error: any) {
+        console.log("[express] MLS Search API error, trying fallback methods:", error.message);
+        
+        // Fallback to official API
+        try {
+          const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
+          idxListings = await fetchIdxListingsOfficial(searchCriteria);
+          
+          if (idxListings.listings.length === 0) {
+            console.log("[express] Official IDX API returned no results, using authentic California properties");
+            const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
+            idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
+          }
+        } catch (fallbackError: any) {
+          console.log("[express] All IDX methods failed, using authentic California properties:", fallbackError.message);
           const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
           idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
         }
-      } catch (error: any) {
-        console.log("[express] IDX API error, using authentic California properties:", error.message);
-        const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
-        idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
       }
       
       // Add URL fallback option for users who want direct IDX search

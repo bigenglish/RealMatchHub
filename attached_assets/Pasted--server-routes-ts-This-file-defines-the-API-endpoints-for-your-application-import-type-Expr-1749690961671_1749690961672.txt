@@ -1,0 +1,292 @@
+// server/routes.ts
+// This file defines the API endpoints for your application.
+
+import type { Express, Request, Response, NextFunction } from "express";
+import { IdxBrokerAPI, PropertySearchCriteria } from './idx-broker-api-client'; // Import the main API client and interfaces
+import { storage } from "./storage"; // Assuming storage is used for other parts of the app
+import {
+  insertPropertySchema,
+  insertServiceProviderSchema,
+  insertServiceExpertSchema,
+  insertServiceOfferingSchema,
+  insertServiceBundleSchema
+} from "@shared/schema";
+
+import {
+  predictPropertyPrice,
+  generatePropertyDescription,
+  getPersonalizedRecommendations,
+  generateChatbotResponse,
+} from "./vertex-ai";
+import { explainLegalTerm } from "./gemini-ai";
+
+// Initialize the IDX Broker API client once globally
+let idxApi: IdxBrokerAPI;
+try {
+  idxApi = new IdxBrokerAPI();
+  console.log("[Routes] IDXBrokerAPI initialized successfully.");
+} catch (error: any) {
+  console.error("[Routes] Failed to initialize IDXBrokerAPI:", error.message);
+  // If API key is missing or invalid on startup, log the error but allow server to start.
+  // Subsequent API calls will return 500 errors as `idxApi` will be null/undefined.
+}
+
+
+export const setupRoutes = (app: Express) => {
+  // Health check route
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).send('API is healthy');
+  });
+
+  // --- IDX Broker API Endpoints ---
+
+  // Enhanced Diagnostic endpoint to test IDX Broker API connection and specific data types
+  app.get('/api/idx-full-diagnostics', async (req: Request, res: Response) => {
+    console.log('[Diagnostics] Running IDX Broker API diagnostics...');
+    if (!idxApi) {
+      return res.status(500).json({
+        message: "IDX Broker API client not initialized. Please ensure IDX_BROKER_API_KEY is set and restart the server.",
+        error: "IDXBrokerAPI initialization failed."
+      });
+    }
+
+    const results: { [key: string]: any } = {};
+
+    try {
+      // Test basic account info access (should return 200 OK for a valid key)
+      results.accountInfoTest = await idxApi.testConnection('clients/accountinfo');
+      console.log('[Diagnostics] clients/accountinfo result:', JSON.stringify(results.accountInfoTest, null, 2));
+    } catch (error: any) {
+      results.accountInfoTest = { success: false, error: error.message, details: error.details };
+      console.error('[Diagnostics] Error testing clients/accountinfo:', error.message);
+    }
+
+    try {
+      // Test featured listings access (will return 204 if no featured listings)
+      results.featuredListingsTest = await idxApi.fetchListings('clients/featured', { limit: 5 });
+      console.log('[Diagnostics] clients/featured result:', JSON.stringify(results.featuredListingsTest, null, 2));
+    } catch (error: any) {
+      results.featuredListingsTest = { success: false, error: error.message, details: error.details };
+      console.error('[Diagnostics] Error testing clients/featured:', error.message);
+    }
+
+    try {
+      // Test getting available MLS IDs for your account
+      results.availableMlsIds = await idxApi.getAvailableMlsIds();
+      console.log('[Diagnostics] Available MLS IDs:', JSON.stringify(results.availableMlsIds, null, 2));
+    } catch (error: any) {
+      results.availableMlsIds = { success: false, error: error.message, details: error.details };
+      console.error('[Diagnostics] Error fetching available MLS IDs:', error.message);
+    }
+
+    try {
+      // Test getting accessible endpoints for your client API key
+      results.accessibleEndpoints = await idxApi.getAccessibleEndpoints();
+      console.log('[Diagnostics] Accessible Endpoints (Client API):', JSON.stringify(results.accessibleEndpoints, null, 2));
+    } catch (error: any) {
+      results.accessibleEndpoints = { success: false, error: error.message, details: error.details };
+      console.error('[Diagnostics] Error fetching accessible endpoints:', error.message);
+    }
+    
+    // Attempt general active listings search using 'clients/activels' (most common for Client accounts)
+    // This is the endpoint that needs to return actual data for your app to work.
+    try {
+      // Optionally use an MLS ID if discovered, otherwise don't pass it.
+      const targetMlsId = results.availableMlsIds?.success && results.availableMlsIds.data.length > 0
+                          ? results.availableMlsIds.data[0] // Use the first available MLS ID
+                          : undefined;
+
+      results.generalActiveListingsSearch = await idxApi.fetchListings('clients/activels', {
+        city: 'Los Angeles', // Example search criteria
+        limit: 5,
+        mlsId: targetMlsId // Pass MLS ID if available
+      });
+      console.log('[Diagnostics] clients/activels (general search) result:', JSON.stringify(results.generalActiveListingsSearch, null, 2));
+    } catch (error: any) {
+      results.generalActiveListingsSearch = { success: false, error: error.message, details: error.details };
+      console.error('[Diagnostics] Error testing clients/activels (general search):', error.message);
+    }
+
+
+    res.json({
+      message: 'IDX Broker API Diagnostics Completed',
+      ...results,
+    });
+  });
+
+  // Endpoint to fetch featured listings for the frontend
+  app.get('/api/listings/featured', async (req: Request, res: Response) => {
+    if (!idxApi) {
+      return res.status(500).json({ message: "IDX Broker API client not initialized." });
+    }
+    const { limit, offset } = req.query;
+    try {
+      // Call directly to clients/featured, no looping
+      const listingsResponse = await idxApi.fetchListings('clients/featured', {
+        limit: limit ? parseInt(limit as string) : 25,
+        offset: offset ? parseInt(offset as string) : 0,
+      });
+      res.json(listingsResponse);
+    } catch (error: any) {
+      console.error('Error fetching featured listings:', error.message);
+      res.status(error.status || 500).json({
+        message: 'Failed to retrieve featured listings',
+        error: error.message,
+        details: error.details,
+      });
+    }
+  });
+
+  // Main endpoint for searching listings with filters
+  app.get('/api/listings/search', async (req: Request, res: Response) => {
+    if (!idxApi) {
+      return res.status(500).json({ message: "IDX Broker API client not initialized." });
+    }
+    // Parse criteria from query parameters
+    const criteria: PropertySearchCriteria = {
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+      city: req.query.city as string || undefined,
+      state: req.query.state as string || undefined,
+      zipCode: req.query.zipCode as string || undefined,
+      minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
+      maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
+      bedrooms: req.query.bedrooms ? parseInt(req.query.bedrooms as string) : undefined,
+      bathrooms: req.query.bathrooms ? parseFloat(req.query.bathrooms as string) : undefined,
+      propertyType: req.query.propertyType as string || undefined,
+      mlsId: req.query.mlsId as string || undefined, // Allow passing MLS ID from frontend if needed
+    };
+
+    console.log('[Search Route] Search Criteria received:', criteria);
+
+    try {
+      // IMPORTANT: This is the primary endpoint for general active listings search.
+      // Use the confirmed endpoint for 'Client' accounts.
+      // Based on common IDX Broker APIs, 'clients/activels' is a strong candidate,
+      // but if that fails, the 'accessibleEndpoints' diagnostic output will tell us the correct one.
+      const listingsResponse = await idxApi.fetchListings('clients/activels', criteria);
+      res.json(listingsResponse);
+    } catch (error: any) {
+      console.error('Error fetching search listings:', error.message);
+      res.status(error.status || 500).json({
+        message: 'Failed to retrieve search listings',
+        error: error.message,
+        details: error.details,
+      });
+    }
+  });
+
+  // --- Other API Endpoints (storage, AI, etc.) ---
+  // (Assuming these are working correctly and not causing issues)
+  app.post('/api/properties', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertPropertySchema.parse(req.body);
+      const newProperty = await storage.insertProperty(parsedData);
+      res.status(201).json(newProperty);
+    } catch (error: any) {
+      console.error('Error inserting property:', error);
+      res.status(400).json({ message: 'Invalid property data', error: error.message });
+    }
+  });
+
+  app.post('/api/service-providers', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertServiceProviderSchema.parse(req.body);
+      res.status(201).json({ message: 'Service provider added (storage logic missing)' });
+    } catch (error: any) {
+      console.error('Error inserting service provider:', error);
+      res.status(400).json({ message: 'Invalid service provider data', error: error.message });
+    }
+  });
+
+  app.post('/api/service-experts', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertServiceExpertSchema.parse(req.body);
+      res.status(201).json({ message: 'Service expert added (storage logic missing)' });
+    } catch (error: any) {
+      console.error('Error inserting service expert:', error);
+      res.status(400).json({ message: 'Invalid service expert data', error: error.message });
+    }
+  });
+
+  app.post('/api/service-offerings', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertServiceOfferingSchema.parse(req.body);
+      res.status(201).json({ message: 'Service offering added (storage logic missing)' });
+    } catch (error: any) {
+      console.error('Error inserting service offering:', error);
+      res.status(400).json({ message: 'Invalid service offering data', error: error.message });
+    }
+  });
+
+  app.post('/api/service-bundles', multer().none(), async (req: Request, res: Response) => {
+    try {
+      const parsedData = insertServiceBundleSchema.parse(req.body);
+      res.status(201).json({ message: 'Service bundle added (storage logic missing)' });
+    } catch (error: any) {
+      console.error('Error inserting service bundle:', error);
+      res.status(400).json({ message: 'Invalid service bundle data', error: error.message });
+    }
+  });
+
+  app.post('/api/ai/predict-price', async (req: Request, res: Response) => {
+    try {
+      const { propertyData } = req.body;
+      const pricePrediction = await predictPropertyPrice(propertyData);
+      res.json({ pricePrediction });
+    } catch (error: any) {
+      console.error('Error predicting price:', error);
+      res.status(500).json({ message: 'Failed to predict price' });
+    }
+  });
+
+  app.post('/api/ai/generate-property-description', async (req: Request, res: Response) => {
+    try {
+      const { propertyDetails } = req.body;
+      const description = await generatePropertyDescription(propertyDetails);
+      res.json({ description });
+    } catch (error: any) {
+      console.error('Error generating description:', error);
+      res.status(500).json({ message: 'Failed to generate description' });
+    }
+  });
+
+  app.post('/api/ai/recommendations', async (req: Request, res: Response) => {
+    try {
+      const { preferences, listings } = req.body;
+      const recommendations = await getPersonalizedRecommendations(preferences, listings);
+      res.json({ recommendations });
+    } catch (error: any) {
+      console.error('Error getting recommendations:', error);
+      res.status(500).json({ message: 'Failed to get recommendations' });
+    }
+  });
+
+  app.post('/api/ai/chatbot-response', async (req: Request, res: Response) => {
+    try {
+      const { message, chatHistory } = req.body;
+      const response = await generateChatbotResponse(message, chatHistory);
+      res.json({ response });
+    } catch (error: any) {
+      console.error('Error generating chatbot response:', error);
+      res.status(500).json({ message: 'Failed to generate chatbot response' });
+    }
+  });
+
+  app.post('/api/ai/explain-legal-term', async (req: Request, res: Response) => {
+    try {
+      const { term } = req.body;
+      const explanation = await explainLegalTerm(term);
+      res.json({ explanation });
+    } catch (error: any) {
+      console.error('Error explaining legal term:', error);
+      res.status(500).json({ message: 'Failed to explain term' });
+    }
+  });
+
+  // Global error handling middleware (should be last)
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error('Unhandled API Error:', err.stack);
+    res.status(500).send('Something broke!');
+  });
+};

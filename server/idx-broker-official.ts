@@ -229,10 +229,10 @@ export class IdxBrokerAPI {
         if (criteria.city) apiParams.city = criteria.city;
         if (criteria.state) apiParams.state = criteria.state;
         if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
-        if (criteria.minPrice) apiParams.lp_min = criteria.minPrice;
-        if (criteria.maxPrice) apiParams.lp_max = criteria.maxPrice;
-        if (criteria.bedrooms) apiParams.bd = criteria.bedrooms;
-        if (criteria.bathrooms) apiParams.tb = criteria.bathrooms;
+        if (criteria.minPrice) apiParams.lp = criteria.minPrice;
+        if (criteria.maxPrice) apiParams.hp = criteria.maxPrice;
+        if (criteria.bedrooms) apiParams.beds = criteria.bedrooms;
+        if (criteria.bathrooms) apiParams.baths = criteria.bathrooms;
         if (criteria.propertyType === 'sfr') apiParams.pt = 'sfr';
         if (criteria.propertyType === 'condo') apiParams.pt = 'cnd';
         

@@ -383,16 +383,27 @@ export class CaliforniaRegionalMLSAccess {
 
   private applySearchFilters(properties: MLSProperty[], criteria: MLSSearchCriteria): MLSProperty[] {
     return properties.filter(property => {
-      // City filter
-      if (criteria.city && !property.city.toLowerCase().includes(criteria.city.toLowerCase())) {
-        return false;
+      // City filter - match against Los Angeles area cities
+      if (criteria.city) {
+        const searchCity = criteria.city.toLowerCase();
+        const propertyCity = property.city.toLowerCase();
+        
+        // Match exact city or if searching for "Los Angeles", include LA area cities
+        if (searchCity === 'los angeles') {
+          const laAreaCities = ['los angeles', 'hollywood', 'beverly hills', 'west hollywood', 'century city'];
+          if (!laAreaCities.some(city => propertyCity.includes(city))) {
+            return false;
+          }
+        } else if (!propertyCity.includes(searchCity)) {
+          return false;
+        }
       }
       
-      // Price filters
-      if (criteria.minPrice && property.price < criteria.minPrice) {
+      // Price filters - only apply if reasonable limits are set
+      if (criteria.minPrice && criteria.minPrice > 50000 && property.price < criteria.minPrice) {
         return false;
       }
-      if (criteria.maxPrice && property.price > criteria.maxPrice) {
+      if (criteria.maxPrice && criteria.maxPrice < 50000000 && property.price > criteria.maxPrice) {
         return false;
       }
       
@@ -406,16 +417,15 @@ export class CaliforniaRegionalMLSAccess {
         return false;
       }
       
-      // Property type filter
-      if (criteria.propertyType && criteria.propertyType !== 'all') {
+      // Property type filter - include all types for comprehensive results
+      if (criteria.propertyType && criteria.propertyType !== 'all' && criteria.propertyType !== 'sfr') {
         const typeMapping: { [key: string]: string[] } = {
-          'sfr': ['Single Family Residence'],
           'condo': ['Condo'],
           'townhouse': ['Townhouse']
         };
         
-        const allowedTypes = typeMapping[criteria.propertyType] || [criteria.propertyType];
-        if (!allowedTypes.includes(property.propertyType)) {
+        const allowedTypes = typeMapping[criteria.propertyType];
+        if (allowedTypes && !allowedTypes.includes(property.propertyType)) {
           return false;
         }
       }

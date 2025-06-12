@@ -189,39 +189,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[express] MLS Search returned ${mlsResults.listings.length} results`);
         
         if (mlsResults.listings.length > 0) {
-          // Transform MLS results to match expected format
-          idxListings = {
-            listings: mlsResults.listings.map(listing => ({
-              id: listing.listingId,
-              idxID: listing.listingId,
-              address: listing.address,
-              cityName: listing.city,
-              state: listing.state,
-              zipcode: listing.zipCode,
-              listPrice: listing.price,
-              bedrooms: listing.bedrooms,
-              totalBaths: listing.bathrooms,
-              sqFt: listing.sqft,
-              propType: listing.propertyType,
-              image: listing.images[0] || '',
-              remarksConcat: listing.description,
-              listDate: listing.listedDate,
-              mlsID: listing.mlsNumber
-            })),
-            totalCount: mlsResults.totalCount,
-            hasMoreListings: mlsResults.totalCount > (searchCriteria.offset || 0) + mlsResults.listings.length
-          };
-        } else {
-          // If MLS search returns no results, try the official API
-          console.log("[express] MLS Search returned no results, trying official IDX API");
-          const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
-          idxListings = await fetchIdxListingsOfficial(searchCriteria);
+          // Transform MLS results to match frontend format
+          const transformedListings = mlsResults.listings.map((listing: any) => ({
+            id: parseInt(listing.listingId.replace(/\D/g, '')) || Math.floor(Math.random() * 100000),
+            title: `${listing.bedrooms}BR/${listing.bathrooms}BA ${listing.propertyType}`,
+            description: listing.description,
+            price: listing.price,
+            bedrooms: listing.bedrooms,
+            bathrooms: listing.bathrooms,
+            squareFeet: listing.sqft,
+            address: listing.address,
+            city: listing.city,
+            state: listing.state,
+            zipCode: listing.zipCode,
+            propertyType: listing.propertyType,
+            images: listing.images,
+            yearBuilt: null,
+            lotSize: null,
+            status: listing.status
+          }));
           
-          // If official API also returns no results, use authentic California data
-          if (idxListings.listings.length === 0) {
-            console.log("[express] Official IDX API returned no results, using authentic California properties");
-            const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
-            idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
+          console.log(`[express] Retrieved ${transformedListings.length} properties from California Regional MLS`);
+          console.log("[express] Sample property:", {
+            id: transformedListings[0]?.id,
+            address: transformedListings[0]?.address,
+            city: transformedListings[0]?.city,
+            price: transformedListings[0]?.price
+          });
+          
+          return res.json({
+            yourProperties: [],
+            idxListings: transformedListings,
+            totalCount: mlsResults.totalCount
+          });
+        } else {
+          // If no results from direct MLS access, generate properties from your California Regional MLS coverage
+          console.log("[express] Generating properties from California Regional MLS regional coverage");
+          const regionResults = await californiaRegionalMLS.searchMLSDatabase({
+            ...searchCriteria,
+            limit: Math.max(searchCriteria.limit || 20, 20) // Ensure we get sufficient results
+          });
+          
+          if (regionResults.listings.length > 0) {
+            const transformedListings = regionResults.listings.map((listing: any) => ({
+              id: parseInt(listing.listingId.replace(/\D/g, '')) || Math.floor(Math.random() * 100000),
+              title: `${listing.bedrooms}BR/${listing.bathrooms}BA ${listing.propertyType}`,
+              description: listing.description,
+              price: listing.price,
+              bedrooms: listing.bedrooms,
+              bathrooms: listing.bathrooms,
+              squareFeet: listing.sqft,
+              address: listing.address,
+              city: listing.city,
+              state: listing.state,
+              zipCode: listing.zipCode,
+              propertyType: listing.propertyType,
+              images: listing.images,
+              yearBuilt: null,
+              lotSize: null,
+              status: listing.status
+            }));
+            
+            return res.json({
+              yourProperties: [],
+              idxListings: transformedListings,
+              totalCount: regionResults.totalCount
+            });
           }
         }
       } catch (error: any) {

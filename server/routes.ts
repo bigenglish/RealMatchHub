@@ -1171,6 +1171,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test raw IDX data availability without filters
+  app.get("/api/idx-raw-test", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      if (!apiKey) {
+        return res.json({ success: false, message: "No API key found" });
+      }
+
+      const axios = require('axios');
+      const testResults = [];
+
+      // Test the main property endpoints without any filters
+      const endpoints = [
+        'https://api.idxbroker.com/clients/listings',
+        'https://api.idxbroker.com/clients/search',
+        'https://api.idxbroker.com/clients/featured',
+        'https://api.idxbroker.com/clients/activels'
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`[express] Testing raw data from: ${endpoint}`);
+          
+          const response = await axios.get(endpoint, {
+            headers: {
+              'accesskey': apiKey,
+              'outputtype': 'json'
+            },
+            params: {
+              limit: 100,
+              rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType'
+            },
+            timeout: 15000
+          });
+
+          const resultInfo = {
+            endpoint: endpoint.split('/').pop(),
+            status: response.status,
+            dataType: typeof response.data,
+            isArray: Array.isArray(response.data),
+            count: Array.isArray(response.data) ? response.data.length : 
+                   (response.data && typeof response.data === 'object') ? Object.keys(response.data).length : 0,
+            sampleData: response.data ? JSON.stringify(response.data).substring(0, 300) : null,
+            hasProperties: false
+          };
+
+          // Check if this contains actual property data
+          if (Array.isArray(response.data) && response.data.length > 0) {
+            const firstItem = response.data[0];
+            resultInfo.hasProperties = firstItem && (firstItem.address || firstItem.listPrice);
+            resultInfo.sampleProperty = firstItem;
+          }
+
+          testResults.push(resultInfo);
+
+        } catch (error: any) {
+          testResults.push({
+            endpoint: endpoint.split('/').pop(),
+            status: error.response?.status || 0,
+            error: error.message,
+            count: 0,
+            hasProperties: false
+          });
+        }
+      }
+
+      return res.json({
+        success: true,
+        message: "Raw IDX data test completed",
+        results: testResults,
+        recommendation: testResults.find(r => r.hasProperties) ? 
+          "Found working endpoint with property data" : 
+          "No property data found in any endpoint - check IDX account configuration"
+      });
+
+    } catch (error) {
+      console.error("[express] Error in raw IDX test:", error);
+      return res.json({ 
+        success: false, 
+        message: "Raw test failed: " + error.message 
+      });
+    }
+  });
+
   // Simple request inspection endpoint with live API test
   app.get("/api/idx-request-details", async (_req, res) => {
     try {

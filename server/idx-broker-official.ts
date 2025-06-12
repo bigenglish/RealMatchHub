@@ -186,28 +186,30 @@ export class IdxBrokerAPI {
     
     console.log(`[IDX-Official] Fetching listings with criteria:`, criteria);
     
-    // Use broader search to get more results, then filter client-side if needed
+    // Use the actual working endpoints for your account
     const endpoints = [
-      // Start with simpler endpoints that are more likely to work
+      // Primary: Use clients/listings which should have active properties
+      {
+        name: 'Clients Listings',
+        url: 'clients/listings',
+        params: {
+          limit: Math.min(limit, 100),
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID'
+        }
+      },
+      // Secondary: Try the basic search endpoint
+      {
+        name: 'Clients Search',
+        url: 'clients/search',
+        params: {
+          limit: Math.min(limit, 100),
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID'
+        }
+      },
+      // Fallback: Featured properties
       {
         name: 'Clients Featured',
         url: 'clients/featured',
-        params: {
-          limit: Math.min(limit, 50)
-        }
-      },
-      // Try sold/pending as it might have more reliable data structure
-      {
-        name: 'Clients Sold/Pending',
-        url: 'clients/soldpending',
-        params: {
-          limit: Math.min(limit, 50)
-        }
-      },
-      // Try system links which might show available data
-      {
-        name: 'Clients System Links',
-        url: 'clients/systemlinks',
         params: {
           limit: Math.min(limit, 50)
         }
@@ -218,44 +220,18 @@ export class IdxBrokerAPI {
       try {
         console.log(`[IDX-Official] Trying endpoint: ${endpoint.name}`);
         
-        // Build URL with parameters including search criteria
+        // Start with base endpoint parameters
         let apiParams = { ...endpoint.params };
         
-        // For broader results, only apply location and status filters to the API
-        // We'll do more specific filtering client-side
-        
-        // Location parameters - be more flexible
-        if (criteria.city) {
-          // For Los Angeles, try multiple variations
-          if (criteria.city.toLowerCase().includes('los angeles')) {
-            // Don't restrict by city in API call - get all CA properties
-            apiParams.state = 'CA';
-          } else {
-            apiParams['city[]'] = criteria.city;
-          }
+        // For the first few attempts, get ALL available properties without filters
+        // to see what's actually available in your IDX feed
+        if (endpoint.name === 'Clients Listings' || endpoint.name === 'Clients Search') {
+          // Don't add any restrictive filters initially - just get all available data
+          console.log(`[IDX-Official] Fetching all available properties from ${endpoint.name} to test data availability`);
         } else {
-          // Default to California to get substantial results
-          apiParams.state = 'CA';
+          // For featured, we'll accept whatever comes back
+          console.log(`[IDX-Official] Trying ${endpoint.name} endpoint`);
         }
-        
-        // Use actual price criteria if provided
-        if (criteria.maxPrice) {
-          apiParams.hp = criteria.maxPrice.toString();
-        }
-        if (criteria.minPrice) {
-          apiParams.lp = criteria.minPrice.toString();
-        }
-        
-        // Don't restrict bedrooms/bathrooms in API call - filter client-side
-        // Property type - use correct parameter format
-        if (criteria.propertyType && criteria.propertyType.toLowerCase() === 'condo') {
-          apiParams['pt[]'] = '2';
-        } else if (criteria.propertyType && criteria.propertyType.toLowerCase() === 'sfr') {
-          apiParams['pt[]'] = '1';
-        }
-        
-        // Add property status filter for active listings - use correct format
-        apiParams['status'] = 'a';
         
         const queryParams = this.buildQueryParams(apiParams);
         const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;
@@ -269,8 +245,16 @@ export class IdxBrokerAPI {
         });
 
         console.log(`[IDX-Official] Received status: ${response.status} from ${endpoint.name}`);
+        
+        // Handle 204 No Content specifically
+        if (response.status === 204) {
+          console.log(`[IDX-Official] ${endpoint.name} returned 204 No Content - no properties available in this endpoint`);
+          continue;
+        }
+        
         const rawData = response.data;
         console.log('[IDX-Official] Raw Response Type:', typeof rawData);
+        console.log('[IDX-Official] Raw Response Length:', Array.isArray(rawData) ? rawData.length : 'not array');
         console.log('[IDX-Official] Raw Response Preview:', JSON.stringify(rawData).substring(0, 500));
 
         let listings: IdxListing[] = [];

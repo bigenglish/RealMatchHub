@@ -185,41 +185,35 @@ export class IdxBrokerAPI {
   public async fetchListings(criteria: PropertySearchCriteria = {}): Promise<IdxResponse> {
     const { limit = 50, offset = 0 } = criteria;
     
-    // Use correct IDX Broker endpoints for actual property listings
+    // Use only Client IDX Broker endpoints (no Partners access)
     const endpoints = [
-      // Partners search - most comprehensive for property listings
-      {
-        name: 'Partners Search',
-        url: 'partners/listingssearch',
-        params: {
-          pt: 'sfr,cnd', // Property types: Single Family Residential, Condominium
-          lp: criteria.maxPrice ? `0-${criteria.maxPrice}` : undefined,
-          bd: criteria.bedrooms || undefined,
-          tb: criteria.bathrooms || undefined,
-          city: criteria.city || undefined,
-          limit: Math.min(limit, 100),
-          offset: offset
-        }
-      },
-      // MLS search with dynamic MLS ID discovery
-      {
-        name: 'MLS Search',
-        url: 'mls/search',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 100),
-          offset: offset,
-          orderby: 'listDate',
-          orderdir: 'DESC'
-        }
-      },
-      // Clients featured properties (often has active listings)
+      // Clients featured properties
       {
         name: 'Clients Featured',
         url: 'clients/featured',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
           limit: Math.min(limit, 50)
+        }
+      },
+      // Clients listings - general active listings
+      {
+        name: 'Clients Listings',
+        url: 'clients/listings',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: Math.min(limit, 100),
+          offset: offset
+        }
+      },
+      // Clients search endpoint
+      {
+        name: 'Clients Search',
+        url: 'clients/search',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: Math.min(limit, 100),
+          offset: offset
         }
       }
     ];

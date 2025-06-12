@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
+import axios from "axios";
 import multer from "multer";
 import { storage } from "./storage";
 import { 
@@ -1179,7 +1180,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: false, message: "No API key found" });
       }
 
-      const axios = require('axios');
       const testResults = [];
 
       // Test the main property endpoints without any filters

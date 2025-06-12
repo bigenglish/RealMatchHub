@@ -905,9 +905,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Comprehensive IDX diagnostics endpoint using new API client
   app.get("/api/idx-full-diagnostics", async (_req, res) => {
     try {
+      console.log("[express] Running enhanced IDX diagnostics with MLS discovery...");
       const { IdxBrokerAPI } = await import('./idx-broker-api-client');
       const api = new IdxBrokerAPI();
       const diagnostics = await api.runDiagnostics();
+      
+      console.log("[express] IDX diagnostics completed:");
+      console.log(`- Available MLS IDs: ${diagnostics.availableMlsIds.length}`);
+      console.log(`- Accessible endpoints: ${diagnostics.accessibleEndpoints.length}`);
+      console.log(`- Connection tests: ${diagnostics.connectionTests.length}`);
+      
       res.json(diagnostics);
     } catch (error) {
       console.error("Error running IDX diagnostics:", error);

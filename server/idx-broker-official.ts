@@ -99,7 +99,6 @@ export class IdxBrokerAPI {
     return {
       'accesskey': this.apiKey,
       'outputtype': 'json',
-      'Version': this.apiVersion,
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': this.userAgent,
     };
@@ -189,36 +188,28 @@ export class IdxBrokerAPI {
     
     // Use broader search to get more results, then filter client-side if needed
     const endpoints = [
-      // Clients listings - general active listings (try first with broader parameters)
-      {
-        name: 'Clients Listings Broad', 
-        url: 'clients/listings',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit * 2, 500), // Request more to ensure we have enough after filtering
-          offset: offset,
-          // Use broader search parameters
-          'a_propStatus[]': 'Active'
-        }
-      },
-      // Clients search endpoint - most flexible for filtering
-      {
-        name: 'Clients Search',
-        url: 'clients/search',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit * 2, 500),
-          offset: offset,
-          'a_propStatus[]': 'Active'
-        }
-      },
-      // Clients featured properties as fallback
+      // Start with simpler endpoints that are more likely to work
       {
         name: 'Clients Featured',
         url: 'clients/featured',
         params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit, 100)
+          limit: Math.min(limit, 50)
+        }
+      },
+      // Try sold/pending as it might have more reliable data structure
+      {
+        name: 'Clients Sold/Pending',
+        url: 'clients/soldpending',
+        params: {
+          limit: Math.min(limit, 50)
+        }
+      },
+      // Try system links which might show available data
+      {
+        name: 'Clients System Links',
+        url: 'clients/systemlinks',
+        params: {
+          limit: Math.min(limit, 50)
         }
       }
     ];
@@ -247,25 +238,24 @@ export class IdxBrokerAPI {
           apiParams.state = 'CA';
         }
         
-        // Only use broader price range to ensure we get results
-        if (criteria.maxPrice && criteria.maxPrice < 5000000) {
-          apiParams.hp = '5000000'; // Use broader range
+        // Use actual price criteria if provided
+        if (criteria.maxPrice) {
+          apiParams.hp = criteria.maxPrice.toString();
         }
-        if (criteria.minPrice && criteria.minPrice > 200000) {
-          apiParams.lp = '200000'; // Use broader range
+        if (criteria.minPrice) {
+          apiParams.lp = criteria.minPrice.toString();
         }
         
         // Don't restrict bedrooms/bathrooms in API call - filter client-side
-        // Property type - only if very specific
+        // Property type - use correct parameter format
         if (criteria.propertyType && criteria.propertyType.toLowerCase() === 'condo') {
-          apiParams.pt = '2';
-        } else {
-          // Default to residential properties
-          apiParams.pt = '1,2,3'; // Include SFR, Condo, Townhouse
+          apiParams['pt[]'] = '2';
+        } else if (criteria.propertyType && criteria.propertyType.toLowerCase() === 'sfr') {
+          apiParams['pt[]'] = '1';
         }
         
-        // Add property status filter for active listings
-        apiParams['a_propStatus[]'] = 'Active';
+        // Add property status filter for active listings - use correct format
+        apiParams['status'] = 'a';
         
         const queryParams = this.buildQueryParams(apiParams);
         const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;

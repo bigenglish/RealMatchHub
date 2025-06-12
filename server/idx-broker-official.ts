@@ -1,289 +1,6 @@
-export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
-  const {
-    limit = 50,
-    offset = 0,
-    minPrice,
-    maxPrice,
-    bedrooms,
-    minBedrooms,
-    bathrooms,
-    minBathrooms,
-    city,
-    state,
-    zipCode,
-    propertyType
-  } = criteria;
 
-  try {
-    console.log(`[IDX-Official] Fetching properties with criteria:`, JSON.stringify(criteria, null, 2));
-
-    if (!process.env.IDX_BROKER_API_KEY) {
-      throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
-    }
-
-    const apiKey = process.env.IDX_BROKER_API_KEY;
-    console.log(`[IDX-Official] Using API key: ${apiKey.substring(0, 4)}...`);
-
-    // Based on the IDX API documentation provided, we need to use proper endpoints
-    // The documentation shows these available endpoints:
-    // - clients/featured GET
-    // - clients/listings (not in docs but commonly used)
-    // - clients/soldpending GET  
-    // - clients/supplemental GET
-    // - mls/search (requires MLS ID)
-
-    const endpoints = [
-      {
-        name: 'MLS Search',
-        url: 'https://api.idxbroker.com/mls/search',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: criteria.limit || 50
-        }
-      },
-      {
-        name: 'Featured Properties',
-        url: 'https://api.idxbroker.com/clients/featured',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: criteria.limit || 50
-        }
-      },
-      {
-        name: 'Sold/Pending',
-        url: 'https://api.idxbroker.com/clients/soldpending',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: criteria.limit || 50
-        }
-      },
-      {
-        name: 'Supplemental',
-        url: 'https://api.idxbroker.com/clients/supplemental',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: criteria.limit || 50
-        }
-      }
-    ];
-
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`[IDX-Official] Trying endpoint: ${endpoint.url}`);
-
-        const headers = {
-          'accesskey': apiKey,
-          'outputtype': 'json'
-        };
-
-        const params = new URLSearchParams();
-
-        // Build query parameters based on IDX API documentation
-        const queryParams: any = {};
-
-        // Always include return fields for property data
-        queryParams.rf = 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,daysOnMarket,mlsID';
-
-        if (limit) queryParams.limit = limit;
-        if (offset) queryParams.offset = offset;
-
-        // Price filters - use correct IDX parameter names
-        if (minPrice) queryParams.lp = minPrice; // low price
-        if (maxPrice) queryParams.hp = maxPrice; // high price
-
-        // Bedroom/Bathroom filters - use correct IDX parameter names
-        if (bedrooms) queryParams.bd = bedrooms;
-        if (bathrooms) queryParams.tb = bathrooms; // total baths
-
-        // Property type filter
-        if (propertyType) {
-          // Map common property types to IDX values
-          const propertyTypeMap: { [key: string]: string } = {
-            'sfr': '1', // Single Family Residential
-            'condo': '2', // Condominium
-            'townhouse': '3', // Townhouse
-            'multi': '4' // Multi-family
-          };
-          queryParams.pt = propertyTypeMap[propertyType] || '1';
-        }
-
-        // Location filters - use array format for cities as per API docs
-        if (city) {
-          queryParams['city[]'] = city;
-        }
-        if (state) queryParams.state = state;
-        if (zipCode) queryParams.zipcode = zipCode;
-
-        for (const key in queryParams) {
-          params.append(key, queryParams[key].toString());
-        }
-
-        const apiUrl = `${endpoint.url}?${params.toString()}`;
-        console.log(`[IDX-Official] Full URL: ${apiUrl}`);
-
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          headers,
-          timeout: 15000
-        });
-
-        console.log(`[IDX-Official] Response status: ${response.status} ${response.statusText}`);
-
-        if (response.status === 200) {
-          const responseText = await response.text();
-          console.log(`[IDX-Official] Raw response length: ${responseText.length}`);
-
-          if (!responseText.trim()) {
-            console.log(`[IDX-Official] Empty response from ${endpoint.url}`);
-            continue;
-          }
-
-          let data;
-          try {
-            data = JSON.parse(responseText);
-          } catch (parseError) {
-            console.error(`[IDX-Official] JSON parse error for ${endpoint.url}:`, parseError);
-            continue;
-          }
-
-          let rawData = data;
-
-          console.log(`[IDX-Official] Response status: ${response.status}, data type: ${typeof rawData}, is array: ${Array.isArray(rawData)}`);
-
-          // Handle different response formats from IDX API
-          if (Array.isArray(rawData) && rawData.length > 0) {
-            console.log(`[IDX-Official] Found ${rawData.length} raw listings from ${endpoint.url}`);
-
-            // Filter out invalid entries and transform
-            const validProperties = rawData.filter(item => {
-              return item &&
-                     typeof item === 'object' &&
-                     (item.idxID || item.listingID || item.address || item.listPrice) &&
-                     item.address !== 'Address not available';
-            });
-
-            if (validProperties.length > 0) {
-              const transformedProperties = validProperties.map((item: any, index: number) => this.transformIdxProperty(item, index));
-
-              console.log(`[IDX-Official] ✅ SUCCESS: Found ${validProperties.length} valid properties from ${endpoint.name}`);
-              console.log(`[IDX-Official] ✅ Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
-
-              const filteredListings = transformedProperties.filter(listing => listing !== null);
-
-              return {
-                listings: filteredListings,
-                totalCount: filteredListings.length
-              };
-            } else {
-              console.log(`[IDX-Official] No valid properties found in ${rawData.length} raw items from ${endpoint.url}`);
-            }
-          } else if (rawData && typeof rawData === 'object') {
-            console.log(`[IDX-Official] Got object response from ${endpoint.url}, checking for nested data`);
-            // Handle object responses that might contain arrays
-            for (const key of ['listings', 'properties', 'results', 'data']) {
-              if (rawData[key] && Array.isArray(rawData[key]) && rawData[key].length > 0) {
-                const validProperties = rawData[key].filter((item: any) => {
-                  return item &&
-                         typeof item === 'object' &&
-                         (item.idxID || item.listingID || item.address || item.listPrice) &&
-                         item.address !== 'Address not available';
-                });
-
-                if (validProperties.length > 0) {
-                  const transformedProperties = validProperties.map((item: any, index: number) => this.transformIdxProperty(item, index));
-
-              console.log(`[IDX-Official] ✅ SUCCESS: Found ${validProperties.length} valid properties from ${endpoint.name}`);
-              console.log(`[IDX-Official] ✅ Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
-
-                  const filteredListings = transformedProperties.filter(listing => listing !== null);
-
-                  return {
-                    listings: filteredListings,
-                    totalCount: filteredListings.length
-                  };
-                }
-              }
-            }
-
-            // If it's a systemlinks response, it might be link data instead of properties
-            if (endpoint.name === 'System Links' && Object.keys(rawData).length > 0) {
-              console.log(`[IDX-Official] System links endpoint returned configuration data, not properties`);
-              continue; // Move to next endpoint for actual property data
-            }
-          }
-        } else if (response.status === 401) {
-          console.error(`[IDX-Official] 401 Unauthorized - API key may be invalid`);
-        } else if (response.status === 406) {
-          console.error(`[IDX-Official] 406 Not Acceptable - endpoint may not support this request format`);
-        } else if (response.status === 204) {
-          console.log(`[IDX-Official] HTTP 204 No Content from ${endpoint.url}`);
-          continue;
-        } else {
-          console.log(`[IDX-Official] Unexpected response status ${response.status} from ${endpoint.url}`);
-        }
-      } catch (endpointError: any) {
-        console.error(`[IDX-Official] Error with ${endpoint.url}:`, endpointError.message);
-        continue;
-      }
-    }
-
-    // If all endpoints failed, throw an error
-    throw new Error('All IDX Broker API endpoints failed');
-
-  } catch (error) {
-    console.error('[IDX-Official] Error fetching listings:', error);
-    throw error;
-  }
-}
-
-// Helper function to extract city from address
-function extractCityFromAddress(address: string): string {
-  const parts = address.split(',');
-  if (parts.length >= 2) {
-    return parts[1].trim();
-  }
-  return 'Unknown City';
-}
-
-// Helper functions for generating realistic property data
-function generateStreetName(): string {
-  const streetNames = [
-    'Oak', 'Pine', 'Maple', 'Cedar', 'Elm', 'Sunset', 'Main', 'Park', 'Hill', 'Valley',
-    'Rose', 'Spring', 'River', 'Lake', 'Mountain', 'Garden', 'Forest', 'Meadow', 'Highland', 'Vista'
-  ];
-  return streetNames[Math.floor(Math.random() * streetNames.length)];
-}
-
-function generateStreetType(): string {
-  const streetTypes = ['St', 'Ave', 'Blvd', 'Dr', 'Ln', 'Way', 'Ct', 'Pl'];
-  return streetTypes[Math.floor(Math.random() * streetTypes.length)];
-}
-
-function generateZipCode(city: string): string {
-  // Generate realistic zip codes based on city
-  if (city.toLowerCase().includes('los angeles')) {
-    const laCodes = ['90210', '90211', '90212', '90401', '90402', '90403', '90404', '90405'];
-    return laCodes[Math.floor(Math.random() * laCodes.length)];
-  }
-  return '9' + Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-}
-
-function generateRealisticPrice(): number {
-  // Generate prices between $400K - $2M for LA area
-  return Math.floor(Math.random() * 1600000) + 400000;
-}
-
-function generatePropertyDescription(bedrooms: number, bathrooms: number, sqft: number, city: string): string {
-  const features = [
-    'updated kitchen', 'hardwood floors', 'granite countertops', 'stainless steel appliances',
-    'private backyard', 'attached garage', 'modern fixtures', 'open floor plan',
-    'large windows', 'walk-in closets', 'master suite', 'central air conditioning'
-  ];
-
-  const randomFeatures = features.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-  return `Beautiful ${bedrooms} bedroom, ${bathrooms} bathroom home in ${city}. This ${sqft} sq ft property features ${randomFeatures.join(', ')}. Perfect for those seeking comfort and style in a prime location.`;
-}
+import axios from 'axios';
+import querystring from 'querystring';
 
 // Define interfaces locally since they're not in shared schema
 interface PropertySearchCriteria {
@@ -331,43 +48,95 @@ interface IdxListing {
   lotSize?: number;
   yearBuilt?: number;
   daysOnMarket?: number;
-  listingAgent: string;
-  listingOffice: string;
+  listingAgent?: string;
+  listingOffice?: string;
 }
 
-  private transformIdxProperty(idxProperty: any, index: number): any {
+interface IdxResponse {
+  listings: IdxListing[];
+  totalCount: number;
+  hasMoreListings: boolean;
+}
+
+export class IdxBrokerAPI {
+  private apiKey: string;
+  private baseUrl = 'https://api.idxbroker.com';
+  private apiVersion = '1.8.0';
+  private userAgent = 'RealtyAI/1.0 (Contact: support@realtyai.com)';
+
+  constructor() {
+    this.apiKey = process.env.IDX_BROKER_API_KEY || '';
+    if (!this.apiKey) {
+      throw new Error('IDX_BROKER_API_KEY environment variable is required and must be correctly formatted.');
+    }
+    
+    // Validate API key format
+    const isValidFormat = this.apiKey.startsWith('a') || this.apiKey.startsWith('@');
+    if (!isValidFormat) {
+      console.warn('[IDX-Official] Warning: API key format may be invalid. Expected to start with "a" or "@"');
+    }
+    
+    console.log('[IDX-Official] IdxBrokerAPI initialized.');
+    console.log('[IDX-Official] API Key format:', this.apiKey.startsWith('@') ? 'New format (@...)' : 'Traditional format (a...)');
+    console.log('[IDX-Official] API Key length:', this.apiKey.length);
+  }
+
+  private buildQueryParams(params: { [key: string]: any }): string {
+    const filteredParams: { [key: string]: any } = {};
+    for (const key in params) {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        filteredParams[key] = params[key];
+      }
+    }
+    return querystring.stringify(filteredParams);
+  }
+
+  private getStandardHeaders() {
+    return {
+      'accesskey': this.apiKey, // IDX Broker uses lowercase
+      'outputtype': 'json',
+      'Version': this.apiVersion,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': this.userAgent,
+    };
+  }
+
+  private transformIdxProperty(idxProperty: any, index: number): IdxListing | null {
     // Use IDX API standard field names as documented
     const listingId = idxProperty.idxID || idxProperty.listingID || idxProperty.id || `idx-${index}`;
 
     // Validate required fields
-    if (!idxProperty.address || idxProperty.address === 'Address not available') {
-      console.log(`[IDX-Official] Filtering out invalid property:`, idxProperty.address || 'No address');
+    if (!idxProperty || typeof idxProperty !== 'object' || !idxProperty.address || idxProperty.address === 'Address not available') {
+      console.log(`[IDX-Official] Filtering out invalid property:`, idxProperty?.address || 'No address');
       return null;
     }
 
     return {
-      listingId,
-      address: idxProperty.address || 'Address not available',
-      city: idxProperty.cityName || idxProperty.city || 'Unknown',
-      state: idxProperty.state || idxProperty.stateAbbr || 'Unknown',
-      zipCode: idxProperty.zipcode || idxProperty.zipCode || idxProperty.zip || '',
+      listingId: String(listingId),
+      address: String(idxProperty.address || 'Address not available'),
+      city: String(idxProperty.cityName || idxProperty.city || 'Unknown'),
+      state: String(idxProperty.state || idxProperty.stateAbbr || 'Unknown'),
+      zipCode: String(idxProperty.zipcode || idxProperty.zipCode || idxProperty.zip || ''),
       price: parseFloat(idxProperty.listPrice || idxProperty.price || '0'),
       bedrooms: parseInt(idxProperty.bedrooms || idxProperty.beds || '0'),
       bathrooms: parseFloat(idxProperty.totalBaths || idxProperty.baths || idxProperty.bathrooms || '0'),
       sqft: parseInt(idxProperty.sqFt || idxProperty.squareFeet || idxProperty.livingArea || '0'),
       propertyType: this.mapPropertyType(idxProperty.propType || idxProperty.propertyType || idxProperty.idxPropType),
       images: this.extractImages(idxProperty),
-      description: idxProperty.remarksConcat || idxProperty.remarks || idxProperty.description || 'No description available',
-      listedDate: idxProperty.listDate || idxProperty.dateAdded || new Date().toISOString().split('T')[0],
-      status: idxProperty.status || idxProperty.propStatus || 'Active',
-      mlsNumber: idxProperty.mlsID || idxProperty.mlsNumber || undefined,
-      lotSize: parseInt(idxProperty.acreage || idxProperty.lotSize || '0') || undefined,
-      yearBuilt: parseInt(idxProperty.yearBuilt || '0') || undefined,
-      daysOnMarket: parseInt(idxProperty.daysOnMarket || '0') || undefined
+      description: String(idxProperty.remarksConcat || idxProperty.remarks || idxProperty.description || 'No description available'),
+      listedDate: String(idxProperty.listDate || idxProperty.dateAdded || new Date().toISOString().split('T')[0]),
+      status: String(idxProperty.status || idxProperty.propStatus || 'Active'),
+      mlsNumber: String(idxProperty.mlsID || idxProperty.mlsNumber || ''),
+      lotSize: this.parseNumeric(idxProperty.acreage || idxProperty.lotSize, undefined),
+      yearBuilt: this.parseNumeric(idxProperty.yearBuilt, undefined),
+      daysOnMarket: this.parseNumeric(idxProperty.daysOnMarket, undefined),
+      listingAgent: String(idxProperty.listingAgentName || idxProperty.listingAgent || idxProperty.agentName || ''),
+      listingOffice: String(idxProperty.listingOfficeName || idxProperty.listingOffice || idxProperty.officeName || ''),
     };
   }
 
-  private mapPropertyType(type: string): string {
+  private mapPropertyType(type: string | number): string {
+    if (typeof type === 'number') type = String(type);
     if (!type) return 'Single Family Residential';
 
     const typeMap: { [key: string]: string } = {
@@ -391,14 +160,228 @@ interface IdxListing {
   }
 
   private extractImages(item: any): string[] {
-    let images: string[] = [];
-    if (item.image && typeof item.image === 'string') {
-      images = [item.image];
-    } else if (Array.isArray(item.images)) {
-      images = item.images;
-    } else {
-      // Generate placeholder image URLs
-      images = [`https://picsum.photos/800/600?random=${Math.floor(Math.random() * 1000)}`];
+    if (item.photos && Array.isArray(item.photos)) {
+      return item.photos.map((p: any) => typeof p === 'string' ? p : p.url).filter(Boolean);
     }
-    return images;
+    if (item.image) {
+      return typeof item.image === 'string' ? [item.image] : [];
+    }
+    if (item.images && Array.isArray(item.images)) {
+      return item.images.filter(img => typeof img === 'string');
+    }
+    return [];
   }
+
+  public async fetchListings(
+    endpoint: string,
+    criteria: PropertySearchCriteria = {}
+  ): Promise<IdxResponse> {
+    const queryParams = this.buildQueryParams(criteria);
+    const url = `${this.baseUrl}/${endpoint}${queryParams ? '?' + queryParams : ''}`;
+
+    console.log(`[IDX-Official] Attempting to fetch from URL: ${url}`);
+    console.log('[IDX-Official] Request Headers:', this.getStandardHeaders());
+
+    try {
+      const response = await axios.get(url, {
+        headers: this.getStandardHeaders(),
+        timeout: 15000
+      });
+
+      console.log(`[IDX-Official] Received status: ${response.status} from ${url}`);
+      const rawData = response.data;
+      console.log('[IDX-Official] Raw IDX Broker Response Type:', typeof rawData);
+      console.log('[IDX-Official] Raw IDX Broker Response Preview:', JSON.stringify(rawData).substring(0, 500));
+
+      let listings: IdxListing[] = [];
+      let totalCount: number = 0;
+      let hasMoreListings: boolean = false;
+
+      if (Array.isArray(rawData)) {
+        listings = rawData
+          .filter(item => item && typeof item === 'object')
+          .map((item, index) => this.transformIdxProperty(item, index))
+          .filter(listing => listing !== null) as IdxListing[];
+
+        totalCount = listings.length;
+        hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
+
+      } else if (rawData && typeof rawData === 'object') {
+        if (rawData.errors) {
+          console.error('[IDX-Official] IDX Broker API reported errors:', rawData.errors);
+          throw new Error(`IDX Broker API error: ${JSON.stringify(rawData.errors)}`);
+        }
+        
+        // Handle object responses that might contain listings under a property
+        const possibleListingProperties = ['listings', 'properties', 'results', 'data'];
+        for (const prop of possibleListingProperties) {
+          if (rawData[prop] && Array.isArray(rawData[prop])) {
+            return this.fetchListings(`data-${prop}`, criteria); // Recursive call with array
+          }
+        }
+        
+        console.warn('[IDX-Official] Unexpected response format, returning empty results');
+        listings = [];
+        totalCount = 0;
+        hasMoreListings = false;
+      }
+
+      return { listings, totalCount, hasMoreListings };
+
+    } catch (error: any) {
+      console.error(`[IDX-Official] Error during API call to ${url}:`);
+      if (error.response) {
+        console.error('[IDX-Official] Response Status:', error.response.status);
+        console.error('[IDX-Official] Response Data:', JSON.stringify(error.response.data, null, 2));
+        
+        // Handle specific HTTP status codes
+        if (error.response.status === 401) {
+          throw new Error('IDX Broker API authentication failed - check API key');
+        } else if (error.response.status === 403) {
+          throw new Error('IDX Broker API access forbidden - check account permissions');
+        } else if (error.response.status === 400) {
+          throw new Error(`IDX Broker API bad request - check parameters: ${JSON.stringify(criteria)}`);
+        }
+        
+        throw new Error(`IDX Broker API request failed with status ${error.response.status}: ${JSON.stringify(error.response.data)}`);
+      } else if (error.request) {
+        console.error('[IDX-Official] No response received:', error.message);
+        throw new Error('No response from IDX Broker API. Check network or API endpoint.');
+      } else {
+        console.error('[IDX-Official] Request setup error:', error.message);
+        throw new Error(`Error preparing IDX Broker API request: ${error.message}`);
+      }
+    }
+  }
+
+  public async testConnection(endpoint: string = 'clients/accountinfo'): Promise<any> {
+    const url = `${this.baseUrl}/${endpoint}`;
+    console.log(`[IDX-Official] Testing connection to: ${url}`);
+
+    try {
+      const response = await axios.get(url, {
+        headers: this.getStandardHeaders(),
+        timeout: 10000
+      });
+      
+      console.log(`[IDX-Official] Connection test successful. Status: ${response.status}`);
+      return { 
+        success: true, 
+        status: response.status, 
+        data: response.data,
+        endpoint: endpoint
+      };
+    } catch (error: any) {
+      console.error(`[IDX-Official] Connection test failed to ${url}:`);
+      if (error.response) {
+        console.error('[IDX-Official] Error Status:', error.response.status);
+        console.error('[IDX-Official] Error Data:', JSON.stringify(error.response.data, null, 2));
+      }
+      return { 
+        success: false, 
+        status: error.response?.status, 
+        error: error.message, 
+        details: error.response?.data,
+        endpoint: endpoint
+      };
+    }
+  }
+
+  // Test multiple endpoints to find working ones
+  public async runDiagnostics(): Promise<any> {
+    const testEndpoints = [
+      'clients/accountinfo',
+      'clients/featured',
+      'clients/systemlinks',
+      'clients/listings'
+    ];
+
+    const results = [];
+    
+    for (const endpoint of testEndpoints) {
+      console.log(`[IDX-Official] Testing endpoint: ${endpoint}`);
+      const result = await this.testConnection(endpoint);
+      results.push({
+        endpoint,
+        ...result
+      });
+      
+      // If this endpoint works, try to fetch a few listings
+      if (result.success) {
+        try {
+          const listingsTest = await this.fetchListings(endpoint, { limit: 5 });
+          result.listingsTest = {
+            success: true,
+            count: listingsTest.listings.length,
+            sampleListing: listingsTest.listings[0] || null
+          };
+        } catch (listingsError) {
+          result.listingsTest = {
+            success: false,
+            error: listingsError instanceof Error ? listingsError.message : String(listingsError)
+          };
+        }
+      }
+    }
+
+    return {
+      timestamp: new Date().toISOString(),
+      apiKeyPresent: !!this.apiKey,
+      results,
+      workingEndpoints: results.filter(r => r.success).map(r => r.endpoint),
+      recommendation: results.filter(r => r.success).length > 0 ? 
+        'IDX Broker API is accessible' : 
+        'IDX Broker API access issues detected'
+    };
+  }
+}
+
+// Export main function for backward compatibility
+export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
+  try {
+    console.log(`[IDX-Official] Fetching properties with criteria:`, JSON.stringify(criteria, null, 2));
+
+    if (!process.env.IDX_BROKER_API_KEY) {
+      throw new Error('IDX_BROKER_API_KEY is required for authentic MLS data access');
+    }
+
+    const api = new IdxBrokerAPI();
+    
+    // Try primary endpoints in order of likelihood to have property data
+    const endpoints = [
+      'clients/featured',
+      'clients/systemlinks',
+      'clients/soldpending',
+      'clients/supplemental'
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`[IDX-Official] Trying endpoint: ${endpoint}`);
+        
+        const result = await api.fetchListings(endpoint, criteria);
+        
+        if (result.listings.length > 0) {
+          console.log(`[IDX-Official] ✅ SUCCESS: Found ${result.listings.length} valid properties from ${endpoint}`);
+          
+          return {
+            listings: result.listings,
+            totalCount: result.totalCount
+          };
+        } else {
+          console.log(`[IDX-Official] No properties found in ${endpoint}, trying next endpoint`);
+        }
+      } catch (endpointError: any) {
+        console.error(`[IDX-Official] Error with ${endpoint}:`, endpointError.message);
+        continue;
+      }
+    }
+
+    // If all endpoints failed, throw an error
+    throw new Error('All IDX Broker API endpoints failed');
+
+  } catch (error) {
+    console.error('[IDX-Official] Error fetching listings:', error);
+    throw error;
+  }
+}

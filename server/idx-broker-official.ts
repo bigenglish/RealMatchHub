@@ -1,4 +1,3 @@
-
 export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
   const {
     limit = 50,
@@ -24,21 +23,49 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
 
     const apiKey = process.env.IDX_BROKER_API_KEY;
     console.log(`[IDX-Official] Using API key: ${apiKey.substring(0, 4)}...`);
-    
+
     // Validate API key format
     if (!apiKey.startsWith('a') || apiKey.length !== 22) {
       console.warn(`[IDX-Official] API key format warning: Expected format 'a...' with 22 characters, got '${apiKey.substring(0, 4)}...' with ${apiKey.length} characters`);
     }
 
-    // Use Client API endpoints based on your account type
     const endpoints = [
-      'https://api.idxbroker.com/clients/featured',
-      'https://api.idxbroker.com/clients/systemlinks'
+      {
+        name: 'Featured Properties',
+        url: 'https://api.idxbroker.com/clients/featured',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: criteria.limit || 50
+        }
+      },
+      {
+        name: 'System Links',
+        url: 'https://api.idxbroker.com/clients/systemlinks',
+        params: {
+          rf: 'url,name,category,systemresults'
+        }
+      },
+      {
+        name: 'Sold/Pending',
+        url: 'https://api.idxbroker.com/clients/soldpending',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: criteria.limit || 50
+        }
+      },
+      {
+        name: 'Supplemental',
+        url: 'https://api.idxbroker.com/clients/supplemental',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: criteria.limit || 50
+        }
+      }
     ];
 
     for (const endpoint of endpoints) {
       try {
-        console.log(`[IDX-Official] Trying endpoint: ${endpoint}`);
+        console.log(`[IDX-Official] Trying endpoint: ${endpoint.url}`);
 
         const headers = {
           'accesskey': apiKey,
@@ -46,23 +73,48 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
         };
 
         const params = new URLSearchParams();
-        
-        // Add search criteria as URL parameters
-        if (minPrice) params.append('lp', minPrice.toString());
-        if (maxPrice) params.append('hp', maxPrice.toString());
-        if (bedrooms) params.append('bd', bedrooms.toString());
-        if (minBedrooms) params.append('bd', minBedrooms.toString());
-        if (bathrooms) params.append('tb', bathrooms.toString());
-        if (minBathrooms) params.append('tb', minBathrooms.toString());
-        if (city) params.append('city[]', city);
-        if (state) params.append('state', state);
-        if (zipCode) params.append('zipcode[]', zipCode);
-        if (propertyType && propertyType !== 'sfr') params.append('pt', propertyType);
-        
-        // Add default parameters
-        params.append('limit', Math.min(limit, 100).toString());
-        
-        const apiUrl = `${endpoint}?${params.toString()}`;
+
+        // Build query parameters based on IDX API documentation
+        const queryParams: any = {};
+
+        // Always include return fields for property data
+        queryParams.rf = 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,daysOnMarket,mlsID';
+
+        if (limit) queryParams.limit = limit;
+        if (offset) queryParams.offset = offset;
+
+        // Price filters - use correct IDX parameter names
+        if (minPrice) queryParams.lp = minPrice; // low price
+        if (maxPrice) queryParams.hp = maxPrice; // high price
+
+        // Bedroom/Bathroom filters - use correct IDX parameter names
+        if (bedrooms) queryParams.bd = bedrooms;
+        if (bathrooms) queryParams.tb = bathrooms; // total baths
+
+        // Property type filter
+        if (propertyType) {
+          // Map common property types to IDX values
+          const propertyTypeMap: { [key: string]: string } = {
+            'sfr': '1', // Single Family Residential
+            'condo': '2', // Condominium
+            'townhouse': '3', // Townhouse
+            'multi': '4' // Multi-family
+          };
+          queryParams.pt = propertyTypeMap[propertyType] || '1';
+        }
+
+        // Location filters - use array format for cities as per API docs
+        if (city) {
+          queryParams['city[]'] = city;
+        }
+        if (state) queryParams.state = state;
+        if (zipCode) queryParams.zipcode = zipCode;
+
+        for (const key in queryParams) {
+          params.append(key, queryParams[key].toString());
+        }
+
+        const apiUrl = `${endpoint.url}?${params.toString()}`;
         console.log(`[IDX-Official] Full URL: ${apiUrl}`);
 
         const response = await fetch(apiUrl, {
@@ -76,9 +128,9 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
         if (response.status === 200) {
           const responseText = await response.text();
           console.log(`[IDX-Official] Raw response length: ${responseText.length}`);
-          
+
           if (!responseText.trim()) {
-            console.log(`[IDX-Official] Empty response from ${endpoint}`);
+            console.log(`[IDX-Official] Empty response from ${endpoint.url}`);
             continue;
           }
 
@@ -86,136 +138,85 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
           try {
             data = JSON.parse(responseText);
           } catch (parseError) {
-            console.error(`[IDX-Official] JSON parse error for ${endpoint}:`, parseError);
+            console.error(`[IDX-Official] JSON parse error for ${endpoint.url}:`, parseError);
             continue;
           }
 
-          // Parse the IDX Broker API response
-          let listings: any[] = [];
-          
-          if (Array.isArray(data)) {
-            listings = data;
-          } else if (data && typeof data === 'object') {
-            if (data.listing) listings = Array.isArray(data.listing) ? data.listing : [data.listing];
-            else if (data.listings) listings = data.listings;
-            else if (data.properties) listings = data.properties;
-            else if (data.featured) listings = data.featured;
-            else {
-              const arrayKeys = Object.keys(data).filter(key => Array.isArray(data[key]) && data[key].length > 0);
-              if (arrayKeys.length > 0) {
-                listings = data[arrayKeys[0]];
-                console.log(`[IDX-Official] Found listings in property: ${arrayKeys[0]}`);
+          let rawData = data;
+
+          console.log(`[IDX-Official] Response status: ${response.status}, data type: ${typeof rawData}, is array: ${Array.isArray(rawData)}`);
+
+          // Handle different response formats from IDX API
+          if (Array.isArray(rawData) && rawData.length > 0) {
+            console.log(`[IDX-Official] Found ${rawData.length} raw listings from ${endpoint.url}`);
+
+            // Filter out invalid entries and transform
+            const validProperties = rawData.filter(item => {
+              return item &&
+                     typeof item === 'object' &&
+                     (item.idxID || item.listingID || item.address || item.listPrice) &&
+                     item.address !== 'Address not available';
+            });
+
+            if (validProperties.length > 0) {
+              const transformedProperties = validProperties.map((item, index) => this.transformIdxProperty(item, index));
+
+              console.log(`[IDX-Official] Successfully transformed ${transformedProperties.length} valid properties from ${endpoint.url}`);
+
+              const filteredListings = transformedProperties.filter(listing => listing !== null);
+
+              return {
+                listings: filteredListings,
+                totalCount: filteredListings.length
+              };
+            } else {
+              console.log(`[IDX-Official] No valid properties found in ${rawData.length} raw items from ${endpoint.url}`);
+            }
+          } else if (rawData && typeof rawData === 'object') {
+            console.log(`[IDX-Official] Got object response from ${endpoint.url}, checking for nested data`);
+            // Handle object responses that might contain arrays
+            for (const key of ['listings', 'properties', 'results', 'data']) {
+              if (rawData[key] && Array.isArray(rawData[key]) && rawData[key].length > 0) {
+                const validProperties = rawData[key].filter((item: any) => {
+                  return item &&
+                         typeof item === 'object' &&
+                         (item.idxID || item.listingID || item.address || item.listPrice) &&
+                         item.address !== 'Address not available';
+                });
+
+                if (validProperties.length > 0) {
+                  const transformedProperties = validProperties.map((item: any, index: number) => this.transformIdxProperty(item, index));
+
+                  console.log(`[IDX-Official] Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
+
+                  const filteredListings = transformedProperties.filter(listing => listing !== null);
+
+                  return {
+                    listings: filteredListings,
+                    totalCount: filteredListings.length
+                  };
+                }
               }
             }
-          }
 
-          console.log(`[IDX-Official] Found ${listings.length} raw listings from ${endpoint}`);
-
-          if (listings.length > 0) {
-            // Filter and transform listings
-            const transformedListings: IdxListing[] = listings
-              .filter((item: any) => {
-                if (!item) return false;
-
-                // Filter out international properties
-                const address = item.address || item.streetAddress || item.fullAddress || '';
-                const city = item.cityName || item.city || '';
-                const state = item.state || item.stateAbbr || '';
-
-                const internationalPatterns = [
-                  'greece', 'mexico', 'cyprus', 'italy', 'athens', 'pafos', 'tijuana', 'baja',
-                  'outside area (outside u.s.)', 'outside area (outside ca)', 'foreign country',
-                  'other,', ', other,', ', other ', 'outside area', 'umbria'
-                ];
-
-                const addressLower = address.toLowerCase();
-                const cityLower = city.toLowerCase();
-                const stateLower = state.toLowerCase();
-
-                const isInternational = internationalPatterns.some(pattern => 
-                  addressLower.includes(pattern) || cityLower.includes(pattern) || stateLower.includes(pattern)
-                );
-
-                if (isInternational) {
-                  console.log(`[IDX-Official] Filtering out international property: ${address}`);
-                  return false;
-                }
-
-                return true;
-              })
-              .slice(offset, offset + limit)
-              .map((item: any, index: number) => {
-                const id = item.idxID || item.listingID || item.id || `idx-${index}`;
-                
-                // Generate a valid address if not available
-                let address = item.address || item.streetAddress || item.fullAddress;
-                if (!address || address === 'Address not available') {
-                  // Create a placeholder address using available data
-                  const cityName = item.cityName || item.city || 'Los Angeles';
-                  const stateName = item.state || item.stateAbbr || 'CA';
-                  address = `${Math.floor(Math.random() * 9999) + 1000} ${generateStreetName()} ${generateStreetType()}, ${cityName}, ${stateName}`;
-                }
-                
-                const city = item.cityName || item.city || extractCityFromAddress(address) || 'Los Angeles';
-                const state = item.state || item.stateAbbr || 'CA';
-                const zipCode = item.zipcode || item.zip || item.postalCode || generateZipCode(city);
-                const price = parseFloat(item.listPrice || item.price || '0') || generateRealisticPrice();
-                const bedrooms = parseInt(item.bedrooms || item.beds || '0') || Math.floor(Math.random() * 4) + 2;
-                const bathrooms = parseFloat(item.totalBaths || item.baths || item.bathrooms || '0') || Math.floor(Math.random() * 3) + 1;
-                const sqft = parseInt(item.sqFt || item.squareFeet || item.livingArea || '0') || Math.floor(Math.random() * 2000) + 1200;
-                const propertyType = item.propType || item.propertyType || 'Single Family Residential';
-                const description = item.remarksConcat || item.description || item.remarks || generatePropertyDescription(bedrooms, bathrooms, sqft, city);
-
-                let images: string[] = [];
-                if (item.image && typeof item.image === 'string') {
-                  images = [item.image];
-                } else if (Array.isArray(item.images)) {
-                  images = item.images;
-                } else {
-                  // Generate placeholder image URLs
-                  images = [`https://picsum.photos/800/600?random=${index}`];
-                }
-
-                return {
-                  listingId: id,
-                  address,
-                  city,
-                  state,
-                  zipCode,
-                  price,
-                  bedrooms,
-                  bathrooms,
-                  sqft,
-                  propertyType,
-                  description,
-                  images,
-                  listedDate: item.listDate || item.dateAdded || new Date().toISOString(),
-                  status: item.propStatus || item.status || 'Active',
-                  mlsNumber: item.mlsID || item.mlsNumber || id,
-                  lotSize: parseInt(item.acreage || item.lotSize || '0') || undefined,
-                  yearBuilt: parseInt(item.yearBuilt || '0') || Math.floor(Math.random() * 50) + 1970,
-                  daysOnMarket: parseInt(item.daysOnMarket || '0') || Math.floor(Math.random() * 90),
-                  listingAgent: item.listingAgent || item.agentName || 'Professional Real Estate Agent',
-                  listingOffice: item.listingOffice || item.officeName || 'Realty.AI Partners'
-                };
-              });
-
-            console.log(`[IDX-Official] Successfully transformed ${transformedListings.length} US properties from ${endpoint}`);
-
-            return {
-              listings: transformedListings,
-              totalCount: transformedListings.length
-            };
+            // If it's a systemlinks response, it might be link data instead of properties
+            if (endpoint.name === 'System Links' && Object.keys(rawData).length > 0) {
+              console.log(`[IDX-Official] System links endpoint returned configuration data, not properties`);
+              continue; // Move to next endpoint for actual property data
+            }
           }
         } else if (response.status === 401) {
           console.error(`[IDX-Official] 401 Unauthorized - API key may be invalid`);
         } else if (response.status === 406) {
           console.error(`[IDX-Official] 406 Not Acceptable - endpoint may not support this request format`);
+        } else if (response.status === 204) {
+          console.log(`[IDX-Official] HTTP 204 No Content from ${endpoint.url}`);
+          continue;
         } else {
-          console.error(`[IDX-Official] HTTP ${response.status} from ${endpoint}`);
+          console.log(`[IDX-Official] Unexpected response status ${response.status} from ${endpoint.url}`);
         }
       } catch (endpointError: any) {
-        console.error(`[IDX-Official] Error with ${endpoint}:`, endpointError.message);
+        console.error(`[IDX-Official] Error with ${endpoint.url}:`, endpointError.message);
         continue;
       }
     }
@@ -272,9 +273,9 @@ function generatePropertyDescription(bedrooms: number, bathrooms: number, sqft: 
     'private backyard', 'attached garage', 'modern fixtures', 'open floor plan',
     'large windows', 'walk-in closets', 'master suite', 'central air conditioning'
   ];
-  
+
   const randomFeatures = features.sort(() => 0.5 - Math.random()).slice(0, 3);
-  
+
   return `Beautiful ${bedrooms} bedroom, ${bathrooms} bathroom home in ${city}. This ${sqft} sq ft property features ${randomFeatures.join(', ')}. Perfect for those seeking comfort and style in a prime location.`;
 }
 
@@ -327,3 +328,71 @@ interface IdxListing {
   listingAgent: string;
   listingOffice: string;
 }
+
+  private transformIdxProperty(idxProperty: any, index: number): any {
+    // Use IDX API standard field names as documented
+    const listingId = idxProperty.idxID || idxProperty.listingID || idxProperty.id || `idx-${index}`;
+
+    // Validate required fields
+    if (!idxProperty.address || idxProperty.address === 'Address not available') {
+      console.log(`[IDX-Official] Filtering out invalid property:`, idxProperty.address || 'No address');
+      return null;
+    }
+
+    return {
+      listingId,
+      address: idxProperty.address || 'Address not available',
+      city: idxProperty.cityName || idxProperty.city || 'Unknown',
+      state: idxProperty.state || idxProperty.stateAbbr || 'Unknown',
+      zipCode: idxProperty.zipcode || idxProperty.zipCode || idxProperty.zip || '',
+      price: parseFloat(idxProperty.listPrice || idxProperty.price || '0'),
+      bedrooms: parseInt(idxProperty.bedrooms || idxProperty.beds || '0'),
+      bathrooms: parseFloat(idxProperty.totalBaths || idxProperty.baths || idxProperty.bathrooms || '0'),
+      sqft: parseInt(idxProperty.sqFt || idxProperty.squareFeet || idxProperty.livingArea || '0'),
+      propertyType: this.mapPropertyType(idxProperty.propType || idxProperty.propertyType || idxProperty.idxPropType),
+      images: this.extractImages(idxProperty),
+      description: idxProperty.remarksConcat || idxProperty.remarks || idxProperty.description || 'No description available',
+      listedDate: idxProperty.listDate || idxProperty.dateAdded || new Date().toISOString().split('T')[0],
+      status: idxProperty.status || idxProperty.propStatus || 'Active',
+      mlsNumber: idxProperty.mlsID || idxProperty.mlsNumber || undefined,
+      lotSize: parseInt(idxProperty.acreage || idxProperty.lotSize || '0') || undefined,
+      yearBuilt: parseInt(idxProperty.yearBuilt || '0') || undefined,
+      daysOnMarket: parseInt(idxProperty.daysOnMarket || '0') || undefined
+    };
+  }
+
+  private mapPropertyType(type: string): string {
+    if (!type) return 'Single Family Residential';
+
+    const typeMap: { [key: string]: string } = {
+      '1': 'Single Family Residential',
+      '2': 'Condominium',
+      '3': 'Townhouse',
+      '4': 'Multi-Family',
+      'sfr': 'Single Family Residential',
+      'condo': 'Condominium',
+      'townhouse': 'Townhouse',
+      'multi': 'Multi-Family'
+    };
+
+    return typeMap[type.toLowerCase()] || type || 'Single Family Residential';
+  }
+
+  private parseNumeric(value: any, defaultValue: any): number | undefined {
+    if (value === undefined || value === null) return defaultValue;
+    const parsed = Number(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  private extractImages(item: any): string[] {
+    let images: string[] = [];
+    if (item.image && typeof item.image === 'string') {
+      images = [item.image];
+    } else if (Array.isArray(item.images)) {
+      images = item.images;
+    } else {
+      // Generate placeholder image URLs
+      images = [`https://picsum.photos/800/600?random=${Math.floor(Math.random() * 1000)}`];
+    }
+    return images;
+  }

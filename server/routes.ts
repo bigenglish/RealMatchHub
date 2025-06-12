@@ -14,6 +14,7 @@ import { fetchIdxListings, testIdxConnection } from "./idx-broker-comprehensive-
 import { mlsSearchAPI } from "./idx-broker-mls-search"; // Import MLS search for full database access
 import { mlsClientAPI } from "./idx-mls-client"; // Import MLS Client API for full database access
 import { idxClientFullAccess } from "./idx-client-full-access"; // Import Client Full Access for California Regional MLS
+import { idxSavedLinksAccess } from "./idx-savedlinks-access"; // Import Saved Links Access for MLS via configured searches
 import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
 import { isValidIdxApiKey } from "./idx-key-validator"; // Import the new validator
 import {
@@ -178,11 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      // Try IDX Client Full Access API for California Regional MLS database access
+      // Access California Regional MLS through saved search configurations
       let idxListings;
       try {
-        console.log("[express] Calling IDX Client Full Access API for California Regional MLS");
-        const mlsResults = await idxClientFullAccess.searchFullDatabase(searchCriteria);
+        console.log("[express] Accessing California Regional MLS via saved search configurations");
+        const mlsResults = await idxSavedLinksAccess.searchViaSavedLinks(searchCriteria);
         
         console.log(`[express] MLS Search returned ${mlsResults.listings.length} results`);
         

@@ -185,35 +185,37 @@ export class IdxBrokerAPI {
   public async fetchListings(criteria: PropertySearchCriteria = {}): Promise<IdxResponse> {
     const { limit = 50, offset = 0 } = criteria;
     
-    // Use only Client IDX Broker endpoints (no Partners access)
+    console.log(`[IDX-Official] Fetching listings with criteria:`, criteria);
+    
+    // Use only Client IDX Broker endpoints with corrected parameter names
     const endpoints = [
+      // Clients search endpoint - most flexible for filtering
+      {
+        name: 'Clients Search',
+        url: 'clients/search',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
+          limit: Math.min(limit, 100),
+          offset: offset
+        }
+      },
+      // Clients listings - general active listings
+      {
+        name: 'Clients Listings', 
+        url: 'clients/listings',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
+          limit: Math.min(limit, 100),
+          offset: offset
+        }
+      },
       // Clients featured properties
       {
         name: 'Clients Featured',
         url: 'clients/featured',
         params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
           limit: Math.min(limit, 50)
-        }
-      },
-      // Clients listings - general active listings
-      {
-        name: 'Clients Listings',
-        url: 'clients/listings',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 100),
-          offset: offset
-        }
-      },
-      // Clients search endpoint
-      {
-        name: 'Clients Search',
-        url: 'clients/search',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 100),
-          offset: offset
         }
       }
     ];
@@ -225,28 +227,55 @@ export class IdxBrokerAPI {
         // Build URL with parameters including search criteria
         let apiParams = { ...endpoint.params };
         
-        // Add search criteria to API parameters using correct IDX Broker parameter names
+        // Add search criteria using CORRECT IDX Broker parameter names
         // Location parameters
-        if (criteria.city) apiParams['city[]'] = criteria.city;
+        if (criteria.city) {
+          // For Los Angeles, try multiple variations
+          if (criteria.city.toLowerCase().includes('los angeles')) {
+            apiParams['city[]'] = 'Los Angeles';
+          } else {
+            apiParams['city[]'] = criteria.city;
+          }
+        }
         if (criteria.state) apiParams.state = criteria.state;
         if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
         
-        // Price parameters - use lp/hp (not lp_min/lp_max)
-        if (criteria.minPrice) apiParams.lp = criteria.minPrice;
-        if (criteria.maxPrice) apiParams.hp = criteria.maxPrice;
+        // Price parameters - IDX uses lp (low price) and hp (high price)
+        if (criteria.minPrice) apiParams.lp = criteria.minPrice.toString();
+        if (criteria.maxPrice) apiParams.hp = criteria.maxPrice.toString();
         
-        // Bedroom/bathroom parameters - use beds/baths (not bd/tb)
-        if (criteria.bedrooms) apiParams.beds = criteria.bedrooms;
-        if (criteria.bathrooms) apiParams.baths = criteria.bathrooms;
+        // Bedroom/bathroom parameters - IDX uses bd (bedrooms) and tb (total baths)
+        if (criteria.bedrooms) apiParams.bd = criteria.bedrooms.toString();
+        if (criteria.bathrooms) apiParams.tb = criteria.bathrooms.toString();
         
-        // Property type - use numeric values
-        if (criteria.propertyType === 'sfr') apiParams.pt = '1';
-        if (criteria.propertyType === 'condo') apiParams.pt = '2';
+        // Property type - IDX uses pt with numeric values
+        if (criteria.propertyType) {
+          switch(criteria.propertyType.toLowerCase()) {
+            case 'sfr':
+            case 'single family':
+              apiParams.pt = '1';
+              break;
+            case 'condo':
+            case 'condominium':
+              apiParams.pt = '2';
+              break;
+            case 'townhouse':
+              apiParams.pt = '3';
+              break;
+            case 'multi-family':
+              apiParams.pt = '4';
+              break;
+          }
+        }
+        
+        // Add property status filter for active listings
+        apiParams['a_propStatus[]'] = 'Active';
         
         const queryParams = this.buildQueryParams(apiParams);
         const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;
         
         console.log(`[IDX-Official] Attempting to fetch from URL: ${url}`);
+        console.log(`[IDX-Official] API Parameters:`, apiParams);
         
         const response = await axios.get(url, {
           headers: this.getStandardHeaders(),

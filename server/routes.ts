@@ -178,7 +178,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let idxListings;
       try {
         const { fetchIdxListingsOfficial } = await import('./idx-broker-official');
+        console.log("[express] Calling IDX API with search criteria:", JSON.stringify(searchCriteria, null, 2));
         idxListings = await fetchIdxListingsOfficial(searchCriteria);
+        
+        console.log(`[express] IDX API returned ${idxListings.listings.length} results`);
         
         // If empty results from API, use authentic California data
         if (idxListings.listings.length === 0) {

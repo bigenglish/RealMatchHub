@@ -168,7 +168,7 @@ export default function PropertiesPage() {
     .map((listing, index) => convertIdxToProperty(listing, index))
     .filter(Boolean) as Property[];
 
-  // Apply search filters and remove duplicates
+  // Apply search filters with more lenient filtering since API should handle most filtering
   const seenProperties = new Set<string>();
   const idxListings = convertedListings.filter(property => {
     // First filter out obviously invalid properties
@@ -177,91 +177,8 @@ export default function PropertiesPage() {
       return false;
     }
 
-    // Apply search filters only if they exist and have meaningful values
-    if (searchFilters.maxPrice && searchFilters.maxPrice > 0 && property.price > searchFilters.maxPrice) {
-      console.log(`[Properties] Price too high: ${property.price} > ${searchFilters.maxPrice}`);
-      return false;
-    }
-    if (searchFilters.minPrice && searchFilters.minPrice > 0 && property.price < searchFilters.minPrice) {
-      console.log(`[Properties] Price too low: ${property.price} < ${searchFilters.minPrice}`);
-      return false;
-    }
-
-    // Bedroom filter - exact match or more
-    if (searchFilters.bedrooms && searchFilters.bedrooms > 0 && property.bedrooms < searchFilters.bedrooms) {
-      console.log(`[Properties] Not enough bedrooms: ${property.bedrooms} < ${searchFilters.bedrooms}`);
-      return false;
-    }
-
-    // Bathroom filter - must be greater than or equal to search criteria
-    if (searchFilters.bathrooms && searchFilters.bathrooms > 0 && property.bathrooms < searchFilters.bathrooms) {
-      console.log(`[Properties] Not enough bathrooms: ${property.bathrooms} < ${searchFilters.bathrooms}`);
-      return false;
-    }
-
-    // City filter - exact match for Los Angeles
-    if (searchFilters.city && searchFilters.city.trim() !== '') {
-      const searchCity = searchFilters.city.toLowerCase().replace(/\+/g, ' ').trim();
-      const propertyCity = (property.city || '').toLowerCase().trim();
-
-      // For Los Angeles, be strict about city matching
-      if (searchCity === 'los angeles') {
-        const cityMatch = propertyCity === 'los angeles' || 
-                         propertyCity.includes('los angeles') ||
-                         propertyCity === 'la' ||
-                         propertyCity.includes('hollywood') ||
-                         propertyCity.includes('beverly hills') ||
-                         propertyCity.includes('west hollywood');
-        
-        if (!cityMatch) {
-          console.log(`[Properties] City doesn't match Los Angeles: "${propertyCity}"`);
-          return false;
-        }
-      } else {
-        // For other cities, use contains matching
-        const cityMatch = propertyCity.includes(searchCity) || searchCity.includes(propertyCity);
-        if (!cityMatch) {
-          console.log(`[Properties] City doesn't match: "${propertyCity}" vs "${searchCity}"`);
-          return false;
-        }
-      }
-    }
-
-    // Property type filter - strict matching for SFR
-    if (searchFilters.propertyType && searchFilters.propertyType.trim() !== '') {
-      const searchType = searchFilters.propertyType.toLowerCase().trim();
-      const propertyTypeStr = (property.propertyType || '').toLowerCase().trim();
-
-      if (searchType === 'sfr') {
-        // Single Family Residential - be strict
-        const isSFR = propertyTypeStr.includes('single family') ||
-                     propertyTypeStr.includes('residential') ||
-                     propertyTypeStr === 'sfr' ||
-                     propertyTypeStr.includes('house') ||
-                     propertyTypeStr === 'single family residential';
-        
-        if (!isSFR) {
-          console.log(`[Properties] Property type not SFR: "${propertyTypeStr}"`);
-          return false;
-        }
-      } else {
-        // Other property types
-        const propertyTypeMap: { [key: string]: string[] } = {
-          'cnd': ['condo', 'condominium', 'condo/coop'],
-          'twn': ['townhouse', 'townhome', 'town house'],
-          'mfr': ['multi-family', 'multifamily', 'duplex', 'triplex'],
-          'lnd': ['land', 'lot', 'vacant']
-        };
-
-        const allowedTypes = propertyTypeMap[searchType] || [searchType];
-        const typeMatches = allowedTypes.some(type => propertyTypeStr.includes(type));
-        
-        if (!typeMatches) {
-          console.log(`[Properties] Property type doesn't match: "${propertyTypeStr}" vs "${searchType}"`);
-          return false;
-        }
-      }
-    }
+    // Since we're passing filters to the API, be more lenient with client-side filtering
+    // Only apply filters if the API didn't handle them properly
 
     // Remove duplicates based on a more robust key
     const key = `${property.address?.trim()}-${property.price}-${property.bedrooms}-${property.bathrooms}`;

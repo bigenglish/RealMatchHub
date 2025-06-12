@@ -187,35 +187,38 @@ export class IdxBrokerAPI {
     
     console.log(`[IDX-Official] Fetching listings with criteria:`, criteria);
     
-    // Use only Client IDX Broker endpoints with corrected parameter names
+    // Use broader search to get more results, then filter client-side if needed
     const endpoints = [
+      // Clients listings - general active listings (try first with broader parameters)
+      {
+        name: 'Clients Listings Broad', 
+        url: 'clients/listings',
+        params: {
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
+          limit: Math.min(limit * 2, 500), // Request more to ensure we have enough after filtering
+          offset: offset,
+          // Use broader search parameters
+          'a_propStatus[]': 'Active'
+        }
+      },
       // Clients search endpoint - most flexible for filtering
       {
         name: 'Clients Search',
         url: 'clients/search',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit, 100),
-          offset: offset
+          limit: Math.min(limit * 2, 500),
+          offset: offset,
+          'a_propStatus[]': 'Active'
         }
       },
-      // Clients listings - general active listings
-      {
-        name: 'Clients Listings', 
-        url: 'clients/listings',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit, 100),
-          offset: offset
-        }
-      },
-      // Clients featured properties
+      // Clients featured properties as fallback
       {
         name: 'Clients Featured',
         url: 'clients/featured',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,mlsID',
-          limit: Math.min(limit, 50)
+          limit: Math.min(limit, 100)
         }
       }
     ];
@@ -227,45 +230,38 @@ export class IdxBrokerAPI {
         // Build URL with parameters including search criteria
         let apiParams = { ...endpoint.params };
         
-        // Add search criteria using CORRECT IDX Broker parameter names
-        // Location parameters
+        // For broader results, only apply location and status filters to the API
+        // We'll do more specific filtering client-side
+        
+        // Location parameters - be more flexible
         if (criteria.city) {
           // For Los Angeles, try multiple variations
           if (criteria.city.toLowerCase().includes('los angeles')) {
-            apiParams['city[]'] = 'Los Angeles';
+            // Don't restrict by city in API call - get all CA properties
+            apiParams.state = 'CA';
           } else {
             apiParams['city[]'] = criteria.city;
           }
+        } else {
+          // Default to California to get substantial results
+          apiParams.state = 'CA';
         }
-        if (criteria.state) apiParams.state = criteria.state;
-        if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
         
-        // Price parameters - IDX uses lp (low price) and hp (high price)
-        if (criteria.minPrice) apiParams.lp = criteria.minPrice.toString();
-        if (criteria.maxPrice) apiParams.hp = criteria.maxPrice.toString();
+        // Only use broader price range to ensure we get results
+        if (criteria.maxPrice && criteria.maxPrice < 5000000) {
+          apiParams.hp = '5000000'; // Use broader range
+        }
+        if (criteria.minPrice && criteria.minPrice > 200000) {
+          apiParams.lp = '200000'; // Use broader range
+        }
         
-        // Bedroom/bathroom parameters - IDX uses bd (bedrooms) and tb (total baths)
-        if (criteria.bedrooms) apiParams.bd = criteria.bedrooms.toString();
-        if (criteria.bathrooms) apiParams.tb = criteria.bathrooms.toString();
-        
-        // Property type - IDX uses pt with numeric values
-        if (criteria.propertyType) {
-          switch(criteria.propertyType.toLowerCase()) {
-            case 'sfr':
-            case 'single family':
-              apiParams.pt = '1';
-              break;
-            case 'condo':
-            case 'condominium':
-              apiParams.pt = '2';
-              break;
-            case 'townhouse':
-              apiParams.pt = '3';
-              break;
-            case 'multi-family':
-              apiParams.pt = '4';
-              break;
-          }
+        // Don't restrict bedrooms/bathrooms in API call - filter client-side
+        // Property type - only if very specific
+        if (criteria.propertyType && criteria.propertyType.toLowerCase() === 'condo') {
+          apiParams.pt = '2';
+        } else {
+          // Default to residential properties
+          apiParams.pt = '1,2,3'; // Include SFR, Condo, Townhouse
         }
         
         // Add property status filter for active listings
@@ -292,13 +288,51 @@ export class IdxBrokerAPI {
         let hasMoreListings: boolean = false;
 
         if (Array.isArray(rawData)) {
-          listings = rawData
+          // Transform all properties first
+          let allListings = rawData
             .filter(item => item && typeof item === 'object')
             .map((item, index) => this.transformIdxProperty(item, index))
             .filter(listing => listing !== null) as IdxListing[];
 
+          // Apply client-side filtering to get specific results
+          listings = allListings.filter(listing => {
+            // City filter
+            if (criteria.city && listing.city) {
+              const cityMatch = listing.city.toLowerCase().includes(criteria.city.toLowerCase()) ||
+                               criteria.city.toLowerCase().includes(listing.city.toLowerCase());
+              if (!cityMatch) return false;
+            }
+            
+            // Price filters
+            if (criteria.minPrice && listing.price < criteria.minPrice) return false;
+            if (criteria.maxPrice && listing.price > criteria.maxPrice) return false;
+            
+            // Bedroom filter
+            if (criteria.bedrooms && listing.bedrooms !== criteria.bedrooms) return false;
+            
+            // Bathroom filter (allow some flexibility - within 0.5)
+            if (criteria.bathrooms) {
+              const bathDiff = Math.abs(listing.bathrooms - criteria.bathrooms);
+              if (bathDiff > 0.5) return false;
+            }
+            
+            // Property type filter
+            if (criteria.propertyType) {
+              const typeMatch = criteria.propertyType.toLowerCase() === 'sfr' && 
+                               listing.propertyType.toLowerCase().includes('single family');
+              if (criteria.propertyType.toLowerCase() === 'sfr' && !typeMatch) return false;
+            }
+            
+            return true;
+          });
+
+          // Limit results after filtering
+          if (criteria.limit && listings.length > criteria.limit) {
+            listings = listings.slice(0, criteria.limit);
+          }
+
           totalCount = listings.length;
-          hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
+          hasMoreListings = allListings.length > listings.length;
 
         } else if (rawData && typeof rawData === 'object') {
           if (rawData.errors) {

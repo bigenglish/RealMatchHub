@@ -12,6 +12,7 @@ import {
 } from "@shared/schema";
 import { fetchIdxListings, testIdxConnection } from "./idx-broker-comprehensive-fix"; // Import from comprehensive fix
 import { mlsSearchAPI } from "./idx-broker-mls-search"; // Import MLS search for full database access
+import { mlsClientAPI } from "./idx-mls-client"; // Import MLS Client API for full database access
 import { debugIdxBrokerApi } from "./idx-debug"; // Import debug utility
 import { isValidIdxApiKey } from "./idx-key-validator"; // Import the new validator
 import {
@@ -176,11 +177,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      // Try MLS search API first for full database access, then fallback to featured listings
+      // Try MLS Client API first for full database access optimized for Client accounts
       let idxListings;
       try {
-        console.log("[express] Calling MLS Search API for full database access");
-        const mlsResults = await mlsSearchAPI.searchMLS(searchCriteria);
+        console.log("[express] Calling MLS Client API for full database access");
+        const mlsResults = await mlsClientAPI.searchProperties(searchCriteria);
         
         console.log(`[express] MLS Search returned ${mlsResults.listings.length} results`);
         

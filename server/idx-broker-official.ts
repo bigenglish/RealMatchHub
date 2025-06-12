@@ -225,21 +225,21 @@ export class IdxBrokerAPI {
         // Build URL with parameters including search criteria
         let apiParams = { ...endpoint.params };
         
-        // Add search criteria to API parameters
-        // Location parameters - use array format for city
+        // Add search criteria to API parameters using correct IDX Broker parameter names
+        // Location parameters
         if (criteria.city) apiParams['city[]'] = criteria.city;
         if (criteria.state) apiParams.state = criteria.state;
         if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
         
-        // Price parameters - use lp/hp format
+        // Price parameters - use lp/hp (not lp_min/lp_max)
         if (criteria.minPrice) apiParams.lp = criteria.minPrice;
         if (criteria.maxPrice) apiParams.hp = criteria.maxPrice;
         
-        // Bedroom/bathroom parameters - use beds/baths format
+        // Bedroom/bathroom parameters - use beds/baths (not bd/tb)
         if (criteria.bedrooms) apiParams.beds = criteria.bedrooms;
         if (criteria.bathrooms) apiParams.baths = criteria.bathrooms;
         
-        // Property type - map to numeric values
+        // Property type - use numeric values
         if (criteria.propertyType === 'sfr') apiParams.pt = '1';
         if (criteria.propertyType === 'condo') apiParams.pt = '2';
         

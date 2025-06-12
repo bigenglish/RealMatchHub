@@ -1,4 +1,3 @@
-
 export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
   const {
     limit = 50,
@@ -32,7 +31,7 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
     // - clients/soldpending GET  
     // - clients/supplemental GET
     // - mls/search (requires MLS ID)
-    
+
     const endpoints = [
       {
         name: 'MLS Search',
@@ -164,9 +163,10 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
             });
 
             if (validProperties.length > 0) {
-              const transformedProperties = validProperties.map((item, index) => this.transformIdxProperty(item, index));
+              const transformedProperties = validProperties.map((item: any, index: number) => this.transformIdxProperty(item, index));
 
-              console.log(`[IDX-Official] Successfully transformed ${transformedProperties.length} valid properties from ${endpoint.url}`);
+              console.log(`[IDX-Official] ✅ SUCCESS: Found ${validProperties.length} valid properties from ${endpoint.name}`);
+              console.log(`[IDX-Official] ✅ Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
 
               const filteredListings = transformedProperties.filter(listing => listing !== null);
 
@@ -192,7 +192,8 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
                 if (validProperties.length > 0) {
                   const transformedProperties = validProperties.map((item: any, index: number) => this.transformIdxProperty(item, index));
 
-                  console.log(`[IDX-Official] Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
+              console.log(`[IDX-Official] ✅ SUCCESS: Found ${validProperties.length} valid properties from ${endpoint.name}`);
+              console.log(`[IDX-Official] ✅ Successfully transformed ${transformedProperties.length} properties from nested ${key} in ${endpoint.url}`);
 
                   const filteredListings = transformedProperties.filter(listing => listing !== null);
 

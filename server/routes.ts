@@ -902,20 +902,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Comprehensive IDX diagnostics endpoint using new API client
+  // Comprehensive IDX diagnostics endpoint using Client-only API
   app.get("/api/idx-full-diagnostics", async (_req, res) => {
     try {
       console.log("[express] Running enhanced IDX diagnostics with MLS discovery...");
       const { IdxBrokerAPI } = await import('./idx-broker-api-client');
       const api = new IdxBrokerAPI();
-      const diagnostics = await api.runDiagnostics();
       
-      console.log("[express] IDX diagnostics completed:");
-      console.log(`- Available MLS IDs: ${diagnostics.availableMlsIds.length}`);
-      console.log(`- Accessible endpoints: ${diagnostics.accessibleEndpoints.length}`);
-      console.log(`- Connection tests: ${diagnostics.connectionTests.length}`);
+      const results: { [key: string]: any } = {};
+
+      // Test basic account info access
+      try {
+        results.accountInfoTest = await api.testConnection('clients/accountinfo');
+        console.log('[express] clients/accountinfo result:', results.accountInfoTest.success);
+      } catch (error: any) {
+        results.accountInfoTest = { success: false, error: error.message };
+        console.error('[express] Error testing clients/accountinfo:', error.message);
+      }
+
+      // Test getting available MLS IDs
+      try {
+        results.availableMlsIds = await api.getAvailableMlsIds();
+        console.log(`[express] Found ${results.availableMlsIds.length} available MLS IDs`);
+      } catch (error: any) {
+        results.availableMlsIds = [];
+        console.error('[express] Error fetching available MLS IDs:', error.message);
+      }
+
+      // Test getting accessible Client endpoints
+      try {
+        results.accessibleEndpoints = await api.getAccessibleEndpoints();
+        console.log(`[express] Found ${results.accessibleEndpoints.length} accessible Client endpoints`);
+      } catch (error: any) {
+        results.accessibleEndpoints = [];
+        console.error('[express] Error fetching accessible endpoints:', error.message);
+      }
+
+      // Test Client endpoints only (no Partners)
+      const clientEndpointsToTest = [
+        'clients/featured',
+        'clients/listings', 
+        'clients/activels',
+        'clients/search'
+      ];
+
+      results.endpointTests = {};
       
-      res.json(diagnostics);
+      for (const endpoint of clientEndpointsToTest) {
+        try {
+          console.log(`[express] Testing Client endpoint: ${endpoint}`);
+          const testResult = await api.fetchListings(endpoint, { limit: 5, city: 'Los Angeles' });
+          results.endpointTests[endpoint] = {
+            success: true,
+            listingCount: testResult.listings.length,
+            sampleListing: testResult.listings[0] || null
+          };
+          console.log(`[express] ${endpoint}: ${testResult.listings.length} listings found`);
+        } catch (error: any) {
+          results.endpointTests[endpoint] = {
+            success: false,
+            error: error.message,
+            status: error.response?.status
+          };
+          console.error(`[express] ${endpoint} failed:`, error.message);
+        }
+      }
+
+      // Generate recommendation based on Client endpoints only
+      const workingEndpoints = Object.keys(results.endpointTests).filter(
+        endpoint => results.endpointTests[endpoint].success
+      );
+      
+      if (workingEndpoints.length > 0) {
+        results.recommendation = `Found ${workingEndpoints.length} working Client endpoints: ${workingEndpoints.join(', ')}. Use these for property searches.`;
+        results.suggestedEndpoint = workingEndpoints[0];
+      } else {
+        results.recommendation = 'No Client endpoints returned data. Check account configuration or API permissions.';
+      }
+      
+      console.log("[express] IDX Client diagnostics completed");
+      res.json({
+        message: 'IDX Broker Client API Diagnostics Completed',
+        timestamp: new Date().toISOString(),
+        ...results
+      });
     } catch (error) {
       console.error("Error running IDX diagnostics:", error);
       res.status(500).json({ 

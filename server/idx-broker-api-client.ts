@@ -65,7 +65,7 @@ export interface IdxResponse {
 export class IdxBrokerAPI {
   private apiKey: string;
   private baseUrl = 'https://api.idxbroker.com';
-  private apiVersion = '1.8.0'; // As per your provided documentation example snippets
+  private apiVersion = '1.8.0';
   private userAgent = 'RealEstateApp/1.0 (Contact: support@yourdomain.com)';
 
   constructor() {
@@ -79,8 +79,6 @@ export class IdxBrokerAPI {
   /**
    * Helper to build URL query parameters from an object,
    * ensuring correct encoding and filtering out undefined/null/empty string values.
-   * @param params An object of key-value pairs for query parameters.
-   * @returns A URL-encoded query string.
    */
   private buildQueryParams(params: { [key: string]: any }): string {
     const filteredParams: { [key: string]: any } = {};
@@ -97,7 +95,7 @@ export class IdxBrokerAPI {
    */
   private getStandardHeaders() {
     return {
-      'accesskey': this.apiKey, // Keep lowercase as it works with current implementation
+      'accesskey': this.apiKey,
       'outputtype': 'json',
       'Version': this.apiVersion,
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -118,7 +116,6 @@ export class IdxBrokerAPI {
       });
 
       if (response.status === 200 && response.data) {
-        // Extract MLS IDs from the response
         const mlsIds: string[] = [];
         
         if (Array.isArray(response.data)) {
@@ -308,126 +305,79 @@ export class IdxBrokerAPI {
   }
 
   /**
-   * Enhanced fetchListings with dynamic endpoint discovery
+   * Fetch listings from a specific endpoint (no internal looping)
    */
-  public async fetchListings(criteria: PropertySearchCriteria = {}): Promise<IdxResponse> {
-    const { limit = 50, offset = 0 } = criteria;
+  public async fetchListings(endpoint: string, criteria: PropertySearchCriteria = {}): Promise<IdxResponse> {
+    console.log(`[IDX-API] Fetching listings from endpoint: ${endpoint}`);
     
-    // Get available MLS IDs and endpoints
-    const availableMlsIds = await this.getAvailableMlsIds();
-    const accessibleEndpoints = await this.getAccessibleEndpoints();
+    const params = this.mapSearchParameters(criteria);
+    const queryParams = this.buildQueryParams(params);
+    const url = `${this.baseUrl}/${endpoint}${queryParams ? '?' + queryParams : ''}`;
     
-    console.log('[IDX-API] Available MLS IDs:', availableMlsIds);
-    console.log('[IDX-API] Accessible endpoints:', accessibleEndpoints);
+    console.log(`[IDX-API] Request URL: ${url}`);
+    
+    try {
+      const response = await axios.get(url, {
+        headers: this.getStandardHeaders(),
+        timeout: 15000
+      });
 
-    // Build endpoint list based on discovery
-    const endpoints = [
-      // Dynamic MLS endpoints
-      ...availableMlsIds.map(mlsId => ({
-        name: `MLS Search (${mlsId})`,
-        url: `mls/search/${mlsId}`,
-        params: this.mapSearchParameters({ ...criteria, mlsId })
-      })),
+      console.log(`[IDX-API] Response status: ${response.status}`);
+      const rawData = response.data;
       
-      // Standard client endpoints
-      {
-        name: 'Clients Featured',
-        url: 'clients/featured',
-        params: this.mapSearchParameters(criteria)
-      },
-      {
-        name: 'Clients Listings',
-        url: 'clients/listings',
-        params: this.mapSearchParameters(criteria)
-      },
-      {
-        name: 'Clients Search',
-        url: 'clients/search',
-        params: this.mapSearchParameters(criteria)
+      if (response.data?.errors) {
+        console.error('[IDX-API] IDX Broker API reported errors:', response.data.errors);
+        throw new Error(`IDX API Error: ${JSON.stringify(response.data.errors)}`);
       }
-    ];
 
-    // Try each endpoint
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`[IDX-API] Trying endpoint: ${endpoint.name}`);
+      let listings: IdxListing[] = [];
+      let totalCount: number = 0;
+      let hasMoreListings: boolean = false;
+
+      if (Array.isArray(rawData)) {
+        listings = rawData
+          .filter(item => item && typeof item === 'object')
+          .map((item, index) => this.transformIdxProperty(item, index))
+          .filter(listing => listing !== null) as IdxListing[];
+
+        totalCount = listings.length;
+        hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
+
+      } else if (rawData && typeof rawData === 'object') {
+        // Handle object responses - look for property arrays
+        const possibleListingProperties = ['listings', 'properties', 'results', 'data'];
+        let foundListings = false;
         
-        const queryParams = this.buildQueryParams(endpoint.params);
-        const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;
-        
-        console.log(`[IDX-API] Attempting to fetch from URL: ${url}`);
-        
-        const response = await axios.get(url, {
-          headers: this.getStandardHeaders(),
-          timeout: 15000
-        });
-
-        console.log(`[IDX-API] Received status: ${response.status} from ${endpoint.name}`);
-        const rawData = response.data;
-        
-        if (response.data?.errors) {
-          console.error('[IDX-API] IDX Broker API reported errors:', response.data.errors);
-          continue;
-        }
-
-        let listings: IdxListing[] = [];
-        let totalCount: number = 0;
-        let hasMoreListings: boolean = false;
-
-        if (Array.isArray(rawData)) {
-          listings = rawData
-            .filter(item => item && typeof item === 'object')
-            .map((item, index) => this.transformIdxProperty(item, index))
-            .filter(listing => listing !== null) as IdxListing[];
-
-          totalCount = listings.length;
-          hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
-
-        } else if (rawData && typeof rawData === 'object') {
-          // Handle object responses - look for property arrays
-          const possibleListingProperties = ['listings', 'properties', 'results', 'data'];
-          let foundListings = false;
-          
-          for (const prop of possibleListingProperties) {
-            if (rawData[prop] && Array.isArray(rawData[prop])) {
-              listings = rawData[prop]
-                .filter((item: any) => item && typeof item === 'object')
-                .map((item: any, index: number) => this.transformIdxProperty(item, index))
-                .filter((listing: any) => listing !== null) as IdxListing[];
-              
-              totalCount = listings.length;
-              hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
-              foundListings = true;
-              break;
-            }
-          }
-          
-          if (!foundListings) {
-            console.warn(`[IDX-API] Unexpected response format from ${endpoint.name}, trying next endpoint`);
-            continue;
+        for (const prop of possibleListingProperties) {
+          if (rawData[prop] && Array.isArray(rawData[prop])) {
+            listings = rawData[prop]
+              .filter((item: any) => item && typeof item === 'object')
+              .map((item: any, index: number) => this.transformIdxProperty(item, index))
+              .filter((listing: any) => listing !== null) as IdxListing[];
+            
+            totalCount = listings.length;
+            hasMoreListings = criteria.limit !== undefined && listings.length === criteria.limit;
+            foundListings = true;
+            break;
           }
         }
-
-        if (listings.length > 0) {
-          console.log(`[IDX-API] ✅ SUCCESS: Found ${listings.length} valid properties from ${endpoint.name}`);
-          return { listings, totalCount, hasMoreListings };
-        } else {
-          console.log(`[IDX-API] No properties found in ${endpoint.name}, trying next endpoint`);
+        
+        if (!foundListings) {
+          console.warn(`[IDX-API] Unexpected response format from ${endpoint}`);
         }
-
-      } catch (error: any) {
-        console.error(`[IDX-API] Error with ${endpoint.name}:`, error.message);
-        if (error.response) {
-          console.error(`[IDX-API] Response Status: ${error.response.status}`);
-          console.error(`[IDX-API] Response Data:`, JSON.stringify(error.response.data, null, 2));
-        }
-        continue;
       }
+
+      console.log(`[IDX-API] Processed ${listings.length} listings from ${endpoint}`);
+      return { listings, totalCount, hasMoreListings };
+
+    } catch (error: any) {
+      console.error(`[IDX-API] Error with ${endpoint}:`, error.message);
+      if (error.response) {
+        console.error(`[IDX-API] Response Status: ${error.response.status}`);
+        console.error(`[IDX-API] Response Data:`, JSON.stringify(error.response.data, null, 2));
+      }
+      throw error;
     }
-
-    // If we get here, all endpoints failed
-    console.warn('[IDX-API] All endpoints failed to return property data');
-    return { listings: [], totalCount: 0, hasMoreListings: false };
   }
 
   public async testConnection(endpoint: string = 'clients/accountinfo'): Promise<any> {
@@ -490,18 +440,18 @@ export class IdxBrokerAPI {
       diagnostics.availableMlsIds = await this.getAvailableMlsIds();
       diagnostics.accessibleEndpoints = await this.getAccessibleEndpoints();
       
-      // Test sample listing fetch
+      // Test sample listing fetch using Client endpoints only
       try {
-        const sampleListings = await this.fetchListings({ limit: 5 });
+        const sampleListings = await this.fetchListings('clients/featured', { limit: 5 });
         diagnostics.connectionTests.push({
-          endpoint: 'fetchListings',
+          endpoint: 'clients/featured',
           success: sampleListings.listings.length > 0,
           listingCount: sampleListings.listings.length,
           sampleListing: sampleListings.listings[0] || null
         });
       } catch (error) {
         diagnostics.connectionTests.push({
-          endpoint: 'fetchListings',
+          endpoint: 'clients/featured',
           success: false,
           error: error instanceof Error ? error.message : String(error)
         });
@@ -510,7 +460,7 @@ export class IdxBrokerAPI {
 
     // Generate recommendation
     if (diagnostics.availableMlsIds.length > 0) {
-      diagnostics.recommendation = `Found ${diagnostics.availableMlsIds.length} MLS systems. API is properly configured for ${diagnostics.accessibleEndpoints.length} endpoints.`;
+      diagnostics.recommendation = `Found ${diagnostics.availableMlsIds.length} MLS systems. API is properly configured for ${diagnostics.accessibleEndpoints.length} Client endpoints.`;
     } else if (connectionTest.success) {
       diagnostics.recommendation = 'Basic API access confirmed, but MLS discovery failed. Check account permissions.';
     } else {
@@ -541,7 +491,8 @@ export async function testIdxConnection(): Promise<{ success: boolean; message: 
 export async function fetchIdxListings(criteria: PropertySearchCriteria = {}): Promise<IdxResponse> {
   try {
     const api = new IdxBrokerAPI();
-    return await api.fetchListings(criteria);
+    // Use clients/featured as default endpoint for backward compatibility
+    return await api.fetchListings('clients/featured', criteria);
   } catch (error) {
     console.error('[IDX-API] Error in fetchIdxListings:', error);
     return {

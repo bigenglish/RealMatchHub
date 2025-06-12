@@ -226,15 +226,22 @@ export class IdxBrokerAPI {
         let apiParams = { ...endpoint.params };
         
         // Add search criteria to API parameters
-        if (criteria.city) apiParams.city = criteria.city;
+        // Location parameters - use array format for city
+        if (criteria.city) apiParams['city[]'] = criteria.city;
         if (criteria.state) apiParams.state = criteria.state;
         if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
+        
+        // Price parameters - use lp/hp format
         if (criteria.minPrice) apiParams.lp = criteria.minPrice;
         if (criteria.maxPrice) apiParams.hp = criteria.maxPrice;
+        
+        // Bedroom/bathroom parameters - use beds/baths format
         if (criteria.bedrooms) apiParams.beds = criteria.bedrooms;
         if (criteria.bathrooms) apiParams.baths = criteria.bathrooms;
-        if (criteria.propertyType === 'sfr') apiParams.pt = 'sfr';
-        if (criteria.propertyType === 'condo') apiParams.pt = 'cnd';
+        
+        // Property type - map to numeric values
+        if (criteria.propertyType === 'sfr') apiParams.pt = '1';
+        if (criteria.propertyType === 'condo') apiParams.pt = '2';
         
         const queryParams = this.buildQueryParams(apiParams);
         const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;

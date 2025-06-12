@@ -1,3 +1,4 @@
+
 export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
   const {
     limit = 50,
@@ -24,25 +25,29 @@ export async function fetchIdxListingsOfficial(criteria: PropertySearchCriteria)
     const apiKey = process.env.IDX_BROKER_API_KEY;
     console.log(`[IDX-Official] Using API key: ${apiKey.substring(0, 4)}...`);
 
-    // Validate API key format
-    if (!apiKey.startsWith('a') || apiKey.length !== 22) {
-      console.warn(`[IDX-Official] API key format warning: Expected format 'a...' with 22 characters, got '${apiKey.substring(0, 4)}...' with ${apiKey.length} characters`);
-    }
-
+    // Based on the IDX API documentation provided, we need to use proper endpoints
+    // The documentation shows these available endpoints:
+    // - clients/featured GET
+    // - clients/listings (not in docs but commonly used)
+    // - clients/soldpending GET  
+    // - clients/supplemental GET
+    // - mls/search (requires MLS ID)
+    
     const endpoints = [
       {
-        name: 'Featured Properties',
-        url: 'https://api.idxbroker.com/clients/featured',
+        name: 'MLS Search',
+        url: 'https://api.idxbroker.com/mls/search',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
           limit: criteria.limit || 50
         }
       },
       {
-        name: 'System Links',
-        url: 'https://api.idxbroker.com/clients/systemlinks',
+        name: 'Featured Properties',
+        url: 'https://api.idxbroker.com/clients/featured',
         params: {
-          rf: 'url,name,category,systemresults'
+          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
+          limit: criteria.limit || 50
         }
       },
       {

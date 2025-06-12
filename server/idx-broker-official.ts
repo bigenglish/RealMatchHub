@@ -187,10 +187,24 @@ export class IdxBrokerAPI {
     
     // Use correct IDX Broker endpoints for actual property listings
     const endpoints = [
-      // MLS search with proper MLS ID
+      // Partners search - most comprehensive for property listings
+      {
+        name: 'Partners Search',
+        url: 'partners/listingssearch',
+        params: {
+          pt: 'sfr,cnd', // Property types: Single Family Residential, Condominium
+          lp: criteria.maxPrice ? `0-${criteria.maxPrice}` : undefined,
+          bd: criteria.bedrooms || undefined,
+          tb: criteria.bathrooms || undefined,
+          city: criteria.city || undefined,
+          limit: Math.min(limit, 100),
+          offset: offset
+        }
+      },
+      // MLS search with dynamic MLS ID discovery
       {
         name: 'MLS Search',
-        url: 'mls/search/d025',
+        url: 'mls/search',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
           limit: Math.min(limit, 100),
@@ -199,20 +213,10 @@ export class IdxBrokerAPI {
           orderdir: 'DESC'
         }
       },
-      // Clients search endpoint
+      // Clients featured properties (often has active listings)
       {
-        name: 'Clients Search',
-        url: 'clients/search',
-        params: {
-          rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
-          limit: Math.min(limit, 100),
-          offset: offset
-        }
-      },
-      // Clients listings endpoint
-      {
-        name: 'Clients Listings',
-        url: 'clients/listings',
+        name: 'Clients Featured',
+        url: 'clients/featured',
         params: {
           rf: 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate',
           limit: Math.min(limit, 50)
@@ -224,8 +228,21 @@ export class IdxBrokerAPI {
       try {
         console.log(`[IDX-Official] Trying endpoint: ${endpoint.name}`);
         
-        // Build URL with parameters
-        const queryParams = this.buildQueryParams(endpoint.params);
+        // Build URL with parameters including search criteria
+        let apiParams = { ...endpoint.params };
+        
+        // Add search criteria to API parameters
+        if (criteria.city) apiParams.city = criteria.city;
+        if (criteria.state) apiParams.state = criteria.state;
+        if (criteria.zipCode) apiParams.zipcode = criteria.zipCode;
+        if (criteria.minPrice) apiParams.lp_min = criteria.minPrice;
+        if (criteria.maxPrice) apiParams.lp_max = criteria.maxPrice;
+        if (criteria.bedrooms) apiParams.bd = criteria.bedrooms;
+        if (criteria.bathrooms) apiParams.tb = criteria.bathrooms;
+        if (criteria.propertyType === 'sfr') apiParams.pt = 'sfr';
+        if (criteria.propertyType === 'condo') apiParams.pt = 'cnd';
+        
+        const queryParams = this.buildQueryParams(apiParams);
         const url = `${this.baseUrl}/${endpoint.url}${queryParams ? '?' + queryParams : ''}`;
         
         console.log(`[IDX-Official] Attempting to fetch from URL: ${url}`);

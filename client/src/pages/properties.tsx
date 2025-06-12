@@ -187,57 +187,79 @@ export default function PropertiesPage() {
       return false;
     }
 
-    // For bedrooms and bathrooms, be more flexible - use >= instead of exact match
+    // Bedroom filter - exact match or more
     if (searchFilters.bedrooms && searchFilters.bedrooms > 0 && property.bedrooms < searchFilters.bedrooms) {
       console.log(`[Properties] Not enough bedrooms: ${property.bedrooms} < ${searchFilters.bedrooms}`);
       return false;
     }
+
+    // Bathroom filter - must be greater than or equal to search criteria
     if (searchFilters.bathrooms && searchFilters.bathrooms > 0 && property.bathrooms < searchFilters.bathrooms) {
       console.log(`[Properties] Not enough bathrooms: ${property.bathrooms} < ${searchFilters.bathrooms}`);
       return false;
     }
 
-    // City filter - be more flexible with matching
+    // City filter - exact match for Los Angeles
     if (searchFilters.city && searchFilters.city.trim() !== '') {
       const searchCity = searchFilters.city.toLowerCase().replace(/\+/g, ' ').trim();
       const propertyCity = (property.city || '').toLowerCase().trim();
 
-      // Check if search city is contained in property city or vice versa
-      const cityMatch = propertyCity.includes(searchCity) || searchCity.includes(propertyCity);
-
-      if (!cityMatch) {
-        console.log(`[Properties] City doesn't match: "${propertyCity}" vs "${searchCity}"`);
-        return false;
+      // For Los Angeles, be strict about city matching
+      if (searchCity === 'los angeles') {
+        const cityMatch = propertyCity === 'los angeles' || 
+                         propertyCity.includes('los angeles') ||
+                         propertyCity === 'la' ||
+                         propertyCity.includes('hollywood') ||
+                         propertyCity.includes('beverly hills') ||
+                         propertyCity.includes('west hollywood');
+        
+        if (!cityMatch) {
+          console.log(`[Properties] City doesn't match Los Angeles: "${propertyCity}"`);
+          return false;
+        }
+      } else {
+        // For other cities, use contains matching
+        const cityMatch = propertyCity.includes(searchCity) || searchCity.includes(propertyCity);
+        if (!cityMatch) {
+          console.log(`[Properties] City doesn't match: "${propertyCity}" vs "${searchCity}"`);
+          return false;
+        }
       }
     }
 
-    // Property type filter - handle multiple types and be more flexible
+    // Property type filter - strict matching for SFR
     if (searchFilters.propertyType && searchFilters.propertyType.trim() !== '') {
-      const propertyTypes = searchFilters.propertyType.split(',').map(t => t.trim().toLowerCase());
+      const searchType = searchFilters.propertyType.toLowerCase().trim();
+      const propertyTypeStr = (property.propertyType || '').toLowerCase().trim();
 
-      const propertyTypeMap: { [key: string]: string[] } = {
-        'sfr': ['single family', 'residential', 'house', 'sfr'],
-        'cnd': ['condo', 'condominium', 'condo/coop'],
-        'twn': ['townhouse', 'townhome', 'town house'],
-        'mfr': ['multi-family', 'multifamily', 'duplex', 'triplex'],
-        'lnd': ['land', 'lot', 'vacant']
-      };
-
-      let typeMatches = false;
-      for (const searchType of propertyTypes) {
-        const allowedTypes = propertyTypeMap[searchType] || [searchType];
-        const propertyTypeMatch = allowedTypes.some(type => 
-          property.propertyType?.toLowerCase().includes(type)
-        );
-        if (propertyTypeMatch) {
-          typeMatches = true;
-          break;
+      if (searchType === 'sfr') {
+        // Single Family Residential - be strict
+        const isSFR = propertyTypeStr.includes('single family') ||
+                     propertyTypeStr.includes('residential') ||
+                     propertyTypeStr === 'sfr' ||
+                     propertyTypeStr.includes('house') ||
+                     propertyTypeStr === 'single family residential';
+        
+        if (!isSFR) {
+          console.log(`[Properties] Property type not SFR: "${propertyTypeStr}"`);
+          return false;
         }
-      }
+      } else {
+        // Other property types
+        const propertyTypeMap: { [key: string]: string[] } = {
+          'cnd': ['condo', 'condominium', 'condo/coop'],
+          'twn': ['townhouse', 'townhome', 'town house'],
+          'mfr': ['multi-family', 'multifamily', 'duplex', 'triplex'],
+          'lnd': ['land', 'lot', 'vacant']
+        };
 
-      if (!typeMatches) {
-        console.log(`[Properties] Property type doesn't match: "${property.propertyType}" vs "${searchFilters.propertyType}"`);
-        return false;
+        const allowedTypes = propertyTypeMap[searchType] || [searchType];
+        const typeMatches = allowedTypes.some(type => propertyTypeStr.includes(type));
+        
+        if (!typeMatches) {
+          console.log(`[Properties] Property type doesn't match: "${propertyTypeStr}" vs "${searchType}"`);
+          return false;
+        }
       }
     }
 

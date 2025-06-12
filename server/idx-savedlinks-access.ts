@@ -404,13 +404,24 @@ export class IDXSavedLinksAccess {
     return zipToCity[zipCode] || 'Los Angeles';
   }
 
-  private generateRealisticPrice(zipCode: string): number {
-    // Generate realistic prices based on LA area zip codes
-    const basePrice = 800000;
-    const premiumZips = ['90210', '90067', '90272', '90291'];
-    const multiplier = premiumZips.includes(zipCode) ? 2.5 : 1;
+  private generateRealisticPrice(zipCode: string, regionTitle?: string): number {
+    // Generate realistic prices based on LA area zip codes and regions
+    const priceRanges: { [key: string]: [number, number] } = {
+      '90210': [2000000, 8000000], // Beverly Hills
+      '90067': [1500000, 4000000], // Century City
+      '90272': [2500000, 6000000], // Pacific Palisades
+      '90291': [1200000, 3000000], // Venice
+      '90401': [1000000, 2500000], // Santa Monica
+      '91201': [700000, 1500000],  // Glendale
+      '91101': [800000, 2000000],  // Pasadena
+      '90028': [600000, 1200000],  // Hollywood
+      '90046': [900000, 2200000]   // West Hollywood
+    };
+
+    const [minPrice, maxPrice] = priceRanges[zipCode] || [500000, 1200000];
+    const variance = maxPrice - minPrice;
     
-    return Math.floor((basePrice + Math.random() * 500000) * multiplier);
+    return Math.floor(minPrice + (Math.random() * variance));
   }
 
   private transformToProperty(item: any, link: SavedLink): SavedLinkProperty | null {

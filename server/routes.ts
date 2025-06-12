@@ -179,11 +179,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("[express] Search criteria:", JSON.stringify(searchCriteria, null, 2));
       console.log("[express] Fetching properties from IDX Broker with filters applied");
       
-      // Access California Regional MLS through saved search configurations
+      // Access California Regional MLS database directly
       let idxListings;
       try {
-        console.log("[express] Accessing California Regional MLS via saved search configurations");
-        const mlsResults = await idxSavedLinksAccess.searchViaSavedLinks(searchCriteria);
+        console.log("[express] Accessing California Regional MLS database (1,500 properties)");
+        const { californiaRegionalMLS } = await import('./idx-mls-direct-access');
+        const mlsResults = await californiaRegionalMLS.searchMLSDatabase(searchCriteria);
         
         console.log(`[express] MLS Search returned ${mlsResults.listings.length} results`);
         

@@ -234,7 +234,7 @@ export default function HomePage() {
 
             <div className="p-4">
               <script 
-                charset="UTF-8" 
+                charSet="UTF-8" 
                 type="text/javascript" 
                 id="idxaddons-autocomplete-script" 
                 src="https://idxaddons.com/addon/searchtool/YXZBZ2VvLTI5aTE%3D@C1r6rrCR9VuUqT2gs@dUd/?pts=tabs" 
@@ -628,8 +628,7 @@ export default function HomePage() {
             ) : userType === 'Renters' ? (
               <>
                 {/* FREE Tier - Renters */}
-                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">
-                  <div className="bg-olive-600 p-4 text-white text-center">
+                <div className="rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white flex flex-col h-full">                  <div className="bg-olive-600 p-4 text-white text-center">
                     <h3 className="text-3xl font-bold">FREE</h3>
                   </div>
                   <div className="p-6 bg-amber-50 flex-1 flex flex-col">

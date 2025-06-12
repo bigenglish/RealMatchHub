@@ -67,8 +67,13 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   // Using a higher port to avoid conflicts
-  const port = 5000;
-  server.listen(port, "0.0.0.0", () => {
+  const port = process.env.PORT || 5000;
+  
+  server.listen(port, "0.0.0.0", (err?: Error) => {
+    if (err) {
+      log(`Failed to start server on port ${port}: ${err.message}`);
+      process.exit(1);
+    }
     log(`serving on port ${port}`);
   });
 })();

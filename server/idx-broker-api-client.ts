@@ -111,22 +111,31 @@ export class IdxBrokerAPI {
    * @returns A transformed IdxListing object or null if invalid.
    */
   private transformIdxProperty(idxProperty: any, index: number): IdxListing | null {
-    const listingId = idxProperty.idxID || idxProperty.listingID || idxProperty.id || `temp-idx-${index}`;
+    // Use proper IDX field names
+    const listingId = idxProperty.idxID || idxProperty.listingID || idxProperty.id || `idx-${index}`;
 
-    if (!idxProperty || typeof idxProperty !== 'object' || !listingId) {
+    if (!idxProperty || typeof idxProperty !== 'object') {
+      return null;
+    }
+
+    // Skip system links and configuration items
+    if (idxProperty.name && idxProperty.url && idxProperty.category && !idxProperty.address) {
+      console.log(`[IDX-API] Filtering out system link: ${idxProperty.name}`);
       return null;
     }
 
     // Validate address - must be meaningful
     const address = idxProperty.address || idxProperty.fullAddress || idxProperty.displayAddress;
-    if (!address || address === 'Address not available' || address.length < 5) {
+    if (!address || address === 'Address not available' || address.length < 3) {
+      console.log(`[IDX-API] Filtering out property with invalid address: ${address}`);
       return null;
     }
 
     // Validate price - must be realistic for real estate
     const price = parseFloat(idxProperty.listPrice || idxProperty.price || '0') || 0;
-    if (price < 50000 || price > 50000000) {
-      return null; // Skip unrealistic prices
+    if (price < 10000 || price > 100000000) {
+      console.log(`[IDX-API] Filtering out property with unrealistic price: ${price}`);
+      return null;
     }
 
     let images: string[] = [];
@@ -202,8 +211,7 @@ export class IdxBrokerAPI {
    * Fetches listings from a specified IDX Broker API endpoint with search criteria.
    * This method targets a single endpoint and handles all parameter mapping and response transformation.
    *
-   * @param endpoint The specific API path, e.g., 'clients/featured', 'clients/activels', 'mls/search'.
-   * You MUST confirm the correct endpoint for general active listings from IDX Broker docs.
+   * @param endpoint The specific API path, e.g., 'clients/featured', 'clients/listings', 'clients/search'.
    * @param criteria Search criteria to filter listings.
    * @returns A promise that resolves to an IdxResponse object.
    */
@@ -215,36 +223,41 @@ export class IdxBrokerAPI {
 
     const queryParams: any = {};
 
-    // Always include return fields for property data
-    queryParams.rf = 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,daysOnMarket,mlsID,photos,listingAgentName,listingOfficeName';
+    // Always include return fields for property data - using correct IDX field names
+    queryParams.rf = 'idxID,address,cityName,state,zipcode,listPrice,bedrooms,totalBaths,sqFt,propType,image,remarksConcat,listDate,yearBuilt,lotSize,daysOnMarket,mlsID,listingAgentName,listingOfficeName';
 
     // Pagination
     queryParams.limit = limit;
     queryParams.offset = offset;
 
-    // Price filters: lp (low price), hp (high price)
-    if (minPrice) queryParams.lp = minPrice;
-    if (maxPrice) queryParams.hp = maxPrice;
+    // Price filters: Use correct IDX parameter names
+    if (minPrice) queryParams.lp = minPrice;  // Low price
+    if (maxPrice) queryParams.hp = maxPrice;  // High price
 
-    // Bedroom/Bathroom filters: beds (bedrooms), baths (total baths) - CORRECTED
-    if (bedrooms) queryParams.beds = bedrooms; // Changed from bd to beds
-    if (bathrooms) queryParams.baths = bathrooms; // Changed from tb to baths
+    // Bedroom/Bathroom filters: Use correct IDX parameter names
+    if (bedrooms) queryParams.bd = bedrooms;  // Bedrooms
+    if (bathrooms) queryParams.tb = bathrooms;  // Total bathrooms
 
-    // Property type filter: pt (property type)
-    if (propertyType) {
-      queryParams.pt = this.mapPropertyType(propertyType);
+    // Property type filter
+    if (propertyType && propertyType !== 'sfr') {
+      queryParams.pt = propertyType;
+    } else if (propertyType === 'sfr') {
+      queryParams.pt = '1'; // Single family residential
     }
 
-    // Location filters: city[] for array of cities, state, zipcode
+    // Location filters: Use correct IDX parameter format
     if (city) {
-      queryParams['city[]'] = city; // Using array format for city
+      queryParams['city[]'] = city.replace(/\s+/g, '+');
     }
     if (state) queryParams.state = state;
     if (zipCode) queryParams.zipcode = zipCode;
 
-    // MLS ID filter if using an MLS-specific endpoint like mls/search
+    // Add status filter to get only active listings
+    queryParams['a_propStatus[]'] = 'Active';
+
+    // MLS ID filter
     if (mlsId) {
-        queryParams.idxID = mlsId; // This is the parameter for MLS ID in many MLS-level calls
+        queryParams.idxID = mlsId;
     }
 
     // Add other criteria from PropertySearchCriteria if IDX Broker supports them

@@ -519,7 +519,7 @@ const authenticCaliforniaProperties: IdxListing[] = [
   }
 ];
 
-export async function fetchAuthenticCaliforniaProperties(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number }> {
+export async function fetchAuthenticCaliforniaProperties(criteria: PropertySearchCriteria): Promise<{ listings: IdxListing[], totalCount: number, source: string }> {
   const {
     limit = 50,
     offset = 0,
@@ -583,8 +583,16 @@ export async function fetchAuthenticCaliforniaProperties(criteria: PropertySearc
 
   console.log(`[Authentic-CA] Returning ${paginatedProperties.length} properties for page`);
 
+  // Mark properties as demo data
+  const markedProperties = paginatedProperties.map(property => ({
+    ...property,
+    description: `[DEMO DATA] ${property.description}`,
+    status: 'Demo'
+  }));
+
   return {
-    listings: paginatedProperties,
-    totalCount: filteredProperties.length
+    listings: markedProperties,
+    totalCount: filteredProperties.length,
+    source: 'fallback-demo'
   };
 }

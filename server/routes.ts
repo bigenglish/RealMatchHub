@@ -186,8 +186,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { IdxBrokerAPI } = await import('./idx-broker-api-client');
         const api = new IdxBrokerAPI();
         
+        // First test the connection
+        const connectionTest = await api.testConnection();
+        console.log("[express] IDX connection test result:", connectionTest);
+        
+        if (!connectionTest.success) {
+          throw new Error(`IDX API connection failed: ${connectionTest.error}`);
+        }
+        
         // Try multiple endpoints to get real property data
-        const endpoints = ['clients/listings', 'clients/search', 'clients/featured'];
+        const endpoints = ['clients/featured', 'clients/listings', 'clients/search'];
         let apiResults = null;
         
         for (const endpoint of endpoints) {
@@ -197,10 +205,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (apiResults.listings.length > 0) {
               console.log(`[express] Success with ${endpoint}: ${apiResults.listings.length} listings`);
+              console.log("[express] Sample listing:", JSON.stringify(apiResults.listings[0], null, 2));
               break;
             }
           } catch (endpointError: any) {
             console.log(`[express] ${endpoint} failed: ${endpointError.message}`);
+            console.log(`[express] Full error:`, endpointError);
             continue;
           }
         }
@@ -241,23 +251,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalCount: apiResults.totalCount
           });
         } else {
-          console.log("[express] No results from IDX Broker API, using fallback data");
-          throw new Error("No results from IDX API");
+          console.log("[express] No results from IDX Broker API endpoints");
+          throw new Error("No results from any IDX API endpoint");
         }
       } catch (error: any) {
-        console.log("[express] IDX Broker API error, using fallback:", error.message);
+        console.error("[express] IDX Broker API completely failed:", error.message);
+        console.error("[express] Stack trace:", error.stack);
         
-        // Only use fallback as last resort
+        // Check if API key is configured
+        const apiKey = process.env.IDX_BROKER_API_KEY;
+        if (!apiKey) {
+          console.error("[express] IDX_BROKER_API_KEY is not configured!");
+        } else {
+          console.log("[express] API key configured, length:", apiKey.length);
+        }
+        
+        // Use fallback data but mark it clearly
         try {
           const { fetchAuthenticCaliforniaProperties } = await import('./idx-authentic-fallback');
           idxListings = await fetchAuthenticCaliforniaProperties(searchCriteria);
+          console.warn("[express] Using fallback demo data - not real MLS listings");
         } catch (fallbackError: any) {
-          console.log("[express] All methods failed:", fallbackError.message);
-          // Return empty results rather than broken data
+          console.error("[express] Even fallback failed:", fallbackError.message);
           return res.json({
             yourProperties: [],
             idxListings: [],
-            totalCount: 0
+            totalCount: 0,
+            error: "Unable to fetch property data",
+            usingFallback: false
           });
         }
       }
@@ -307,10 +328,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = {
         yourProperties: [], // Empty array since we're only using IDX
         idxListings: convertedListings,
+        totalCount: convertedListings.length,
+        usingFallback: !!idxListings?.source, // Indicate if using fallback data
+        dataSource: idxListings?.source || 'idx-api'
       };
 
       console.log("[express] Sending response with:", {
-        idxListingsCount: convertedListings.length
+        idxListingsCount: convertedListings.length,
+        usingFallback: response.usingFallback,
+        dataSource: response.dataSource
       });
 
       // Update cache
@@ -1317,6 +1343,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ 
         success: false, 
         message: "Raw test failed: " + error.message 
+      });
+    }
+  });
+
+  // Comprehensive IDX diagnostic endpoint
+  app.get("/api/idx-comprehensive-diagnostic", async (_req, res) => {
+    try {
+      const apiKey = process.env.IDX_BROKER_API_KEY;
+      const diagnostic = {
+        timestamp: new Date().toISOString(),
+        apiKeyStatus: {
+          present: !!apiKey,
+          length: apiKey?.length || 0,
+          format: apiKey?.startsWith('@') ? 'new format' : apiKey?.startsWith('a') ? 'traditional format' : 'unknown',
+          validFormat: apiKey ? (apiKey.startsWith('a') && apiKey.length >= 32) : false
+        },
+        connectionTests: [],
+        endpointTests: [],
+        recommendation: ''
+      };
+
+      if (!apiKey) {
+        diagnostic.recommendation = 'Configure IDX_BROKER_API_KEY environment variable';
+        return res.json(diagnostic);
+      }
+
+      // Test basic connection
+      try {
+        const { IdxBrokerAPI } = await import('./idx-broker-api-client');
+        const api = new IdxBrokerAPI();
+        const connectionTest = await api.testConnection();
+        diagnostic.connectionTests.push({
+          endpoint: 'clients/accountinfo',
+          success: connectionTest.success,
+          status: connectionTest.status,
+          error: connectionTest.error
+        });
+
+        if (connectionTest.success) {
+          // Test different property endpoints
+          const endpoints = ['clients/featured', 'clients/listings', 'clients/search', 'clients/systemlinks'];
+          
+          for (const endpoint of endpoints) {
+            try {
+              const result = await api.fetchListings(endpoint, { limit: 5 });
+              diagnostic.endpointTests.push({
+                endpoint,
+                success: true,
+                listingCount: result.listings.length,
+                hasRealData: result.listings.some(l => l.description && l.description.length > 50)
+              });
+            } catch (error: any) {
+              diagnostic.endpointTests.push({
+                endpoint,
+                success: false,
+                error: error.message
+              });
+            }
+          }
+        }
+      } catch (error: any) {
+        diagnostic.connectionTests.push({
+          endpoint: 'initialization',
+          success: false,
+          error: error.message
+        });
+      }
+
+      // Generate recommendation
+      const workingEndpoints = diagnostic.endpointTests.filter(t => t.success && t.listingCount > 0);
+      if (workingEndpoints.length === 0) {
+        diagnostic.recommendation = 'No working IDX endpoints found. Check API key configuration or contact IDX Broker support.';
+      } else {
+        const hasRealData = workingEndpoints.some(e => e.hasRealData);
+        diagnostic.recommendation = hasRealData ? 
+          'IDX integration working with real MLS data' : 
+          'IDX endpoints responding but may be returning limited/demo data';
+      }
+
+      res.json(diagnostic);
+    } catch (error: any) {
+      res.status(500).json({
+        error: 'Diagnostic failed',
+        message: error.message
       });
     }
   });

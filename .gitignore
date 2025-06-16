@@ -4,3 +4,49 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Sensitive server files
+server/temp-credentials.json
+server/.env
+
+# IDX API keys and credentials
+**/idx-broker-api-key*
+**/api-keys*
+
+# Firebase private keys
+**/firebase-private-key*
+**/service-account*
+
+# Database files
+*.db
+*.sqlite
+
+# Logs
+*.log
+logs/
+
+# Node modules
+node_modules/
+dist/
+
+# Build files
+build/
+.next/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Replit specific
+.config/
+attached_assets/
